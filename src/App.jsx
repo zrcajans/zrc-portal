@@ -355,6 +355,7 @@ const STORAGE_KEYS = {
   projects: 'zrc-projects',
   teamMembers: 'zrc-team-members',
   customers: 'zrc-customers',
+  deletedCustomers: 'zrc-deleted-customers',
   selectedProject: 'zrc-selected-project',
   quickNotes: 'zrc-home-quick-notes',
   activityNotifications: 'zrc-activity-notifications',
@@ -456,6 +457,51 @@ const normalizeStorageArray = (value, fallbackValue = []) =>
 
 const normalizeStorageObject = (value, fallbackValue = {}) =>
   value && typeof value === 'object' && !Array.isArray(value) ? value : fallbackValue;
+
+const LEGACY_DEMO_CUSTOMER_NAME_KEYS = new Set(['orneksirket', 'afirmasi', 'bholding']);
+
+const isLegacyDemoCustomerRecord = (customer = {}) =>
+  LEGACY_DEMO_CUSTOMER_NAME_KEYS.has(normalizeCredentialText(customer.name));
+
+const getDeletedCustomerMarkers = () =>
+  normalizeStorageArray(readStorageValue('deletedCustomers', []), []);
+
+const buildDeletedCustomerMarker = (customer = {}) => ({
+  id: String(customer.supabaseId || customer.id || ''),
+  name: normalizeCredentialText(customer.name),
+  email: normalizeCredentialText(customer.email),
+  deletedAt: new Date().toISOString()
+});
+
+const isCustomerMarkedDeleted = (customer = {}, markers = getDeletedCustomerMarkers()) => {
+  const customerId = String(customer.supabaseId || customer.id || '');
+  const customerName = normalizeCredentialText(customer.name);
+  const customerEmail = normalizeCredentialText(customer.email);
+
+  return markers.some((marker) => {
+    if (marker.id && customerId && marker.id === customerId) return true;
+    if (!marker.id && marker.email && customerEmail && marker.email === customerEmail) return true;
+    if (!marker.id && !marker.email && marker.name && customerName && marker.name === customerName) return true;
+    return false;
+  });
+};
+
+const rememberDeletedCustomer = (customer = {}) => {
+  const marker = buildDeletedCustomerMarker(customer);
+
+  if (!marker.id && !marker.name && !marker.email) return;
+
+  const previousMarkers = getDeletedCustomerMarkers();
+  const alreadyExists = previousMarkers.some((item) =>
+    (marker.id && item.id === marker.id) ||
+    (!marker.id && marker.email && item.email === marker.email) ||
+    (!marker.id && !marker.email && marker.name && item.name === marker.name)
+  );
+
+  if (alreadyExists) return;
+
+  writeStorageValue('deletedCustomers', [marker, ...previousMarkers].slice(0, 250));
+};
 
 const createDataSnapshot = ({
   projects,
@@ -607,8 +653,13 @@ function App() {
 
   const [customers, setCustomers] = useState(() => {
     const parsedCustomers = readStorageValue('customers', null);
+    const deletedCustomerMarkers = getDeletedCustomerMarkers();
     const initialCustomers = Array.isArray(parsedCustomers) ? parsedCustomers : createDefaultCustomers();
-    return initialCustomers.map(normalizeCustomerRecord);
+
+    return initialCustomers
+      .map(normalizeCustomerRecord)
+      .filter((customer) => !isLegacyDemoCustomerRecord(customer))
+      .filter((customer) => !isCustomerMarkedDeleted(customer, deletedCustomerMarkers));
   });
   const [customerDraft, setCustomerDraft] = useState({
     name: '',
@@ -1934,7 +1985,11 @@ function App() {
   const mergeSupabaseCustomersIntoLocalState = (dbCustomers = []) => {
     if (!Array.isArray(dbCustomers)) return;
 
-    const mappedCustomers = dbCustomers.map(mapSupabaseCustomerToLocal);
+    const deletedCustomerMarkers = getDeletedCustomerMarkers();
+    const mappedCustomers = dbCustomers
+      .map(mapSupabaseCustomerToLocal)
+      .filter((customer) => !isLegacyDemoCustomerRecord(customer))
+      .filter((customer) => !isCustomerMarkedDeleted(customer, deletedCustomerMarkers));
 
     setCustomers(mappedCustomers);
   };
@@ -7987,8 +8042,8 @@ function App() {
     return acc;
   }, {});
 
-  const customerPageItems = [
-    ...customers.map((customer) => ({
+  const customerPageItems = customers
+    .map((customer) => ({
       ...customer,
       avatar: createAvatarFromName(customer.name),
       taskStats: customerTaskStatsByName[customer.name] || {
@@ -7998,23 +8053,8 @@ function App() {
         overdue: 0
       },
       source: 'customer'
-    })),
-    ...Object.entries(customerTaskStatsByName)
-      .filter(([customerName]) => customerName !== 'Müşteri belirtilmemiş')
-      .filter(([customerName]) => !customers.some((customer) => customer.name.toLocaleLowerCase('tr-TR') === customerName.toLocaleLowerCase('tr-TR')))
-      .map(([customerName, taskStats]) => ({
-        id: `task-customer-${customerName}`,
-        name: customerName,
-        contact: '',
-        email: '',
-        phone: '',
-        note: 'Görevlerden otomatik oluştu.',
-        status: 'Aktif',
-        avatar: createAvatarFromName(customerName),
-        taskStats,
-        source: 'task'
-      }))
-  ].sort((firstCustomer, secondCustomer) => {
+    }))
+    .sort((firstCustomer, secondCustomer) => {
     if (firstCustomer.status === 'Pasif' && secondCustomer.status !== 'Pasif') return 1;
     if (firstCustomer.status !== 'Pasif' && secondCustomer.status === 'Pasif') return -1;
     return (secondCustomer.taskStats?.total || 0) - (firstCustomer.taskStats?.total || 0);
@@ -8283,6 +8323,7 @@ function App() {
     const deletedCustomer = customers.find((customer) => customer.id === customerId);
 
     if (deletedCustomer) {
+      rememberDeletedCustomer(deletedCustomer);
       deleteCustomerFromSupabase(deletedCustomer);
     }
 
@@ -9213,7 +9254,7 @@ function App() {
 
     writeStorageValue('projects', importedProjects);
     writeStorageValue('teamMembers', normalizeStorageArray(data.teamMembers, createDefaultTeamMembers()).map(normalizeTeamMember));
-    writeStorageValue('customers', normalizeStorageArray(data.customers, createDefaultCustomers()).map(normalizeCustomerRecord));
+    writeStorageValue('customers', normalizeStorageArray(data.customers, createDefaultCustomers()).map(normalizeCustomerRecord).filter((customer) => !isLegacyDemoCustomerRecord(customer)));
     writeStorageValue('selectedProject', importedSelectedProject);
     writeStorageValue('projectSettings', normalizeStorageObject(data.projectSettings, {}));
     writeStorageValue('projectBoards', normalizeStorageObject(data.projectBoards, {}));
