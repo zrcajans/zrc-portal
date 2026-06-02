@@ -1,0 +1,19 @@
+{
+  "name": "ZRC İş Takip",
+  "short_name": "ZRC",
+  "description": "ZRC iş takip, görev, proje, müşteri ve ekip yönetim paneli.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#ff3600",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/zrc-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
