@@ -5,7 +5,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v147-beyaz-ekran-kurtarma';
+const ZRC_APP_BUILD_LABEL = 'v151-musteri-bos-liste-duzeltme';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -347,36 +347,7 @@ const createDefaultTeamMembers = () => [
   { id: 'user-5', name: 'Demo Misafir', email: 'misafir@orneksirket.com', username: 'misafir', password: '1234', role: 'Müşteri/Misafir', avatar: 'DM', status: 'Aktif', customerId: 'customer-1' }
 ];
 
-const createDefaultCustomers = () => [
-  {
-    id: 'customer-1',
-    name: 'Örnek Şirket',
-    contact: 'Ayşe Demir',
-    email: 'iletisim@orneksirket.com',
-    phone: '+90 532 000 00 00',
-    note: 'Demo müşteri kaydı',
-    status: 'Aktif',
-    accountUserId: 'user-5'
-  },
-  {
-    id: 'customer-2',
-    name: 'A Firması',
-    contact: 'Mehmet Kaya',
-    email: 'info@afirmasi.com',
-    phone: '',
-    note: '',
-    status: 'Aktif'
-  },
-  {
-    id: 'customer-3',
-    name: 'B Holding',
-    contact: '',
-    email: '',
-    phone: '',
-    note: '',
-    status: 'Aktif'
-  }
-];
+const createDefaultCustomers = () => [];
 
 const APP_DATA_VERSION = 113;
 
@@ -636,7 +607,7 @@ function App() {
 
   const [customers, setCustomers] = useState(() => {
     const parsedCustomers = readStorageValue('customers', null);
-    const initialCustomers = Array.isArray(parsedCustomers) && parsedCustomers.length > 0 ? parsedCustomers : createDefaultCustomers();
+    const initialCustomers = Array.isArray(parsedCustomers) ? parsedCustomers : createDefaultCustomers();
     return initialCustomers.map(normalizeCustomerRecord);
   });
   const [customerDraft, setCustomerDraft] = useState({
@@ -1961,22 +1932,11 @@ function App() {
     });
 
   const mergeSupabaseCustomersIntoLocalState = (dbCustomers = []) => {
-    if (!Array.isArray(dbCustomers) || dbCustomers.length === 0) return;
+    if (!Array.isArray(dbCustomers)) return;
 
     const mappedCustomers = dbCustomers.map(mapSupabaseCustomerToLocal);
-    const dbIds = new Set(mappedCustomers.map((customer) => customer.id));
-    const dbNames = new Set(mappedCustomers.map((customer) => normalizeCredentialText(customer.name)));
 
-    setCustomers((prevCustomers) => {
-      const localOnlyCustomers = (prevCustomers || []).filter((customer) => {
-        const customerSupabaseId = customer.supabaseId || customer.id;
-        const customerNameKey = normalizeCredentialText(customer.name);
-
-        return !dbIds.has(customerSupabaseId) && !dbNames.has(customerNameKey);
-      });
-
-      return [...mappedCustomers, ...localOnlyCustomers];
-    });
+    setCustomers(mappedCustomers);
   };
 
   const replaceLocalCustomerIdWithSupabaseId = (localCustomerId, dbCustomerId) => {
