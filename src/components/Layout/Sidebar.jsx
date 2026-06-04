@@ -110,46 +110,26 @@ function Sidebar({
       <style>
         {`
           .zrc-sidebar-panel {
-            transform-origin: 0% 38%;
+            transform-origin: left center;
             transition:
-              transform 0.52s cubic-bezier(0.18, 0.92, 0.18, 1),
-              opacity 0.30s ease,
-              filter 0.34s ease,
-              clip-path 0.52s cubic-bezier(0.18, 0.92, 0.18, 1),
-              visibility 0.30s ease;
-            will-change: transform, opacity, filter, clip-path;
-            backface-visibility: hidden;
+              transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.18s ease,
+              box-shadow 0.22s ease;
+            will-change: transform, opacity;
           }
 
           .zrc-sidebar-panel-open {
-            transform: translateX(0) translateY(0) scaleX(1) scaleY(1) skewX(0deg) skewY(0deg);
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            transform: translateX(0);
             opacity: 1;
-            filter: blur(0);
             visibility: visible;
+            pointer-events: auto;
           }
 
           .zrc-sidebar-panel-closed {
-            transform: translateX(-250px) translateY(210px) scaleX(0.06) scaleY(0.035) skewX(-26deg) skewY(7deg);
-            clip-path: polygon(0 50%, 100% 8%, 100% 92%, 0 50%);
+            transform: translateX(-34px);
             opacity: 0;
-            filter: blur(4px);
             visibility: hidden;
             pointer-events: none;
-          }
-
-          .zrc-sidebar-panel::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background: linear-gradient(115deg, rgba(255,255,255,0.72), rgba(255,255,255,0) 42%);
-            opacity: 0;
-            transition: opacity 0.36s ease;
-          }
-
-          .zrc-sidebar-panel-open::before {
-            opacity: 1;
           }
 
           .zrc-menu-glow:hover svg,
