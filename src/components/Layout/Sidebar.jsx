@@ -88,8 +88,8 @@ function Sidebar({
         />
       )}
 
-      <aside className="w-[112px] h-screen flex flex-col items-center justify-center shrink-0 z-[300] fixed top-0 left-0 pointer-events-none">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[92px] rounded-[30px] border border-slate-200 bg-white shadow-[0_18px_46px_rgba(15,23,42,0.12)] px-2.5 py-3 pointer-events-auto">
+      <aside className="w-[96px] h-screen bg-[#f5f6f8] flex flex-col items-center justify-center shrink-0 z-[300] fixed top-0 left-0 pointer-events-none">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[72px] rounded-[26px] bg-transparent px-0 py-0 pointer-events-auto">
           <button
             type="button"
             onClick={() => {
@@ -97,10 +97,10 @@ function Sidebar({
               onProfileSelect?.();
             }}
             title={`${profileDraft?.firstName || 'Enes'} ${profileDraft?.lastName || 'Zariç'}`}
-            className={`group relative w-[68px] h-[54px] rounded-[20px] flex items-center justify-center cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden ${
+            className={`group relative w-[64px] h-[52px] rounded-[18px] flex items-center justify-center cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden ${
               activeMenu === 'Profil'
-                ? 'bg-[#ff3600] text-white shadow-[0_16px_28px_rgba(255,54,0,0.30)] scale-[1.04]'
-                : 'bg-white text-[#ff3600] border border-slate-200 shadow-sm hover:scale-110 hover:shadow-[0_16px_35px_rgba(255,54,0,0.18)]'
+                ? 'bg-[#ff3600] text-white shadow-[0_14px_26px_rgba(255,54,0,0.26)] scale-[1.03]'
+                : 'bg-white text-[#ff3600] border border-slate-200 shadow-[0_8px_20px_rgba(15,23,42,0.06)] hover:scale-105 hover:shadow-[0_14px_28px_rgba(255,54,0,0.14)]'
             }`}
           >
             {profileDraft?.avatarDataUrl ? (
@@ -112,10 +112,10 @@ function Sidebar({
             ) : (
               <span className="text-[12px] font-black tracking-[-0.04em]">{profileInitials}</span>
             )}
-            <span className="absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_30px_rgba(255,54,0,0.28)]" />
+            <span className="absolute inset-0 rounded-[18px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_22px_rgba(255,54,0,0.18)]" />
           </button>
 
-          <div className="my-3 mx-auto w-8 h-[1px] bg-slate-200" />
+          <div className="my-3" />
 
           <nav className="flex flex-col items-center gap-2 relative">
             {visibleMenuItems.map((item) => {
@@ -162,15 +162,15 @@ function Sidebar({
                     setIsPanelOpen(false);
                     onSimpleMenuSelect?.(item.id);
                   }}
-                  className={`group relative w-[68px] min-h-[58px] rounded-[20px] flex flex-col items-center justify-center gap-0.5 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                  className={`group relative w-[64px] min-h-[56px] rounded-[18px] flex flex-col items-center justify-center gap-0.5 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
                     isActive
-                      ? 'bg-[#ff3600] text-white scale-[1.04] shadow-[0_14px_30px_rgba(255,54,0,0.30)]'
-                      : 'bg-white text-slate-500 border border-slate-200 shadow-[0_7px_18px_rgba(15,23,42,0.06)] hover:text-[#ff3600] hover:scale-[1.06] hover:bg-[#fff7f4] hover:border-[#ff3600]/20 hover:shadow-[0_16px_30px_rgba(255,54,0,0.14)]'
+                      ? 'bg-[#ff3600] text-white scale-[1.03] shadow-[0_13px_26px_rgba(255,54,0,0.25)]'
+                      : 'bg-white text-slate-500 border border-slate-200 shadow-[0_8px_20px_rgba(15,23,42,0.06)] hover:text-[#ff3600] hover:scale-[1.05] hover:bg-white hover:border-[#ff3600]/18 hover:shadow-[0_13px_26px_rgba(255,54,0,0.12)]'
                   }`}
                   aria-label={item.id}
                   title={item.id}
                 >
-                  <span className="relative z-10 transition-all duration-300 group-hover:drop-shadow-[0_0_8px_rgba(255,54,0,0.42)]">
+                  <span className="relative z-10 transition-all duration-300 group-hover:drop-shadow-[0_0_6px_rgba(255,54,0,0.30)]">
                     {item.icon}
                   </span>
                   <span className={`relative z-10 max-w-[58px] truncate text-[8.8px] leading-none tracking-tight select-none ${isActive ? 'font-black text-white' : 'font-extrabold text-slate-500 group-hover:text-[#ff3600]'}`}>
@@ -178,7 +178,7 @@ function Sidebar({
                   </span>
 
                   {isActive && (
-                    <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-1.5 h-7 rounded-full bg-[#ff3600] shadow-[0_0_14px_rgba(255,54,0,0.55)]" />
+                    <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-7 rounded-full bg-[#ff3600] shadow-[0_0_12px_rgba(255,54,0,0.38)]" />
                   )}
                 </button>
               );
@@ -189,7 +189,7 @@ function Sidebar({
         <div
           ref={panelRef}
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-[112px] pointer-events-auto bg-white border border-slate-200 shadow-[22px_18px_55px_rgba(15,23,42,0.16)] flex flex-col z-[360] mac-genie-panel overflow-hidden ${
+          className={`absolute left-[96px] pointer-events-auto bg-white border border-slate-200 shadow-[22px_18px_55px_rgba(15,23,42,0.14)] flex flex-col z-[360] mac-genie-panel overflow-hidden ${
             isProjectsPanelOpen || isOtherPanelOpen ? 'genie-expanded' : 'genie-collapsed'
           } ${
             isOtherPanelOpen
