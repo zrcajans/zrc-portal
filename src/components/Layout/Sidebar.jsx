@@ -112,10 +112,10 @@ function Sidebar({
           .zrc-sidebar-panel {
             transform-origin: 0% 42%;
             transition:
-              transform 0.38s cubic-bezier(0.2, 0.9, 0.22, 1),
-              opacity 0.24s ease,
-              filter 0.24s ease,
-              visibility 0.24s ease;
+              transform 0.46s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.34s ease,
+              filter 0.34s ease,
+              visibility 0.34s ease;
             will-change: transform, opacity, filter;
           }
 
@@ -127,40 +127,17 @@ function Sidebar({
           }
 
           .zrc-sidebar-panel-closed {
-            transform: translateX(-18px) scaleX(0.04) scaleY(0.16) skewY(4deg);
+            transform: translateX(-22px) scaleX(0.08) scaleY(0.18) skewY(7deg);
             opacity: 0;
-            filter: blur(4px);
+            filter: blur(5px);
             visibility: hidden;
             pointer-events: none;
           }
 
           .zrc-menu-glow:hover svg,
           .zrc-menu-glow:hover span {
-            filter: drop-shadow(0 0 6px rgba(255,255,255,0.72));
-            text-shadow: 0 0 10px rgba(255,255,255,0.55);
-          }
-
-          .zrc-sidebar-premium {
-            transition-property: width, box-shadow;
-            transition-duration: 260ms;
-            transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
-            will-change: width;
-          }
-
-          .zrc-sidebar-item {
-            transition-property: transform, filter;
-            transition-duration: 180ms;
-            transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
-          }
-
-          .zrc-sidebar-item:hover {
-            transform: scale(1.035);
-          }
-
-          .zrc-sidebar-label {
-            transition-property: opacity, transform;
-            transition-duration: 150ms;
-            transition-timing-function: ease-out;
+            filter: drop-shadow(0 0 7px rgba(255,255,255,0.86));
+            text-shadow: 0 0 12px rgba(255,255,255,0.72);
           }
         `}
       </style>
@@ -171,9 +148,7 @@ function Sidebar({
         />
       )}
 
-      <div className="fixed top-0 left-0 w-[112px] h-screen bg-[#ffffff] z-[290] pointer-events-none" />
-
-      <aside className={`group/sidebar ${isSidebarExpanded ? 'w-[112px]' : 'w-[68px] hover:w-[112px]'} h-screen bg-[#ff3600] flex flex-col justify-between items-center py-6 shrink-0 z-[300] fixed top-0 left-0 shadow-[6px_0_28px_rgba(255,54,0,0.10)] hover:shadow-[12px_0_48px_rgba(255,54,0,0.18)] transition-[width,box-shadow] duration-[360ms] ease-[cubic-bezier(0.2,0.9,0.22,1)] overflow-visible`}>
+      <aside className={`group/sidebar ${isSidebarExpanded ? 'w-[112px]' : 'w-[68px] hover:w-[112px]'} h-screen bg-[#ff3600] flex flex-col justify-between items-center py-6 shrink-0 z-[300] fixed top-0 left-0 shadow-[6px_0_28px_rgba(255,54,0,0.12)] hover:shadow-[10px_0_42px_rgba(255,54,0,0.20)] transition-[width,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-visible`}>
         <div className="relative z-20">
           <button
             type="button"
@@ -182,7 +157,7 @@ function Sidebar({
               onProfileSelect?.();
             }}
             title={`${profileDraft?.firstName || 'Enes'} ${profileDraft?.lastName || 'Zariç'}`}
-            className={`w-[44px] h-[44px] rounded-full flex items-center justify-center border-2 cursor-pointer shadow-md overflow-hidden transition-[transform,border-color,background-color,color] duration-[180ms] ease-out hover:scale-[1.04] ${
+            className={`w-[44px] h-[44px] group-hover/sidebar:w-[50px] group-hover/sidebar:h-[50px] rounded-full flex items-center justify-center border-2 cursor-pointer apple-dock-effect hover-grow shadow-md overflow-hidden transition-all duration-500 ${
               activeMenu === 'Profil'
                 ? 'bg-white text-[#ff3600] border-white'
                 : 'bg-zinc-900 text-white border-white/20 hover:border-white'
@@ -208,8 +183,12 @@ function Sidebar({
             const isSearchBtn = item.id === 'Arama';
 
             return (
-              <div key={item.id} className="pl-2 w-full relative z-10 hover:z-20"> 
-                <div className="relative z-10 origin-right zrc-sidebar-item">
+              <div key={item.id} className={`${isSidebarExpanded ? 'pl-3' : 'pl-2 group-hover/sidebar:pl-3'} w-full relative z-10 hover:z-20 transition-[padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]`}> 
+                <div
+                  className={`relative z-10 origin-right transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                    isActive ? 'hover:scale-[1.045]' : 'hover:scale-[1.10]'
+                  }`}
+                >
                   <button
                     ref={isProjectsBtn ? projectsButtonRef : isOtherBtn ? otherButtonRef : null}
                     onClick={() => {
@@ -246,7 +225,7 @@ function Sidebar({
                       setIsPanelOpen(false);
                       onSimpleMenuSelect?.(item.id);
                     }}
-                    className={`w-full h-[74px] flex flex-col items-center justify-center relative z-10 apple-dock-btn overflow-hidden transition-[background-color,color,box-shadow,border-radius] duration-[190ms] ease-out ${
+                    className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect apple-dock-btn overflow-hidden transition-[background-color,color,transform,box-shadow,border-radius] duration-500 ${
                       isActive
                         ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[20px] active-menu-btn shadow-[0_10px_28px_rgba(15,23,42,0.08)]'
                         : 'text-white/80 rounded-l-[20px] zrc-menu-glow hover:text-white'
@@ -254,7 +233,7 @@ function Sidebar({
                     style={{ transformOrigin: 'right center' }}
                   >
                     {item.icon}
-                    <span className={`zrc-sidebar-label text-[10.5px] tracking-tight mt-1 select-none whitespace-nowrap ${isActive ? 'font-black' : 'font-bold'} ${isSidebarExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-0.5 group-hover/sidebar:opacity-100 group-hover/sidebar:translate-y-0'}`}>
+                    <span className={`text-[10.5px] tracking-tight mt-0.5 select-none overflow-hidden whitespace-nowrap transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isActive ? 'font-black' : 'font-bold'} ${isSidebarExpanded ? 'max-h-5 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1 group-hover/sidebar:max-h-5 group-hover/sidebar:opacity-100 group-hover/sidebar:translate-y-0'}`}>
                       {item.id}
                     </span>
                   </button>
@@ -272,7 +251,7 @@ function Sidebar({
                 </div>
 
                 {(isProjectsBtn || isOtherBtn) && (
-                  <div className={`absolute left-full top-0 w-5 h-full bg-[#ffffff] z-20 pointer-events-none transition-all duration-[320ms] ease-[cubic-bezier(0.2,0.9,0.22,1)] ${
+                  <div className={`absolute left-full top-0 w-5 h-full bg-[#ffffff] z-20 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     isActive && isPanelOpen ? 'scale-x-100 opacity-100 visible' : 'scale-x-0 opacity-0 invisible'
                   }`} style={{ transformOrigin: 'left center' }}>
                     <div className="absolute bottom-full right-0 w-4 h-4 bg-[#ffffff]">
