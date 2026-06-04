@@ -112,9 +112,9 @@ function Sidebar({
           .zrc-sidebar-panel {
             transform-origin: left center;
             transition:
-              transform 0.30s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
               opacity 0.18s ease,
-              visibility 0s linear 0.30s;
+              visibility 0s linear 0.28s;
             will-change: transform, opacity;
           }
 
@@ -127,7 +127,7 @@ function Sidebar({
           }
 
           .zrc-sidebar-panel-closed {
-            transform: translateX(calc(-100% - 6px));
+            transform: translateX(calc(-100% - 16px));
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
@@ -268,10 +268,12 @@ function Sidebar({
 
         <div className="w-full h-6 mb-1" />
 
+      </aside>
+
         <div
           ref={panelRef}
           onClick={(event) => event.stopPropagation()}
-          className={`fixed left-[68px] bg-[#ffffff] border-y border-r border-zinc-200/60 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[280] zrc-sidebar-panel overflow-hidden ${
+          className={`fixed left-[112px] bg-[#ffffff] border-y border-r border-zinc-200/60 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[280] zrc-sidebar-panel overflow-hidden ${
             isProjectsPanelOpen || isOtherPanelOpen ? 'zrc-sidebar-panel-open' : 'zrc-sidebar-panel-closed'
           } ${
             isOtherPanelOpen
@@ -415,7 +417,7 @@ function Sidebar({
           )}
 
         </div>
-      </aside>
+
     </>
   );
 }
