@@ -110,28 +110,46 @@ function Sidebar({
       <style>
         {`
           .zrc-sidebar-panel {
-            transform-origin: 0% 42%;
+            transform-origin: 0% 38%;
             transition:
-              transform 0.46s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.34s ease,
+              transform 0.52s cubic-bezier(0.18, 0.92, 0.18, 1),
+              opacity 0.30s ease,
               filter 0.34s ease,
-              visibility 0.34s ease;
-            will-change: transform, opacity, filter;
+              clip-path 0.52s cubic-bezier(0.18, 0.92, 0.18, 1),
+              visibility 0.30s ease;
+            will-change: transform, opacity, filter, clip-path;
+            backface-visibility: hidden;
           }
 
           .zrc-sidebar-panel-open {
-            transform: translateX(0) scaleX(1) scaleY(1) skewY(0deg);
+            transform: translateX(0) translateY(0) scaleX(1) scaleY(1) skewX(0deg) skewY(0deg);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
             opacity: 1;
             filter: blur(0);
             visibility: visible;
           }
 
           .zrc-sidebar-panel-closed {
-            transform: translateX(-22px) scaleX(0.08) scaleY(0.18) skewY(7deg);
+            transform: translateX(-250px) translateY(210px) scaleX(0.06) scaleY(0.035) skewX(-26deg) skewY(7deg);
+            clip-path: polygon(0 50%, 100% 8%, 100% 92%, 0 50%);
             opacity: 0;
-            filter: blur(5px);
+            filter: blur(4px);
             visibility: hidden;
             pointer-events: none;
+          }
+
+          .zrc-sidebar-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(115deg, rgba(255,255,255,0.72), rgba(255,255,255,0) 42%);
+            opacity: 0;
+            transition: opacity 0.36s ease;
+          }
+
+          .zrc-sidebar-panel-open::before {
+            opacity: 1;
           }
 
           .zrc-menu-glow:hover svg,
