@@ -5,7 +5,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v153-kolon-duzenleme-silme-fix';
+const ZRC_APP_BUILD_LABEL = 'v155-kolon-kalici-silme-final';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -191,6 +191,40 @@ const defaultBoardColumns = [
 const normalizeColumnTitleForDisplay = (title = '') => {
   const cleanTitle = String(title || '').trim();
   return cleanTitle === 'Bekliyor' ? 'Yeni Görev' : cleanTitle;
+};
+
+const getDeletedColumnStorageKey = (projectName = '') =>
+  `zrc-deleted-column-titles-${String(projectName || '').trim()}`;
+
+const getDeletedColumnTitleKeys = (projectName = '') =>
+  new Set(
+    normalizeStorageArray(readStorageValue(getDeletedColumnStorageKey(projectName), []), [])
+      .map((title) => normalizeColumnTitleForDisplay(title))
+      .filter(Boolean)
+  );
+
+const rememberDeletedColumnTitle = (projectName = '', title = '') => {
+  const normalizedTitle = normalizeColumnTitleForDisplay(title);
+  if (!projectName || !normalizedTitle) return;
+
+  const storageKey = getDeletedColumnStorageKey(projectName);
+  const previousTitles = normalizeStorageArray(readStorageValue(storageKey, []), []);
+  const previousNormalizedTitles = previousTitles.map((item) => normalizeColumnTitleForDisplay(item));
+
+  if (previousNormalizedTitles.includes(normalizedTitle)) return;
+
+  writeStorageValue(storageKey, [...previousTitles, normalizedTitle]);
+};
+
+const forgetDeletedColumnTitle = (projectName = '', title = '') => {
+  const normalizedTitle = normalizeColumnTitleForDisplay(title);
+  if (!projectName || !normalizedTitle) return;
+
+  const storageKey = getDeletedColumnStorageKey(projectName);
+  const nextTitles = normalizeStorageArray(readStorageValue(storageKey, []), [])
+    .filter((item) => normalizeColumnTitleForDisplay(item) !== normalizedTitle);
+
+  writeStorageValue(storageKey, nextTitles);
 };
 
 const createDefaultProjectBoard = () => ({
@@ -4033,11 +4067,7 @@ function App() {
       const existingBoard = prevBoards[projectName] || createDefaultProjectBoard();
       const dbColumnsById = new Map((dbColumns || []).map((column) => [column.id, column]));
       const hasSupabaseColumns = Array.isArray(dbColumns) && dbColumns.length > 0;
-      const deletedColumnTitleKeys = new Set(
-        normalizeStorageArray(readStorageValue(`zrc-deleted-column-titles-${projectName}`, []), [])
-          .map((title) => normalizeColumnTitleForDisplay(title))
-          .filter(Boolean)
-      );
+      const deletedColumnTitleKeys = getDeletedColumnTitleKeys(projectName);
 
       const rawBaseColumns = hasSupabaseColumns
         ? (dbColumns || []).map((dbColumn, index) => ({
@@ -4147,6 +4177,30 @@ function App() {
 
       if (columnsError) throw columnsError;
 
+      const deletedColumnTitleKeys = getDeletedColumnTitleKeys(selectedProject);
+      const deletedDbColumns = (dbColumns || []).filter((column) =>
+        deletedColumnTitleKeys.has(normalizeColumnTitleForDisplay(column.title))
+      );
+
+      let activeDbColumns = (dbColumns || []).filter(
+        (column) => !deletedColumnTitleKeys.has(normalizeColumnTitleForDisplay(column.title))
+      );
+
+      if (deletedDbColumns.length > 0) {
+        const deletedDbColumnIds = deletedDbColumns.map((column) => column.id).filter(isSupabaseUuid);
+
+        if (deletedDbColumnIds.length > 0) {
+          const { error: archiveDeletedColumnsError } = await supabase
+            .from('board_columns')
+            .update({ is_archived: true })
+            .in('id', deletedDbColumnIds);
+
+          if (archiveDeletedColumnsError) {
+            console.warn('[ZRC] Silinmiş kolon işaretleri Supabase arşivine alınamadı.', archiveDeletedColumnsError);
+          }
+        }
+      }
+
       const { data: dbTasks, error: tasksError } = await supabase
         .from('tasks')
         .select('id, column_id, title, description, rich_description, priority, status, start_date, due_date, end_date, tags, is_archived, customer_id, created_at, updated_at')
@@ -4206,7 +4260,7 @@ function App() {
         }));
       }
 
-      mergeSupabaseBoardIntoLocalState(selectedProject, dbColumns || [], enrichedTasks);
+      mergeSupabaseBoardIntoLocalState(selectedProject, activeDbColumns || [], enrichedTasks);
       setSupabaseWriteInfo('saved', 'Supabase görev ve detaylar yüklendi');
     } catch (error) {
       setSupabaseWriteInfo('error', `Supabase okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
@@ -4317,11 +4371,7 @@ function App() {
       tasks: updatedColumn?.tasks || editingColumn?.tasks || []
     };
 
-    const deletedColumnStorageKey = `zrc-deleted-column-titles-${selectedProject}`;
-    const savedColumnTitleKey = normalizeColumnTitleForDisplay(columnToSave.title);
-    const cleanedDeletedColumnTitles = normalizeStorageArray(readStorageValue(deletedColumnStorageKey, []), [])
-      .filter((title) => normalizeColumnTitleForDisplay(title) !== savedColumnTitleKey);
-    writeStorageValue(deletedColumnStorageKey, cleanedDeletedColumnTitles);
+    forgetDeletedColumnTitle(selectedProject, columnToSave.title);
 
     setBoardColumns((prev) => {
       const exists = prev.some((col) => col.id === columnToSave.id);
@@ -4390,15 +4440,27 @@ function App() {
     if (!confirmed) return;
 
     const deletedColumnTitleKey = normalizeColumnTitleForDisplay(columnToDelete?.title || '');
-    const deletedColumnStorageKey = `zrc-deleted-column-titles-${selectedProject}`;
-    const previousDeletedColumnTitles = normalizeStorageArray(readStorageValue(deletedColumnStorageKey, []), []);
-
-    if (deletedColumnTitleKey && !previousDeletedColumnTitles.map(normalizeColumnTitleForDisplay).includes(deletedColumnTitleKey)) {
-      writeStorageValue(deletedColumnStorageKey, [...previousDeletedColumnTitles, deletedColumnTitleKey]);
-    }
+    rememberDeletedColumnTitle(selectedProject, deletedColumnTitleKey);
 
     setBoardColumns((prev) => prev.filter((col) => col.id !== columnId));
     setOpenMenuColumnId(null);
+
+    const savedProjectBoards = normalizeStorageObject(readStorageValue('projectBoards', {}), {});
+    const savedBoard = savedProjectBoards[selectedProject];
+
+    if (savedBoard?.columns) {
+      writeStorageValue('projectBoards', {
+        ...savedProjectBoards,
+        [selectedProject]: {
+          ...savedBoard,
+          columns: (savedBoard.columns || []).filter(
+            (column) =>
+              column.id !== columnId &&
+              normalizeColumnTitleForDisplay(column.title) !== deletedColumnTitleKey
+          )
+        }
+      });
+    }
 
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
@@ -4458,12 +4520,21 @@ function App() {
       }
 
       if (columnIdsToDelete.length > 0) {
+        const { error: columnArchiveError } = await supabase
+          .from('board_columns')
+          .update({ is_archived: true })
+          .in('id', columnIdsToDelete);
+
+        if (columnArchiveError) throw columnArchiveError;
+
         const { error: columnDeleteError } = await supabase
           .from('board_columns')
           .delete()
           .in('id', columnIdsToDelete);
 
-        if (columnDeleteError) throw columnDeleteError;
+        if (columnDeleteError) {
+          console.warn('[ZRC] Kolon fiziksel silinemedi, arşivli bırakıldı.', columnDeleteError);
+        }
       } else {
         const titleCandidates = [...new Set([
           columnToDelete.title,
@@ -4471,13 +4542,23 @@ function App() {
           targetTitleKey === 'Yeni Görev' ? 'Bekliyor' : ''
         ].filter(Boolean))];
 
+        const { error: titleArchiveError } = await supabase
+          .from('board_columns')
+          .update({ is_archived: true })
+          .eq('project_id', projectId)
+          .in('title', titleCandidates);
+
+        if (titleArchiveError) throw titleArchiveError;
+
         const { error: titleDeleteError } = await supabase
           .from('board_columns')
           .delete()
           .eq('project_id', projectId)
           .in('title', titleCandidates);
 
-        if (titleDeleteError) throw titleDeleteError;
+        if (titleDeleteError) {
+          console.warn('[ZRC] Kolon fiziksel silinemedi, arşivli bırakıldı.', titleDeleteError);
+        }
       }
 
       setSupabaseWriteInfo('saved', 'Supabase kolon silindi');
