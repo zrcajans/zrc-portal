@@ -10171,6 +10171,13 @@ function App() {
       {customStyles}
       {renderSupabaseConnectionBadge()}
 
+      <style>{`
+        .zrc-main-shell > div:not([class*="fixed"]) {
+          padding-left: 44px;
+          box-sizing: border-box;
+        }
+      `}</style>
+
       <Sidebar
         activeMenu={activeMenu}
         setActiveMenu={setActiveMenu}
@@ -10231,7 +10238,7 @@ function App() {
         }}
       />
 
-      <main onClick={handleMainClick} className="flex-1 pl-[112px] min-h-screen bg-white transition-colors duration-300 flex flex-col overflow-hidden">
+      <main onClick={handleMainClick} className="zrc-main-shell flex-1 pl-[68px] min-h-screen bg-white transition-colors duration-300 flex flex-col overflow-hidden">
         <TopNavbar
           unreadNotificationCount={unreadNotificationCount}
           isNotificationsOpen={isNotificationsOpen}
