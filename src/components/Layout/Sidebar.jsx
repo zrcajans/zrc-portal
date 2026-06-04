@@ -271,7 +271,7 @@ function Sidebar({
         <div
           ref={panelRef}
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-full bg-[#ffffff] border-y border-r border-zinc-200/60 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[360] zrc-sidebar-panel overflow-hidden ${
+          className={`fixed left-[68px] bg-[#ffffff] border-y border-r border-zinc-200/60 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[280] zrc-sidebar-panel overflow-hidden ${
             isProjectsPanelOpen || isOtherPanelOpen ? 'zrc-sidebar-panel-open' : 'zrc-sidebar-panel-closed'
           } ${
             isOtherPanelOpen
