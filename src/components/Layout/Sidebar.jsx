@@ -141,15 +141,6 @@ function Sidebar({
           }
         `}
       </style>
-
-      <div
-        aria-hidden="true"
-        className="fixed top-0 left-[68px] h-screen w-[44px] pointer-events-none z-[280]"
-        style={{
-          background: 'linear-gradient(to bottom, #ffffff 0px, #ffffff 118px, #f5f6f8 118px, #f5f6f8 100%)'
-        }}
-      />
-
       {(isProjectsPanelOpen || isOtherPanelOpen) && (
         <div
           onClick={() => setIsPanelOpen(false)}
