@@ -5,7 +5,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v156-proje-kolon-tek-kaynak-fix';
+const ZRC_APP_BUILD_LABEL = 'v157-proje-kolon-canli-temiz-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -2421,7 +2421,13 @@ function App() {
 
       if (projectsError) throw projectsError;
 
-      const projectIds = (dbProjects || []).map((project) => project.id).filter(Boolean);
+      const legacyProjectNameKeys = new Set(['eticaretarayuztasarimi', 'odev']);
+      const cleanDbProjects = (dbProjects || []).filter((project) => {
+        const projectNameKey = normalizeCredentialText(project?.name || '');
+        return project?.name && !legacyProjectNameKeys.has(projectNameKey);
+      });
+
+      const projectIds = cleanDbProjects.map((project) => project.id).filter(Boolean);
       let dbProjectMembers = [];
       let dbProjectCustomers = [];
 
@@ -2445,8 +2451,8 @@ function App() {
         }
       }
 
-      if ((dbProjects || []).length > 0) {
-        const dbProjectNames = (dbProjects || []).map((project) => project.name).filter(Boolean);
+      if (cleanDbProjects.length > 0) {
+        const dbProjectNames = cleanDbProjects.map((project) => project.name).filter(Boolean);
 
         setProjects(dbProjectNames);
 
@@ -2471,7 +2477,7 @@ function App() {
         setProjectSettings(() => {
           const nextSettings = {};
 
-          (dbProjects || []).forEach((project) => {
+          cleanDbProjects.forEach((project) => {
             const linkedCustomerId = projectCustomersByProjectId.get(project.id) || project.customer_id || '';
             const linkedCustomer = customersById.get(linkedCustomerId);
 
@@ -2489,6 +2495,12 @@ function App() {
           });
 
           return nextSettings;
+        });
+      } else {
+        setProjects(['Çalışma']);
+        setSelectedProject('Çalışma');
+        setProjectSettings({
+          Çalışma: createDefaultProjectSettings('Çalışma')
         });
       }
 
