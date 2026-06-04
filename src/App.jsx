@@ -5,7 +5,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v157-proje-kolon-canli-temiz-fix';
+const ZRC_APP_BUILD_LABEL = 'v158-proje-crud-supabase-sync';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -2375,19 +2375,56 @@ function App() {
 
   const deleteProjectFromSupabase = async (projectName = selectedProject) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
+    const cleanProjectName = String(projectName || '').trim();
 
-    if (!workspaceId || !projectName) return false;
+    if (!workspaceId || !cleanProjectName) return false;
 
     setSupabaseWriteInfo('saving', 'Supabase proje siliniyor');
 
     try {
-      const { error } = await supabase
+      const { data: projectsToDelete, error: projectSelectError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('name', cleanProjectName);
+
+      if (projectSelectError) throw projectSelectError;
+
+      const projectIds = (projectsToDelete || []).map((project) => project.id).filter(isSupabaseUuid);
+
+      if (projectIds.length === 0) {
+        setSupabaseWriteInfo('saved', 'Supabase proje zaten yok');
+        return true;
+      }
+
+      const { data: projectTasks, error: taskSelectError } = await supabase
+        .from('tasks')
+        .select('id')
+        .in('project_id', projectIds);
+
+      if (taskSelectError) throw taskSelectError;
+
+      const taskIds = (projectTasks || []).map((task) => task.id).filter(isSupabaseUuid);
+
+      if (taskIds.length > 0) {
+        await supabase.from('task_assignees').delete().in('task_id', taskIds);
+        await supabase.from('task_followers').delete().in('task_id', taskIds);
+        await supabase.from('task_comments').delete().in('task_id', taskIds);
+        await supabase.from('task_steps').delete().in('task_id', taskIds);
+        await supabase.from('files').delete().in('task_id', taskIds);
+        await supabase.from('tasks').delete().in('id', taskIds);
+      }
+
+      await supabase.from('board_columns').delete().in('project_id', projectIds);
+      await supabase.from('project_members').delete().in('project_id', projectIds);
+      await supabase.from('project_customers').delete().in('project_id', projectIds);
+
+      const { error: projectDeleteError } = await supabase
         .from('projects')
         .delete()
-        .eq('workspace_id', workspaceId)
-        .eq('name', projectName);
+        .in('id', projectIds);
 
-      if (error) throw error;
+      if (projectDeleteError) throw projectDeleteError;
 
       setSupabaseWriteInfo('saved', 'Supabase proje silindi');
       return true;
@@ -2395,6 +2432,77 @@ function App() {
       setSupabaseWriteInfo('error', `Supabase proje silme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
+  };
+
+  const normalizeProjectNameList = (projectList = []) =>
+    Array.from(
+      new Set(
+        (Array.isArray(projectList) ? projectList : [])
+          .map((projectName) => String(projectName || '').trim())
+          .filter(Boolean)
+      )
+    );
+
+  const createSupabaseProjectWithDefaultColumns = async (projectName = '') => {
+    const cleanProjectName = String(projectName || '').trim();
+
+    if (!cleanProjectName || !getCurrentSupabaseWorkspaceId()) return false;
+
+    setSupabaseWriteInfo('saving', 'Supabase proje oluşturuluyor');
+
+    try {
+      await saveProjectSettingsToSupabase(
+        cleanProjectName,
+        projectSettings[cleanProjectName] || createDefaultProjectSettings(cleanProjectName),
+        cleanProjectName
+      );
+
+      const projectId = await ensureSupabaseProject(cleanProjectName);
+
+      if (projectId) {
+        for (const [columnIndex, column] of defaultBoardColumns.entries()) {
+          await ensureSupabaseColumn(projectId, column, columnIndex);
+        }
+      }
+
+      setSupabaseWriteInfo('saved', 'Supabase proje oluşturuldu');
+      return true;
+    } catch (error) {
+      setSupabaseWriteInfo('error', `Supabase proje oluşturma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      return false;
+    }
+  };
+
+  const syncProjectListChangeToSupabase = (previousProjects = [], nextProjects = []) => {
+    const previousProjectNames = normalizeProjectNameList(previousProjects);
+    const nextProjectNames = normalizeProjectNameList(nextProjects);
+
+    const addedProjects = nextProjectNames.filter((projectName) => !previousProjectNames.includes(projectName));
+    const removedProjects = previousProjectNames.filter((projectName) => !nextProjectNames.includes(projectName));
+
+    if (addedProjects.length === 0 && removedProjects.length === 0) return;
+
+    addedProjects.forEach((projectName) => {
+      createSupabaseProjectWithDefaultColumns(projectName);
+    });
+
+    removedProjects.forEach((projectName) => {
+      deleteProjectFromSupabase(projectName);
+    });
+  };
+
+  const handleSidebarProjectsChange = (updater) => {
+    setProjects((prevProjects) => {
+      const previousProjectNames = normalizeProjectNameList(prevProjects);
+      const rawNextProjects = typeof updater === 'function' ? updater(previousProjectNames) : updater;
+      const nextProjectNames = normalizeProjectNameList(rawNextProjects);
+
+      window.setTimeout(() => {
+        syncProjectListChangeToSupabase(previousProjectNames, nextProjectNames);
+      }, 0);
+
+      return nextProjectNames;
+    });
   };
 
   const loadWorkspaceStructureFromSupabase = async () => {
@@ -2497,11 +2605,10 @@ function App() {
           return nextSettings;
         });
       } else {
-        setProjects(['Çalışma']);
-        setSelectedProject('Çalışma');
-        setProjectSettings({
-          Çalışma: createDefaultProjectSettings('Çalışma')
-        });
+        setProjects([]);
+        setSelectedProject('');
+        setProjectSettings({});
+        setProjectBoards({});
       }
 
       const { data: dbMembers, error: membersError } = await supabase
@@ -5909,6 +6016,21 @@ function App() {
 
       setSelectedProject(cleanTitle);
     }
+
+    saveProjectSettingsToSupabase(
+      cleanTitle,
+      {
+        ...projectSettingsDraft,
+        title: cleanTitle,
+        description: projectSettingsDraft.description?.trim() || '',
+        customer: projectSettingsDraft.customer?.trim() || '',
+        customerId: projectSettingsDraft.customerId || linkedProjectCustomer?.id || '',
+        teamMemberIds: nextTeamMemberIds,
+        status: projectSettingsDraft.status || 'Aktif',
+        color: projectSettingsDraft.color || '#ff3600'
+      },
+      selectedProject
+    );
 
     alert(
       removedTeamMemberIds.length > 0
@@ -10056,7 +10178,7 @@ function App() {
         setIsPanelOpen={setIsPanelOpen}
         projects={projects}
         visibleProjects={visibleProjectNames}
-        setProjects={setProjects}
+        setProjects={handleSidebarProjectsChange}
         setSelectedProject={(project) => {
           setSelectedProject(project);
           setActiveContentMenu('Projeler');
