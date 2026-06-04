@@ -5,7 +5,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v159-web-gorsel-final';
+const ZRC_APP_BUILD_LABEL = 'v158-proje-crud-supabase-sync';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1287,97 +1287,6 @@ function App() {
         .rte-btn { padding: 4px 8px; border-radius: 4px; color: #4b5563; font-weight: bold; font-size: 11.5px; transition: background-color 0.15s; cursor: pointer; }
         .rte-btn:hover { background-color: #e5e7eb; }
         [contenteditable=true]:empty:before { content: attr(placeholder); color: #9ca3af; pointer-events: none; display: block; }
-
-
-        /* ZRC v159 Web Görsel Final */
-        :root {
-          --zrc-orange: #ff3600;
-          --zrc-dark: #263244;
-          --zrc-cream: #f7f1e8;
-          --zrc-soft: #f4f6f8;
-        }
-
-        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-
-        button, input, textarea, select {
-          font-family: 'Inter', sans-serif;
-        }
-
-        button {
-          transform: translateZ(0);
-        }
-
-        button:not(:disabled):active {
-          transform: scale(0.985);
-        }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(38, 50, 68, 0.18);
-          border-radius: 999px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(38, 50, 68, 0.32);
-        }
-
-        main::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background:
-            radial-gradient(circle at 8% 0%, rgba(255,54,0,0.075), transparent 30%),
-            radial-gradient(circle at 84% 12%, rgba(37,99,235,0.055), transparent 32%);
-          z-index: 0;
-        }
-
-        main > * { position: relative; z-index: 1; }
-
-        main [class*="bg-white"][class*="border"] {
-          border-color: rgba(226, 232, 240, 0.9);
-        }
-
-        main [class*="shadow-"] {
-          transition: box-shadow .22s ease, transform .22s ease, border-color .22s ease, background-color .22s ease;
-        }
-
-        main [class*="rounded-"][class*="bg-white"][class*="shadow-"]:hover {
-          box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
-        }
-
-        main input,
-        main textarea,
-        main select,
-        [contenteditable="true"] {
-          transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
-        }
-
-        main input:focus,
-        main textarea:focus,
-        main select:focus,
-        [contenteditable="true"]:focus {
-          outline: none !important;
-          box-shadow: 0 0 0 4px rgba(255, 54, 0, 0.08) !important;
-          border-color: rgba(255, 54, 0, 0.32) !important;
-        }
-
-        .task-menu-item {
-          border-radius: 9px;
-          font-weight: 800;
-          font-size: 11.5px;
-        }
-
-        .task-menu-item:hover {
-          background: #f8fafc;
-        }
-
-        @media (max-width: 1180px) {
-          main {
-            padding-left: 86px !important;
-          }
-        }
-      
       `}
     </style>
   );
@@ -10322,7 +10231,7 @@ function App() {
         }}
       />
 
-      <main onClick={handleMainClick} className="flex-1 pl-[105px] min-h-screen bg-[#eef1f6] transition-colors duration-300 flex flex-col overflow-hidden relative">
+      <main onClick={handleMainClick} className="flex-1 pl-[105px] min-h-screen bg-white transition-colors duration-300 flex flex-col overflow-hidden">
         <TopNavbar
           unreadNotificationCount={unreadNotificationCount}
           isNotificationsOpen={isNotificationsOpen}
@@ -10647,7 +10556,7 @@ function App() {
           >
             <div
               onClick={(event) => event.stopPropagation()}
-              className="w-[760px] max-w-[calc(100vw-150px)] bg-white/95 backdrop-blur-xl border border-white/80 rounded-[24px] shadow-[0_32px_110px_rgba(15,23,42,0.28)] overflow-hidden"
+              className="w-[720px] max-w-[calc(100vw-150px)] bg-white border border-zinc-200 rounded-[17px] shadow-[0_28px_90px_rgba(15,23,42,0.24)] overflow-hidden"
             >
               <div className="h-[66px] px-5 border-b border-zinc-100 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-[11px] bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
@@ -10776,7 +10685,7 @@ function App() {
         )}
 
         {activeContentMenu === 'Ana Sayfa' ? (
-          <div className="w-full h-full overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_top_left,rgba(255,54,0,0.08),transparent_30%),linear-gradient(180deg,#f7f8fb_0%,#eef1f6_100%)] animate-fade-in">
+          <div className="w-full h-full overflow-y-auto custom-scrollbar bg-[#f2f3f5] animate-fade-in">
             <div className="px-4 pt-3 pb-8">
               <div className="mb-4 rounded-[10px] bg-white border border-[#e5e8ee] shadow-[0_10px_30px_rgba(30,43,70,0.05)] p-4">
                 <div className="flex items-center justify-between gap-4">
@@ -12891,7 +12800,7 @@ function App() {
                         visibleBoardColumns.map((column, colIdx) => (
                           <div
                             key={column.id}
-                            className={`w-[292px] shrink-0 flex flex-col max-h-[calc(100vh-155px)] relative ${
+                            className={`w-[270px] shrink-0 flex flex-col max-h-[calc(100vh-145px)] relative ${
                               openMenuColumnId === column.id || column.tasks.some((task) => task.id === openTaskMenuId)
                                 ? 'z-[300]'
                                 : 'z-10'
@@ -12900,7 +12809,7 @@ function App() {
                             onDrop={(e) => handleDrop(e, column.id)}
                           >
                             <div
-                              className="w-full px-3.5 py-2 flex items-center justify-between text-[11px] font-black select-none tracking-tight shrink-0 h-[40px] rounded-[12px] shadow-[0_10px_24px_rgba(15,23,42,0.10)] ring-1 ring-black/5 relative z-[260]"
+                              className="w-full px-3 py-1.5 flex items-center justify-between text-[10.5px] font-black select-none tracking-tight shrink-0 h-[34px] rounded-[4px] shadow-[0_2px_8px_rgba(0,0,0,0.045)] relative z-[260]"
                               style={{ backgroundColor: column.color }}
                             >
                               <div className="flex items-center space-x-1">
