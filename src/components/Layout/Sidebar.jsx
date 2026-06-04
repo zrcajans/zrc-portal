@@ -115,7 +115,7 @@ function Sidebar({
           </button>
         </div>
 
-        <nav className="flex flex-col w-full flex-1 justify-center gap-2 relative px-2">
+        <nav className="flex flex-col w-full flex-1 justify-center space-y-1 relative">
           {visibleMenuItems.map((item) => {
             const isActive = activeMenu === item.id;
             const isProjectsBtn = item.id === 'Projeler';
@@ -123,7 +123,7 @@ function Sidebar({
             const isSearchBtn = item.id === 'Arama';
 
             return (
-              <div key={item.id} className="w-full relative z-10 hover:z-20">
+              <div key={item.id} className="w-full pl-3 relative z-10 hover:z-20">
                 <button
                   ref={isProjectsBtn ? projectsButtonRef : isOtherBtn ? otherButtonRef : null}
                   onClick={() => {
@@ -160,18 +160,38 @@ function Sidebar({
                     setIsPanelOpen(false);
                     onSimpleMenuSelect?.(item.id);
                   }}
-                  className={`w-full min-h-[66px] flex flex-col items-center justify-center py-3 relative z-10 rounded-[18px] apple-dock-effect transition-all duration-300 ease-out ${
-                    isActive
-                      ? 'bg-white text-[#ff3600] shadow-[0_10px_22px_rgba(0,0,0,0.10)] active-menu-btn'
-                      : 'text-white/82 hover:text-white hover:bg-white/8 hover:shadow-[0_0_20px_rgba(255,255,255,0.14)] hover:[filter:drop-shadow(0_0_9px_rgba(255,255,255,0.65))]'
-                  }`}
-                  style={{ transformOrigin: 'center' }}
+                  className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect hover-grow apple-dock-btn ${isActive ? 'bg-white text-[#ff3600] rounded-l-lg active-menu-btn' : 'text-white/80 rounded-l-lg'}`}
+                  style={{ transformOrigin: 'right center' }}
                 >
                   {item.icon}
                   <span className={`text-[10.5px] tracking-tight mt-0.5 select-none ${isActive ? 'font-black' : 'font-bold'}`}>
                     {item.id}
                   </span>
                 </button>
+
+                {isActive && (
+                  <>
+                    <div className="absolute -top-4 right-0 w-4 h-4 bg-white">
+                      <div className="w-full h-full bg-[#ff3600] rounded-br-lg" />
+                    </div>
+                    <div className="absolute -bottom-4 right-0 w-4 h-4 bg-white">
+                      <div className="w-full h-full bg-[#ff3600] rounded-tr-lg" />
+                    </div>
+                  </>
+                )}
+
+                {(isProjectsBtn || isOtherBtn) && (
+                  <div className={`absolute left-full top-0 w-5 h-full bg-white z-20 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                    isActive && isPanelOpen ? 'scale-x-100 opacity-100 visible' : 'scale-x-0 opacity-0 invisible'
+                  }`} style={{ transformOrigin: 'left center' }}>
+                    <div className="absolute bottom-full right-0 w-4 h-4 bg-white">
+                      <div className="w-full h-full bg-[#f5f6f8] rounded-br-lg" />
+                    </div>
+                    <div className="absolute top-full right-0 w-4 h-4 bg-white">
+                      <div className="w-full h-full bg-[#f5f6f8] rounded-tr-lg" />
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
