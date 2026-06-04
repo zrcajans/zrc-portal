@@ -84,12 +84,12 @@ function Sidebar({
       {(isProjectsPanelOpen || isOtherPanelOpen) && (
         <div
           onClick={() => setIsPanelOpen(false)}
-          className="fixed inset-0 bg-slate-950/10 backdrop-blur-[1.5px] z-[250] animate-overlay-in"
+          className="fixed inset-0 bg-slate-950/6 z-[250] animate-overlay-in"
         />
       )}
 
       <aside className="w-[112px] h-screen flex flex-col items-center justify-center shrink-0 z-[300] fixed top-0 left-0 pointer-events-none">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[92px] rounded-[30px] border border-white/75 bg-white/76 backdrop-blur-2xl shadow-[0_22px_62px_rgba(15,23,42,0.15)] px-2.5 py-3 pointer-events-auto">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[92px] rounded-[30px] border border-slate-200 bg-white shadow-[0_18px_46px_rgba(15,23,42,0.12)] px-2.5 py-3 pointer-events-auto">
           <button
             type="button"
             onClick={() => {
@@ -115,7 +115,7 @@ function Sidebar({
             <span className="absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_30px_rgba(255,54,0,0.28)]" />
           </button>
 
-          <div className="my-3 mx-auto w-8 h-[1px] bg-slate-200/80" />
+          <div className="my-3 mx-auto w-8 h-[1px] bg-slate-200" />
 
           <nav className="flex flex-col items-center gap-2 relative">
             {visibleMenuItems.map((item) => {
@@ -165,7 +165,7 @@ function Sidebar({
                   className={`group relative w-[68px] min-h-[58px] rounded-[20px] flex flex-col items-center justify-center gap-0.5 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
                     isActive
                       ? 'bg-[#ff3600] text-white scale-[1.04] shadow-[0_14px_30px_rgba(255,54,0,0.30)]'
-                      : 'bg-white/88 text-slate-500 border border-white/70 shadow-[0_7px_18px_rgba(15,23,42,0.07)] hover:text-[#ff3600] hover:scale-[1.06] hover:bg-white hover:shadow-[0_16px_30px_rgba(255,54,0,0.16)]'
+                      : 'bg-white text-slate-500 border border-slate-200 shadow-[0_7px_18px_rgba(15,23,42,0.06)] hover:text-[#ff3600] hover:scale-[1.06] hover:bg-[#fff7f4] hover:border-[#ff3600]/20 hover:shadow-[0_16px_30px_rgba(255,54,0,0.14)]'
                   }`}
                   aria-label={item.id}
                   title={item.id}
@@ -189,7 +189,7 @@ function Sidebar({
         <div
           ref={panelRef}
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-[112px] pointer-events-auto bg-white/96 backdrop-blur-2xl border border-white/80 shadow-[22px_18px_65px_rgba(15,23,42,0.18)] flex flex-col z-[360] mac-genie-panel overflow-hidden ${
+          className={`absolute left-[112px] pointer-events-auto bg-white border border-slate-200 shadow-[22px_18px_55px_rgba(15,23,42,0.16)] flex flex-col z-[360] mac-genie-panel overflow-hidden ${
             isProjectsPanelOpen || isOtherPanelOpen ? 'genie-expanded' : 'genie-collapsed'
           } ${
             isOtherPanelOpen
@@ -204,7 +204,7 @@ function Sidebar({
                   <h2 className="text-[15px] font-black text-slate-900 tracking-tight">Proje Havuzu</h2>
                   <div className="mt-0.5 text-[10px] font-bold text-slate-400">Aktif projeler</div>
                 </div>
-                <span className="text-[11px] font-black text-[#ff3600] bg-[#ff3600]/8 border border-[#ff3600]/10 px-2 py-1 rounded-full">
+                <span className="text-[11px] font-black text-[#ff3600] bg-[#fff3ef] border border-[#ff3600]/10 px-2 py-1 rounded-full">
                   {projectList.length} Başlık
                 </span>
               </div>
@@ -243,7 +243,7 @@ function Sidebar({
                     className="w-full p-3 bg-white border border-slate-200/70 rounded-[15px] hover:border-[#ff3600]/20 hover:bg-[#fff8f6] cursor-pointer transition-all duration-200 group flex items-center justify-between shadow-[0_7px_20px_rgba(15,23,42,0.04)]"
                   >
                     <div className="flex items-center space-x-2.5 truncate">
-                      <div className="w-8 h-8 rounded-[12px] bg-[#ff3600]/8 flex items-center justify-center text-[#ff3600] shrink-0">
+                      <div className="w-8 h-8 rounded-[12px] bg-[#fff3ef] flex items-center justify-center text-[#ff3600] shrink-0">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-19.5 0A2.25 2.25 0 004.5 15h15a2.25 2.25 0 002.25-2.25m-19.5 0v.25A2.25 2.25 0 004.5 17.5h15a2.25 2.25 0 002.25-2.25v-.25m-16.5-10.5h3.934a1.5 1.5 0 011.06.44l1.414 1.414a1.5 1.5 0 001.06.44H19.5A2.25 2.25 0 0121.75 9v.75H2.25V6.75z" />
                         </svg>
@@ -260,7 +260,7 @@ function Sidebar({
           )}
 
           {isOtherPanelOpen && (
-            <div className="h-full bg-white/96 p-4">
+            <div className="h-full bg-white p-4">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="text-[14px] font-black text-slate-900">Diğer</div>
@@ -284,7 +284,7 @@ function Sidebar({
                   onClick={() => openOtherPage('Ekip')}
                   className="w-full h-[82px] rounded-[18px] border border-slate-200 bg-white hover:bg-[#fff8f6] hover:border-[#ff3600]/20 transition-all px-4 flex items-center gap-3 text-left shadow-[0_8px_20px_rgba(15,23,42,0.04)]"
                 >
-                  <div className="w-11 h-11 rounded-[15px] bg-[#ff3600]/8 text-[#ff3600] flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-[15px] bg-[#fff3ef] text-[#ff3600] flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 7.5a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z" />
                     </svg>
@@ -307,7 +307,7 @@ function Sidebar({
                   onClick={() => openOtherPage('Müşteriler')}
                   className="w-full h-[82px] rounded-[18px] border border-slate-200 bg-white hover:bg-[#fff8f6] hover:border-[#ff3600]/20 transition-all px-4 flex items-center gap-3 text-left shadow-[0_8px_20px_rgba(15,23,42,0.04)]"
                 >
-                  <div className="w-11 h-11 rounded-[15px] bg-[#ff3600]/8 text-[#ff3600] flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-[15px] bg-[#fff3ef] text-[#ff3600] flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.75l.001-.031m12 0A5.971 5.971 0 0012 15.75a5.971 5.971 0 00-6 2.969m12 0a8.966 8.966 0 00-6-2.219m0 0a8.966 8.966 0 00-6 2.219M15 11.25a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
