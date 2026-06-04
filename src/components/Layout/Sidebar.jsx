@@ -249,18 +249,6 @@ function Sidebar({
                   )}
                 </div>
 
-                {(isProjectsBtn || isOtherBtn) && (
-                  <div className={`absolute left-full top-0 w-5 h-full bg-[#ffffff] z-20 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                    isActive && isPanelOpen ? 'scale-x-100 opacity-100 visible' : 'scale-x-0 opacity-0 invisible'
-                  }`} style={{ transformOrigin: 'left center' }}>
-                    <div className="absolute bottom-full right-0 w-4 h-4 bg-[#ffffff]">
-                      <div className="w-full h-full bg-[#f5f6f8] rounded-br-[16px]" />
-                    </div>
-                    <div className="absolute top-full right-0 w-4 h-4 bg-[#ffffff]">
-                      <div className="w-full h-full bg-[#f5f6f8] rounded-tr-[16px]" />
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
