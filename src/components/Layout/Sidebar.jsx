@@ -144,7 +144,11 @@ function Sidebar({
 
       <div
         aria-hidden="true"
-        className="fixed top-0 left-[68px] h-screen w-[44px] bg-white pointer-events-none z-[280]"
+        className="fixed top-0 left-[68px] h-[118px] w-[44px] bg-white pointer-events-none z-[280]"
+      />
+      <div
+        aria-hidden="true"
+        className="fixed top-[118px] left-[68px] bottom-0 w-[44px] bg-[#f5f6f8] pointer-events-none z-[280]"
       />
 
       {(isProjectsPanelOpen || isOtherPanelOpen) && (
