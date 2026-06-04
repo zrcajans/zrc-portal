@@ -8905,6 +8905,7 @@ function App() {
 
     saveQuickNoteToSupabase(nextNote);
     setQuickNoteDraft('');
+    setIsQuickNoteComposerOpen(false);
   };
 
   const deleteQuickNoteFromHome = (noteId) => {
@@ -9068,6 +9069,20 @@ function App() {
     setSelectedColumnId(boardColumns[0]?.id || '');
     setEditingTask(null);
     setCalendarNewTaskDate(formatDateForTaskModal(calendarFocusedDate));
+    setIsTaskModalOpen(true);
+  };
+
+  const openHomeCalendarQuickTaskForDate = (targetDate) => {
+    if (!ensureCanCreateTaskInSelectedProject('Bu rol takvimden görev oluşturamaz.')) return;
+
+    const safeDate = targetDate instanceof Date && !Number.isNaN(targetDate.getTime())
+      ? targetDate
+      : new Date();
+
+    setCalendarFocusedDate(safeDate);
+    setSelectedColumnId(boardColumns[0]?.id || '');
+    setEditingTask(null);
+    setCalendarNewTaskDate(formatDateForTaskModal(safeDate));
     setIsTaskModalOpen(true);
   };
 
@@ -10721,24 +10736,24 @@ function App() {
         {activeContentMenu === 'Ana Sayfa' ? (
           <div className="w-full h-full overflow-y-auto custom-scrollbar bg-[#f3f4f6] animate-fade-in">
             <div className="min-h-full px-4 pt-4 pb-8">
-              <div className="max-w-[1630px] mx-auto grid grid-cols-[minmax(430px,0.95fr)_minmax(570px,0.86fr)] items-start gap-6">
+              <div className="max-w-[1560px] mx-auto grid grid-cols-[minmax(430px,0.96fr)_minmax(520px,0.78fr)] items-start gap-6">
                 <div className="min-w-0">
                   <section className="mb-8">
                     <div className="h-7 mb-2 flex items-center gap-2">
-                      <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Size Atanan Görevler</h2>
+                      <h2 className="text-[13px] font-bold text-[#293241] tracking-[-0.01em]">Size Atanan Görevler</h2>
                       <span className="h-[18px] min-w-[27px] px-2 rounded-full bg-[#f28b57] text-white text-[9px] font-black flex items-center justify-center leading-none">
                         {homeAssignedTasks.length}
                       </span>
                     </div>
 
-                    <div className="bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                    <div className="bg-white rounded-[12px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
                       <div className="h-[46px] px-5 border-b border-[#eef1f5] bg-[#ffffff] grid grid-cols-[36px_minmax(0,1fr)_142px] items-center">
                         <div className="text-[10.5px] font-black text-[#9aa4b2]"> </div>
-                        <div className="text-[13px] font-black text-[#8c96a6] flex items-center gap-1.5">
+                        <div className="text-[13px] font-bold text-[#8c96a6] flex items-center gap-1.5">
                           Durum / Ad
                           <span className="text-[9px] text-[#a9b2bf] leading-none">◆</span>
                         </div>
-                        <div className="text-right text-[13px] font-black text-[#8c96a6] flex items-center justify-end gap-1.5">
+                        <div className="text-right text-[13px] font-bold text-[#8c96a6] flex items-center justify-end gap-1.5">
                           Bitiş
                           <span className="text-[9px] text-[#a9b2bf] leading-none">◆</span>
                         </div>
@@ -10795,13 +10810,13 @@ function App() {
 
                   <section>
                     <div className="h-7 mb-2 flex items-center justify-between">
-                      <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Yapışkan Notlar</h2>
+                      <h2 className="text-[13px] font-bold text-[#293241] tracking-[-0.01em]">Yapışkan Notlar</h2>
 
                       <div className="flex items-center gap-1.5 text-[#b7bfcc]">
                         <button
                           type="button"
                           onClick={() => setIsQuickNoteSearchOpen((prev) => !prev)}
-                          className={`w-7 h-7 rounded-[6px] transition-all flex items-center justify-center ${
+                          className={`w-7 h-7 rounded-[7px] transition-all flex items-center justify-center ${
                             isQuickNoteSearchOpen ? 'bg-white text-[#55ace8] shadow-sm' : 'hover:bg-white hover:text-[#55ace8]'
                           }`}
                           title="Notlarda ara"
@@ -10814,7 +10829,7 @@ function App() {
                         <button
                           type="button"
                           onClick={() => setIsQuickNoteComposerOpen((prev) => !prev)}
-                          className={`w-7 h-7 rounded-[6px] transition-all flex items-center justify-center ${
+                          className={`w-7 h-7 rounded-[7px] transition-all flex items-center justify-center ${
                             isQuickNoteComposerOpen ? 'bg-[#55ace8] text-white shadow-sm' : 'hover:bg-white hover:text-[#55ace8]'
                           }`}
                           title="Yeni hızlı not"
@@ -10826,37 +10841,59 @@ function App() {
                       </div>
                     </div>
 
-                    {(isQuickNoteSearchOpen || isQuickNoteComposerOpen) && (
-                      <div className="mb-2 space-y-2">
-                        {isQuickNoteSearchOpen && (
-                          <input
-                            value={quickNoteSearch}
-                            onChange={(event) => setQuickNoteSearch(event.target.value)}
-                            placeholder="Notlarda ara..."
-                            className="w-full h-[34px] rounded-[7px] border border-[#e4e8ef] bg-white px-3 text-[12px] font-semibold text-[#3d4552] placeholder:text-[#b6beca] outline-none focus:border-[#55ace8] focus:ring-2 focus:ring-[#55ace8]/10"
-                          />
-                        )}
+                    <div className="bg-white rounded-[12px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                      {(isQuickNoteSearchOpen || isQuickNoteComposerOpen) && (
+                        <div className="px-4 pt-4 space-y-3">
+                          {isQuickNoteSearchOpen && (
+                            <div className="h-[38px] rounded-[12px] bg-[#f7f9fc] border border-[#e7ebf1] px-3 flex items-center gap-2">
+                              <svg className="w-[15px] h-[15px] text-[#9aa4b2] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35M10.8 18.2a7.4 7.4 0 1 1 0-14.8 7.4 7.4 0 0 1 0 14.8Z" />
+                              </svg>
+                              <input
+                                value={quickNoteSearch}
+                                onChange={(event) => setQuickNoteSearch(event.target.value)}
+                                placeholder="Notlarda hızlı ara..."
+                                className="min-w-0 flex-1 h-full bg-transparent text-[12px] font-semibold text-[#3d4552] placeholder:text-[#b6beca] outline-none"
+                              />
+                              {quickNoteSearch.trim() && (
+                                <button
+                                  type="button"
+                                  onClick={() => setQuickNoteSearch('')}
+                                  className="w-6 h-6 rounded-full text-[#a9b2bf] hover:bg-white hover:text-[#ef4444] transition-all flex items-center justify-center"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+                          )}
 
-                        {isQuickNoteComposerOpen && (
-                          <form onSubmit={createQuickNoteFromHome} className="flex gap-2">
-                            <input
-                              value={quickNoteDraft}
-                              onChange={(event) => setQuickNoteDraft(event.target.value)}
-                              placeholder="Yeni hızlı not yaz..."
-                              className="min-w-0 flex-1 h-[34px] rounded-[7px] border border-[#e4e8ef] bg-white px-3 text-[12px] font-semibold text-[#3d4552] placeholder:text-[#b6beca] outline-none focus:border-[#55ace8] focus:ring-2 focus:ring-[#55ace8]/10"
-                            />
-                            <button
-                              type="submit"
-                              className="h-[34px] px-3.5 rounded-[7px] bg-[#55ace8] text-white text-[11px] font-black hover:bg-[#439fe0] transition-all"
+                          {isQuickNoteComposerOpen && (
+                            <form
+                              onSubmit={createQuickNoteFromHome}
+                              className="relative rounded-[14px] border border-[#f4d58b] bg-[#fff6c9] shadow-[0_14px_26px_rgba(156,120,30,0.12)] p-3"
                             >
-                              Ekle
-                            </button>
-                          </form>
-                        )}
-                      </div>
-                    )}
+                              <div className="absolute -top-2 left-6 w-11 h-4 rounded-full bg-[#ffe78a] shadow-[0_4px_9px_rgba(156,120,30,0.12)] rotate-[-3deg]" />
+                              <textarea
+                                value={quickNoteDraft}
+                                onChange={(event) => setQuickNoteDraft(event.target.value)}
+                                placeholder="Hızlı not yaz..."
+                                rows={3}
+                                className="w-full resize-none bg-transparent text-[13px] font-semibold leading-5 text-[#4f4324] placeholder:text-[#b69b4a] outline-none pt-2"
+                              />
+                              <div className="mt-2 flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-[#b69b4a]">Yapışkan not</span>
+                                <button
+                                  type="submit"
+                                  className="h-[28px] px-3.5 rounded-full bg-[#293241] text-white text-[10px] font-black hover:bg-[#1f2732] transition-all"
+                                >
+                                  Sabitle
+                                </button>
+                              </div>
+                            </form>
+                          )}
+                        </div>
+                      )}
 
-                    <div className="bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
                       <div className={`${
                         quickNotes.filter((note) =>
                           !quickNoteSearch.trim() ||
@@ -10867,7 +10904,7 @@ function App() {
                           !quickNoteSearch.trim() ||
                           String(note.text || '').toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
                         ).length > 0 ? (
-                          <div className="space-y-2">
+                          <div className="grid grid-cols-1 gap-2.5">
                             {quickNotes
                               .filter((note) =>
                                 !quickNoteSearch.trim() ||
@@ -10876,7 +10913,7 @@ function App() {
                               .map((note) => (
                                 <div
                                   key={note.id}
-                                  className="min-h-[38px] rounded-[5px] border border-[#eceff4] bg-[#fcfdff] px-3 py-2 flex items-start gap-2"
+                                  className="min-h-[42px] rounded-[10px] border border-[#eceff4] bg-[#fcfdff] px-3 py-2 flex items-start gap-2"
                                 >
                                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#40aee8] shrink-0" />
                                   <div className="min-w-0 flex-1 text-[11px] font-semibold leading-5 text-[#596270]">
@@ -10885,7 +10922,7 @@ function App() {
                                   <button
                                     type="button"
                                     onClick={() => deleteQuickNoteFromHome(note.id)}
-                                    className="w-5 h-5 rounded-[4px] text-[#c2c8d2] hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                                    className="w-5 h-5 rounded-[5px] text-[#c2c8d2] hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
                                   >
                                     ×
                                   </button>
@@ -10926,8 +10963,8 @@ function App() {
                 </div>
 
                 <section className="min-w-0">
-                  <div className="h-9 mb-2 flex items-center justify-between">
-                    <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Takvimim</h2>
+                  <div className="h-7 mb-2 flex items-center justify-between">
+                    <h2 className="text-[13px] font-bold text-[#293241] tracking-[-0.01em]">Takvimim</h2>
 
                     <div className="relative">
                       <button
@@ -10936,7 +10973,7 @@ function App() {
                           event.stopPropagation();
                           setIsCalendarDisplayMenuOpen((prev) => !prev);
                         }}
-                        className="h-[34px] px-4 rounded-[4px] bg-[#2f66cf] text-white text-[12px] font-black hover:bg-[#285cc0] transition-all flex items-center gap-3 shadow-[0_8px_18px_rgba(47,102,207,0.18)]"
+                        className="h-[30px] px-4 rounded-[6px] bg-[#2f66cf] text-white text-[12px] font-bold hover:bg-[#285cc0] transition-all flex items-center gap-3 shadow-[0_8px_18px_rgba(47,102,207,0.18)]"
                       >
                         Gösterim Şekli
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
@@ -10947,11 +10984,11 @@ function App() {
                       {isCalendarDisplayMenuOpen && (
                         <div
                           onClick={(menuEvent) => menuEvent.stopPropagation()}
-                          className="absolute right-0 top-[46px] z-[620] w-[300px] rounded-[8px] bg-white border border-[#e6e9ee] shadow-[0_18px_48px_rgba(15,23,42,0.16)] px-6 py-5"
+                          className="absolute right-0 top-[40px] z-[620] w-[248px] rounded-[10px] bg-white border border-[#e6e9ee] shadow-[0_18px_38px_rgba(15,23,42,0.14)] px-4 py-3"
                         >
-                          <div className="absolute -top-2 right-[106px] w-4 h-4 rotate-45 bg-white border-l border-t border-[#e6e9ee]" />
+                          <div className="absolute -top-2 right-[72px] w-4 h-4 rotate-45 bg-white border-l border-t border-[#e6e9ee]" />
 
-                          <div className="space-y-4 relative z-10">
+                          <div className="space-y-2.5 relative z-10">
                             {[
                               {
                                 label: 'Uzun Süreli Görevleri Gizle',
@@ -10978,16 +11015,16 @@ function App() {
                                     [option.keyName]: !prev[option.keyName]
                                   }))
                                 }
-                                className="w-full flex items-center gap-3 text-left text-[18px] font-black text-[#7a8495] hover:text-[#4b5563] transition-all"
+                                className="w-full flex items-center gap-2.5 text-left text-[13px] font-bold text-[#7a8495] hover:text-[#4b5563] transition-all"
                               >
                                 <span
-                                  className={`w-[28px] h-[28px] rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                  className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 ${
                                     option.checked
                                       ? 'bg-[#4fbd7d] border-[#4fbd7d] text-white'
                                       : 'bg-white border-[#c4ccd7] text-transparent'
                                   }`}
                                 >
-                                  <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                                  <svg className="w-[12px] h-[12px]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                   </svg>
                                 </span>
@@ -11000,25 +11037,25 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="min-h-[690px] bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
-                    <div className="h-[68px] px-6 border-b border-[#eceff4] flex items-center justify-between">
+                  <div className="min-h-[660px] bg-white rounded-[12px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                    <div className="h-[64px] px-6 border-b border-[#eceff4] flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <button
                           type="button"
                           onClick={goToPreviousCalendarPeriod}
-                          className="w-8 h-8 rounded-[5px] text-[#293241] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[28px] leading-none"
+                          className="w-8 h-8 rounded-[6px] text-[#293241] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[28px] leading-none"
                         >
                           ‹
                         </button>
 
-                        <div className="min-w-[174px] text-center text-[21px] font-black text-[#293241] capitalize tracking-[-0.02em]">
+                        <div className="min-w-[168px] text-center text-[20px] font-bold text-[#293241] capitalize tracking-[-0.02em]">
                           {calendarHeaderTitle}
                         </div>
 
                         <button
                           type="button"
                           onClick={goToNextCalendarPeriod}
-                          className="w-8 h-8 rounded-[5px] text-[#293241] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[28px] leading-none"
+                          className="w-8 h-8 rounded-[6px] text-[#293241] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[28px] leading-none"
                         >
                           ›
                         </button>
@@ -11030,7 +11067,7 @@ function App() {
                             key={`home-calendar-view-${viewName}`}
                             type="button"
                             onClick={() => changeCalendarView(viewName)}
-                            className={`h-[24px] px-4 rounded-full text-[11px] font-black transition-all ${
+                            className={`h-[24px] px-4 rounded-full text-[11px] font-bold transition-all ${
                               calendarView === viewName
                                 ? 'bg-[#56a8e8] text-white shadow-sm'
                                 : 'bg-[#f0f1f3] text-[#8f98a6] hover:bg-[#e8eaee]'
@@ -11055,23 +11092,25 @@ function App() {
                           ))}
                         </div>
 
-                        <div className="grid grid-cols-7 grid-rows-[repeat(6,97px)]">
+                        <div className="grid grid-cols-7 grid-rows-[repeat(6,93px)]">
                           {calendarGridDays.map((day) => {
                             const dayTasks = getMenuCalendarTasksForDay(day);
                             const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
                             const isToday = isSameCalendarDay(day, todayStart);
 
                             return (
-                              <button
+                              <div
                                 key={`home-calendar-month-${day.toISOString()}`}
-                                type="button"
-                                onClick={() => {
-                                  setCalendarFocusedDate(day);
-                                  if (dayTasks[0]) {
-                                    openMenuCalendarTask(dayTasks[0]);
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => openHomeCalendarQuickTaskForDate(day)}
+                                onKeyDown={(event) => {
+                                  if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    openHomeCalendarQuickTaskForDate(day);
                                   }
                                 }}
-                                className={`min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-hidden ${
+                                className={`min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-hidden cursor-pointer ${
                                   isCurrentMonth ? 'bg-white' : 'bg-[#fbfcfe]'
                                 }`}
                               >
@@ -11091,28 +11130,33 @@ function App() {
 
                                 <div className="mt-2 space-y-1">
                                   {dayTasks.slice(0, 3).map((task) => (
-                                    <div
+                                    <button
                                       key={`home-cal-task-${day.toISOString()}-${task.projectName}-${task.id}`}
-                                      className="h-[18px] px-1.5 flex items-center gap-1 overflow-hidden rounded-[2px]"
+                                      type="button"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openMenuCalendarTask(task);
+                                      }}
+                                      className="w-full h-[18px] px-1.5 flex items-center gap-1 overflow-hidden rounded-[2px] text-left"
                                       style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
                                     >
                                       <span
                                         className="w-1 h-1 rounded-full shrink-0"
                                         style={{ backgroundColor: task.columnColor || '#8ecae6' }}
                                       />
-                                      <span className="min-w-0 flex-1 text-[8px] font-black text-[#596270] truncate">
+                                      <span className="min-w-0 flex-1 text-[8px] font-bold text-[#596270] truncate">
                                         {formatMenuCalendarTaskTime(task) ? `${formatMenuCalendarTaskTime(task)} · ${task.title}` : task.title}
                                       </span>
-                                    </div>
+                                    </button>
                                   ))}
 
                                   {dayTasks.length > 3 && (
-                                    <div className="text-[8px] font-black text-[#b8bfca] px-1">
+                                    <div className="text-[8px] font-bold text-[#b8bfca] px-1">
                                       +{dayTasks.length - 3}
                                     </div>
                                   )}
                                 </div>
-                              </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -11130,8 +11174,8 @@ function App() {
                               <button
                                 key={`home-week-head-${day.toISOString()}`}
                                 type="button"
-                                onClick={() => setCalendarFocusedDate(day)}
-                                className={`border-r border-[#edf0f4] last:border-r-0 text-center text-[10px] font-black transition-all ${
+                                onClick={() => openHomeCalendarQuickTaskForDate(day)}
+                                className={`border-r border-[#edf0f4] last:border-r-0 text-center text-[10px] font-bold transition-all ${
                                   isToday ? 'text-[#56a8e8] bg-[#f8fbff]' : 'text-[#9aa3b1] hover:bg-[#fafcff]'
                                 }`}
                               >
@@ -11151,13 +11195,17 @@ function App() {
                             return (
                               <div
                                 key={`home-week-allday-${day.toISOString()}`}
-                                className="px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden"
+                                onClick={() => openHomeCalendarQuickTaskForDate(day)}
+                                className="px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden cursor-pointer hover:bg-[#fafcff]"
                               >
                                 {allDayTasks[0] ? (
                                   <button
                                     type="button"
-                                    onClick={() => openMenuCalendarTask(allDayTasks[0])}
-                                    className="h-[20px] w-full rounded-[2px] px-2 text-left text-[8px] font-black text-[#596270] truncate"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      openMenuCalendarTask(allDayTasks[0]);
+                                    }}
+                                    className="h-[20px] w-full rounded-[2px] px-2 text-left text-[8px] font-bold text-[#596270] truncate"
                                     style={{ backgroundColor: `${allDayTasks[0].columnColor || '#8ecae6'}24` }}
                                   >
                                     {allDayTasks[0].title}
@@ -11168,7 +11216,7 @@ function App() {
                           })}
                         </div>
 
-                        <div className="max-h-[552px] overflow-y-auto custom-scrollbar">
+                        <div className="max-h-[528px] overflow-y-auto custom-scrollbar">
                           {menuCalendarHours.map((hour) => (
                             <div key={`home-week-hour-${hour}`} className="grid grid-cols-[54px_repeat(7,1fr)] h-[48px] border-b border-[#edf0f4]">
                               <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
@@ -11180,14 +11228,18 @@ function App() {
                                 return (
                                   <div
                                     key={`home-week-hour-${day.toISOString()}-${hour}`}
-                                    className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)]"
+                                    onClick={() => openHomeCalendarQuickTaskForDate(day)}
+                                    className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
                                   >
                                     {hourTasks.slice(0, 2).map((task) => (
                                       <button
                                         key={`home-week-task-${task.projectName}-${task.id}`}
                                         type="button"
-                                        onClick={() => openMenuCalendarTask(task)}
-                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[2px] px-2 py-1 text-left text-[8px] font-black text-[#596270] overflow-hidden"
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          openMenuCalendarTask(task);
+                                        }}
+                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[2px] px-2 py-1 text-left text-[8px] font-bold text-[#596270] overflow-hidden"
                                         style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
                                       >
                                         <div>{formatMenuCalendarTaskTime(task)}</div>
@@ -11205,24 +11257,34 @@ function App() {
 
                     {calendarView === 'Gün' && (
                       <div className="bg-white">
-                        <div className="h-[36px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4]">
+                        <button
+                          type="button"
+                          onClick={() => openHomeCalendarQuickTaskForDate(calendarFocusedDate)}
+                          className="w-full h-[36px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4] hover:bg-[#fafcff] transition-all"
+                        >
                           <div className="border-r border-[#edf0f4]" />
-                          <div className="flex items-center justify-center text-[10px] font-black text-[#9aa3b1]">
+                          <div className="flex items-center justify-center text-[10px] font-bold text-[#9aa3b1]">
                             {formatCalendarWeekday(calendarFocusedDate)}
                           </div>
-                        </div>
+                        </button>
 
                         <div className="h-[34px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4]">
                           <div className="px-2 flex items-center text-[10px] font-bold text-[#4b5563] border-r border-[#edf0f4]">
                             Tüm Gün
                           </div>
-                          <div className="px-2 flex items-center">
+                          <div
+                            onClick={() => openHomeCalendarQuickTaskForDate(calendarFocusedDate)}
+                            className="px-2 flex items-center cursor-pointer hover:bg-[#fafcff]"
+                          >
                             {getMenuCalendarAllDayTasks(calendarFocusedDate).slice(0, 2).map((task) => (
                               <button
                                 key={`home-day-allday-${task.projectName}-${task.id}`}
                                 type="button"
-                                onClick={() => openMenuCalendarTask(task)}
-                                className="h-[20px] mr-1 rounded-[2px] px-2 text-left text-[8px] font-black text-[#596270] truncate"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openMenuCalendarTask(task);
+                                }}
+                                className="h-[20px] mr-1 rounded-[2px] px-2 text-left text-[8px] font-bold text-[#596270] truncate"
                                 style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
                               >
                                 {task.title}
@@ -11231,7 +11293,7 @@ function App() {
                           </div>
                         </div>
 
-                        <div className="max-h-[552px] overflow-y-auto custom-scrollbar">
+                        <div className="max-h-[528px] overflow-y-auto custom-scrollbar">
                           {menuCalendarHours.map((hour) => {
                             const hourTasks = getMenuCalendarTasksForHour(calendarFocusedDate, hour);
 
@@ -11240,13 +11302,19 @@ function App() {
                                 <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
                                   {hour}:00
                                 </div>
-                                <div className="relative bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)]">
+                                <div
+                                  onClick={() => openHomeCalendarQuickTaskForDate(calendarFocusedDate)}
+                                  className="relative bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
+                                >
                                   {hourTasks.map((task) => (
                                     <button
                                       key={`home-day-task-${task.projectName}-${task.id}`}
                                       type="button"
-                                      onClick={() => openMenuCalendarTask(task)}
-                                      className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[2px] px-2 py-1 text-left text-[8px] font-black text-[#596270] overflow-hidden"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openMenuCalendarTask(task);
+                                      }}
+                                      className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[2px] px-2 py-1 text-left text-[8px] font-bold text-[#596270] overflow-hidden"
                                       style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
                                     >
                                       <div>{formatMenuCalendarTaskTime(task)}</div>
@@ -11262,18 +11330,22 @@ function App() {
                     )}
 
                     {calendarView === 'Liste' && (
-                      <div className="bg-white min-h-[620px]">
+                      <div className="bg-white min-h-[590px]">
                         {menuCalendarListGroups.length > 0 ? (
                           menuCalendarListGroups.map((group) => (
                             <div key={`home-list-group-${group.day.toISOString()}`}>
-                              <div className="h-[30px] px-3.5 bg-[#f1f3f6] border-b border-[#d6dce5] flex items-center justify-between">
-                                <div className="text-[10.5px] font-black text-[#374151] capitalize">
+                              <button
+                                type="button"
+                                onClick={() => openHomeCalendarQuickTaskForDate(group.day)}
+                                className="w-full h-[30px] px-3.5 bg-[#f1f3f6] border-b border-[#d6dce5] hover:bg-[#e9edf3] transition-all flex items-center justify-between"
+                              >
+                                <div className="text-[10.5px] font-bold text-[#374151] capitalize">
                                   {new Intl.DateTimeFormat('tr-TR', { weekday: 'long' }).format(group.day)}
                                 </div>
-                                <div className="text-[10px] font-black text-[#374151]">
+                                <div className="text-[10px] font-bold text-[#374151]">
                                   {formatMenuCalendarWeekHeader(group.day)}
                                 </div>
-                              </div>
+                              </button>
 
                               {group.tasks.map((task) => (
                                 <button
@@ -11282,10 +11354,10 @@ function App() {
                                   onClick={() => openMenuCalendarTask(task)}
                                   className="w-full h-[34px] grid grid-cols-[64px_1fr] items-center border-b border-[#e6e9ef] text-left hover:bg-[#fafcff]"
                                 >
-                                  <div className="px-3 text-[10px] font-black text-[#596270]">
+                                  <div className="px-3 text-[10px] font-bold text-[#596270]">
                                     {formatMenuCalendarTaskTime(task) || ' '}
                                   </div>
-                                  <div className="min-w-0 text-[10px] font-bold text-[#596270] truncate">
+                                  <div className="min-w-0 text-[10px] font-semibold text-[#596270] truncate">
                                     <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: task.columnColor || '#55ace8' }} />
                                     {task.title}
                                   </div>
@@ -11294,7 +11366,7 @@ function App() {
                             </div>
                           ))
                         ) : (
-                          <div className="h-[240px] flex items-center justify-center text-[11px] font-bold text-[#9aa3b1]">
+                          <div className="h-[240px] flex items-center justify-center text-[11px] font-semibold text-[#9aa3b1]">
                             Bu aralıkta planlı görev yok.
                           </div>
                         )}
