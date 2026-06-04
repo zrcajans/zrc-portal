@@ -148,7 +148,7 @@ function Sidebar({
         />
       )}
 
-      <aside className={`group/sidebar ${isSidebarExpanded ? 'w-[112px]' : 'w-[68px] hover:w-[112px]'} h-screen bg-[#ff3600] flex flex-col justify-between items-center py-6 shrink-0 z-[300] fixed top-0 left-0 shadow-[6px_0_28px_rgba(255,54,0,0.12)] hover:shadow-[10px_0_42px_rgba(255,54,0,0.20)] transition-[width,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-visible`}>
+      <aside className="w-[68px] h-screen bg-[#ff3600] flex flex-col justify-between items-center py-6 shrink-0 z-[300] fixed top-0 left-0 shadow-[6px_0_28px_rgba(255,54,0,0.12)] transition-shadow duration-300 overflow-visible">
         <div className="relative z-20">
           <button
             type="button"
@@ -157,7 +157,7 @@ function Sidebar({
               onProfileSelect?.();
             }}
             title={`${profileDraft?.firstName || 'Enes'} ${profileDraft?.lastName || 'Zariç'}`}
-            className={`w-[44px] h-[44px] group-hover/sidebar:w-[50px] group-hover/sidebar:h-[50px] rounded-full flex items-center justify-center border-2 cursor-pointer apple-dock-effect hover-grow shadow-md overflow-hidden transition-all duration-500 ${
+            className={`w-[44px] h-[44px] rounded-full flex items-center justify-center border-2 cursor-pointer apple-dock-effect hover-grow shadow-md overflow-hidden transition-all duration-500 ${
               activeMenu === 'Profil'
                 ? 'bg-white text-[#ff3600] border-white'
                 : 'bg-zinc-900 text-white border-white/20 hover:border-white'
@@ -183,10 +183,10 @@ function Sidebar({
             const isSearchBtn = item.id === 'Arama';
 
             return (
-              <div key={item.id} className={`${isSidebarExpanded ? 'pl-3' : 'pl-2 group-hover/sidebar:pl-3'} w-full relative z-10 hover:z-20 transition-[padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]`}> 
+              <div key={item.id} className="group/menu w-full pl-2 relative z-10 hover:z-30 transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"> 
                 <div
-                  className={`relative z-10 origin-right transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-                    isActive ? 'hover:scale-[1.045]' : 'hover:scale-[1.10]'
+                  className={`relative z-10 origin-right transition-transform duration-220 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isActive ? 'hover:scale-[1.025]' : 'hover:scale-[1.08]'
                   }`}
                 >
                   <button
@@ -225,18 +225,23 @@ function Sidebar({
                       setIsPanelOpen(false);
                       onSimpleMenuSelect?.(item.id);
                     }}
-                    className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect apple-dock-btn overflow-hidden transition-[background-color,color,transform,box-shadow,border-radius] duration-500 ${
+                    className={`w-full h-[54px] flex items-center justify-center relative z-10 apple-dock-effect apple-dock-btn overflow-hidden transition-[background-color,color,transform,box-shadow,border-radius] duration-300 ${
                       isActive
-                        ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[20px] active-menu-btn shadow-[0_10px_28px_rgba(15,23,42,0.08)]'
-                        : 'text-white/80 rounded-l-[20px] zrc-menu-glow hover:text-white'
+                        ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[18px] active-menu-btn shadow-[0_10px_28px_rgba(15,23,42,0.08)]'
+                        : 'text-white/80 rounded-l-[18px] zrc-menu-glow hover:text-white'
                     }`}
                     style={{ transformOrigin: 'right center' }}
+                    title={item.id}
                   >
                     {item.icon}
-                    <span className={`text-[10.5px] tracking-tight mt-0.5 select-none overflow-hidden whitespace-nowrap transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isActive ? 'font-black' : 'font-bold'} ${isSidebarExpanded ? 'max-h-5 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1 group-hover/sidebar:max-h-5 group-hover/sidebar:opacity-100 group-hover/sidebar:translate-y-0'}`}>
-                      {item.id}
-                    </span>
                   </button>
+
+                  <div className="pointer-events-none absolute left-[66px] top-1/2 -translate-y-1/2 opacity-0 translate-x-[-6px] group-hover/menu:opacity-100 group-hover/menu:translate-x-0 transition-all duration-200 ease-out z-[420]">
+                    <div className="relative whitespace-nowrap rounded-[12px] bg-zinc-950 text-white text-[11px] font-black tracking-tight px-3 py-2 shadow-[0_14px_32px_rgba(15,23,42,0.22)]">
+                      {item.id}
+                      <span className="absolute right-full top-1/2 -translate-y-1/2 border-y-[6px] border-y-transparent border-r-[6px] border-r-zinc-950" />
+                    </div>
+                  </div>
 
                   {isActive && (
                     <>

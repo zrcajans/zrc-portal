@@ -10231,7 +10231,7 @@ function App() {
         }}
       />
 
-      <main onClick={handleMainClick} className="flex-1 pl-[112px] min-h-screen bg-white transition-colors duration-300 flex flex-col overflow-hidden">
+      <main onClick={handleMainClick} className="flex-1 pl-[68px] min-h-screen bg-white transition-colors duration-300 flex flex-col overflow-hidden">
         <TopNavbar
           unreadNotificationCount={unreadNotificationCount}
           isNotificationsOpen={isNotificationsOpen}
