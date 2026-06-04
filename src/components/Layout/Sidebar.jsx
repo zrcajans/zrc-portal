@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 function Sidebar({
   activeMenu,
@@ -45,6 +45,56 @@ function Sidebar({
 
   const activeProjectName = highlightedProject || projectList[0] || '';
   const isSidebarExpanded = isProjectsPanelOpen || isOtherPanelOpen;
+
+  const [panelRenderState, setPanelRenderState] = useState({
+    visible: false,
+    open: false,
+    kind: 'projects'
+  });
+
+  useEffect(() => {
+    const nextKind = isOtherPanelOpen ? 'other' : isProjectsPanelOpen ? 'projects' : null;
+
+    if (nextKind) {
+      setPanelRenderState({
+        visible: true,
+        open: false,
+        kind: nextKind
+      });
+
+      const rafId = window.requestAnimationFrame(() => {
+        setPanelRenderState({
+          visible: true,
+          open: true,
+          kind: nextKind
+        });
+      });
+
+      return () => window.cancelAnimationFrame(rafId);
+    }
+
+    setPanelRenderState((previousState) => {
+      if (!previousState.visible) return previousState;
+
+      return {
+        ...previousState,
+        open: false
+      };
+    });
+
+    const closeTimer = window.setTimeout(() => {
+      setPanelRenderState((previousState) => {
+        if (previousState.open) return previousState;
+
+        return {
+          ...previousState,
+          visible: false
+        };
+      });
+    }, 320);
+
+    return () => window.clearTimeout(closeTimer);
+  }, [isProjectsPanelOpen, isOtherPanelOpen]);
 
   const rememberSelectedProject = (projectName) => {
     const cleanProjectName = String(projectName || '').trim();
@@ -112,9 +162,8 @@ function Sidebar({
           .zrc-sidebar-panel {
             transform-origin: left center;
             transition:
-              transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.18s ease,
-              visibility 0s linear 0.28s;
+              transform 0.30s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.24s ease;
             will-change: transform, opacity;
           }
 
@@ -123,13 +172,37 @@ function Sidebar({
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
-            transition-delay: 0s, 0s, 0s;
           }
 
           .zrc-sidebar-panel-closed {
             transform: translateX(calc(-100% - 16px));
             opacity: 0;
-            visibility: hidden;
+            visibility: visible;
+            pointer-events: none;
+          }
+
+          .zrc-sidebar-overlay {
+            background: rgba(9, 9, 11, 0);
+            backdrop-filter: blur(0px);
+            opacity: 0;
+            transition:
+              background-color 0.30s ease,
+              backdrop-filter 0.30s ease,
+              opacity 0.30s ease;
+            will-change: opacity, backdrop-filter, background-color;
+          }
+
+          .zrc-sidebar-overlay-open {
+            background: rgba(9, 9, 11, 0.05);
+            backdrop-filter: blur(0.7px);
+            opacity: 1;
+            pointer-events: auto;
+          }
+
+          .zrc-sidebar-overlay-closed {
+            background: rgba(9, 9, 11, 0);
+            backdrop-filter: blur(0px);
+            opacity: 0;
             pointer-events: none;
           }
 
@@ -140,10 +213,12 @@ function Sidebar({
           }
         `}
       </style>
-      {(isProjectsPanelOpen || isOtherPanelOpen) && (
+      {panelRenderState.visible && (
         <div
           onClick={() => setIsPanelOpen(false)}
-          className="fixed inset-0 bg-zinc-950/5 backdrop-blur-[0.7px] z-[250] animate-overlay-in"
+          className={`fixed inset-0 z-[250] zrc-sidebar-overlay ${
+            panelRenderState.open ? 'zrc-sidebar-overlay-open' : 'zrc-sidebar-overlay-closed'
+          }`}
         />
       )}
 
@@ -258,18 +333,19 @@ function Sidebar({
 
       </aside>
 
+      {panelRenderState.visible && (
         <div
           ref={panelRef}
           onClick={(event) => event.stopPropagation()}
           className={`fixed left-[112px] bg-[#ffffff] border-y border-r border-zinc-200/60 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[280] zrc-sidebar-panel overflow-hidden ${
-            isProjectsPanelOpen || isOtherPanelOpen ? 'zrc-sidebar-panel-open' : 'zrc-sidebar-panel-closed'
+            panelRenderState.open ? 'zrc-sidebar-panel-open' : 'zrc-sidebar-panel-closed'
           } ${
-            isOtherPanelOpen
+            panelRenderState.kind === 'other'
               ? 'top-1/2 -translate-y-1/2 h-[260px] w-[300px] rounded-r-[20px]'
               : 'top-10 bottom-10 w-[330px] rounded-r-[20px]'
           }`}
         >
-          {isProjectsPanelOpen && (
+          {panelRenderState.kind === 'projects' && (
             <div className="p-5 flex flex-col h-full">
               <div className="mb-4 flex justify-between items-center shrink-0">
                 <h2 className="text-[15px] font-black text-zinc-800 tracking-tight">Proje Havuzu</h2>
@@ -335,7 +411,7 @@ function Sidebar({
             </div>
           )}
 
-          {isOtherPanelOpen && (
+          {panelRenderState.kind === 'other' && (
             <div className="h-full bg-white p-4">
               <div className="flex items-start justify-between mb-4">
                 <div>
@@ -405,6 +481,7 @@ function Sidebar({
           )}
 
         </div>
+      )}
 
     </>
   );
