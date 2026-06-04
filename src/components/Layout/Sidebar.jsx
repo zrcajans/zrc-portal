@@ -226,7 +226,7 @@ function Sidebar({
                     }}
                     className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect apple-dock-btn overflow-hidden transition-[background-color,color,transform,box-shadow,border-radius] duration-500 ${
                       isActive
-                        ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[20px] active-menu-btn shadow-[0_10px_28px_rgba(15,23,42,0.08)]'
+                        ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[20px] active-menu-btn shadow-none'
                         : 'text-white/80 rounded-l-[20px] zrc-menu-glow hover:text-white'
                     }`}
                     style={{ transformOrigin: 'right center' }}
