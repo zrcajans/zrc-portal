@@ -690,6 +690,9 @@ function App() {
   const [activeContentMenu, setActiveContentMenu] = useState(() => getSavedNavigationState().activeContentMenu);
   const [homeWorkView, setHomeWorkView] = useState('Görevli');
   const [quickNoteDraft, setQuickNoteDraft] = useState('');
+  const [quickNoteSearch, setQuickNoteSearch] = useState('');
+  const [isQuickNoteSearchOpen, setIsQuickNoteSearchOpen] = useState(false);
+  const [isQuickNoteComposerOpen, setIsQuickNoteComposerOpen] = useState(false);
   const [quickNotes, setQuickNotes] = useState(() =>
     normalizeStorageArray(readStorageValue('quickNotes', []), [])
   );
@@ -874,8 +877,8 @@ function App() {
 
   const [calendarDisplayOptions, setCalendarDisplayOptions] = useState({
     hideLongTasks: true,
-    hideCompletedTasks: false,
-    hideArchivedTasks: true
+    hideCompletedTasks: true,
+    hideArchivedTasks: false
   });
 
   const [projectSettings, setProjectSettings] = useState(() =>
@@ -8934,6 +8937,7 @@ function App() {
   const menuCalendarTasks = homeAllProjectTasks
     .filter((task) => {
       if (calendarDisplayOptions.hideCompletedTasks && isReportTaskCompleted(task)) return false;
+      if (calendarDisplayOptions.hideArchivedTasks && (task.isArchived || task.archived || task.status === 'Arşiv')) return false;
       if (calendarDisplayOptions.hideLongTasks && isTaskLongForCalendar(task)) return false;
       if (menuCalendarStatusFilter !== 'Tüm Durumlar' && task.columnTitle !== menuCalendarStatusFilter) return false;
 
@@ -10715,10 +10719,10 @@ function App() {
         )}
 
         {activeContentMenu === 'Ana Sayfa' ? (
-          <div className="w-full h-full overflow-hidden custom-scrollbar bg-[#f3f4f6] animate-fade-in">
-            <div className="h-full px-4 pt-4 pb-0 overflow-hidden">
-              <div className="grid h-full grid-cols-[minmax(440px,1fr)_minmax(620px,1fr)] items-start gap-7 overflow-hidden">
-                <div className="min-w-0 h-full overflow-hidden pr-0.5">
+          <div className="w-full h-full overflow-y-auto custom-scrollbar bg-[#f3f4f6] animate-fade-in">
+            <div className="min-h-full px-4 pt-4 pb-8">
+              <div className="max-w-[1630px] mx-auto grid grid-cols-[minmax(430px,0.95fr)_minmax(570px,0.86fr)] items-start gap-6">
+                <div className="min-w-0">
                   <section className="mb-8">
                     <div className="h-7 mb-2 flex items-center gap-2">
                       <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Size Atanan Görevler</h2>
@@ -10793,41 +10797,100 @@ function App() {
                     <div className="h-7 mb-2 flex items-center justify-between">
                       <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Yapışkan Notlar</h2>
 
-                      <div className="flex items-center gap-2 text-[#c0c7d1]">
-                        <button type="button" className="w-6 h-6 rounded-[5px] hover:bg-white hover:text-[#9576e8] transition-all flex items-center justify-center text-[17px] leading-none">
-                          ≡
+                      <div className="flex items-center gap-1.5 text-[#b7bfcc]">
+                        <button
+                          type="button"
+                          onClick={() => setIsQuickNoteSearchOpen((prev) => !prev)}
+                          className={`w-7 h-7 rounded-[6px] transition-all flex items-center justify-center ${
+                            isQuickNoteSearchOpen ? 'bg-white text-[#55ace8] shadow-sm' : 'hover:bg-white hover:text-[#55ace8]'
+                          }`}
+                          title="Notlarda ara"
+                        >
+                          <svg className="w-[15px] h-[15px]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35M10.8 18.2a7.4 7.4 0 1 1 0-14.8 7.4 7.4 0 0 1 0 14.8Z" />
+                          </svg>
                         </button>
-                        <button type="button" className="w-6 h-6 rounded-[5px] hover:bg-white hover:text-[#8b94a3] transition-all flex items-center justify-center text-[17px] leading-none">
-                          ⌕
-                        </button>
-                        <button type="button" className="w-6 h-6 rounded-[5px] hover:bg-white hover:text-[#8b94a3] transition-all flex items-center justify-center text-[16px] leading-none">
-                          ⧉
+
+                        <button
+                          type="button"
+                          onClick={() => setIsQuickNoteComposerOpen((prev) => !prev)}
+                          className={`w-7 h-7 rounded-[6px] transition-all flex items-center justify-center ${
+                            isQuickNoteComposerOpen ? 'bg-[#55ace8] text-white shadow-sm' : 'hover:bg-white hover:text-[#55ace8]'
+                          }`}
+                          title="Yeni hızlı not"
+                        >
+                          <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+                          </svg>
                         </button>
                       </div>
                     </div>
 
+                    {(isQuickNoteSearchOpen || isQuickNoteComposerOpen) && (
+                      <div className="mb-2 space-y-2">
+                        {isQuickNoteSearchOpen && (
+                          <input
+                            value={quickNoteSearch}
+                            onChange={(event) => setQuickNoteSearch(event.target.value)}
+                            placeholder="Notlarda ara..."
+                            className="w-full h-[34px] rounded-[7px] border border-[#e4e8ef] bg-white px-3 text-[12px] font-semibold text-[#3d4552] placeholder:text-[#b6beca] outline-none focus:border-[#55ace8] focus:ring-2 focus:ring-[#55ace8]/10"
+                          />
+                        )}
+
+                        {isQuickNoteComposerOpen && (
+                          <form onSubmit={createQuickNoteFromHome} className="flex gap-2">
+                            <input
+                              value={quickNoteDraft}
+                              onChange={(event) => setQuickNoteDraft(event.target.value)}
+                              placeholder="Yeni hızlı not yaz..."
+                              className="min-w-0 flex-1 h-[34px] rounded-[7px] border border-[#e4e8ef] bg-white px-3 text-[12px] font-semibold text-[#3d4552] placeholder:text-[#b6beca] outline-none focus:border-[#55ace8] focus:ring-2 focus:ring-[#55ace8]/10"
+                            />
+                            <button
+                              type="submit"
+                              className="h-[34px] px-3.5 rounded-[7px] bg-[#55ace8] text-white text-[11px] font-black hover:bg-[#439fe0] transition-all"
+                            >
+                              Ekle
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    )}
+
                     <div className="bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
-                      <div className={`${quickNotes.length > 0 ? 'max-h-[306px] overflow-y-auto custom-scrollbar p-4' : 'p-4'}`}>
-                        {quickNotes.length > 0 ? (
+                      <div className={`${
+                        quickNotes.filter((note) =>
+                          !quickNoteSearch.trim() ||
+                          String(note.text || '').toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
+                        ).length > 0 ? 'max-h-[330px] overflow-y-auto custom-scrollbar p-4' : 'p-4'
+                      }`}>
+                        {quickNotes.filter((note) =>
+                          !quickNoteSearch.trim() ||
+                          String(note.text || '').toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
+                        ).length > 0 ? (
                           <div className="space-y-2">
-                            {quickNotes.map((note) => (
-                              <div
-                                key={note.id}
-                                className="min-h-[38px] rounded-[5px] border border-[#eceff4] bg-[#fcfdff] px-3 py-2 flex items-start gap-2"
-                              >
-                                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#40aee8] shrink-0" />
-                                <div className="min-w-0 flex-1 text-[11px] font-semibold leading-5 text-[#596270]">
-                                  {note.text}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteQuickNoteFromHome(note.id)}
-                                  className="w-5 h-5 rounded-[4px] text-[#c2c8d2] hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                            {quickNotes
+                              .filter((note) =>
+                                !quickNoteSearch.trim() ||
+                                String(note.text || '').toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
+                              )
+                              .map((note) => (
+                                <div
+                                  key={note.id}
+                                  className="min-h-[38px] rounded-[5px] border border-[#eceff4] bg-[#fcfdff] px-3 py-2 flex items-start gap-2"
                                 >
-                                  ×
-                                </button>
-                              </div>
-                            ))}
+                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#40aee8] shrink-0" />
+                                  <div className="min-w-0 flex-1 text-[11px] font-semibold leading-5 text-[#596270]">
+                                    {note.text}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteQuickNoteFromHome(note.id)}
+                                    className="w-5 h-5 rounded-[4px] text-[#c2c8d2] hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
                           </div>
                         ) : (
                           <div className="h-[296px] flex flex-col items-center justify-center text-center">
@@ -10853,7 +10916,7 @@ function App() {
                               <div className="absolute right-[32px] top-[130px] w-[20px] h-[4px] bg-[#2f3a45] rounded-full" />
                             </div>
                             <div className="text-[13px] font-semibold text-[#2f3744]">
-                              Görüntülenecek hiçbir notunuz yok!
+                              {quickNoteSearch.trim() ? 'Aramanızla eşleşen not yok.' : 'Görüntülenecek hiçbir notunuz yok!'}
                             </div>
                           </div>
                         )}
@@ -10862,40 +10925,99 @@ function App() {
                   </section>
                 </div>
 
-                <section className="min-w-0 h-full overflow-hidden">
+                <section className="min-w-0">
                   <div className="h-9 mb-2 flex items-center justify-between">
                     <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Takvimim</h2>
 
-                    <button
-                      type="button"
-                      onClick={() => setIsCalendarDisplayMenuOpen((prev) => !prev)}
-                      className="h-[34px] px-4 rounded-[4px] bg-[#2f66cf] text-white text-[12px] font-black hover:bg-[#285cc0] transition-all flex items-center gap-3 shadow-[0_8px_18px_rgba(47,102,207,0.18)]"
-                    >
-                      Gösterim Şekli
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h18M6 12h12M10 19h4" />
-                      </svg>
-                    </button>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setIsCalendarDisplayMenuOpen((prev) => !prev);
+                        }}
+                        className="h-[34px] px-4 rounded-[4px] bg-[#2f66cf] text-white text-[12px] font-black hover:bg-[#285cc0] transition-all flex items-center gap-3 shadow-[0_8px_18px_rgba(47,102,207,0.18)]"
+                      >
+                        Gösterim Şekli
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h18M6 12h12M10 19h4" />
+                        </svg>
+                      </button>
+
+                      {isCalendarDisplayMenuOpen && (
+                        <div
+                          onClick={(menuEvent) => menuEvent.stopPropagation()}
+                          className="absolute right-0 top-[46px] z-[620] w-[300px] rounded-[8px] bg-white border border-[#e6e9ee] shadow-[0_18px_48px_rgba(15,23,42,0.16)] px-6 py-5"
+                        >
+                          <div className="absolute -top-2 right-[106px] w-4 h-4 rotate-45 bg-white border-l border-t border-[#e6e9ee]" />
+
+                          <div className="space-y-4 relative z-10">
+                            {[
+                              {
+                                label: 'Uzun Süreli Görevleri Gizle',
+                                checked: calendarDisplayOptions.hideLongTasks,
+                                keyName: 'hideLongTasks'
+                              },
+                              {
+                                label: 'Tamamlanmış Görevleri Gizle',
+                                checked: calendarDisplayOptions.hideCompletedTasks,
+                                keyName: 'hideCompletedTasks'
+                              },
+                              {
+                                label: 'Arşivlenmiş Görevleri Gizle',
+                                checked: calendarDisplayOptions.hideArchivedTasks,
+                                keyName: 'hideArchivedTasks'
+                              }
+                            ].map((option) => (
+                              <button
+                                key={`home-display-option-${option.keyName}`}
+                                type="button"
+                                onClick={() =>
+                                  setCalendarDisplayOptions((prev) => ({
+                                    ...prev,
+                                    [option.keyName]: !prev[option.keyName]
+                                  }))
+                                }
+                                className="w-full flex items-center gap-3 text-left text-[18px] font-black text-[#7a8495] hover:text-[#4b5563] transition-all"
+                              >
+                                <span
+                                  className={`w-[28px] h-[28px] rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                    option.checked
+                                      ? 'bg-[#4fbd7d] border-[#4fbd7d] text-white'
+                                      : 'bg-white border-[#c4ccd7] text-transparent'
+                                  }`}
+                                >
+                                  <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </span>
+                                {option.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="h-[calc(100%-44px)] bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
-                    <div className="h-[76px] px-8 border-b border-[#eceff4] flex items-center justify-between">
-                      <div className="flex items-center gap-5">
+                  <div className="min-h-[690px] bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                    <div className="h-[68px] px-6 border-b border-[#eceff4] flex items-center justify-between">
+                      <div className="flex items-center gap-4">
                         <button
                           type="button"
-                          onClick={() => setCalendarMonthDate((prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1))}
+                          onClick={goToPreviousCalendarPeriod}
                           className="w-8 h-8 rounded-[5px] text-[#293241] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[28px] leading-none"
                         >
                           ‹
                         </button>
 
-                        <div className="min-w-[176px] text-center text-[22px] font-black text-[#293241] capitalize tracking-[-0.02em]">
-                          {monthTitle}
+                        <div className="min-w-[174px] text-center text-[21px] font-black text-[#293241] capitalize tracking-[-0.02em]">
+                          {calendarHeaderTitle}
                         </div>
 
                         <button
                           type="button"
-                          onClick={() => setCalendarMonthDate((prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1))}
+                          onClick={goToNextCalendarPeriod}
                           className="w-8 h-8 rounded-[5px] text-[#293241] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[28px] leading-none"
                         >
                           ›
@@ -10905,10 +11027,11 @@ function App() {
                       <div className="h-[26px] rounded-full flex items-center gap-2">
                         {['Ay', 'Hafta', 'Gün', 'Liste'].map((viewName) => (
                           <button
-                            key={`home-photoshop-view-${viewName}`}
+                            key={`home-calendar-view-${viewName}`}
                             type="button"
+                            onClick={() => changeCalendarView(viewName)}
                             className={`h-[24px] px-4 rounded-full text-[11px] font-black transition-all ${
-                              viewName === 'Ay'
+                              calendarView === viewName
                                 ? 'bg-[#56a8e8] text-white shadow-sm'
                                 : 'bg-[#f0f1f3] text-[#8f98a6] hover:bg-[#e8eaee]'
                             }`}
@@ -10919,78 +11042,264 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-7 h-[38px] bg-white border-b border-[#eceff4]">
-                      {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((dayName) => (
-                        <div
-                          key={`home-calendar-head-${dayName}`}
-                          className="border-r border-[#eceff4] last:border-r-0 flex items-center justify-center text-[13px] font-semibold text-[#9aa4b2]"
-                        >
-                          {dayName}
+                    {calendarView === 'Ay' && (
+                      <>
+                        <div className="grid grid-cols-7 h-[36px] bg-white border-b border-[#eceff4]">
+                          {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((dayName) => (
+                            <div
+                              key={`home-calendar-head-${dayName}`}
+                              className="border-r border-[#eceff4] last:border-r-0 flex items-center justify-center text-[13px] font-semibold text-[#9aa4b2]"
+                            >
+                              {dayName}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
 
-                    <div className="grid grid-cols-7 grid-rows-6 h-[calc(100%-114px)]">
-                      {calendarGridDays.map((day) => {
-                        const dayTasks = getHomeTasksForCalendarDay(day);
-                        const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
-                        const isToday = isSameCalendarDay(day, todayStart);
+                        <div className="grid grid-cols-7 grid-rows-[repeat(6,97px)]">
+                          {calendarGridDays.map((day) => {
+                            const dayTasks = getMenuCalendarTasksForDay(day);
+                            const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
+                            const isToday = isSameCalendarDay(day, todayStart);
 
-                        return (
-                          <button
-                            key={`home-calendar-photoshop-${day.toISOString()}`}
-                            type="button"
-                            onClick={() => {
-                              setCalendarFocusedDate(day);
-                              if (dayTasks[0]) {
-                                openHomeTaskDetail(dayTasks[0]);
-                              }
-                            }}
-                            className={`min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-hidden ${
-                              isToday
-                                ? 'bg-[#fff9df]'
-                                : isCurrentMonth
-                                  ? 'bg-white'
-                                  : 'bg-[#fbfcfe]'
-                            }`}
-                          >
-                            <div className="flex items-start justify-end">
-                              <span
-                                className={`w-6 h-6 flex items-center justify-center text-[13px] font-semibold ${
-                                  isCurrentMonth ? 'text-[#293241]' : 'text-[#c4cbd5]'
+                            return (
+                              <button
+                                key={`home-calendar-month-${day.toISOString()}`}
+                                type="button"
+                                onClick={() => {
+                                  setCalendarFocusedDate(day);
+                                  if (dayTasks[0]) {
+                                    openMenuCalendarTask(dayTasks[0]);
+                                  }
+                                }}
+                                className={`min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-hidden ${
+                                  isCurrentMonth ? 'bg-white' : 'bg-[#fbfcfe]'
                                 }`}
                               >
-                                {day.getDate()}
-                              </span>
-                            </div>
-
-                            <div className="mt-2 space-y-1">
-                              {dayTasks.slice(0, 3).map((task) => (
-                                <div
-                                  key={`home-cal-task-${day.toISOString()}-${task.projectName}-${task.id}`}
-                                  className="h-[18px] px-1.5 flex items-center gap-1 overflow-hidden rounded-[2px]"
-                                  style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
-                                >
+                                <div className="flex items-start justify-end">
                                   <span
-                                    className="w-1 h-1 rounded-full shrink-0"
-                                    style={{ backgroundColor: task.columnColor || '#8ecae6' }}
-                                  />
-                                  <span className="min-w-0 flex-1 text-[8px] font-black text-[#596270] truncate">
-                                    {task.title}
+                                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[13px] font-semibold ${
+                                      isToday
+                                        ? 'bg-[#56a8e8] text-white'
+                                        : isCurrentMonth
+                                          ? 'text-[#293241]'
+                                          : 'text-[#c4cbd5]'
+                                    }`}
+                                  >
+                                    {day.getDate()}
                                   </span>
                                 </div>
-                              ))}
 
-                              {dayTasks.length > 3 && (
-                                <div className="text-[8px] font-black text-[#b8bfca] px-1">
-                                  +{dayTasks.length - 3}
+                                <div className="mt-2 space-y-1">
+                                  {dayTasks.slice(0, 3).map((task) => (
+                                    <div
+                                      key={`home-cal-task-${day.toISOString()}-${task.projectName}-${task.id}`}
+                                      className="h-[18px] px-1.5 flex items-center gap-1 overflow-hidden rounded-[2px]"
+                                      style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
+                                    >
+                                      <span
+                                        className="w-1 h-1 rounded-full shrink-0"
+                                        style={{ backgroundColor: task.columnColor || '#8ecae6' }}
+                                      />
+                                      <span className="min-w-0 flex-1 text-[8px] font-black text-[#596270] truncate">
+                                        {formatMenuCalendarTaskTime(task) ? `${formatMenuCalendarTaskTime(task)} · ${task.title}` : task.title}
+                                      </span>
+                                    </div>
+                                  ))}
+
+                                  {dayTasks.length > 3 && (
+                                    <div className="text-[8px] font-black text-[#b8bfca] px-1">
+                                      +{dayTasks.length - 3}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {calendarView === 'Hafta' && (
+                      <div className="bg-white">
+                        <div className="grid grid-cols-[54px_repeat(7,1fr)] h-[36px] border-b border-[#edf0f4]">
+                          <div className="border-r border-[#edf0f4]" />
+                          {calendarWeekDays.map((day) => {
+                            const isToday = isSameCalendarDay(day, todayStart);
+
+                            return (
+                              <button
+                                key={`home-week-head-${day.toISOString()}`}
+                                type="button"
+                                onClick={() => setCalendarFocusedDate(day)}
+                                className={`border-r border-[#edf0f4] last:border-r-0 text-center text-[10px] font-black transition-all ${
+                                  isToday ? 'text-[#56a8e8] bg-[#f8fbff]' : 'text-[#9aa3b1] hover:bg-[#fafcff]'
+                                }`}
+                              >
+                                {formatCalendarDate(day)} {formatCalendarWeekday(day)}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="grid grid-cols-[54px_repeat(7,1fr)] h-[34px] border-b border-[#edf0f4]">
+                          <div className="px-2 flex items-center text-[10px] font-bold text-[#4b5563] border-r border-[#edf0f4]">
+                            Tüm Gün
+                          </div>
+                          {calendarWeekDays.map((day) => {
+                            const allDayTasks = getMenuCalendarAllDayTasks(day);
+
+                            return (
+                              <div
+                                key={`home-week-allday-${day.toISOString()}`}
+                                className="px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden"
+                              >
+                                {allDayTasks[0] ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => openMenuCalendarTask(allDayTasks[0])}
+                                    className="h-[20px] w-full rounded-[2px] px-2 text-left text-[8px] font-black text-[#596270] truncate"
+                                    style={{ backgroundColor: `${allDayTasks[0].columnColor || '#8ecae6'}24` }}
+                                  >
+                                    {allDayTasks[0].title}
+                                  </button>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="max-h-[552px] overflow-y-auto custom-scrollbar">
+                          {menuCalendarHours.map((hour) => (
+                            <div key={`home-week-hour-${hour}`} className="grid grid-cols-[54px_repeat(7,1fr)] h-[48px] border-b border-[#edf0f4]">
+                              <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
+                                {hour}:00
+                              </div>
+                              {calendarWeekDays.map((day) => {
+                                const hourTasks = getMenuCalendarTasksForHour(day, hour);
+
+                                return (
+                                  <div
+                                    key={`home-week-hour-${day.toISOString()}-${hour}`}
+                                    className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)]"
+                                  >
+                                    {hourTasks.slice(0, 2).map((task) => (
+                                      <button
+                                        key={`home-week-task-${task.projectName}-${task.id}`}
+                                        type="button"
+                                        onClick={() => openMenuCalendarTask(task)}
+                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[2px] px-2 py-1 text-left text-[8px] font-black text-[#596270] overflow-hidden"
+                                        style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
+                                      >
+                                        <div>{formatMenuCalendarTaskTime(task)}</div>
+                                        <div className="truncate">{task.title}</div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                );
+                              })}
                             </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {calendarView === 'Gün' && (
+                      <div className="bg-white">
+                        <div className="h-[36px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4]">
+                          <div className="border-r border-[#edf0f4]" />
+                          <div className="flex items-center justify-center text-[10px] font-black text-[#9aa3b1]">
+                            {formatCalendarWeekday(calendarFocusedDate)}
+                          </div>
+                        </div>
+
+                        <div className="h-[34px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4]">
+                          <div className="px-2 flex items-center text-[10px] font-bold text-[#4b5563] border-r border-[#edf0f4]">
+                            Tüm Gün
+                          </div>
+                          <div className="px-2 flex items-center">
+                            {getMenuCalendarAllDayTasks(calendarFocusedDate).slice(0, 2).map((task) => (
+                              <button
+                                key={`home-day-allday-${task.projectName}-${task.id}`}
+                                type="button"
+                                onClick={() => openMenuCalendarTask(task)}
+                                className="h-[20px] mr-1 rounded-[2px] px-2 text-left text-[8px] font-black text-[#596270] truncate"
+                                style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
+                              >
+                                {task.title}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="max-h-[552px] overflow-y-auto custom-scrollbar">
+                          {menuCalendarHours.map((hour) => {
+                            const hourTasks = getMenuCalendarTasksForHour(calendarFocusedDate, hour);
+
+                            return (
+                              <div key={`home-day-hour-${hour}`} className="grid grid-cols-[54px_1fr] h-[48px] border-b border-[#edf0f4]">
+                                <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
+                                  {hour}:00
+                                </div>
+                                <div className="relative bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)]">
+                                  {hourTasks.map((task) => (
+                                    <button
+                                      key={`home-day-task-${task.projectName}-${task.id}`}
+                                      type="button"
+                                      onClick={() => openMenuCalendarTask(task)}
+                                      className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[2px] px-2 py-1 text-left text-[8px] font-black text-[#596270] overflow-hidden"
+                                      style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
+                                    >
+                                      <div>{formatMenuCalendarTaskTime(task)}</div>
+                                      <div className="truncate">{task.title}</div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {calendarView === 'Liste' && (
+                      <div className="bg-white min-h-[620px]">
+                        {menuCalendarListGroups.length > 0 ? (
+                          menuCalendarListGroups.map((group) => (
+                            <div key={`home-list-group-${group.day.toISOString()}`}>
+                              <div className="h-[30px] px-3.5 bg-[#f1f3f6] border-b border-[#d6dce5] flex items-center justify-between">
+                                <div className="text-[10.5px] font-black text-[#374151] capitalize">
+                                  {new Intl.DateTimeFormat('tr-TR', { weekday: 'long' }).format(group.day)}
+                                </div>
+                                <div className="text-[10px] font-black text-[#374151]">
+                                  {formatMenuCalendarWeekHeader(group.day)}
+                                </div>
+                              </div>
+
+                              {group.tasks.map((task) => (
+                                <button
+                                  key={`home-list-task-${group.day.toISOString()}-${task.projectName}-${task.id}`}
+                                  type="button"
+                                  onClick={() => openMenuCalendarTask(task)}
+                                  className="w-full h-[34px] grid grid-cols-[64px_1fr] items-center border-b border-[#e6e9ef] text-left hover:bg-[#fafcff]"
+                                >
+                                  <div className="px-3 text-[10px] font-black text-[#596270]">
+                                    {formatMenuCalendarTaskTime(task) || ' '}
+                                  </div>
+                                  <div className="min-w-0 text-[10px] font-bold text-[#596270] truncate">
+                                    <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: task.columnColor || '#55ace8' }} />
+                                    {task.title}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="h-[240px] flex items-center justify-center text-[11px] font-bold text-[#9aa3b1]">
+                            Bu aralıkta planlı görev yok.
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </section>
               </div>
