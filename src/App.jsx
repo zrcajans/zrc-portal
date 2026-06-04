@@ -10715,220 +10715,108 @@ function App() {
         )}
 
         {activeContentMenu === 'Ana Sayfa' ? (
-          <div className="w-full h-full overflow-y-auto custom-scrollbar bg-[#f2f3f5] animate-fade-in">
-            <div className="px-4 pt-3 pb-8">
-              <div className="mb-4 rounded-[10px] bg-white border border-[#e5e8ee] shadow-[0_10px_30px_rgba(30,43,70,0.05)] p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`h-6 px-2.5 rounded-full border text-[9px] font-black flex items-center ${getTeamRoleTone(currentUserRole)}`}>
-                        {currentAccountType}
-                      </span>
-                      <span className="text-[9px] font-black text-[#a0a8b5]">
-                        {currentUserRole}
-                      </span>
-                    </div>
-
-                    <h1 className="mt-2 text-[18px] font-black text-[#232b36] tracking-[-0.04em]">
-                      Hoş geldin, {currentProfileName}
-                    </h1>
-                    <p className="mt-1 text-[11px] font-bold text-[#8a94a5]">
-                      {homeRoleIntroText}
-                    </p>
-
-                    {homeRoleQuickActions.length > 0 && (
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        {homeRoleQuickActions.map((action) => (
-                          <button
-                            key={`home-role-action-${action.label}`}
-                            type="button"
-                            onClick={action.action}
-                            className={`h-7 px-3 rounded-full border text-[9.5px] font-black transition-all hover:shadow-sm ${action.tone}`}
-                          >
-                            {action.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {currentAccountType !== 'Patron' && visibleProjectNames.length > 0 && (
-                      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                        {visibleProjectNames.slice(0, 4).map((projectName) => (
-                          <button
-                            key={`home-visible-project-${projectName}`}
-                            type="button"
-                            onClick={() => {
-                              setSelectedProject(projectName);
-                              setActiveMenu('Projeler');
-                              setActiveContentMenu('Projeler');
-                              setActiveTab('Görevler');
-                            }}
-                            className="h-6 px-2.5 rounded-full bg-[#f6f7fb] border border-[#e5e8ee] text-[8.5px] font-black text-[#7c8798] hover:border-[#ff3600]/20 hover:text-[#ff3600] transition-all"
-                          >
-                            {projectName}
-                          </button>
-                        ))}
-
-                        {visibleProjectNames.length > 4 && (
-                          <span className="h-6 px-2.5 rounded-full bg-white border border-[#e5e8ee] text-[8.5px] font-black text-[#a0a8b5]">
-                            +{visibleProjectNames.length - 4}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-2 shrink-0">
-                    {homeRoleSummaryItems.map((item) => (
-                      <div
-                        key={`home-role-summary-${item.label}`}
-                        className={`w-[86px] rounded-[9px] border px-3 py-2 ${item.tone}`}
-                      >
-                        <div className="text-[16px] font-black leading-none">{item.value}</div>
-                        <div className="mt-1 text-[8px] font-black opacity-70">{item.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-[minmax(0,1fr)_minmax(560px,1fr)] items-start gap-5">
-                <div className="min-w-0 space-y-5">
-                  <section>
+          <div className="w-full h-full overflow-hidden custom-scrollbar bg-[#f3f4f6] animate-fade-in">
+            <div className="h-full px-4 pt-4 pb-0 overflow-hidden">
+              <div className="grid h-full grid-cols-[minmax(440px,1fr)_minmax(620px,1fr)] items-start gap-7 overflow-hidden">
+                <div className="min-w-0 h-full overflow-hidden pr-0.5">
+                  <section className="mb-8">
                     <div className="h-7 mb-2 flex items-center gap-2">
-                      <h2 className="text-[12.5px] font-black text-[#323b4a]">{homeWorkSectionTitle}</h2>
-                      <span className="h-[18px] min-w-[24px] px-1.5 rounded-full bg-[#f28b57]/20 text-[#dc6d34] text-[9px] font-black flex items-center justify-center">
-                        {homeVisibleWorkTasks.length}
+                      <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Size Atanan Görevler</h2>
+                      <span className="h-[18px] min-w-[27px] px-2 rounded-full bg-[#f28b57] text-white text-[9px] font-black flex items-center justify-center leading-none">
+                        {homeAssignedTasks.length}
                       </span>
-
-                      <div className="ml-auto flex items-center gap-1">
-                        {homeWorkFilterItems.map((item) => {
-                          const isActiveFilter =
-                            currentAccountType === 'Ekip Üyesi'
-                              ? homeWorkView === item.label
-                              : homeWorkView === item.label || (homeWorkView === 'Görevli' && item.label === 'Açık');
-
-                          return (
-                            <button
-                              key={item.label}
-                              type="button"
-                              onClick={() => setHomeWorkView(item.label)}
-                              className={`h-6 px-2.5 rounded-[4px] text-[8.5px] font-black transition-all ${
-                                isActiveFilter
-                                  ? 'bg-[#eaf2ff] text-[#2f66cf]'
-                                  : 'text-[#9aa3b1] hover:bg-white hover:text-[#677282]'
-                              }`}
-                            >
-                              {item.label}
-                            </button>
-                          );
-                        })}
-                      </div>
                     </div>
 
-                    <div className="bg-white rounded-[6px] border border-[#e5e8ee] shadow-[0_10px_30px_rgba(30,43,70,0.05)] overflow-hidden">
-                      <div className="h-8 px-3.5 border-b border-[#eceff4] bg-[#fbfcfd] grid grid-cols-[34px_minmax(0,1fr)_120px] items-center">
-                        <div className="text-[9px] font-black text-[#9aa3b1]"> </div>
-                        <div className="text-[9px] font-black text-[#9aa3b1] flex items-center gap-1">
+                    <div className="bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                      <div className="h-[46px] px-5 border-b border-[#eef1f5] bg-[#ffffff] grid grid-cols-[36px_minmax(0,1fr)_142px] items-center">
+                        <div className="text-[10.5px] font-black text-[#9aa4b2]"> </div>
+                        <div className="text-[13px] font-black text-[#8c96a6] flex items-center gap-1.5">
                           Durum / Ad
-                          <span className="text-[8px] text-[#c2c8d2]">◆</span>
+                          <span className="text-[9px] text-[#a9b2bf] leading-none">◆</span>
                         </div>
-                        <div className="text-right text-[9px] font-black text-[#9aa3b1]">Bitiş</div>
+                        <div className="text-right text-[13px] font-black text-[#8c96a6] flex items-center justify-end gap-1.5">
+                          Bitiş
+                          <span className="text-[9px] text-[#a9b2bf] leading-none">◆</span>
+                        </div>
                       </div>
 
-                      <div className="max-h-[184px] overflow-y-auto custom-scrollbar">
-                        {homeVisibleWorkTasks.length > 0 ? (
-                          homeVisibleWorkTasks.map((task, index) => (
+                      <div>
+                        {homeAssignedTasks.length > 0 ? (
+                          homeAssignedTasks.slice(0, 3).map((task, index) => (
                             <button
-                              key={`home-cubicl-work-${homeWorkView}-${task.projectName}-${task.id}`}
+                              key={`home-assigned-photoshop-${task.projectName}-${task.id}`}
                               type="button"
                               onClick={() => openHomeTaskDetail(task)}
-                              className="w-full h-[34px] px-3.5 grid grid-cols-[34px_minmax(0,1fr)_120px] items-center border-b border-[#eceff4] last:border-b-0 hover:bg-[#f8fafc] transition-all text-left"
+                              className="w-full h-[40px] px-5 grid grid-cols-[36px_minmax(0,1fr)_142px] items-center border-b border-[#eef1f5] hover:bg-[#fafbfc] transition-all text-left"
                             >
-                              <div className="text-[9.5px] font-semibold text-[#8b94a3]">{index + 1}.</div>
-                              <div className="min-w-0 flex items-center gap-2">
+                              <div className="text-[12px] font-semibold text-[#8b94a3]">{index + 1}.</div>
+                              <div className="min-w-0 flex items-center gap-2.5">
                                 <span
-                                  className="w-2 h-2 rounded-full shrink-0"
+                                  className="w-[10px] h-[10px] rounded-full shrink-0"
                                   style={{ backgroundColor: task.homeDate && task.homeDate < todayStart ? '#ef4444' : task.columnColor || '#f6b15f' }}
                                 />
-                                <span className="min-w-0 text-[10.5px] font-semibold text-[#45505f] truncate">
+                                <span className="min-w-0 text-[13px] font-semibold text-[#3d4552] truncate tracking-[-0.01em]">
                                   {task.title}
                                 </span>
                               </div>
 
-                              <div className="text-right text-[10px] font-semibold text-[#596270] truncate">
-                                {formatCalendarDate(task.homeDate)}
+                              <div className="text-right text-[12.5px] font-semibold text-[#444b57] truncate">
+                                {task.homeDate
+                                  ? `${new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long' }).format(task.homeDate)}, ${new Intl.DateTimeFormat('tr-TR', { hour: '2-digit', minute: '2-digit' }).format(task.homeDate)}`
+                                  : '-'}
                               </div>
                             </button>
                           ))
                         ) : (
-                          <div className="h-[92px] flex items-center justify-center text-[10.5px] font-semibold text-[#98a1b2]">
+                          <div className="h-[120px] flex items-center justify-center text-[12px] font-semibold text-[#98a1b2]">
                             Gösterilecek görev yok
                           </div>
                         )}
                       </div>
 
-                      {homeVisibleWorkTasks.length > 5 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveContentMenu('Projeler');
-                            setActiveMenu('Projeler');
-                            setActiveTab('Görevler');
-                          }}
-                          className="h-8 w-full border-t border-[#eceff4] bg-[#fbfcfd] text-[10px] font-bold text-[#9aa3b1] hover:text-[#2f66cf] transition-all"
-                        >
-                          Daha Fazla Göster
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveContentMenu('Projeler');
+                          setActiveMenu('Projeler');
+                          setActiveTab('Görevler');
+                        }}
+                        className="h-[38px] w-full bg-[#fbfcfd] text-[12px] font-semibold text-[#a1aab8] hover:text-[#2f66cf] hover:bg-[#f8fafc] transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <span className="text-[10px] leading-none">⌄</span>
+                        Daha Fazla Göster
+                      </button>
                     </div>
                   </section>
 
                   <section>
                     <div className="h-7 mb-2 flex items-center justify-between">
-                      <h2 className="text-[12.5px] font-black text-[#323b4a]">{currentAccountType === 'Müşteri' ? 'Notlarım' : 'Yapışkan Notlar'}</h2>
+                      <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Yapışkan Notlar</h2>
 
-                      <div className="flex items-center gap-2 text-[#b4bbc7]">
-                        <button type="button" className="w-6 h-6 rounded-[4px] hover:bg-white hover:text-[#9576e8] transition-all flex items-center justify-center">
+                      <div className="flex items-center gap-2 text-[#c0c7d1]">
+                        <button type="button" className="w-6 h-6 rounded-[5px] hover:bg-white hover:text-[#9576e8] transition-all flex items-center justify-center text-[17px] leading-none">
                           ≡
                         </button>
-                        <button type="button" className="w-6 h-6 rounded-[4px] hover:bg-white hover:text-[#8b94a3] transition-all flex items-center justify-center">
+                        <button type="button" className="w-6 h-6 rounded-[5px] hover:bg-white hover:text-[#8b94a3] transition-all flex items-center justify-center text-[17px] leading-none">
                           ⌕
                         </button>
-                        <button type="button" className="w-6 h-6 rounded-[4px] hover:bg-white hover:text-[#8b94a3] transition-all flex items-center justify-center">
+                        <button type="button" className="w-6 h-6 rounded-[5px] hover:bg-white hover:text-[#8b94a3] transition-all flex items-center justify-center text-[16px] leading-none">
                           ⧉
                         </button>
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-[6px] border border-[#e5e8ee] shadow-[0_10px_30px_rgba(30,43,70,0.05)] overflow-hidden">
-                      <form onSubmit={createQuickNoteFromHome} className="px-3.5 py-2 border-b border-[#eceff4]">
-                        <div className="flex items-center gap-2">
-                          <input
-                            value={quickNoteDraft}
-                            onChange={(event) => setQuickNoteDraft(event.target.value)}
-                            placeholder="Kısa not yaz..."
-                            className="flex-1 h-8 rounded-[4px] border border-[#e4e7ec] bg-[#fafbfc] px-2.5 text-[10px] font-semibold text-[#45505f] placeholder:text-[#b7bec9] focus:outline-none focus:border-[#b7d4ff] focus:bg-white"
-                          />
-                          <button
-                            type="submit"
-                            className="h-8 px-3 rounded-[4px] bg-[#40aee8] text-white text-[9px] font-black hover:bg-[#2d9ed9] transition-all"
-                          >
-                            Ekle
-                          </button>
-                        </div>
-                      </form>
-
-                      <div className={`${quickNotes.length > 0 ? 'max-h-[232px] overflow-y-auto custom-scrollbar p-3.5' : 'p-3.5'}`}>
+                    <div className="bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                      <div className={`${quickNotes.length > 0 ? 'max-h-[306px] overflow-y-auto custom-scrollbar p-4' : 'p-4'}`}>
                         {quickNotes.length > 0 ? (
-                          <div className="space-y-1.5">
+                          <div className="space-y-2">
                             {quickNotes.map((note) => (
                               <div
                                 key={note.id}
-                                className="min-h-[32px] rounded-[4px] border border-[#eceff4] bg-[#fcfdff] px-2.5 py-1.5 flex items-start gap-2"
+                                className="min-h-[38px] rounded-[5px] border border-[#eceff4] bg-[#fcfdff] px-3 py-2 flex items-start gap-2"
                               >
                                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#40aee8] shrink-0" />
-                                <div className="min-w-0 flex-1 text-[10px] font-semibold leading-4 text-[#596270]">
+                                <div className="min-w-0 flex-1 text-[11px] font-semibold leading-5 text-[#596270]">
                                   {note.text}
                                 </div>
                                 <button
@@ -10942,21 +10830,29 @@ function App() {
                             ))}
                           </div>
                         ) : (
-                          <div className="h-[212px] flex flex-col items-center justify-center text-center">
-                            <div className="relative w-[128px] h-[84px] mb-4">
-                              <div className="absolute left-7 top-2 w-[54px] h-[72px] bg-[#f1f3f6] rounded-[3px]" />
-                              <div className="absolute left-[58px] top-0 w-[56px] h-[52px] bg-[#eef1f5] rounded-[3px]" />
-                              <div className="absolute left-[42px] top-[34px] w-[66px] h-[48px] bg-[#f8f9fb] rounded-[3px] border border-[#eceff4]" />
-                              <div className="absolute left-[52px] top-[45px] w-10 h-[3px] rounded bg-[#d9dee7]" />
-                              <div className="absolute left-[52px] top-[58px] w-14 h-[3px] rounded bg-[#d9dee7]" />
-                              <div className="absolute left-[52px] top-[71px] w-10 h-[3px] rounded bg-[#d9dee7]" />
-                              <div className="absolute left-0 top-7 space-y-2">
-                                <span className="block w-1.5 h-1.5 rounded-full bg-[#40aee8]" />
-                                <span className="block w-1.5 h-1.5 rounded-full bg-[#40aee8]" />
-                                <span className="block w-1.5 h-1.5 rounded-full bg-[#40aee8]" />
+                          <div className="h-[296px] flex flex-col items-center justify-center text-center">
+                            <div className="relative w-[244px] h-[130px] mb-5">
+                              <div className="absolute left-[38px] top-[14px] w-[74px] h-[76px] bg-[#eef1f5] rounded-[2px]" />
+                              <div className="absolute left-[82px] top-[0px] w-[78px] h-[62px] bg-[#f2f4f7] rounded-[2px]" />
+                              <div className="absolute left-[92px] top-[52px] w-[104px] h-[70px] bg-[#fbfcfd] rounded-[2px] border border-[#eceff4]" />
+                              <div className="absolute left-[112px] top-[68px] w-[58px] h-[3px] rounded bg-[#d9dee7]" />
+                              <div className="absolute left-[112px] top-[86px] w-[86px] h-[3px] rounded bg-[#d9dee7]" />
+                              <div className="absolute left-[112px] top-[104px] w-[58px] h-[3px] rounded bg-[#d9dee7]" />
+                              <div className="absolute left-[16px] top-[42px] space-y-4">
+                                <span className="block w-[4px] h-[4px] rounded-full bg-[#40aee8]" />
+                                <span className="block w-[4px] h-[4px] rounded-full bg-[#40aee8]" />
+                                <span className="block w-[4px] h-[4px] rounded-full bg-[#40aee8]" />
                               </div>
+                              <div className="absolute right-[36px] top-[28px] w-[26px] h-[26px] rounded-full bg-[#2f3a45]" />
+                              <div className="absolute right-[20px] top-[26px] w-[24px] h-[30px] rounded-full bg-[#2f3a45]" />
+                              <div className="absolute right-[42px] top-[52px] w-[32px] h-[46px] bg-[#27aee9] rounded-t-[18px]" />
+                              <div className="absolute right-[64px] top-[76px] w-[34px] h-[6px] bg-[#27aee9] rounded-full -rotate-[13deg]" />
+                              <div className="absolute right-[42px] top-[96px] w-[8px] h-[40px] bg-[#bdc3cc] rotate-[4deg] origin-top" />
+                              <div className="absolute right-[62px] top-[96px] w-[8px] h-[40px] bg-[#bdc3cc] -rotate-[14deg] origin-top" />
+                              <div className="absolute right-[70px] top-[130px] w-[22px] h-[4px] bg-[#2f3a45] rounded-full" />
+                              <div className="absolute right-[32px] top-[130px] w-[20px] h-[4px] bg-[#2f3a45] rounded-full" />
                             </div>
-                            <div className="text-[10.5px] font-semibold text-[#6f7a89]">
+                            <div className="text-[13px] font-semibold text-[#2f3744]">
                               Görüntülenecek hiçbir notunuz yok!
                             </div>
                           </div>
@@ -10966,74 +10862,75 @@ function App() {
                   </section>
                 </div>
 
-                <section className="min-w-0">
-                  <div className="h-7 mb-2 flex items-center justify-between">
-                    <h2 className="text-[12.5px] font-black text-[#323b4a]">Takvimim</h2>
+                <section className="min-w-0 h-full overflow-hidden">
+                  <div className="h-9 mb-2 flex items-center justify-between">
+                    <h2 className="text-[13px] font-black text-[#293241] tracking-[-0.01em]">Takvimim</h2>
 
-                    <div className="h-7 p-0.5 rounded-[6px] bg-[#edf0f4] flex items-center gap-0.5">
-                      {['Ay', 'Hafta', 'Gün', 'Liste'].map((viewName) => (
-                        <button
-                          key={`home-cubicl-view-${viewName}`}
-                          type="button"
-                          className={`h-6 px-3 rounded-[5px] text-[8.5px] font-black transition-all ${
-                            viewName === 'Ay'
-                              ? 'bg-[#56a8e8] text-white shadow-sm'
-                              : 'text-[#8b94a3] hover:bg-white'
-                          }`}
-                        >
-                          {viewName}
-                        </button>
-                      ))}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsCalendarDisplayMenuOpen((prev) => !prev)}
+                      className="h-[34px] px-4 rounded-[4px] bg-[#2f66cf] text-white text-[12px] font-black hover:bg-[#285cc0] transition-all flex items-center gap-3 shadow-[0_8px_18px_rgba(47,102,207,0.18)]"
+                    >
+                      Gösterim Şekli
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h18M6 12h12M10 19h4" />
+                      </svg>
+                    </button>
                   </div>
 
-                  <div className="bg-white rounded-[6px] border border-[#e5e8ee] shadow-[0_10px_30px_rgba(30,43,70,0.05)] overflow-hidden">
-                    <div className="h-[46px] px-4 border-b border-[#eceff4] flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                  <div className="h-[calc(100%-44px)] bg-white rounded-[7px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                    <div className="h-[76px] px-8 border-b border-[#eceff4] flex items-center justify-between">
+                      <div className="flex items-center gap-5">
                         <button
                           type="button"
                           onClick={() => setCalendarMonthDate((prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1))}
-                          className="w-7 h-7 rounded-[4px] text-[#5d6675] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[20px] leading-none"
+                          className="w-8 h-8 rounded-[5px] text-[#293241] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[28px] leading-none"
                         >
                           ‹
                         </button>
 
-                        <div className="min-w-[128px] text-center text-[14px] font-black text-[#323b4a] capitalize tracking-[0.01em]">
+                        <div className="min-w-[176px] text-center text-[22px] font-black text-[#293241] capitalize tracking-[-0.02em]">
                           {monthTitle}
                         </div>
 
                         <button
                           type="button"
                           onClick={() => setCalendarMonthDate((prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1))}
-                          className="w-7 h-7 rounded-[4px] text-[#5d6675] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[20px] leading-none"
+                          className="w-8 h-8 rounded-[5px] text-[#293241] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[28px] leading-none"
                         >
                           ›
                         </button>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const now = new Date();
-                          setCalendarMonthDate(new Date(now.getFullYear(), now.getMonth(), 1));
-                          setCalendarFocusedDate(now);
-                        }}
-                        className="h-7 px-2.5 rounded-[4px] bg-[#f4f6f8] text-[8.5px] font-black text-[#7d8795] hover:bg-[#edf0f4] transition-all"
-                      >
-                        Bugün
-                      </button>
+                      <div className="h-[26px] rounded-full flex items-center gap-2">
+                        {['Ay', 'Hafta', 'Gün', 'Liste'].map((viewName) => (
+                          <button
+                            key={`home-photoshop-view-${viewName}`}
+                            type="button"
+                            className={`h-[24px] px-4 rounded-full text-[11px] font-black transition-all ${
+                              viewName === 'Ay'
+                                ? 'bg-[#56a8e8] text-white shadow-sm'
+                                : 'bg-[#f0f1f3] text-[#8f98a6] hover:bg-[#e8eaee]'
+                            }`}
+                          >
+                            {viewName}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-7 grid-rows-[32px_repeat(6,82px)]">
+                    <div className="grid grid-cols-7 h-[38px] bg-white border-b border-[#eceff4]">
                       {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((dayName) => (
                         <div
                           key={`home-calendar-head-${dayName}`}
-                          className="bg-white border-r border-b border-[#eceff4] last:border-r-0 flex items-center justify-center text-[9px] font-black text-[#a5adba]"
+                          className="border-r border-[#eceff4] last:border-r-0 flex items-center justify-center text-[13px] font-semibold text-[#9aa4b2]"
                         >
                           {dayName}
                         </div>
                       ))}
+                    </div>
 
+                    <div className="grid grid-cols-7 grid-rows-6 h-[calc(100%-114px)]">
                       {calendarGridDays.map((day) => {
                         const dayTasks = getHomeTasksForCalendarDay(day);
                         const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
@@ -11041,7 +10938,7 @@ function App() {
 
                         return (
                           <button
-                            key={`home-calendar-${day.toISOString()}`}
+                            key={`home-calendar-photoshop-${day.toISOString()}`}
                             type="button"
                             onClick={() => {
                               setCalendarFocusedDate(day);
@@ -11049,49 +10946,43 @@ function App() {
                                 openHomeTaskDetail(dayTasks[0]);
                               }
                             }}
-                            className={`min-h-0 border-r border-b border-[#eceff4] p-1.5 text-left transition-all hover:bg-[#f8fafc] overflow-hidden ${
-                              isCurrentMonth ? 'bg-white' : 'bg-[#fbfcfe]'
+                            className={`min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-hidden ${
+                              isToday
+                                ? 'bg-[#fff9df]'
+                                : isCurrentMonth
+                                  ? 'bg-white'
+                                  : 'bg-[#fbfcfe]'
                             }`}
                           >
-                            <div className="flex items-start justify-between gap-1">
+                            <div className="flex items-start justify-end">
                               <span
-                                className={`w-5 h-5 rounded-[4px] flex items-center justify-center text-[8.5px] font-black ${
-                                  isToday
-                                    ? 'bg-[#56a8e8] text-white'
-                                    : isCurrentMonth
-                                      ? 'text-[#596270]'
-                                      : 'text-[#c5cad3]'
+                                className={`w-6 h-6 flex items-center justify-center text-[13px] font-semibold ${
+                                  isCurrentMonth ? 'text-[#293241]' : 'text-[#c4cbd5]'
                                 }`}
                               >
                                 {day.getDate()}
                               </span>
-
-                              {dayTasks.length > 0 && (
-                                <span className="text-[7.5px] font-black text-[#b8bfca]">
-                                  {dayTasks.length}
-                                </span>
-                              )}
                             </div>
 
-                            <div className="mt-1 space-y-0.5">
+                            <div className="mt-2 space-y-1">
                               {dayTasks.slice(0, 3).map((task) => (
                                 <div
                                   key={`home-cal-task-${day.toISOString()}-${task.projectName}-${task.id}`}
-                                  className="h-[16px] px-1.5 flex items-center gap-1 overflow-hidden"
+                                  className="h-[18px] px-1.5 flex items-center gap-1 overflow-hidden rounded-[2px]"
                                   style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
                                 >
                                   <span
                                     className="w-1 h-1 rounded-full shrink-0"
                                     style={{ backgroundColor: task.columnColor || '#8ecae6' }}
                                   />
-                                  <span className="min-w-0 flex-1 text-[7.5px] font-black text-[#596270] truncate">
+                                  <span className="min-w-0 flex-1 text-[8px] font-black text-[#596270] truncate">
                                     {task.title}
                                   </span>
                                 </div>
                               ))}
 
                               {dayTasks.length > 3 && (
-                                <div className="text-[7.5px] font-black text-[#b8bfca] px-1">
+                                <div className="text-[8px] font-black text-[#b8bfca] px-1">
                                   +{dayTasks.length - 3}
                                 </div>
                               )}
