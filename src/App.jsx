@@ -10176,6 +10176,19 @@ function App() {
           padding-left: 44px;
           box-sizing: border-box;
         }
+
+        .zrc-project-board-page,
+        .zrc-team-center-page,
+        .zrc-customer-center-page {
+          padding-left: 44px !important;
+          box-sizing: border-box;
+        }
+
+        .zrc-team-center-page > .zrc-center-card,
+        .zrc-customer-center-page > .zrc-center-card {
+          margin-left: 0 !important;
+          margin-right: auto !important;
+        }
       `}</style>
 
       <Sidebar
@@ -12649,7 +12662,7 @@ function App() {
           </div>
         ) : (activeContentMenu === 'Projeler' || activeContentMenu === 'Diğer') ? (
           selectedProject ? (
-            <div className="w-full h-full bg-white animate-fade-in flex flex-col flex-1 overflow-hidden">
+            <div className="zrc-project-board-page w-full h-full bg-white animate-fade-in flex flex-col flex-1 overflow-hidden">
                             {activeContentMenu === 'Projeler' && (
 <div className="w-full px-7 flex items-end justify-center shrink-0 h-[56px] bg-white relative z-20 border-b border-[#f5f6f8]">
                 <div className="flex items-end justify-center gap-1">
@@ -14762,8 +14775,8 @@ function App() {
                 )}
 
                 {activeContentMenu === 'Diğer' && activeTab === 'Ekip' && showTeamManagementPage && (
-                  <div className="w-full h-full overflow-y-auto custom-scrollbar bg-[#f5f6f8] animate-fade-in">
-                    <div className="max-w-[1180px] mx-auto px-8 py-7">
+                  <div className="zrc-team-center-page w-full h-full overflow-y-auto custom-scrollbar bg-[#f5f6f8] animate-fade-in">
+                    <div className="zrc-center-card max-w-[1180px] mx-auto px-8 py-7">
                       <div className="rounded-[22px] bg-white border border-zinc-200 p-5 shadow-sm">
                         <div className="flex items-center justify-between gap-6">
                           <div>
@@ -15083,8 +15096,8 @@ function App() {
                 )}
 
                 {activeContentMenu === 'Diğer' && activeTab === 'Müşteriler' && showCustomerManagementPage && (
-                  <div className="w-full h-full overflow-y-auto custom-scrollbar bg-[#f5f6f8] animate-fade-in">
-                    <div className="max-w-[1120px] mx-auto px-6 py-5">
+                  <div className="zrc-customer-center-page w-full h-full overflow-y-auto custom-scrollbar bg-[#f5f6f8] animate-fade-in">
+                    <div className="zrc-center-card max-w-[1120px] mx-auto px-6 py-5">
                       <div className="rounded-[22px] bg-white border border-zinc-200 px-5 py-4 shadow-sm">
                         <div className="flex items-center justify-between gap-5">
                           <div>
