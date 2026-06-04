@@ -25,7 +25,6 @@ function Sidebar({
   const otherButtonRef = useRef(null);
 
   const profileInitials = `${profileDraft?.firstName?.[0] || 'E'}${profileDraft?.lastName?.[0] || 'Z'}`.toUpperCase();
-  const brandLogoSrc = '/zrc-logo-white-transparent.png';
 
   const isProjectsPanelOpen = activeMenu === 'Projeler' && isPanelOpen;
   const isOtherPanelOpen = activeMenu === 'Diğer' && isPanelOpen;
@@ -85,15 +84,11 @@ function Sidebar({
       {(isProjectsPanelOpen || isOtherPanelOpen) && (
         <div
           onClick={() => setIsPanelOpen(false)}
-          className="fixed inset-0 bg-zinc-950/10 backdrop-blur-[1px] z-[250] animate-overlay-in"
+          className="fixed inset-0 bg-zinc-950/5 backdrop-blur-[0.7px] z-[250] animate-overlay-in"
         />
       )}
 
-      <aside className="w-[96px] h-screen bg-[#ff3600] flex flex-col justify-between items-center py-5 shrink-0 z-[300] fixed top-0 left-0 shadow-[8px_0_32px_rgba(15,23,42,0.10)] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-visible">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0)_28%,rgba(0,0,0,0.10)_100%)]" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-white/20" />
-        <div className="pointer-events-none absolute top-5 left-1/2 h-24 w-10 -translate-x-1/2 rounded-full bg-white/10 blur-2xl" />
-
+      <aside className="w-[105px] hover:w-[112px] h-screen bg-[#ff3600] flex flex-col justify-between items-center py-6 shrink-0 z-[300] fixed top-0 left-0 shadow-[4px_0_24px_rgba(0,0,0,0.06)] transition-[width] duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
         <div className="relative z-20">
           <button
             type="button"
@@ -101,24 +96,26 @@ function Sidebar({
               setIsPanelOpen(false);
               onProfileSelect?.();
             }}
-            title={`${profileDraft?.firstName || 'Enes'} ${profileDraft?.lastName || 'Zariç'} / Profil`}
-            className={`group w-[58px] h-[58px] rounded-[22px] flex items-center justify-center cursor-pointer apple-dock-effect hover-grow overflow-hidden transition-all border ${
+            title={`${profileDraft?.firstName || 'Enes'} ${profileDraft?.lastName || 'Zariç'}`}
+            className={`w-[50px] h-[50px] rounded-full flex items-center justify-center border-2 cursor-pointer apple-dock-effect hover-grow shadow-md overflow-hidden transition-all ${
               activeMenu === 'Profil'
-                ? 'bg-white/20 border-white shadow-[0_14px_32px_rgba(0,0,0,0.22)] ring-2 ring-white/40'
-                : 'bg-black/20 border-white/20 hover:bg-white/20 hover:border-white/40 shadow-[0_12px_26px_rgba(0,0,0,0.16)]'
+                ? 'bg-white text-[#ff3600] border-white'
+                : 'bg-zinc-900 text-white border-white/20 hover:border-white'
             }`}
           >
-            <span className="absolute inset-[5px] rounded-[18px] bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <img
-              src={brandLogoSrc}
-              alt="ZRC"
-              className="relative z-10 w-[42px] h-[42px] object-contain drop-shadow-[0_3px_8px_rgba(0,0,0,0.22)]"
-            />
-            <span className="sr-only">{profileInitials}</span>
+            {profileDraft?.avatarDataUrl ? (
+              <img
+                src={profileDraft.avatarDataUrl}
+                alt="Profil"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-[12px] font-black tracking-[-0.04em]">{profileInitials}</span>
+            )}
           </button>
         </div>
 
-        <nav className="flex flex-col w-full flex-1 justify-center space-y-1.5 relative z-20">
+        <nav className="flex flex-col w-full flex-1 justify-center space-y-1 relative">
           {visibleMenuItems.map((item) => {
             const isActive = activeMenu === item.id;
             const isProjectsBtn = item.id === 'Projeler';
@@ -126,7 +123,7 @@ function Sidebar({
             const isSearchBtn = item.id === 'Arama';
 
             return (
-              <div key={item.id} className="w-full pl-2 relative z-10 hover:z-20">
+              <div key={item.id} className="w-full pl-3 relative z-10 hover:z-20">
                 <button
                   ref={isProjectsBtn ? projectsButtonRef : isOtherBtn ? otherButtonRef : null}
                   onClick={() => {
@@ -163,11 +160,11 @@ function Sidebar({
                     setIsPanelOpen(false);
                     onSimpleMenuSelect?.(item.id);
                   }}
-                  className={`w-full min-h-[70px] flex flex-col items-center justify-center py-3.5 relative z-10 apple-dock-effect hover-grow apple-dock-btn border border-transparent ${isActive ? 'bg-white text-[#ff3600] rounded-l-[22px] active-menu-btn shadow-[0_14px_30px_rgba(0,0,0,0.14)] border-white/80' : 'text-white/80 rounded-l-[22px] hover:text-white hover:bg-white/10 hover:border-white/20'}`}
+                  className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect hover-grow apple-dock-btn ${isActive ? 'bg-white text-[#ff3600] rounded-l-lg active-menu-btn' : 'text-white/80 rounded-l-lg'}`}
                   style={{ transformOrigin: 'right center' }}
                 >
                   {item.icon}
-                  <span className={`text-[10px] tracking-[-0.03em] mt-1 select-none ${isActive ? 'font-black' : 'font-extrabold'}`}>
+                  <span className={`text-[10.5px] tracking-tight mt-0.5 select-none ${isActive ? 'font-black' : 'font-bold'}`}>
                     {item.id}
                   </span>
                 </button>
@@ -200,13 +197,9 @@ function Sidebar({
           })}
         </nav>
 
-        <div className="relative z-20 w-full flex justify-center mb-1">
-          <div className="w-[62px] h-[54px] bg-white/12 border border-white/20 text-white flex items-center justify-center rounded-[20px] shadow-[0_12px_24px_rgba(0,0,0,0.14)] select-none backdrop-blur-sm">
-            <img
-              src={brandLogoSrc}
-              alt="ZRC"
-              className="w-[46px] h-[46px] object-contain drop-shadow-[0_3px_8px_rgba(0,0,0,0.18)]"
-            />
+        <div className="w-full flex justify-center mb-1">
+          <div className="w-[54px] h-[54px] bg-white text-[#ff3600] flex items-center justify-center rounded-lg shadow-sm text-[12px] font-black tracking-tighter select-none">
+            ZRC
           </div>
         </div>
 
