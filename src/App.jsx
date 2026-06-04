@@ -5,7 +5,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v151-musteri-bos-liste-duzeltme';
+const ZRC_APP_BUILD_LABEL = 'v153-kolon-duzenleme-silme-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -182,11 +182,16 @@ class ZRCErrorBoundary extends React.Component {
 }
 
 const defaultBoardColumns = [
-  { id: 'col-1', title: 'Bekliyor', color: '#ffcb78', desc: 'Bu aşamada bekleyen işler yer alır.', tasks: [] },
+  { id: 'col-1', title: 'Yeni Görev', color: '#ffcb78', desc: 'Yeni oluşturulan görevler bu aşamada bekler.', tasks: [] },
   { id: 'col-2', title: 'Aktif', color: '#083f1f', desc: 'Bu aşamada aktif/üzerinde çalışılan işler yer alır.', tasks: [] },
   { id: 'col-3', title: 'Tamamlandı', color: '#bbcee4', desc: 'Bu aşamada tamamlanmış işler yer alır.', tasks: [] },
   { id: 'col-4', title: 'Askıya Alındı', color: '#a594ed', desc: 'Bu aşamada askıya alınmış işler yer alır.', tasks: [] }
 ];
+
+const normalizeColumnTitleForDisplay = (title = '') => {
+  const cleanTitle = String(title || '').trim();
+  return cleanTitle === 'Bekliyor' ? 'Yeni Görev' : cleanTitle;
+};
 
 const createDefaultProjectBoard = () => ({
   columns: defaultBoardColumns.map((column) => ({
@@ -1361,7 +1366,7 @@ function App() {
 
   const ensureSupabaseColumn = async (projectId, column = {}, position = 0) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
-    const cleanTitle = String(column?.title || 'Bekliyor').trim();
+    const cleanTitle = normalizeColumnTitleForDisplay(column?.title || 'Yeni Görev');
 
     if (!workspaceId || !projectId || !cleanTitle) return null;
 
@@ -1498,13 +1503,53 @@ function App() {
   const saveStageToSupabase = async (columnData) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    if (!workspaceId || !selectedProject || !columnData?.title) return;
+    if (!workspaceId || !selectedProject || !columnData?.title) return false;
 
     setSupabaseWriteInfo('saving', 'Supabase kolon kaydediliyor');
 
     try {
       const projectId = await ensureSupabaseProject(selectedProject);
-      await ensureSupabaseColumn(projectId, columnData, boardColumns.length);
+      if (!projectId) return false;
+
+      const columnPosition = Math.max(
+        0,
+        boardColumns.findIndex((column) => column.id === columnData.id || column.title === columnData.title)
+      );
+
+      const payload = {
+        workspace_id: workspaceId,
+        project_id: projectId,
+        title: normalizeColumnTitleForDisplay(columnData.title || 'Yeni Görev'),
+        description: columnData.desc || columnData.description || '',
+        color: columnData.color || '#64748b',
+        position: columnPosition >= 0 ? columnPosition : boardColumns.length,
+        is_archived: false
+      };
+
+      if (isSupabaseUuid(columnData.id)) {
+        const { error: updateError } = await supabase
+          .from('board_columns')
+          .update(payload)
+          .eq('id', columnData.id);
+
+        if (updateError) throw updateError;
+
+        setSupabaseWriteInfo('saved', 'Supabase kolon güncellendi');
+        return true;
+      }
+
+      const savedColumnId = await ensureSupabaseColumn(projectId, payload, payload.position);
+
+      if (savedColumnId) {
+        setBoardColumns((prevColumns) =>
+          prevColumns.map((column) =>
+            column.id === columnData.id || column.title === columnData.title
+              ? { ...column, id: savedColumnId }
+              : column
+          )
+        );
+      }
+
       setSupabaseWriteInfo('saved', 'Supabase kolon kaydedildi');
       return true;
     } catch (error) {
@@ -3470,7 +3515,7 @@ function App() {
 
     const projectId = await ensureSupabaseProject(projectName);
     const columnIndex = Math.max(0, (projectBoards?.[projectName]?.columns || boardColumns).findIndex((item) => item.title === column.title));
-    const columnId = isArchived ? null : await ensureSupabaseColumn(projectId, column || { title: task.status || 'Bekliyor' }, columnIndex);
+    const columnId = isArchived ? null : await ensureSupabaseColumn(projectId, column || { title: task.status || 'Yeni Görev' }, columnIndex);
 
     const payload = {
       workspace_id: workspaceId,
@@ -3481,7 +3526,7 @@ function App() {
       description: task.description || task.note || '',
       rich_description: task.richDescription || task.rich_description || {},
       priority: getSafeSupabasePriority(task.priority),
-      status: isArchived ? (task.status || column?.title || 'Arşiv') : (column?.title || task.status || 'Bekliyor'),
+      status: isArchived ? (task.status || column?.title || 'Arşiv') : (column?.title || task.status || 'Yeni Görev'),
       start_date: getSupabaseSafeDate(task.startDate),
       due_date: getSupabaseSafeDate(task.dueDate || task.date),
       end_date: getSupabaseSafeDate(task.endDate),
@@ -3921,7 +3966,7 @@ function App() {
     }).format(new Date(year, month - 1, day));
   };
 
-  const mapSupabaseTaskToLocalTask = (task = {}, columnTitle = 'Bekliyor') => {
+  const mapSupabaseTaskToLocalTask = (task = {}, columnTitle = 'Yeni Görev') => {
     const dateValue = task.due_date || task.end_date || task.start_date || '';
 
     return {
@@ -3955,45 +4000,40 @@ function App() {
 
     setProjectBoards((prevBoards) => {
       const existingBoard = prevBoards[projectName] || createDefaultProjectBoard();
-      const defaultColumns = createDefaultProjectBoard().columns;
-      const dbColumnsByTitle = new Map((dbColumns || []).map((column) => [String(column.title || '').trim(), column]));
       const dbColumnsById = new Map((dbColumns || []).map((column) => [column.id, column]));
+      const hasSupabaseColumns = Array.isArray(dbColumns) && dbColumns.length > 0;
 
-      const mergedColumns = defaultColumns.map((defaultColumn, index) => {
-        const dbColumn = dbColumnsByTitle.get(defaultColumn.title);
-
-        return {
-          ...defaultColumn,
-          ...(dbColumn
-            ? {
-                id: dbColumn.id || defaultColumn.id,
-                title: dbColumn.title || defaultColumn.title,
-                color: dbColumn.color || defaultColumn.color,
-                desc: dbColumn.description || defaultColumn.desc
-              }
-            : {}),
-          tasks: []
-        };
-      });
-
-      (dbColumns || []).forEach((dbColumn, index) => {
-        const alreadyExists = mergedColumns.some((column) => column.title === dbColumn.title);
-
-        if (!alreadyExists) {
-          mergedColumns.push({
+      const rawBaseColumns = hasSupabaseColumns
+        ? (dbColumns || []).map((dbColumn, index) => ({
             id: dbColumn.id || `db-col-${index + 1}`,
-            title: dbColumn.title || `Kolon ${index + 1}`,
+            title: normalizeColumnTitleForDisplay(dbColumn.title || `Kolon ${index + 1}`),
             color: dbColumn.color || '#64748b',
             desc: dbColumn.description || '',
             tasks: []
-          });
-        }
+          }))
+        : ((existingBoard.columns || []).length > 0 ? existingBoard.columns : createDefaultProjectBoard().columns).map((column) => ({
+            ...column,
+            title: normalizeColumnTitleForDisplay(column.title),
+            tasks: []
+          }));
+
+      const seenColumnTitles = new Set();
+      const baseColumns = rawBaseColumns.filter((column) => {
+        const normalizedTitle = normalizeColumnTitleForDisplay(column.title);
+
+        if (!normalizedTitle || seenColumnTitles.has(normalizedTitle)) return false;
+
+        seenColumnTitles.add(normalizedTitle);
+        return true;
       });
 
-      const nextColumns = mergedColumns.map((column) => {
-        const existingColumn = (existingBoard.columns || []).find(
-          (item) => item.id === column.id || item.title === column.title
-        );
+      const nextColumns = baseColumns.map((column) => {
+        const existingColumn = (existingBoard.columns || []).find((item) => {
+          const itemTitle = normalizeColumnTitleForDisplay(item.title);
+          const columnTitle = normalizeColumnTitleForDisplay(column.title);
+
+          return item.id === column.id || itemTitle === columnTitle;
+        });
 
         const localOnlyTasks = (existingColumn?.tasks || []).filter(
           (task) => !task.supabaseId || !dbTaskIds.has(task.supabaseId)
@@ -4004,9 +4044,9 @@ function App() {
             if (task.is_archived === true) return false;
 
             const dbColumn = dbColumnsById.get(task.column_id);
-            const dbColumnTitle = dbColumn?.title || task.status || 'Bekliyor';
+            const dbColumnTitle = normalizeColumnTitleForDisplay(dbColumn?.title || task.status || 'Yeni Görev');
 
-            return dbColumnTitle === column.title;
+            return dbColumnTitle === normalizeColumnTitleForDisplay(column.title);
           })
           .map((task) => mapSupabaseTaskToLocalTask(task, column.title));
 
@@ -4020,7 +4060,7 @@ function App() {
         .filter((task) => task.is_archived === true)
         .map((task) => {
           const dbColumn = dbColumnsById.get(task.column_id);
-          return mapSupabaseTaskToLocalTask(task, dbColumn?.title || task.status || 'Arşiv');
+          return mapSupabaseTaskToLocalTask(task, normalizeColumnTitleForDisplay(dbColumn?.title || task.status || 'Arşiv'));
         });
 
       return {
@@ -4038,6 +4078,7 @@ function App() {
       };
     });
   };
+
 
   const loadSelectedProjectBoardFromSupabase = async () => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
@@ -4063,8 +4104,9 @@ function App() {
 
       const { data: dbColumns, error: columnsError } = await supabase
         .from('board_columns')
-        .select('id, title, description, color, position')
+        .select('id, title, description, color, position, is_archived')
         .eq('project_id', projectRecord.id)
+        .eq('is_archived', false)
         .order('position', { ascending: true });
 
       if (columnsError) throw columnsError;
@@ -4231,17 +4273,25 @@ function App() {
   const handleSaveStage = async (updatedColumn) => {
     if (!requirePermission('manageColumns', 'Kolonları sadece Yönetici düzenleyebilir.')) return;
 
+    const columnToSave = {
+      ...(editingColumn || {}),
+      ...(updatedColumn || {}),
+      id: editingColumn?.id || updatedColumn?.id || `col-${Date.now()}`,
+      title: normalizeColumnTitleForDisplay(updatedColumn?.title || editingColumn?.title || 'Yeni Görev'),
+      tasks: updatedColumn?.tasks || editingColumn?.tasks || []
+    };
+
     setBoardColumns((prev) => {
-      const exists = prev.some((col) => col.id === updatedColumn.id);
+      const exists = prev.some((col) => col.id === columnToSave.id);
 
       if (exists) {
-        return prev.map((col) => (col.id === updatedColumn.id ? updatedColumn : col));
+        return prev.map((col) => (col.id === columnToSave.id ? { ...col, ...columnToSave } : col));
       }
 
-      return [...prev, { ...updatedColumn, tasks: updatedColumn.tasks || [] }];
+      return [...prev, { ...columnToSave, tasks: columnToSave.tasks || [] }];
     });
 
-    const didSaveStageToSupabase = await saveStageToSupabase(updatedColumn);
+    const didSaveStageToSupabase = await saveStageToSupabase(columnToSave);
 
     if (didSaveStageToSupabase) {
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
@@ -4250,6 +4300,7 @@ function App() {
     setIsStageModalOpen(false);
     setEditingColumn(null);
   };
+
 
   const openAddStageModal = () => {
     if (!requirePermission('manageColumns', 'Yeni kolon ekleme yetkisi sadece Yönetici rolünde var.')) return;
@@ -4289,15 +4340,62 @@ function App() {
     });
   };
 
-  const handleDeleteColumn = (columnId) => {
+  const handleDeleteColumn = async (columnId) => {
     if (!requirePermission('manageColumns', 'Kolon silme yetkisi sadece Yönetici rolünde var.')) return;
 
+    const columnToDelete = boardColumns.find((column) => column.id === columnId);
     const confirmed = window.confirm('Bu kolonu ve içindeki tüm görevleri kalıcı olarak silmek istediğine emin misin?');
     if (!confirmed) return;
 
     setBoardColumns((prev) => prev.filter((col) => col.id !== columnId));
     setOpenMenuColumnId(null);
+
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !selectedProject || !columnToDelete) return;
+
+    setSupabaseWriteInfo('saving', 'Supabase kolon siliniyor');
+
+    try {
+      const projectId = await ensureSupabaseProject(selectedProject);
+
+      const taskIdsToDelete = (columnToDelete.tasks || [])
+        .map((task) => task.supabaseId)
+        .filter(isSupabaseUuid);
+
+      if (taskIdsToDelete.length > 0) {
+        const { error: taskDeleteError } = await supabase
+          .from('tasks')
+          .delete()
+          .in('id', taskIdsToDelete);
+
+        if (taskDeleteError) throw taskDeleteError;
+      }
+
+      if (isSupabaseUuid(columnId)) {
+        const { error: columnDeleteError } = await supabase
+          .from('board_columns')
+          .delete()
+          .eq('id', columnId);
+
+        if (columnDeleteError) throw columnDeleteError;
+      } else if (projectId) {
+        const { error: columnDeleteByTitleError } = await supabase
+          .from('board_columns')
+          .delete()
+          .eq('project_id', projectId)
+          .eq('title', columnToDelete.title);
+
+        if (columnDeleteByTitleError) throw columnDeleteByTitleError;
+      }
+
+      setSupabaseWriteInfo('saved', 'Supabase kolon silindi');
+      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
+    } catch (error) {
+      setSupabaseWriteInfo('error', `Supabase kolon silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+    }
   };
+
 
   const handleCopyColumn = (column, index) => {
     if (!requirePermission('manageColumns', 'Kolon kopyalama yetkisi sadece Yönetici rolünde var.')) return;
@@ -4378,7 +4476,7 @@ function App() {
     setOpenMenuColumnId(null);
   };
 
-  const handleArchiveColumn = (column) => {
+  const handleArchiveColumn = async (column) => {
     if (!requirePermission('manageColumns', 'Kolon arşivleme yetkisi sadece Yönetici rolünde var.')) return;
 
     const confirmed = window.confirm(`${column.title} kolonunu arşivlemek istediğine emin misin? Kolondaki görevler de Arşiv sekmesine taşınır.`);
@@ -4395,11 +4493,36 @@ function App() {
         })),
         ...prev
       ]);
+
+      tasksToArchive.forEach((task) => archiveSupabaseTask({
+        ...task,
+        sourceColumnId: column.id,
+        sourceColumnTitle: column.title
+      }));
     }
 
     setBoardColumns((prev) => prev.filter((col) => col.id !== column.id));
     setOpenMenuColumnId(null);
+
+    if (!isSupabaseUuid(column.id)) return;
+
+    setSupabaseWriteInfo('saving', 'Supabase kolon arşivleniyor');
+
+    try {
+      const { error } = await supabase
+        .from('board_columns')
+        .update({ is_archived: true })
+        .eq('id', column.id);
+
+      if (error) throw error;
+
+      setSupabaseWriteInfo('saved', 'Supabase kolon arşivlendi');
+      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
+    } catch (error) {
+      setSupabaseWriteInfo('error', `Supabase kolon arşiv hatası: ${error?.message || 'bilinmeyen hata'}`);
+    }
   };
+
 
   const openTaskDetail = (task, columnTitle) => {
     if (task && !isTaskAccessibleForCurrentUser(task)) {
@@ -5303,7 +5426,7 @@ function App() {
   const handleTaskAction = (action, columnId, task) => {
     setOpenTaskMenuId(null);
 
-    const columnTitle = boardColumns.find((column) => column.id === columnId)?.title || task.status || 'Bekliyor';
+    const columnTitle = boardColumns.find((column) => column.id === columnId)?.title || task.status || 'Yeni Görev';
 
     if (action === 'detay') {
       openTaskDetail(task, columnTitle);
