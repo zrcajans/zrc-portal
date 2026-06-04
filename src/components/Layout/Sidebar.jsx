@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 function Sidebar({
   activeMenu,
@@ -9,7 +9,6 @@ function Sidebar({
   visibleProjects,
   setProjects,
   setSelectedProject,
-  selectedProject = '',
   onSearchClick,
   teamMembers = [],
   onProjectMenuSelect,
@@ -24,28 +23,15 @@ function Sidebar({
   const panelRef = useRef(null);
   const projectsButtonRef = useRef(null);
   const otherButtonRef = useRef(null);
+  const [lastOpenedProject, setLastOpenedProject] = useState('');
 
   const profileInitials = `${profileDraft?.firstName?.[0] || 'E'}${profileDraft?.lastName?.[0] || 'Z'}`.toUpperCase();
 
   const isProjectsPanelOpen = activeMenu === 'Projeler' && isPanelOpen;
   const isOtherPanelOpen = activeMenu === 'Diğer' && isPanelOpen;
+  const activeTeamCount = teamMembers.filter((member) => member.status !== 'Pasif').length;
   const canCreateProject = permissions?.manageProjects !== false;
-  const projectList = Array.isArray(visibleProjects) ? visibleProjects : (Array.isArray(projects) ? projects : []);
-  const [activeProjectName, setActiveProjectName] = useState(selectedProject || projectList?.[0] || '');
-
-  useEffect(() => {
-    if (selectedProject) {
-      setActiveProjectName(selectedProject);
-      return;
-    }
-
-    if (!activeProjectName && projectList?.[0]) {
-      setActiveProjectName(projectList[0]);
-    }
-  }, [selectedProject, projectList.join('|')]);
-
-  const isProjectActive = (projectName = '') =>
-    String(projectName || '').trim() === String(selectedProject || activeProjectName || '').trim();
+  const projectList = Array.isArray(visibleProjects) ? visibleProjects : projects;
 
   const handleCreateProject = () => {
     if (!canCreateProject) {
@@ -58,14 +44,14 @@ function Sidebar({
 
     if (!cleanName) return;
 
-    if (projectList.some((project) => String(project).toLowerCase() === cleanName.toLowerCase())) {
+    if (projects.some((project) => project.toLowerCase() === cleanName.toLowerCase())) {
       alert('Bu isimde bir proje zaten var.');
       return;
     }
 
-    setProjects((prevProjects) => [...(Array.isArray(prevProjects) ? prevProjects : []), cleanName]);
+    setProjects((prevProjects) => [...prevProjects, cleanName]);
     setSelectedProject(cleanName);
-    setActiveProjectName(cleanName);
+    setLastOpenedProject(cleanName);
     setActiveMenu('Projeler');
     setIsPanelOpen(false);
   };
@@ -97,28 +83,6 @@ function Sidebar({
 
   return (
     <>
-      <style>{`
-        .zrc-genie-panel {
-          transform-origin: 0% 18%;
-          transition: transform 360ms cubic-bezier(0.18, 0.88, 0.22, 1), opacity 220ms ease, visibility 220ms ease;
-          will-change: transform, opacity;
-        }
-
-        .zrc-genie-collapsed {
-          transform: translateX(-18px) scaleX(0.035) scaleY(0.055);
-          opacity: 0;
-          visibility: hidden;
-          pointer-events: none;
-        }
-
-        .zrc-genie-expanded {
-          transform: translateX(0) scaleX(1) scaleY(1);
-          opacity: 1;
-          visibility: visible;
-          pointer-events: auto;
-        }
-      `}</style>
-
       {(isProjectsPanelOpen || isOtherPanelOpen) && (
         <div
           onClick={() => setIsPanelOpen(false)}
@@ -161,7 +125,11 @@ function Sidebar({
             const isSearchBtn = item.id === 'Arama';
 
             return (
-              <div key={item.id} className="w-full pl-3 relative z-10 hover:z-20">
+              <div
+                key={item.id}
+                className={`w-full pl-3 relative z-10 hover:z-20 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'hover:scale-[1.035]' : ''}`}
+                style={{ transformOrigin: 'right center' }}
+              >
                 <button
                   ref={isProjectsBtn ? projectsButtonRef : isOtherBtn ? otherButtonRef : null}
                   onClick={() => {
@@ -198,7 +166,7 @@ function Sidebar({
                     setIsPanelOpen(false);
                     onSimpleMenuSelect?.(item.id);
                   }}
-                  className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect hover-grow apple-dock-btn overflow-hidden ${isActive ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[20px] active-menu-btn shadow-[0_10px_24px_rgba(15,23,42,0.06)]' : 'text-white/85 rounded-l-[18px] hover:text-white hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.78)] hover:[text-shadow:0_0_12px_rgba(255,255,255,0.55)]'}`}
+                  className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect apple-dock-btn ${isActive ? 'bg-white text-[#ff3600] rounded-l-[14px] active-menu-btn shadow-[0_8px_22px_rgba(15,23,42,0.06)]' : 'hover-grow text-white/80 rounded-l-lg hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.75)]'}`}
                   style={{ transformOrigin: 'right center' }}
                 >
                   {item.icon}
@@ -206,6 +174,30 @@ function Sidebar({
                     {item.id}
                   </span>
                 </button>
+
+                {isActive && (
+                  <>
+                    <div className="absolute -top-[18px] right-[-1px] w-[19px] h-[19px] bg-white overflow-hidden pointer-events-none z-[9] antialiased">
+                      <div className="absolute inset-[-1px] bg-[#ff3600] rounded-br-[20px]" />
+                    </div>
+                    <div className="absolute -bottom-[18px] right-[-1px] w-[19px] h-[19px] bg-white overflow-hidden pointer-events-none z-[9] antialiased">
+                      <div className="absolute inset-[-1px] bg-[#ff3600] rounded-tr-[20px]" />
+                    </div>
+                  </>
+                )}
+
+                {(isProjectsBtn || isOtherBtn) && (
+                  <div className={`absolute left-full top-0 w-5 h-full bg-white z-20 pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                    isActive && isPanelOpen ? 'scale-x-100 opacity-100 visible' : 'scale-x-0 opacity-0 invisible'
+                  }`} style={{ transformOrigin: 'left center' }}>
+                    <div className="absolute bottom-full right-[-1px] w-[18px] h-[18px] bg-white overflow-hidden">
+                      <div className="absolute inset-[-1px] bg-[#f5f6f8] rounded-br-[18px]" />
+                    </div>
+                    <div className="absolute top-full right-[-1px] w-[18px] h-[18px] bg-white overflow-hidden">
+                      <div className="absolute inset-[-1px] bg-[#f5f6f8] rounded-tr-[18px]" />
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -214,20 +206,21 @@ function Sidebar({
         <div
           ref={panelRef}
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-full bg-[#ffffff] border-y border-r border-zinc-200/60 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[360] zrc-genie-panel overflow-hidden ${
-            isProjectsPanelOpen || isOtherPanelOpen ? 'zrc-genie-expanded' : 'zrc-genie-collapsed'
+          className={`absolute left-full bg-white border-y border-r border-zinc-200/40 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[360] mac-genie-panel overflow-hidden ${
+            isProjectsPanelOpen || isOtherPanelOpen ? 'genie-expanded' : 'genie-collapsed'
           } ${
             isOtherPanelOpen
               ? 'top-1/2 -translate-y-1/2 h-[260px] w-[300px] rounded-r-[20px]'
-              : 'top-10 bottom-10 w-[330px] rounded-r-[20px]'
+              : 'top-3 bottom-3 w-[330px] rounded-r-xl'
           }`}
+          style={{ transformOrigin: isProjectsPanelOpen ? '0% 34%' : '0% 50%' }}
         >
           {isProjectsPanelOpen && (
             <div className="p-5 flex flex-col h-full">
               <div className="mb-4 flex justify-between items-center shrink-0">
                 <h2 className="text-[15px] font-black text-zinc-800 tracking-tight">Proje Havuzu</h2>
-                <span className="text-[11px] font-black text-[#ff3600] bg-[#fff4ef] border border-[#ff3600]/10 px-2 py-0.5 rounded-full">
-                  {projectList.length} Başlık
+                <span className="text-[11px] font-bold text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded">
+                  {projectList.length} Proje
                 </span>
               </div>
 
@@ -250,46 +243,29 @@ function Sidebar({
                   </div>
                 )}
 
-                {projectList.map((project, index) => {
-                  const isCurrentProject = isProjectActive(project);
-
-                  return (
-                    <div
-                      key={index}
-                      onClick={() => {
-                        setSelectedProject(project);
-                        setActiveProjectName(project);
-                        setIsPanelOpen(false);
-                      }}
-                      className={`w-full p-3 border rounded-[12px] cursor-pointer transition-all duration-200 group flex items-center justify-between ${
-                        isCurrentProject
-                          ? 'bg-[#fff4ef] border-[#ff3600]/25 shadow-[0_12px_28px_rgba(255,54,0,0.08)]'
-                          : 'bg-zinc-50 border-zinc-200/40 hover:border-[#ff3600]/20 hover:bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2.5 truncate">
-                        <div className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 transition-all ${
-                          isCurrentProject ? 'bg-[#ff3600] text-white' : 'bg-[#ff3600]/5 text-[#ff3600]'
-                        }`}>
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-19.5 0A2.25 2.25 0 004.5 15h15a2.25 2.25 0 002.25-2.25m-19.5 0v.25A2.25 2.25 0 004.5 17.5h15a2.25 2.25 0 002.25-2.25v-.25m-16.5-10.5h3.934a1.5 1.5 0 011.06.44l1.414 1.414a1.5 1.5 0 001.06.44H19.5A2.25 2.25 0 0121.75 9v.75H2.25V6.75z" />
-                          </svg>
-                        </div>
-                        <span className={`text-[12px] font-black truncate transition-colors ${
-                          isCurrentProject ? 'text-[#ff3600]' : 'text-zinc-700 group-hover:text-zinc-950'
-                        }`}>
-                          {project}
-                        </span>
+                {projectList.map((project, index) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      setSelectedProject(project);
+                      setLastOpenedProject(project);
+                      setIsPanelOpen(false);
+                    }}
+                    className={`w-full p-3 border rounded-md cursor-pointer transition-all duration-200 group flex items-center justify-between ${lastOpenedProject === project ? 'bg-[#fff4ef] border-[#ff3600]/20' : 'bg-zinc-50 border-zinc-200/30 hover:border-[#ff3600]/20 hover:bg-white'}`}
+                  >
+                    <div className="flex items-center space-x-2.5 truncate">
+                      <div className="w-7 h-7 rounded bg-[#ff3600]/5 flex items-center justify-center text-[#ff3600] shrink-0">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-19.5 0A2.25 2.25 0 004.5 15h15a2.25 2.25 0 002.25-2.25m-19.5 0v.25A2.25 2.25 0 004.5 17.5h15a2.25 2.25 0 002.25-2.25v-.25m-16.5-10.5h3.934a1.5 1.5 0 011.06.44l1.414 1.414a1.5 1.5 0 001.06.44H19.5A2.25 2.25 0 0121.75 9v.75H2.25V6.75z" />
+                        </svg>
                       </div>
-
-                      {isCurrentProject && (
-                        <span className="text-[9px] font-black text-[#ff3600] bg-white/80 border border-[#ff3600]/10 rounded-full px-2 py-0.5 shrink-0 ml-2">
-                          Açık
-                        </span>
-                      )}
+                      <span className={`text-[12px] font-bold truncate group-hover:text-zinc-900 ${lastOpenedProject === project ? 'text-[#ff3600]' : 'text-zinc-700'}`}>
+                        {project}
+                      </span>
                     </div>
-                  );
-                })}
+
+                  </div>
+                ))}
               </div>
             </div>
           )}
