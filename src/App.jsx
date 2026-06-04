@@ -10180,8 +10180,18 @@ function App() {
         .zrc-project-board-page,
         .zrc-team-center-page,
         .zrc-customer-center-page {
+          padding-left: 0 !important;
+          box-sizing: border-box;
+        }
+
+        .zrc-project-board-page > div:not([class*="fixed"]) {
           padding-left: 44px !important;
           box-sizing: border-box;
+        }
+
+        .zrc-team-center-page,
+        .zrc-customer-center-page {
+          width: 100%;
         }
 
         .zrc-team-center-page > .zrc-center-card,
