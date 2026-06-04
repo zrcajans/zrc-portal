@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 function Sidebar({
   activeMenu,
@@ -9,6 +9,7 @@ function Sidebar({
   visibleProjects,
   setProjects,
   setSelectedProject,
+  selectedProject = '',
   onSearchClick,
   teamMembers = [],
   onProjectMenuSelect,
@@ -28,33 +29,23 @@ function Sidebar({
 
   const isProjectsPanelOpen = activeMenu === 'Projeler' && isPanelOpen;
   const isOtherPanelOpen = activeMenu === 'Diğer' && isPanelOpen;
-  const activeTeamCount = teamMembers.filter((member) => member.status !== 'Pasif').length;
   const canCreateProject = permissions?.manageProjects !== false;
-  const projectList = Array.isArray(visibleProjects) ? visibleProjects : projects;
+  const projectList = Array.isArray(visibleProjects) ? visibleProjects : (Array.isArray(projects) ? projects : []);
+  const [activeProjectName, setActiveProjectName] = useState(selectedProject || projectList?.[0] || '');
 
-  const [highlightedProject, setHighlightedProject] = useState(() => {
-    try {
-      const rawSelectedProject = window.localStorage.getItem('zrc-selected-project');
-      if (!rawSelectedProject) return '';
-
-      return JSON.parse(rawSelectedProject) || '';
-    } catch (error) {
-      return '';
+  useEffect(() => {
+    if (selectedProject) {
+      setActiveProjectName(selectedProject);
+      return;
     }
-  });
 
-  const activeProjectName = highlightedProject || projectList[0] || '';
-
-  const rememberSelectedProject = (projectName) => {
-    const cleanProjectName = String(projectName || '').trim();
-    setHighlightedProject(cleanProjectName);
-
-    try {
-      window.localStorage.setItem('zrc-selected-project', JSON.stringify(cleanProjectName));
-    } catch (error) {
-      // localStorage erişimi yoksa sessiz geç.
+    if (!activeProjectName && projectList?.[0]) {
+      setActiveProjectName(projectList[0]);
     }
-  };
+  }, [selectedProject, projectList.join('|')]);
+
+  const isProjectActive = (projectName = '') =>
+    String(projectName || '').trim() === String(selectedProject || activeProjectName || '').trim();
 
   const handleCreateProject = () => {
     if (!canCreateProject) {
@@ -67,14 +58,14 @@ function Sidebar({
 
     if (!cleanName) return;
 
-    if (projects.some((project) => project.toLowerCase() === cleanName.toLowerCase())) {
+    if (projectList.some((project) => String(project).toLowerCase() === cleanName.toLowerCase())) {
       alert('Bu isimde bir proje zaten var.');
       return;
     }
 
-    setProjects((prevProjects) => [...prevProjects, cleanName]);
-    rememberSelectedProject(cleanName);
+    setProjects((prevProjects) => [...(Array.isArray(prevProjects) ? prevProjects : []), cleanName]);
     setSelectedProject(cleanName);
+    setActiveProjectName(cleanName);
     setActiveMenu('Projeler');
     setIsPanelOpen(false);
   };
@@ -106,40 +97,28 @@ function Sidebar({
 
   return (
     <>
-      <style>
-        {`
-          .zrc-sidebar-panel {
-            transform-origin: 0% 42%;
-            transition:
-              transform 0.46s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.34s ease,
-              filter 0.34s ease,
-              visibility 0.34s ease;
-            will-change: transform, opacity, filter;
-          }
+      <style>{`
+        .zrc-genie-panel {
+          transform-origin: 0% 18%;
+          transition: transform 360ms cubic-bezier(0.18, 0.88, 0.22, 1), opacity 220ms ease, visibility 220ms ease;
+          will-change: transform, opacity;
+        }
 
-          .zrc-sidebar-panel-open {
-            transform: translateX(0) scaleX(1) scaleY(1) skewY(0deg);
-            opacity: 1;
-            filter: blur(0);
-            visibility: visible;
-          }
+        .zrc-genie-collapsed {
+          transform: translateX(-18px) scaleX(0.035) scaleY(0.055);
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
 
-          .zrc-sidebar-panel-closed {
-            transform: translateX(-22px) scaleX(0.08) scaleY(0.18) skewY(7deg);
-            opacity: 0;
-            filter: blur(5px);
-            visibility: hidden;
-            pointer-events: none;
-          }
+        .zrc-genie-expanded {
+          transform: translateX(0) scaleX(1) scaleY(1);
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+      `}</style>
 
-          .zrc-menu-glow:hover svg,
-          .zrc-menu-glow:hover span {
-            filter: drop-shadow(0 0 7px rgba(255,255,255,0.86));
-            text-shadow: 0 0 12px rgba(255,255,255,0.72);
-          }
-        `}
-      </style>
       {(isProjectsPanelOpen || isOtherPanelOpen) && (
         <div
           onClick={() => setIsPanelOpen(false)}
@@ -183,96 +162,60 @@ function Sidebar({
 
             return (
               <div key={item.id} className="w-full pl-3 relative z-10 hover:z-20">
-                <div
-                  className={`relative z-10 origin-right transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-                    isActive ? 'hover:scale-[1.045]' : 'hover:scale-[1.10]'
-                  }`}
-                >
-                  <button
-                    ref={isProjectsBtn ? projectsButtonRef : isOtherBtn ? otherButtonRef : null}
-                    onClick={() => {
-                      if (isProjectsBtn) {
-                        onProjectMenuSelect?.();
+                <button
+                  ref={isProjectsBtn ? projectsButtonRef : isOtherBtn ? otherButtonRef : null}
+                  onClick={() => {
+                    if (isProjectsBtn) {
+                      onProjectMenuSelect?.();
 
-                        if (activeMenu === 'Projeler') {
-                          setIsPanelOpen(!isPanelOpen);
-                        } else {
-                          setActiveMenu('Projeler');
-                          setIsPanelOpen(true);
-                        }
-                        return;
+                      if (activeMenu === 'Projeler') {
+                        setIsPanelOpen(!isPanelOpen);
+                      } else {
+                        setActiveMenu('Projeler');
+                        setIsPanelOpen(true);
                       }
+                      return;
+                    }
 
-                      if (isOtherBtn) {
-                        if (activeMenu === 'Diğer') {
-                          setIsPanelOpen(!isPanelOpen);
-                        } else {
-                          setActiveMenu('Diğer');
-                          setIsPanelOpen(true);
-                        }
-                        return;
+                    if (isOtherBtn) {
+                      if (activeMenu === 'Diğer') {
+                        setIsPanelOpen(!isPanelOpen);
+                      } else {
+                        setActiveMenu('Diğer');
+                        setIsPanelOpen(true);
                       }
+                      return;
+                    }
 
-                      if (isSearchBtn) {
-                        setActiveMenu('Arama');
-                        setIsPanelOpen(false);
-                        onSearchClick?.();
-                        return;
-                      }
-
-                      setActiveMenu(item.id);
+                    if (isSearchBtn) {
+                      setActiveMenu('Arama');
                       setIsPanelOpen(false);
-                      onSimpleMenuSelect?.(item.id);
-                    }}
-                    className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect apple-dock-btn overflow-hidden ${
-                      isActive
-                        ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[20px] active-menu-btn shadow-[0_10px_28px_rgba(15,23,42,0.08)]'
-                        : 'text-white/80 rounded-l-[20px] zrc-menu-glow hover:text-white'
-                    }`}
-                    style={{ transformOrigin: 'right center' }}
-                  >
-                    {item.icon}
-                    <span className={`text-[10.5px] tracking-tight mt-0.5 select-none ${isActive ? 'font-black' : 'font-bold'}`}>
-                      {item.id}
-                    </span>
-                  </button>
+                      onSearchClick?.();
+                      return;
+                    }
 
-                  {isActive && (
-                    <>
-                      <div className="absolute -top-4 right-0 w-4 h-4 bg-[#ffffff] pointer-events-none">
-                        <div className="w-full h-full bg-[#ff3600] rounded-br-[16px]" />
-                      </div>
-                      <div className="absolute -bottom-4 right-0 w-4 h-4 bg-[#ffffff] pointer-events-none">
-                        <div className="w-full h-full bg-[#ff3600] rounded-tr-[16px]" />
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {(isProjectsBtn || isOtherBtn) && (
-                  <div className={`absolute left-full top-0 w-5 h-full bg-[#ffffff] z-20 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                    isActive && isPanelOpen ? 'scale-x-100 opacity-100 visible' : 'scale-x-0 opacity-0 invisible'
-                  }`} style={{ transformOrigin: 'left center' }}>
-                    <div className="absolute bottom-full right-0 w-4 h-4 bg-[#ffffff]">
-                      <div className="w-full h-full bg-[#f5f6f8] rounded-br-[16px]" />
-                    </div>
-                    <div className="absolute top-full right-0 w-4 h-4 bg-[#ffffff]">
-                      <div className="w-full h-full bg-[#f5f6f8] rounded-tr-[16px]" />
-                    </div>
-                  </div>
-                )}
+                    setActiveMenu(item.id);
+                    setIsPanelOpen(false);
+                    onSimpleMenuSelect?.(item.id);
+                  }}
+                  className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect hover-grow apple-dock-btn overflow-hidden ${isActive ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[20px] active-menu-btn shadow-[0_10px_24px_rgba(15,23,42,0.06)]' : 'text-white/85 rounded-l-[18px] hover:text-white hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.78)] hover:[text-shadow:0_0_12px_rgba(255,255,255,0.55)]'}`}
+                  style={{ transformOrigin: 'right center' }}
+                >
+                  {item.icon}
+                  <span className={`text-[10.5px] tracking-tight mt-0.5 select-none ${isActive ? 'font-black' : 'font-bold'}`}>
+                    {item.id}
+                  </span>
+                </button>
               </div>
             );
           })}
         </nav>
 
-        <div className="w-full h-6 mb-1" />
-
         <div
           ref={panelRef}
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-full bg-[#ffffff] border-y border-r border-zinc-200/60 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[360] zrc-sidebar-panel overflow-hidden ${
-            isProjectsPanelOpen || isOtherPanelOpen ? 'zrc-sidebar-panel-open' : 'zrc-sidebar-panel-closed'
+          className={`absolute left-full bg-[#ffffff] border-y border-r border-zinc-200/60 shadow-[18px_12px_42px_rgba(15,23,42,0.10)] flex flex-col z-[360] zrc-genie-panel overflow-hidden ${
+            isProjectsPanelOpen || isOtherPanelOpen ? 'zrc-genie-expanded' : 'zrc-genie-collapsed'
           } ${
             isOtherPanelOpen
               ? 'top-1/2 -translate-y-1/2 h-[260px] w-[300px] rounded-r-[20px]'
@@ -283,7 +226,7 @@ function Sidebar({
             <div className="p-5 flex flex-col h-full">
               <div className="mb-4 flex justify-between items-center shrink-0">
                 <h2 className="text-[15px] font-black text-zinc-800 tracking-tight">Proje Havuzu</h2>
-                <span className="text-[11px] font-bold text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded">
+                <span className="text-[11px] font-black text-[#ff3600] bg-[#fff4ef] border border-[#ff3600]/10 px-2 py-0.5 rounded-full">
                   {projectList.length} Başlık
                 </span>
               </div>
@@ -308,36 +251,42 @@ function Sidebar({
                 )}
 
                 {projectList.map((project, index) => {
-                  const isCurrentProject = String(project || '') === String(activeProjectName || '');
+                  const isCurrentProject = isProjectActive(project);
 
                   return (
                     <div
                       key={index}
                       onClick={() => {
-                        rememberSelectedProject(project);
                         setSelectedProject(project);
+                        setActiveProjectName(project);
                         setIsPanelOpen(false);
                       }}
                       className={`w-full p-3 border rounded-[12px] cursor-pointer transition-all duration-200 group flex items-center justify-between ${
                         isCurrentProject
-                          ? 'bg-[#fff3ef] border-[#ff3600]/30 shadow-[0_12px_26px_rgba(255,54,0,0.08)]'
-                          : 'bg-zinc-50 border-zinc-200/50 hover:border-[#ff3600]/20 hover:bg-white hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)]'
+                          ? 'bg-[#fff4ef] border-[#ff3600]/25 shadow-[0_12px_28px_rgba(255,54,0,0.08)]'
+                          : 'bg-zinc-50 border-zinc-200/40 hover:border-[#ff3600]/20 hover:bg-white'
                       }`}
                     >
                       <div className="flex items-center space-x-2.5 truncate">
-                        <div className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 ${
+                        <div className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 transition-all ${
                           isCurrentProject ? 'bg-[#ff3600] text-white' : 'bg-[#ff3600]/5 text-[#ff3600]'
                         }`}>
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-19.5 0A2.25 2.25 0 004.5 15h15a2.25 2.25 0 002.25-2.25m-19.5 0v.25A2.25 2.25 0 004.5 17.5h15a2.25 2.25 0 002.25-2.25v-.25m-16.5-10.5h3.934a1.5 1.5 0 011.06.44l1.414 1.414a1.5 1.5 0 001.06.44H19.5A2.25 2.25 0 0121.75 9v.75H2.25V6.75z" />
                           </svg>
                         </div>
-                        <span className={`text-[12px] font-bold truncate ${
-                          isCurrentProject ? 'text-[#ff3600]' : 'text-zinc-700 group-hover:text-zinc-900'
+                        <span className={`text-[12px] font-black truncate transition-colors ${
+                          isCurrentProject ? 'text-[#ff3600]' : 'text-zinc-700 group-hover:text-zinc-950'
                         }`}>
                           {project}
                         </span>
                       </div>
+
+                      {isCurrentProject && (
+                        <span className="text-[9px] font-black text-[#ff3600] bg-white/80 border border-[#ff3600]/10 rounded-full px-2 py-0.5 shrink-0 ml-2">
+                          Açık
+                        </span>
+                      )}
                     </div>
                   );
                 })}
