@@ -112,9 +112,9 @@ function Sidebar({
           .zrc-sidebar-panel {
             transform-origin: left center;
             transition:
-              transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.30s cubic-bezier(0.22, 1, 0.36, 1),
               opacity 0.18s ease,
-              box-shadow 0.22s ease;
+              visibility 0s linear 0.30s;
             will-change: transform, opacity;
           }
 
@@ -123,10 +123,11 @@ function Sidebar({
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
+            transition-delay: 0s, 0s, 0s;
           }
 
           .zrc-sidebar-panel-closed {
-            transform: translateX(-34px);
+            transform: translateX(calc(-100% - 6px));
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
