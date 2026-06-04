@@ -1370,27 +1370,58 @@ function App() {
 
     if (!workspaceId || !projectId || !cleanTitle) return null;
 
-    const { data: existingColumn, error: selectError } = await supabase
+    const columnPayload = {
+      workspace_id: workspaceId,
+      project_id: projectId,
+      title: cleanTitle,
+      description: column?.desc || column?.description || '',
+      color: column?.color || '#64748b',
+      position,
+      is_archived: false
+    };
+
+    const titleAliases = cleanTitle === 'Yeni Görev' ? ['Yeni Görev', 'Bekliyor'] : [cleanTitle];
+
+    const { data: existingColumns, error: selectError } = await supabase
       .from('board_columns')
-      .select('id')
+      .select('id, title, position')
       .eq('project_id', projectId)
-      .eq('title', cleanTitle)
-      .maybeSingle();
+      .in('title', titleAliases)
+      .order('position', { ascending: true });
 
     if (selectError) throw selectError;
-    if (existingColumn?.id) return existingColumn.id;
+
+    const exactColumn = (existingColumns || []).find(
+      (item) => normalizeColumnTitleForDisplay(item.title) === cleanTitle && item.title === cleanTitle
+    );
+    const fallbackColumn = (existingColumns || [])[0] || null;
+    const preferredColumn = exactColumn || fallbackColumn;
+
+    if (preferredColumn?.id) {
+      const { error: updateError } = await supabase
+        .from('board_columns')
+        .update(columnPayload)
+        .eq('id', preferredColumn.id);
+
+      if (updateError) throw updateError;
+
+      const duplicateIds = (existingColumns || [])
+        .filter((item) => item.id && item.id !== preferredColumn.id)
+        .map((item) => item.id);
+
+      if (duplicateIds.length > 0) {
+        await supabase
+          .from('board_columns')
+          .update({ is_archived: true })
+          .in('id', duplicateIds);
+      }
+
+      return preferredColumn.id;
+    }
 
     const { data: createdColumn, error: insertError } = await supabase
       .from('board_columns')
-      .insert({
-        workspace_id: workspaceId,
-        project_id: projectId,
-        title: cleanTitle,
-        description: column?.desc || '',
-        color: column?.color || '#64748b',
-        position,
-        is_archived: false
-      })
+      .insert(columnPayload)
       .select('id')
       .single();
 
@@ -4002,6 +4033,11 @@ function App() {
       const existingBoard = prevBoards[projectName] || createDefaultProjectBoard();
       const dbColumnsById = new Map((dbColumns || []).map((column) => [column.id, column]));
       const hasSupabaseColumns = Array.isArray(dbColumns) && dbColumns.length > 0;
+      const deletedColumnTitleKeys = new Set(
+        normalizeStorageArray(readStorageValue(`zrc-deleted-column-titles-${projectName}`, []), [])
+          .map((title) => normalizeColumnTitleForDisplay(title))
+          .filter(Boolean)
+      );
 
       const rawBaseColumns = hasSupabaseColumns
         ? (dbColumns || []).map((dbColumn, index) => ({
@@ -4021,7 +4057,7 @@ function App() {
       const baseColumns = rawBaseColumns.filter((column) => {
         const normalizedTitle = normalizeColumnTitleForDisplay(column.title);
 
-        if (!normalizedTitle || seenColumnTitles.has(normalizedTitle)) return false;
+        if (!normalizedTitle || seenColumnTitles.has(normalizedTitle) || deletedColumnTitleKeys.has(normalizedTitle)) return false;
 
         seenColumnTitles.add(normalizedTitle);
         return true;
@@ -4281,6 +4317,12 @@ function App() {
       tasks: updatedColumn?.tasks || editingColumn?.tasks || []
     };
 
+    const deletedColumnStorageKey = `zrc-deleted-column-titles-${selectedProject}`;
+    const savedColumnTitleKey = normalizeColumnTitleForDisplay(columnToSave.title);
+    const cleanedDeletedColumnTitles = normalizeStorageArray(readStorageValue(deletedColumnStorageKey, []), [])
+      .filter((title) => normalizeColumnTitleForDisplay(title) !== savedColumnTitleKey);
+    writeStorageValue(deletedColumnStorageKey, cleanedDeletedColumnTitles);
+
     setBoardColumns((prev) => {
       const exists = prev.some((col) => col.id === columnToSave.id);
 
@@ -4347,21 +4389,64 @@ function App() {
     const confirmed = window.confirm('Bu kolonu ve içindeki tüm görevleri kalıcı olarak silmek istediğine emin misin?');
     if (!confirmed) return;
 
+    const deletedColumnTitleKey = normalizeColumnTitleForDisplay(columnToDelete?.title || '');
+    const deletedColumnStorageKey = `zrc-deleted-column-titles-${selectedProject}`;
+    const previousDeletedColumnTitles = normalizeStorageArray(readStorageValue(deletedColumnStorageKey, []), []);
+
+    if (deletedColumnTitleKey && !previousDeletedColumnTitles.map(normalizeColumnTitleForDisplay).includes(deletedColumnTitleKey)) {
+      writeStorageValue(deletedColumnStorageKey, [...previousDeletedColumnTitles, deletedColumnTitleKey]);
+    }
+
     setBoardColumns((prev) => prev.filter((col) => col.id !== columnId));
     setOpenMenuColumnId(null);
 
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    if (!workspaceId || !selectedProject || !columnToDelete) return;
+    if (!workspaceId || !selectedProject || !columnToDelete) {
+      setSupabaseWriteInfo('saved', 'Kolon yerelden silindi');
+      return;
+    }
 
     setSupabaseWriteInfo('saving', 'Supabase kolon siliniyor');
 
     try {
       const projectId = await ensureSupabaseProject(selectedProject);
+      if (!projectId) throw new Error('Proje ID bulunamadı');
 
-      const taskIdsToDelete = (columnToDelete.tasks || [])
+      const { data: projectColumns, error: columnsSelectError } = await supabase
+        .from('board_columns')
+        .select('id, title')
+        .eq('project_id', projectId);
+
+      if (columnsSelectError) throw columnsSelectError;
+
+      const targetTitleKey = normalizeColumnTitleForDisplay(columnToDelete.title);
+      const columnIdsToDelete = (projectColumns || [])
+        .filter((column) => {
+          const columnTitleKey = normalizeColumnTitleForDisplay(column.title);
+          return column.id === columnId || columnTitleKey === targetTitleKey;
+        })
+        .map((column) => column.id)
+        .filter(isSupabaseUuid);
+
+      const localTaskIdsToDelete = (columnToDelete.tasks || [])
         .map((task) => task.supabaseId)
         .filter(isSupabaseUuid);
+
+      let dbTaskIdsToDelete = [];
+
+      if (columnIdsToDelete.length > 0) {
+        const { data: columnTasks, error: columnTasksError } = await supabase
+          .from('tasks')
+          .select('id')
+          .in('column_id', columnIdsToDelete);
+
+        if (columnTasksError) throw columnTasksError;
+
+        dbTaskIdsToDelete = (columnTasks || []).map((task) => task.id).filter(isSupabaseUuid);
+      }
+
+      const taskIdsToDelete = [...new Set([...localTaskIdsToDelete, ...dbTaskIdsToDelete])];
 
       if (taskIdsToDelete.length > 0) {
         const { error: taskDeleteError } = await supabase
@@ -4372,25 +4457,31 @@ function App() {
         if (taskDeleteError) throw taskDeleteError;
       }
 
-      if (isSupabaseUuid(columnId)) {
+      if (columnIdsToDelete.length > 0) {
         const { error: columnDeleteError } = await supabase
           .from('board_columns')
           .delete()
-          .eq('id', columnId);
+          .in('id', columnIdsToDelete);
 
         if (columnDeleteError) throw columnDeleteError;
-      } else if (projectId) {
-        const { error: columnDeleteByTitleError } = await supabase
+      } else {
+        const titleCandidates = [...new Set([
+          columnToDelete.title,
+          normalizeColumnTitleForDisplay(columnToDelete.title),
+          targetTitleKey === 'Yeni Görev' ? 'Bekliyor' : ''
+        ].filter(Boolean))];
+
+        const { error: titleDeleteError } = await supabase
           .from('board_columns')
           .delete()
           .eq('project_id', projectId)
-          .eq('title', columnToDelete.title);
+          .in('title', titleCandidates);
 
-        if (columnDeleteByTitleError) throw columnDeleteByTitleError;
+        if (titleDeleteError) throw titleDeleteError;
       }
 
       setSupabaseWriteInfo('saved', 'Supabase kolon silindi');
-      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
+      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
     } catch (error) {
       setSupabaseWriteInfo('error', `Supabase kolon silme hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
