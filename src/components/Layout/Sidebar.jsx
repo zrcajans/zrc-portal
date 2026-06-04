@@ -56,21 +56,22 @@ function Sidebar({
     const nextKind = isOtherPanelOpen ? 'other' : isProjectsPanelOpen ? 'projects' : null;
 
     if (nextKind) {
-      setPanelRenderState({
+      setPanelRenderState((previousState) => ({
         visible: true,
         open: false,
-        kind: nextKind
-      });
+        kind: nextKind || previousState.kind
+      }));
 
-      const rafId = window.requestAnimationFrame(() => {
-        setPanelRenderState({
+      const openTimer = window.setTimeout(() => {
+        setPanelRenderState((previousState) => ({
+          ...previousState,
           visible: true,
           open: true,
-          kind: nextKind
-        });
-      });
+          kind: nextKind || previousState.kind
+        }));
+      }, 28);
 
-      return () => window.cancelAnimationFrame(rafId);
+      return () => window.clearTimeout(openTimer);
     }
 
     setPanelRenderState((previousState) => {
