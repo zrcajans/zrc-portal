@@ -136,8 +136,31 @@ function Sidebar({
 
           .zrc-menu-glow:hover svg,
           .zrc-menu-glow:hover span {
-            filter: drop-shadow(0 0 7px rgba(255,255,255,0.86));
-            text-shadow: 0 0 12px rgba(255,255,255,0.72);
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.72));
+            text-shadow: 0 0 10px rgba(255,255,255,0.55);
+          }
+
+          .zrc-sidebar-premium {
+            transition-property: width, box-shadow;
+            transition-duration: 260ms;
+            transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+            will-change: width;
+          }
+
+          .zrc-sidebar-item {
+            transition-property: transform, filter;
+            transition-duration: 180ms;
+            transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+          }
+
+          .zrc-sidebar-item:hover {
+            transform: scale(1.035);
+          }
+
+          .zrc-sidebar-label {
+            transition-property: opacity, transform;
+            transition-duration: 150ms;
+            transition-timing-function: ease-out;
           }
         `}
       </style>
@@ -159,7 +182,7 @@ function Sidebar({
               onProfileSelect?.();
             }}
             title={`${profileDraft?.firstName || 'Enes'} ${profileDraft?.lastName || 'Zariç'}`}
-            className={`w-[44px] h-[44px] group-hover/sidebar:w-[50px] group-hover/sidebar:h-[50px] rounded-full flex items-center justify-center border-2 cursor-pointer apple-dock-effect hover-grow shadow-md overflow-hidden transition-all duration-[360ms] ease-[cubic-bezier(0.2,0.9,0.22,1)] ${
+            className={`w-[44px] h-[44px] rounded-full flex items-center justify-center border-2 cursor-pointer shadow-md overflow-hidden transition-[transform,border-color,background-color,color] duration-[180ms] ease-out hover:scale-[1.04] ${
               activeMenu === 'Profil'
                 ? 'bg-white text-[#ff3600] border-white'
                 : 'bg-zinc-900 text-white border-white/20 hover:border-white'
@@ -185,12 +208,8 @@ function Sidebar({
             const isSearchBtn = item.id === 'Arama';
 
             return (
-              <div key={item.id} className={`${isSidebarExpanded ? 'pl-3' : 'pl-2 group-hover/sidebar:pl-3'} w-full relative z-10 hover:z-20 transition-[padding] duration-[360ms] ease-[cubic-bezier(0.2,0.9,0.22,1)]`}> 
-                <div
-                  className={`relative z-10 origin-right transition-transform duration-[280ms] ease-[cubic-bezier(0.2,0.9,0.22,1)] ${
-                    isActive ? 'hover:scale-[1.045]' : 'hover:scale-[1.10]'
-                  }`}
-                >
+              <div key={item.id} className="pl-2 w-full relative z-10 hover:z-20"> 
+                <div className="relative z-10 origin-right zrc-sidebar-item">
                   <button
                     ref={isProjectsBtn ? projectsButtonRef : isOtherBtn ? otherButtonRef : null}
                     onClick={() => {
@@ -227,7 +246,7 @@ function Sidebar({
                       setIsPanelOpen(false);
                       onSimpleMenuSelect?.(item.id);
                     }}
-                    className={`w-full flex flex-col items-center justify-center py-4 relative z-10 apple-dock-effect apple-dock-btn overflow-hidden transition-[background-color,color,transform,box-shadow,border-radius] duration-[280ms] ${
+                    className={`w-full h-[74px] flex flex-col items-center justify-center relative z-10 apple-dock-btn overflow-hidden transition-[background-color,color,box-shadow,border-radius] duration-[190ms] ease-out ${
                       isActive
                         ? 'bg-[#ffffff] text-[#ff3600] rounded-l-[20px] active-menu-btn shadow-[0_10px_28px_rgba(15,23,42,0.08)]'
                         : 'text-white/80 rounded-l-[20px] zrc-menu-glow hover:text-white'
@@ -235,7 +254,7 @@ function Sidebar({
                     style={{ transformOrigin: 'right center' }}
                   >
                     {item.icon}
-                    <span className={`text-[10.5px] tracking-tight mt-0.5 select-none overflow-hidden whitespace-nowrap transition-all duration-[300ms] ease-[cubic-bezier(0.2,0.9,0.22,1)] ${isActive ? 'font-black' : 'font-bold'} ${isSidebarExpanded ? 'max-h-5 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1 group-hover/sidebar:max-h-5 group-hover/sidebar:opacity-100 group-hover/sidebar:translate-y-0'}`}>
+                    <span className={`zrc-sidebar-label text-[10.5px] tracking-tight mt-1 select-none whitespace-nowrap ${isActive ? 'font-black' : 'font-bold'} ${isSidebarExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-0.5 group-hover/sidebar:opacity-100 group-hover/sidebar:translate-y-0'}`}>
                       {item.id}
                     </span>
                   </button>
