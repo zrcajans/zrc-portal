@@ -1282,8 +1282,8 @@ function App() {
         .animate-fade-in { animation: premiumFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes zrcNotePop { from { opacity: 0; transform: translateY(-10px) scale(0.96) rotate(-1.5deg); } to { opacity: 1; transform: translateY(0) scale(1) rotate(-1deg); } }
         @keyframes zrcSoftFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-        .zrc-home-card { transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease; }
-        .zrc-home-card:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(30,43,70,0.085); border-color: #dfe4ec; }
+        .zrc-home-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
+        .zrc-home-card:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(30,43,70,0.085); }
         .zrc-note-composer-float { animation: zrcNotePop 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .zrc-note-mini-float { animation: zrcSoftFloat 2.8s ease-in-out infinite; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -10332,6 +10332,7 @@ function App() {
           }}
           unreadMessageCount={unreadMessageCount}
           isMessagesOpen={isMessagesOpen}
+          activeContentMenu={activeContentMenu}
           onToggleMessages={(event) => {
             event.stopPropagation();
             openMessagesPanel();
@@ -10351,7 +10352,8 @@ function App() {
 
             <div
               onClick={(event) => event.stopPropagation()}
-              className="fixed top-[43px] left-1/2 -translate-x-1/2 z-[681] w-[390px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
+              style={{ top: activeContentMenu === 'Projeler' ? 43 : 55 }}
+              className="fixed left-1/2 -translate-x-1/2 z-[681] w-[390px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
             >
             <span className="absolute -top-1.5 left-[43%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
 
@@ -10534,7 +10536,8 @@ function App() {
         {isNotificationsOpen && (
           <div
             onClick={(event) => event.stopPropagation()}
-            className="fixed top-[43px] left-1/2 -translate-x-1/2 z-[680] w-[360px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
+            style={{ top: activeContentMenu === 'Projeler' ? 43 : 55 }}
+            className="fixed left-1/2 -translate-x-1/2 z-[680] w-[360px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
           >
             <span className="absolute -top-1.5 left-[57%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
             <div className="h-[54px] px-4 border-b border-zinc-100 flex items-center justify-between">
@@ -10787,7 +10790,7 @@ function App() {
                       </span>
                     </div>
 
-                    <div className="zrc-home-card bg-white rounded-[13px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                    <div className="zrc-home-card bg-white rounded-[13px] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
                       <div className="h-[46px] px-5 border-b border-[#eef1f5] bg-[#ffffff] grid grid-cols-[36px_minmax(0,1fr)_142px] items-center">
                         <div className="text-[10.5px] font-black text-[#9aa4b2]"> </div>
                         <div className="text-[13px] font-bold text-[#8c96a6] flex items-center gap-1.5">
@@ -10882,7 +10885,7 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="zrc-home-card relative bg-white rounded-[13px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-visible">
+                    <div className="zrc-home-card relative bg-white rounded-[13px] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-visible">
                       {(isQuickNoteSearchOpen || isQuickNoteComposerOpen) && (
                         <div className="px-4 pt-4 space-y-3">
                           {isQuickNoteSearchOpen && (
@@ -11135,7 +11138,7 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="zrc-home-card min-h-[660px] bg-white rounded-[13px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                  <div className="zrc-home-card min-h-[660px] bg-white rounded-[13px] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
                     <div className="h-[64px] px-6 border-b border-[#eceff4] flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <button

@@ -7,19 +7,22 @@ function TopNavbar({
   unreadMessageCount = 0,
   isMessagesOpen = false,
   onToggleMessages,
-  onLogout
+  onLogout,
+  activeContentMenu = ''
 }) {
+  const isProjectsPage = activeContentMenu === 'Projeler';
+
   return (
-    <div className="w-full h-[40px] px-7 flex items-center justify-between shrink-0 bg-transparent relative">
+    <div className={`w-full ${isProjectsPage ? 'h-[40px]' : 'h-[52px]'} px-7 flex items-center justify-between shrink-0 bg-transparent relative transition-[height] duration-200 ease-out`}>
       <div className="w-[150px]" />
 
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
         <button
           onClick={onToggleMessages}
-          className={`relative h-[27px] px-3.5 rounded-[7px] transition-all flex items-center gap-2 text-[11px] font-black tracking-[-0.01em] border ${
+          className={`relative h-[28px] px-4 rounded-[8px] transition-all flex items-center gap-2 text-[11px] font-black tracking-[-0.01em] ${
             isMessagesOpen
-              ? 'bg-white text-[#2563eb] border-[#dbe7ff] shadow-[0_8px_20px_rgba(37,99,235,0.12)]'
-              : 'bg-white/72 text-[#7d8898] border-[#e8edf4] hover:bg-white hover:text-[#2563eb] hover:border-[#dbe7ff] shadow-[0_7px_18px_rgba(15,23,42,0.045)]'
+              ? 'bg-[linear-gradient(135deg,#ffffff_0%,#eef5ff_100%)] text-[#2563eb] shadow-[0_10px_24px_rgba(37,99,235,0.13)]'
+              : 'bg-white/68 text-[#7d8898] hover:bg-white hover:text-[#2563eb] shadow-[0_7px_18px_rgba(15,23,42,0.045)] hover:shadow-[0_10px_24px_rgba(37,99,235,0.10)]'
           }`}
           title="Mesajlar"
           type="button"
@@ -40,10 +43,10 @@ function TopNavbar({
 
         <button
           onClick={onToggleNotifications}
-          className={`relative h-[27px] px-3.5 rounded-[7px] transition-all flex items-center gap-2 text-[11px] font-black tracking-[-0.01em] border ${
+          className={`relative h-[28px] px-4 rounded-[8px] transition-all flex items-center gap-2 text-[11px] font-black tracking-[-0.01em] ${
             isNotificationsOpen
-              ? 'bg-white text-[#ff3600] border-[#ffd8ce] shadow-[0_8px_20px_rgba(255,54,0,0.12)]'
-              : 'bg-white/72 text-[#7d8898] border-[#e8edf4] hover:bg-white hover:text-[#ff3600] hover:border-[#ffd8ce] shadow-[0_7px_18px_rgba(15,23,42,0.045)]'
+              ? 'bg-[linear-gradient(135deg,#ffffff_0%,#fff0ec_100%)] text-[#ff3600] shadow-[0_10px_24px_rgba(255,54,0,0.13)]'
+              : 'bg-white/68 text-[#7d8898] hover:bg-white hover:text-[#ff3600] shadow-[0_7px_18px_rgba(15,23,42,0.045)] hover:shadow-[0_10px_24px_rgba(255,54,0,0.10)]'
           }`}
           title="Bildirimler"
           type="button"
