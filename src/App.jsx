@@ -691,6 +691,7 @@ function App() {
   const [homeWorkView, setHomeWorkView] = useState('Görevli');
   const [quickNoteDraft, setQuickNoteDraft] = useState('');
   const [quickNoteSearch, setQuickNoteSearch] = useState('');
+  const [pendingDeleteQuickNoteId, setPendingDeleteQuickNoteId] = useState(null);
   const [isQuickNoteSearchOpen, setIsQuickNoteSearchOpen] = useState(false);
   const [isQuickNoteComposerOpen, setIsQuickNoteComposerOpen] = useState(false);
   const [quickNotes, setQuickNotes] = useState(() =>
@@ -1279,6 +1280,12 @@ function App() {
         .animate-modal-out { animation: modalScaleOut 0.2s ease-in forwards; }
         @keyframes premiumFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: premiumFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes zrcNotePop { from { opacity: 0; transform: translateY(-10px) scale(0.96) rotate(-1.5deg); } to { opacity: 1; transform: translateY(0) scale(1) rotate(-1deg); } }
+        @keyframes zrcSoftFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+        .zrc-home-card { transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease; }
+        .zrc-home-card:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(30,43,70,0.085); border-color: #dfe4ec; }
+        .zrc-note-composer-float { animation: zrcNotePop 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .zrc-note-mini-float { animation: zrcSoftFloat 2.8s ease-in-out infinite; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); border-radius: 4px; }
         .task-menu-item { display: flex; align-items: center; padding: 10px 14px; cursor: pointer; transition: background-color 0.15s ease; color: #3f3f46; font-size: 13px; font-weight: 500; gap: 10px; width: 100%; user-select: none; }
@@ -8905,6 +8912,7 @@ function App() {
 
     saveQuickNoteToSupabase(nextNote);
     setQuickNoteDraft('');
+    setPendingDeleteQuickNoteId(null);
     setIsQuickNoteComposerOpen(false);
   };
 
@@ -8916,6 +8924,7 @@ function App() {
     }
 
     setQuickNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
+    setPendingDeleteQuickNoteId(null);
   };
 
   const openQuickTaskFromHome = () => {
@@ -9072,18 +9081,50 @@ function App() {
     setIsTaskModalOpen(true);
   };
 
-  const openHomeCalendarQuickTaskForDate = (targetDate) => {
-    if (!ensureCanCreateTaskInSelectedProject('Bu rol takvimden görev oluşturamaz.')) return;
+  const openHomeCalendarQuickTaskForDate = (targetDate, event = null) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!requirePermission('createTasks', 'Bu rol takvimden görev oluşturamaz.')) return;
 
     const safeDate = targetDate instanceof Date && !Number.isNaN(targetDate.getTime())
       ? targetDate
       : new Date();
 
+    const targetProjectName =
+      selectedProject ||
+      highlightedProject ||
+      visibleProjectNames[0] ||
+      projectList[0] ||
+      '';
+
+    if (!targetProjectName) {
+      alert('Görev oluşturmak için önce proje oluşturmalısın.');
+      return;
+    }
+
+    if (currentAccountType === 'Ekip Üyesi' && !isCurrentUserProjectMember(targetProjectName)) {
+      alert('Bu projede görev oluşturmak için önce Proje Ayarları > Proje Ekibi alanına eklenmelisin.');
+      return;
+    }
+
+    if (currentAccountType === 'Müşteri') {
+      alert('Müşteri/Misafir hesabı görev oluşturamaz.');
+      return;
+    }
+
+    setSelectedProject(targetProjectName);
     setCalendarFocusedDate(safeDate);
+    setActiveContentMenu('Projeler');
+    setActiveMenu('Projeler');
+    setActiveTab('Görevler');
     setSelectedColumnId(boardColumns[0]?.id || '');
     setEditingTask(null);
     setCalendarNewTaskDate(formatDateForTaskModal(safeDate));
-    setIsTaskModalOpen(true);
+
+    window.setTimeout(() => {
+      setIsTaskModalOpen(true);
+    }, 0);
   };
 
   const projectChatGroups = visibleProjectNames.map((projectName) => ({
@@ -10746,7 +10787,7 @@ function App() {
                       </span>
                     </div>
 
-                    <div className="bg-white rounded-[12px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                    <div className="zrc-home-card bg-white rounded-[13px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
                       <div className="h-[46px] px-5 border-b border-[#eef1f5] bg-[#ffffff] grid grid-cols-[36px_minmax(0,1fr)_142px] items-center">
                         <div className="text-[10.5px] font-black text-[#9aa4b2]"> </div>
                         <div className="text-[13px] font-bold text-[#8c96a6] flex items-center gap-1.5">
@@ -10841,7 +10882,7 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-[12px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                    <div className="zrc-home-card relative bg-white rounded-[13px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-visible">
                       {(isQuickNoteSearchOpen || isQuickNoteComposerOpen) && (
                         <div className="px-4 pt-4 space-y-3">
                           {isQuickNoteSearchOpen && (
@@ -10870,24 +10911,57 @@ function App() {
                           {isQuickNoteComposerOpen && (
                             <form
                               onSubmit={createQuickNoteFromHome}
-                              className="relative rounded-[14px] border border-[#f4d58b] bg-[#fff6c9] shadow-[0_14px_26px_rgba(156,120,30,0.12)] p-3"
+                              className="zrc-note-composer-float relative -mx-1 md:-mr-10 rounded-[18px] border border-[#cdd7ff] bg-[linear-gradient(135deg,#f8fbff_0%,#edf2ff_48%,#fff1ea_100%)] shadow-[0_24px_48px_rgba(55,81,145,0.18)] p-4 overflow-hidden"
                             >
-                              <div className="absolute -top-2 left-6 w-11 h-4 rounded-full bg-[#ffe78a] shadow-[0_4px_9px_rgba(156,120,30,0.12)] rotate-[-3deg]" />
-                              <textarea
-                                value={quickNoteDraft}
-                                onChange={(event) => setQuickNoteDraft(event.target.value)}
-                                placeholder="Hızlı not yaz..."
-                                rows={3}
-                                className="w-full resize-none bg-transparent text-[13px] font-semibold leading-5 text-[#4f4324] placeholder:text-[#b69b4a] outline-none pt-2"
-                              />
-                              <div className="mt-2 flex items-center justify-between">
-                                <span className="text-[10px] font-bold text-[#b69b4a]">Yapışkan not</span>
-                                <button
-                                  type="submit"
-                                  className="h-[28px] px-3.5 rounded-full bg-[#293241] text-white text-[10px] font-black hover:bg-[#1f2732] transition-all"
-                                >
-                                  Sabitle
-                                </button>
+                              <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-[#5fb7ff]/20 blur-2xl" />
+                              <div className="absolute -bottom-12 -left-10 w-28 h-28 rounded-full bg-[#ff7a45]/16 blur-2xl" />
+                              <div className="absolute top-3 right-4 w-11 h-2 rounded-full bg-white/80 shadow-[0_5px_14px_rgba(66,86,130,0.14)] rotate-[3deg]" />
+
+                              <div className="relative z-10 flex items-start gap-3">
+                                <div className="zrc-note-mini-float mt-1 w-9 h-9 rounded-[12px] bg-[#2f66cf] text-white shadow-[0_10px_22px_rgba(47,102,207,0.22)] flex items-center justify-center">
+                                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 4h10a2 2 0 0 1 2 2v12l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2Z" />
+                                  </svg>
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                  <textarea
+                                    value={quickNoteDraft}
+                                    onChange={(event) => setQuickNoteDraft(event.target.value)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === 'Enter' && !event.shiftKey) {
+                                        event.preventDefault();
+                                        createQuickNoteFromHome(event);
+                                      }
+                                    }}
+                                    placeholder="Hızlı not yaz... Enter ile sabitle, Shift+Enter ile alt satır."
+                                    rows={3}
+                                    className="w-full resize-none bg-white/62 backdrop-blur rounded-[13px] border border-white/70 px-3 py-2.5 text-[13px] font-semibold leading-5 text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:border-[#7fb7ff] focus:bg-white/80 transition-all"
+                                  />
+
+                                  <div className="mt-3 flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-[#7b8799]">Hızlı not kartı</span>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setQuickNoteDraft('');
+                                          setIsQuickNoteComposerOpen(false);
+                                        }}
+                                        className="h-[28px] px-3 rounded-full bg-white/70 text-[#7b8799] text-[10px] font-black hover:bg-white transition-all"
+                                      >
+                                        Vazgeç
+                                      </button>
+
+                                      <button
+                                        type="submit"
+                                        className="h-[28px] px-4 rounded-full bg-[#2f66cf] text-white text-[10px] font-black hover:bg-[#285cc0] active:scale-[0.98] transition-all shadow-[0_10px_18px_rgba(47,102,207,0.18)]"
+                                      >
+                                        Sabitle
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </form>
                           )}
@@ -10913,19 +10987,43 @@ function App() {
                               .map((note) => (
                                 <div
                                   key={note.id}
-                                  className="min-h-[42px] rounded-[10px] border border-[#eceff4] bg-[#fcfdff] px-3 py-2 flex items-start gap-2"
+                                  className="min-h-[42px] rounded-[11px] border border-[#eceff4] bg-[#fcfdff] px-3 py-2 transition-all hover:-translate-y-[1px] hover:shadow-[0_10px_22px_rgba(30,43,70,0.06)]"
                                 >
-                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#40aee8] shrink-0" />
-                                  <div className="min-w-0 flex-1 text-[11px] font-semibold leading-5 text-[#596270]">
-                                    {note.text}
+                                  <div className="flex items-start gap-2">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#40aee8] shrink-0" />
+                                    <div className="min-w-0 flex-1 text-[11px] font-semibold leading-5 text-[#596270] whitespace-pre-wrap">
+                                      {note.text}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setPendingDeleteQuickNoteId(note.id)}
+                                      className="w-5 h-5 rounded-[5px] text-[#c2c8d2] hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                                    >
+                                      ×
+                                    </button>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => deleteQuickNoteFromHome(note.id)}
-                                    className="w-5 h-5 rounded-[5px] text-[#c2c8d2] hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
-                                  >
-                                    ×
-                                  </button>
+
+                                  {pendingDeleteQuickNoteId === note.id && (
+                                    <div className="mt-2 ml-3 rounded-[10px] bg-[#fff5f5] border border-[#ffd4d4] px-2.5 py-2 flex items-center justify-between gap-2">
+                                      <span className="text-[10px] font-bold text-[#b42318]">Bu not silinsin mi?</span>
+                                      <div className="flex items-center gap-1.5">
+                                        <button
+                                          type="button"
+                                          onClick={() => setPendingDeleteQuickNoteId(null)}
+                                          className="h-[24px] px-2.5 rounded-full bg-white text-[#7b8799] text-[9px] font-black hover:bg-[#f8fafc] transition-all"
+                                        >
+                                          Vazgeç
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => deleteQuickNoteFromHome(note.id)}
+                                          className="h-[24px] px-2.5 rounded-full bg-[#ef4444] text-white text-[9px] font-black hover:bg-[#dc2626] transition-all"
+                                        >
+                                          Sil
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                           </div>
@@ -10973,7 +11071,7 @@ function App() {
                           event.stopPropagation();
                           setIsCalendarDisplayMenuOpen((prev) => !prev);
                         }}
-                        className="h-[30px] px-4 rounded-[6px] bg-[#2f66cf] text-white text-[12px] font-bold hover:bg-[#285cc0] transition-all flex items-center gap-3 shadow-[0_8px_18px_rgba(47,102,207,0.18)]"
+                        className="h-[27px] px-3 rounded-[6px] bg-[#2f66cf] text-white text-[11px] font-bold hover:bg-[#285cc0] transition-all flex items-center gap-2.5 shadow-[0_8px_18px_rgba(47,102,207,0.18)]"
                       >
                         Gösterim Şekli
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
@@ -11037,7 +11135,7 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="min-h-[660px] bg-white rounded-[12px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
+                  <div className="zrc-home-card min-h-[660px] bg-white rounded-[13px] border border-[#e5e8ee] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-hidden">
                     <div className="h-[64px] px-6 border-b border-[#eceff4] flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <button
@@ -11103,11 +11201,11 @@ function App() {
                                 key={`home-calendar-month-${day.toISOString()}`}
                                 role="button"
                                 tabIndex={0}
-                                onClick={() => openHomeCalendarQuickTaskForDate(day)}
+                                onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                 onKeyDown={(event) => {
                                   if (event.key === 'Enter' || event.key === ' ') {
                                     event.preventDefault();
-                                    openHomeCalendarQuickTaskForDate(day);
+                                    openHomeCalendarQuickTaskForDate(day, event);
                                   }
                                 }}
                                 className={`min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-hidden cursor-pointer ${
@@ -11174,7 +11272,7 @@ function App() {
                               <button
                                 key={`home-week-head-${day.toISOString()}`}
                                 type="button"
-                                onClick={() => openHomeCalendarQuickTaskForDate(day)}
+                                onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                 className={`border-r border-[#edf0f4] last:border-r-0 text-center text-[10px] font-bold transition-all ${
                                   isToday ? 'text-[#56a8e8] bg-[#f8fbff]' : 'text-[#9aa3b1] hover:bg-[#fafcff]'
                                 }`}
@@ -11195,7 +11293,7 @@ function App() {
                             return (
                               <div
                                 key={`home-week-allday-${day.toISOString()}`}
-                                onClick={() => openHomeCalendarQuickTaskForDate(day)}
+                                onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                 className="px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden cursor-pointer hover:bg-[#fafcff]"
                               >
                                 {allDayTasks[0] ? (
@@ -11228,7 +11326,7 @@ function App() {
                                 return (
                                   <div
                                     key={`home-week-hour-${day.toISOString()}-${hour}`}
-                                    onClick={() => openHomeCalendarQuickTaskForDate(day)}
+                                    onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                     className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
                                   >
                                     {hourTasks.slice(0, 2).map((task) => (
@@ -11259,7 +11357,7 @@ function App() {
                       <div className="bg-white">
                         <button
                           type="button"
-                          onClick={() => openHomeCalendarQuickTaskForDate(calendarFocusedDate)}
+                          onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
                           className="w-full h-[36px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4] hover:bg-[#fafcff] transition-all"
                         >
                           <div className="border-r border-[#edf0f4]" />
@@ -11273,7 +11371,7 @@ function App() {
                             Tüm Gün
                           </div>
                           <div
-                            onClick={() => openHomeCalendarQuickTaskForDate(calendarFocusedDate)}
+                            onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
                             className="px-2 flex items-center cursor-pointer hover:bg-[#fafcff]"
                           >
                             {getMenuCalendarAllDayTasks(calendarFocusedDate).slice(0, 2).map((task) => (
@@ -11303,7 +11401,7 @@ function App() {
                                   {hour}:00
                                 </div>
                                 <div
-                                  onClick={() => openHomeCalendarQuickTaskForDate(calendarFocusedDate)}
+                                  onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
                                   className="relative bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
                                 >
                                   {hourTasks.map((task) => (
@@ -11336,7 +11434,7 @@ function App() {
                             <div key={`home-list-group-${group.day.toISOString()}`}>
                               <button
                                 type="button"
-                                onClick={() => openHomeCalendarQuickTaskForDate(group.day)}
+                                onClick={(event) => openHomeCalendarQuickTaskForDate(group.day, event)}
                                 className="w-full h-[30px] px-3.5 bg-[#f1f3f6] border-b border-[#d6dce5] hover:bg-[#e9edf3] transition-all flex items-center justify-between"
                               >
                                 <div className="text-[10.5px] font-bold text-[#374151] capitalize">
