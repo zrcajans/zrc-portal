@@ -6835,7 +6835,7 @@ function App() {
     const fallbackProjectName =
       selectedProject ||
       visibleProjectNames[0] ||
-      projectList[0] ||
+      Object.keys(projectBoards || {})[0] ||
       '';
 
     if (!fallbackProjectName) {
@@ -9540,7 +9540,6 @@ function App() {
   }, [
     selectedProject,
     visibleProjectNames,
-    projectList,
     currentAccountType,
     projectBoards
   ]);
