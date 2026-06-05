@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 function TopNavbar({
   unreadNotificationCount = 0,
@@ -11,6 +11,7 @@ function TopNavbar({
   activeContentMenu = ''
 }) {
   const isProjectsPage = activeContentMenu === 'Projeler';
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   return (
     <div className={`w-full ${isProjectsPage ? 'h-[40px]' : 'h-[52px]'} px-7 flex items-center justify-between shrink-0 bg-transparent relative transition-[height] duration-200 ease-out`}>
@@ -72,16 +73,59 @@ function TopNavbar({
           </svg>
         </button>
 
-        <button
-          onClick={onLogout}
-          className="text-zinc-400 hover:text-[#ff3600] flex items-center gap-1.5 text-[10px] font-black tracking-[0.04em] transition-all"
-          type="button"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-          </svg>
-          <span>ÇIKIŞ</span>
-        </button>
+        <div className="relative">
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              setIsLogoutConfirmOpen((prev) => !prev);
+            }}
+            className={`h-[28px] px-3.5 rounded-[8px] flex items-center gap-1.5 text-[10px] font-black tracking-[0.04em] transition-all ${
+              isLogoutConfirmOpen
+                ? 'bg-white text-[#ff3600] shadow-[0_10px_24px_rgba(255,54,0,0.12)]'
+                : 'bg-white/50 text-zinc-400 hover:text-[#ff3600] hover:bg-white/82 shadow-[0_7px_18px_rgba(15,23,42,0.035)]'
+            }`}
+            type="button"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+            </svg>
+            <span>ÇIKIŞ</span>
+          </button>
+
+          {isLogoutConfirmOpen && (
+            <div
+              onClick={(event) => event.stopPropagation()}
+              className="absolute right-0 top-[36px] z-[900] w-[210px] rounded-[14px] bg-white shadow-[0_20px_55px_rgba(15,23,42,0.18)] p-3 animate-fade-in"
+            >
+              <div className="absolute -top-1.5 right-8 w-3 h-3 rotate-45 bg-white" />
+              <div className="text-[12px] font-black text-[#293241]">Çıkış yapılsın mı?</div>
+              <div className="mt-1 text-[10px] font-semibold text-[#8b96a6] leading-4">
+                Oturum kapatılacak, tekrar giriş yapman gerekecek.
+              </div>
+
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLogoutConfirmOpen(false)}
+                  className="h-[28px] px-3 rounded-full bg-[#f4f6f8] text-[#7b8799] text-[10px] font-black hover:bg-[#edf0f4] transition-all"
+                >
+                  Vazgeç
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogoutConfirmOpen(false);
+                    onLogout?.();
+                  }}
+                  className="h-[28px] px-3 rounded-full bg-[#ff3600] text-white text-[10px] font-black hover:bg-[#e03000] transition-all shadow-[0_10px_20px_rgba(255,54,0,0.18)]"
+                >
+                  Çıkış Yap
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

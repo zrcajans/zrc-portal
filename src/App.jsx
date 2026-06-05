@@ -689,7 +689,9 @@ function App() {
   const [activeTab, setActiveTab] = useState(() => getSavedNavigationState().activeTab);
   const [activeContentMenu, setActiveContentMenu] = useState(() => getSavedNavigationState().activeContentMenu);
   const [homeWorkView, setHomeWorkView] = useState('Görevli');
+  const [quickNoteTitleDraft, setQuickNoteTitleDraft] = useState('');
   const [quickNoteDraft, setQuickNoteDraft] = useState('');
+  const [editingQuickNoteId, setEditingQuickNoteId] = useState(null);
   const [quickNoteSearch, setQuickNoteSearch] = useState('');
   const [pendingDeleteQuickNoteId, setPendingDeleteQuickNoteId] = useState(null);
   const [isQuickNoteSearchOpen, setIsQuickNoteSearchOpen] = useState(false);
@@ -705,6 +707,14 @@ function App() {
   });
 
   const [calendarNewTaskDate, setCalendarNewTaskDate] = useState(null);
+  const [calendarQuickTaskDraft, setCalendarQuickTaskDraft] = useState({
+    isOpen: false,
+    projectName: '',
+    title: '',
+    description: '',
+    status: '',
+    date: ''
+  });
 
   const [isCalendarDisplayMenuOpen, setIsCalendarDisplayMenuOpen] = useState(false);
   const [isMenuCalendarFilterOpen, setIsMenuCalendarFilterOpen] = useState(false);
@@ -1518,6 +1528,103 @@ function App() {
           await supabase
             .from('task_followers')
             .insert(followerIds.map((userId) => ({ task_id: savedTask.id, user_id: userId })));
+        }
+      }
+
+      setSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
+      return true;
+    } catch (error) {
+      setSupabaseWriteInfo('error', `Supabase görev hatası: ${error?.message || 'bilinmeyen hata'}`);
+      return false;
+    }
+  };
+
+
+  const saveTaskToSupabaseForProject = async (projectName, taskData, targetStatus) => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !projectName || !taskData?.title) return false;
+
+    setSupabaseWriteInfo('saving', 'Supabase görev kaydediliyor');
+
+    try {
+      const projectId = await ensureSupabaseProject(projectName);
+      const projectBoard = projectBoards[projectName] || (projectName === selectedProject ? currentBoard : null) || createDefaultProjectBoard();
+      const projectColumns = projectName === selectedProject ? boardColumns : (projectBoard.columns || createDefaultProjectBoard().columns || []);
+      const targetColumn = projectColumns.find((column) => column.title === targetStatus) || projectColumns[0] || { title: targetStatus || 'Yeni Görev' };
+      const targetColumnIndex = Math.max(0, projectColumns.findIndex((column) => column.title === targetColumn.title));
+      const columnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
+
+      if (!projectId) return false;
+
+      const payload = {
+        workspace_id: workspaceId,
+        project_id: projectId,
+        column_id: columnId || null,
+        customer_id: isSupabaseUuid(taskData.customerId) ? taskData.customerId : null,
+        title: taskData.title || 'Adsız görev',
+        description: taskData.description || taskData.note || '',
+        rich_description: taskData.richDescription || taskData.rich_description || {},
+        priority: getSafeSupabasePriority(taskData.priority),
+        status: targetStatus || targetColumn?.title || 'Yeni Görev',
+        start_date: getSupabaseSafeDate(taskData.startDate),
+        due_date: getSupabaseSafeDate(taskData.dueDate || taskData.date),
+        end_date: getSupabaseSafeDate(taskData.endDate),
+        tags: Array.isArray(taskData.tags) ? taskData.tags : [],
+        is_archived: false,
+        updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+      };
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          ...payload,
+          created_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      if (data?.id) {
+        setProjectBoards((prevBoards) => {
+          const existingBoard = prevBoards[projectName] || createDefaultProjectBoard();
+
+          return {
+            ...prevBoards,
+            [projectName]: {
+              ...existingBoard,
+              columns: (existingBoard.columns || []).map((column) => ({
+                ...column,
+                tasks: (column.tasks || []).map((task) =>
+                  task.id === taskData.id ? { ...task, supabaseId: data.id } : task
+                )
+              }))
+            }
+          };
+        });
+
+        const assigneeIds = (taskData.assignees || [])
+          .map((person) => person?.id || person?.userId)
+          .filter(isSupabaseUuid);
+
+        const followerIds = (taskData.followers || [])
+          .map((person) => person?.id || person?.userId)
+          .filter(isSupabaseUuid);
+
+        await supabase.from('task_assignees').delete().eq('task_id', data.id);
+        await supabase.from('task_followers').delete().eq('task_id', data.id);
+
+        if (assigneeIds.length > 0) {
+          await supabase
+            .from('task_assignees')
+            .insert(assigneeIds.map((userId) => ({ task_id: data.id, user_id: userId })));
+        }
+
+        if (followerIds.length > 0) {
+          await supabase
+            .from('task_followers')
+            .insert(followerIds.map((userId) => ({ task_id: data.id, user_id: userId })));
         }
       }
 
@@ -2873,6 +2980,29 @@ function App() {
       return true;
     } catch (error) {
       setSupabaseWriteInfo('error', `Supabase not hatası: ${error?.message || 'bilinmeyen hata'}`);
+      return false;
+    }
+  };
+
+  const updateQuickNoteInSupabase = async (note = {}) => {
+    const noteId = note?.supabaseId || (String(note?.id || '').startsWith('supabase-note-') ? String(note.id).replace('supabase-note-', '') : '');
+
+    if (!isSupabaseUuid(noteId) || !String(note.text || '').trim()) return false;
+
+    try {
+      const { error } = await supabase
+        .from('quick_notes')
+        .update({
+          text: String(note.text || '').trim()
+        })
+        .eq('id', noteId);
+
+      if (error) throw error;
+
+      setSupabaseWriteInfo('saved', 'Supabase not güncellendi');
+      return true;
+    } catch (error) {
+      setSupabaseWriteInfo('error', `Supabase not güncelleme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -6665,16 +6795,175 @@ function App() {
     return `${year}-${month}-${day}`;
   };
 
-  const openTaskModalForCalendarDay = (date) => {
-    if (!ensureCanCreateTaskInSelectedProject('Bu rol takvimden görev oluşturamaz.')) return;
+  const getCalendarQuickTaskStatusOptions = (projectName = selectedProject) => {
+    const projectBoard =
+      projectBoards[projectName] ||
+      (projectName === selectedProject ? currentBoard : null) ||
+      createDefaultProjectBoard();
 
-    const selectedDate = formatDateForTaskModal(date);
+    return (projectBoard.columns || createDefaultProjectBoard().columns || []).map((column) => column.title);
+  };
 
-    setCalendarNewTaskDate(selectedDate);
-    setCalendarFocusedDate(date);
-    setSelectedColumnId(boardColumns[0]?.id || '');
-    setEditingTask(null);
-    setIsTaskModalOpen(true);
+  const openCalendarQuickTaskCreator = (date, event = null) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!requirePermission('createTasks', 'Bu rol takvimden görev oluşturamaz.')) return;
+
+    const safeDate = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+    const safeDateValue = formatDateForTaskModal(safeDate);
+    const fallbackProjectName =
+      selectedProject ||
+      highlightedProject ||
+      visibleProjectNames[0] ||
+      projectList[0] ||
+      '';
+
+    if (!fallbackProjectName) {
+      alert('Görev oluşturmak için önce proje oluşturmalısın.');
+      return;
+    }
+
+    if (currentAccountType === 'Müşteri') {
+      alert('Müşteri/Misafir hesabı görev oluşturamaz.');
+      return;
+    }
+
+    setCalendarFocusedDate(safeDate);
+    setCalendarNewTaskDate(safeDateValue);
+
+    const statusOptions = getCalendarQuickTaskStatusOptions(fallbackProjectName);
+
+    setCalendarQuickTaskDraft({
+      isOpen: true,
+      projectName: fallbackProjectName,
+      title: '',
+      description: '',
+      status: statusOptions[0] || 'Yeni Görev',
+      date: safeDateValue
+    });
+  };
+
+  const openTaskModalForCalendarDay = (date, event = null) => {
+    openCalendarQuickTaskCreator(date, event);
+  };
+
+  const closeCalendarQuickTaskCreator = () => {
+    setCalendarQuickTaskDraft({
+      isOpen: false,
+      projectName: '',
+      title: '',
+      description: '',
+      status: '',
+      date: ''
+    });
+    setCalendarNewTaskDate(null);
+  };
+
+  const updateCalendarQuickTaskProject = (projectName) => {
+    const statusOptions = getCalendarQuickTaskStatusOptions(projectName);
+
+    setCalendarQuickTaskDraft((prevDraft) => ({
+      ...prevDraft,
+      projectName,
+      status: statusOptions.includes(prevDraft.status) ? prevDraft.status : statusOptions[0] || 'Yeni Görev'
+    }));
+  };
+
+  const saveCalendarQuickTaskFromModal = async (event) => {
+    event.preventDefault();
+
+    const projectName = calendarQuickTaskDraft.projectName;
+    const title = calendarQuickTaskDraft.title.trim();
+    const description = calendarQuickTaskDraft.description.trim();
+    const taskDate = calendarQuickTaskDraft.date || formatDateForTaskModal(new Date());
+
+    if (!projectName) {
+      alert('Lütfen görev için bir proje seç.');
+      return;
+    }
+
+    if (!title) {
+      alert('Lütfen görev başlığı yaz.');
+      return;
+    }
+
+    if (currentAccountType === 'Ekip Üyesi' && !isCurrentUserProjectMember(projectName)) {
+      alert('Bu projede görev oluşturmak için önce Proje Ayarları > Proje Ekibi alanına eklenmelisin.');
+      return;
+    }
+
+    const projectBoard = projectBoards[projectName] || createDefaultProjectBoard();
+    const projectColumns = projectBoard.columns || createDefaultProjectBoard().columns || [];
+    const targetStatus = calendarQuickTaskDraft.status || projectColumns[0]?.title || 'Yeni Görev';
+    const targetColumn = projectColumns.find((column) => column.title === targetStatus) || projectColumns[0] || {
+      id: `col-${Date.now()}`,
+      title: targetStatus,
+      color: '#55ace8',
+      tasks: []
+    };
+
+    const nextTask = {
+      id: `task-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      title,
+      description,
+      note: description,
+      priority: 'Normal',
+      status: targetColumn.title,
+      startDate: taskDate,
+      dueDate: taskDate,
+      endDate: taskDate,
+      date: taskDate,
+      assignees: [],
+      followers: [],
+      tags: [],
+      customer: '',
+      customerId: '',
+      steps: [],
+      comments: [],
+      files: [],
+      createdAt: new Date().toISOString()
+    };
+
+    setProjectBoards((prevBoards) => {
+      const existingBoard = prevBoards[projectName] || createDefaultProjectBoard();
+      const existingColumns = existingBoard.columns || createDefaultProjectBoard().columns || [];
+      const safeColumns = existingColumns.length > 0 ? existingColumns : [targetColumn];
+      const targetColumnIndex = Math.max(0, safeColumns.findIndex((column) => column.title === targetColumn.title));
+
+      return {
+        ...prevBoards,
+        [projectName]: {
+          ...existingBoard,
+          columns: safeColumns.map((column, index) =>
+            index === targetColumnIndex
+              ? {
+                  ...column,
+                  tasks: [
+                    ...(column.tasks || []),
+                    nextTask
+                  ]
+                }
+              : column
+          )
+        }
+      };
+    });
+
+    setSelectedProject(projectName);
+
+    createActivityNotification({
+      type: 'task',
+      title: 'Yeni görev oluşturuldu',
+      text: nextTask.title,
+      meta: `${projectName} · ${targetColumn.title}`,
+      task: { ...nextTask, projectName, columnTitle: targetColumn.title },
+      columnTitle: targetColumn.title,
+      sortWeight: 740
+    });
+
+    await saveTaskToSupabaseForProject(projectName, nextTask, targetColumn.title);
+    closeCalendarQuickTaskCreator();
   };
 
   const reportTasks = visibleBoardColumns.flatMap((column) =>
@@ -7059,16 +7348,9 @@ function App() {
     return 'bg-violet-100 text-violet-700 border-violet-200';
   };
 
-  const openTaskModalForTimeChartPeriod = (period) => {
-    if (!ensureCanCreateTaskInSelectedProject('Bu rol zaman çizelgesinden görev oluşturamaz.')) return;
-
+  const openTaskModalForTimeChartPeriod = (period, event = null) => {
     const targetDate = period.type === 'week' ? period.start : period.date;
-    const selectedDate = formatDateForTaskModal(targetDate);
-
-    setCalendarNewTaskDate(selectedDate);
-    setSelectedColumnId(boardColumns[0]?.id || '');
-    setEditingTask(null);
-    setIsTaskModalOpen(true);
+    openCalendarQuickTaskCreator(targetDate, event);
   };
 
   const scrollTimeChart = (direction) => {
@@ -8892,15 +9174,104 @@ function App() {
     openTaskDetail(task, task.columnTitle);
   };
 
+  const parseQuickNoteContent = (note = {}) => {
+    if (note.title || note.detail) {
+      return {
+        title: String(note.title || '').trim() || 'Başlıksız not',
+        detail: String(note.detail || '')
+      };
+    }
+
+    const rawText = String(note.text || '');
+
+    if (rawText.startsWith('__ZRC_NOTE_V2__')) {
+      try {
+        const parsed = JSON.parse(rawText.replace('__ZRC_NOTE_V2__', ''));
+
+        return {
+          title: String(parsed.title || '').trim() || 'Başlıksız not',
+          detail: String(parsed.detail || '')
+        };
+      } catch {
+        return {
+          title: 'Başlıksız not',
+          detail: rawText
+        };
+      }
+    }
+
+    const lines = rawText.split('\n');
+    const firstLine = String(lines[0] || '').trim();
+
+    return {
+      title: firstLine || 'Başlıksız not',
+      detail: lines.slice(1).join('\n').trim()
+    };
+  };
+
+  const getQuickNoteTitle = (note = {}) => parseQuickNoteContent(note).title;
+  const getQuickNoteDetail = (note = {}) => parseQuickNoteContent(note).detail;
+
+  const buildQuickNoteText = (title = '', detail = '') =>
+    `__ZRC_NOTE_V2__${JSON.stringify({
+      title: String(title || '').trim(),
+      detail: String(detail || '').trim()
+    })}`;
+
+  const resetQuickNoteComposer = () => {
+    setQuickNoteTitleDraft('');
+    setQuickNoteDraft('');
+    setEditingQuickNoteId(null);
+    setPendingDeleteQuickNoteId(null);
+  };
+
+  const openQuickNoteComposerForEdit = (note = {}) => {
+    const parsedNote = parseQuickNoteContent(note);
+
+    setQuickNoteTitleDraft(parsedNote.title === 'Başlıksız not' ? '' : parsedNote.title);
+    setQuickNoteDraft(parsedNote.detail || '');
+    setEditingQuickNoteId(note.id);
+    setPendingDeleteQuickNoteId(null);
+    setIsQuickNoteComposerOpen(true);
+  };
+
   const createQuickNoteFromHome = (event) => {
     event.preventDefault();
 
-    const text = quickNoteDraft.trim();
+    const title = quickNoteTitleDraft.trim();
+    const detail = quickNoteDraft.trim();
 
-    if (!text) return;
+    if (!title && !detail) return;
+
+    const safeTitle = title || detail.split('\n')[0]?.slice(0, 42) || 'Başlıksız not';
+    const text = buildQuickNoteText(safeTitle, detail);
+
+    if (editingQuickNoteId) {
+      const existingNote = quickNotes.find((note) => note.id === editingQuickNoteId);
+      const updatedNote = {
+        ...(existingNote || {}),
+        id: editingQuickNoteId,
+        title: safeTitle,
+        detail,
+        text,
+        updatedAt: new Date().toISOString()
+      };
+
+      setQuickNotes((prevNotes) =>
+        prevNotes.map((note) => (note.id === editingQuickNoteId ? updatedNote : note))
+      );
+
+      updateQuickNoteInSupabase(updatedNote);
+
+      resetQuickNoteComposer();
+      setIsQuickNoteComposerOpen(false);
+      return;
+    }
 
     const nextNote = {
       id: `quick-note-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      title: safeTitle,
+      detail,
       text,
       createdAt: new Date().toISOString()
     };
@@ -8911,8 +9282,7 @@ function App() {
     ]);
 
     saveQuickNoteToSupabase(nextNote);
-    setQuickNoteDraft('');
-    setPendingDeleteQuickNoteId(null);
+    resetQuickNoteComposer();
     setIsQuickNoteComposerOpen(false);
   };
 
@@ -9069,62 +9439,12 @@ function App() {
     openTaskDetail(task, task.columnTitle);
   };
 
-  const openMenuCalendarQuickTask = () => {
-    if (!ensureCanCreateTaskInSelectedProject('Bu rol takvimden görev oluşturamaz.')) return;
-
-    setActiveContentMenu('Projeler');
-    setActiveMenu('Projeler');
-    setActiveTab('Görevler');
-    setSelectedColumnId(boardColumns[0]?.id || '');
-    setEditingTask(null);
-    setCalendarNewTaskDate(formatDateForTaskModal(calendarFocusedDate));
-    setIsTaskModalOpen(true);
+  const openMenuCalendarQuickTask = (event = null) => {
+    openCalendarQuickTaskCreator(calendarFocusedDate, event);
   };
 
   const openHomeCalendarQuickTaskForDate = (targetDate, event = null) => {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (!requirePermission('createTasks', 'Bu rol takvimden görev oluşturamaz.')) return;
-
-    const safeDate = targetDate instanceof Date && !Number.isNaN(targetDate.getTime())
-      ? targetDate
-      : new Date();
-
-    const targetProjectName =
-      selectedProject ||
-      highlightedProject ||
-      visibleProjectNames[0] ||
-      projectList[0] ||
-      '';
-
-    if (!targetProjectName) {
-      alert('Görev oluşturmak için önce proje oluşturmalısın.');
-      return;
-    }
-
-    if (currentAccountType === 'Ekip Üyesi' && !isCurrentUserProjectMember(targetProjectName)) {
-      alert('Bu projede görev oluşturmak için önce Proje Ayarları > Proje Ekibi alanına eklenmelisin.');
-      return;
-    }
-
-    if (currentAccountType === 'Müşteri') {
-      alert('Müşteri/Misafir hesabı görev oluşturamaz.');
-      return;
-    }
-
-    setSelectedProject(targetProjectName);
-    setCalendarFocusedDate(safeDate);
-    setActiveContentMenu('Projeler');
-    setActiveMenu('Projeler');
-    setActiveTab('Görevler');
-    setSelectedColumnId(boardColumns[0]?.id || '');
-    setEditingTask(null);
-    setCalendarNewTaskDate(formatDateForTaskModal(safeDate));
-
-    window.setTimeout(() => {
-      setIsTaskModalOpen(true);
-    }, 0);
+    openCalendarQuickTaskCreator(targetDate, event);
   };
 
   const projectChatGroups = visibleProjectNames.map((projectName) => ({
@@ -10872,7 +11192,12 @@ function App() {
 
                         <button
                           type="button"
-                          onClick={() => setIsQuickNoteComposerOpen((prev) => !prev)}
+                          onClick={() => {
+                            if (!isQuickNoteComposerOpen) {
+                              resetQuickNoteComposer();
+                            }
+                            setIsQuickNoteComposerOpen((prev) => !prev);
+                          }}
                           className={`w-7 h-7 rounded-[7px] transition-all flex items-center justify-center ${
                             isQuickNoteComposerOpen ? 'bg-[#55ace8] text-white shadow-sm' : 'hover:bg-white hover:text-[#55ace8]'
                           }`}
@@ -10914,10 +11239,10 @@ function App() {
                           {isQuickNoteComposerOpen && (
                             <form
                               onSubmit={createQuickNoteFromHome}
-                              className="zrc-note-composer-float relative -mx-1 md:-mr-10 rounded-[18px] border border-[#cdd7ff] bg-[linear-gradient(135deg,#f8fbff_0%,#edf2ff_48%,#fff1ea_100%)] shadow-[0_24px_48px_rgba(55,81,145,0.18)] p-4 overflow-hidden"
+                              className="zrc-note-composer-float relative w-full max-w-[460px] md:-mr-7 rounded-[18px] bg-[linear-gradient(135deg,#eef7ff_0%,#f5f0ff_45%,#fff6ef_100%)] shadow-[0_24px_48px_rgba(55,81,145,0.18)] p-4 overflow-hidden"
                             >
-                              <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-[#5fb7ff]/20 blur-2xl" />
-                              <div className="absolute -bottom-12 -left-10 w-28 h-28 rounded-full bg-[#ff7a45]/16 blur-2xl" />
+                              <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-[#5fb7ff]/22 blur-2xl" />
+                              <div className="absolute -bottom-12 -left-10 w-28 h-28 rounded-full bg-[#ff7a45]/14 blur-2xl" />
                               <div className="absolute top-3 right-4 w-11 h-2 rounded-full bg-white/80 shadow-[0_5px_14px_rgba(66,86,130,0.14)] rotate-[3deg]" />
 
                               <div className="relative z-10 flex items-start gap-3">
@@ -10928,27 +11253,41 @@ function App() {
                                 </div>
 
                                 <div className="min-w-0 flex-1">
+                                  <div className="text-[10px] font-black text-[#778399] mb-2">
+                                    {editingQuickNoteId ? 'Notu düzenle' : 'Yeni hızlı not'}
+                                  </div>
+
+                                  <input
+                                    value={quickNoteTitleDraft}
+                                    onChange={(event) => setQuickNoteTitleDraft(event.target.value)}
+                                    placeholder="Başlık"
+                                    className="w-full h-[34px] bg-white/68 backdrop-blur rounded-[12px] px-3 text-[13px] font-black text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:bg-white/90 transition-all"
+                                  />
+
                                   <textarea
                                     value={quickNoteDraft}
                                     onChange={(event) => setQuickNoteDraft(event.target.value)}
                                     onKeyDown={(event) => {
-                                      if (event.key === 'Enter' && !event.shiftKey) {
+                                      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
                                         event.preventDefault();
                                         createQuickNoteFromHome(event);
                                       }
                                     }}
-                                    placeholder="Hızlı not yaz... Enter ile sabitle, Shift+Enter ile alt satır."
-                                    rows={3}
-                                    className="w-full resize-none bg-white/62 backdrop-blur rounded-[13px] border border-white/70 px-3 py-2.5 text-[13px] font-semibold leading-5 text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:border-[#7fb7ff] focus:bg-white/80 transition-all"
+                                    placeholder="Detaylı açıklama yaz..."
+                                    rows={4}
+                                    className="mt-2 w-full resize-none bg-white/62 backdrop-blur rounded-[13px] px-3 py-2.5 text-[12.5px] font-semibold leading-5 text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:bg-white/86 transition-all"
                                   />
 
                                   <div className="mt-3 flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-[#7b8799]">Hızlı not kartı</span>
+                                    <span className="text-[10px] font-bold text-[#7b8799]">
+                                      {editingQuickNoteId ? 'Başlık + detay güncellenecek' : 'Başlık + detay olarak sabitlenecek'}
+                                    </span>
+
                                     <div className="flex items-center gap-2">
                                       <button
                                         type="button"
                                         onClick={() => {
-                                          setQuickNoteDraft('');
+                                          resetQuickNoteComposer();
                                           setIsQuickNoteComposerOpen(false);
                                         }}
                                         className="h-[28px] px-3 rounded-full bg-white/70 text-[#7b8799] text-[10px] font-black hover:bg-white transition-all"
@@ -10960,7 +11299,7 @@ function App() {
                                         type="submit"
                                         className="h-[28px] px-4 rounded-full bg-[#2f66cf] text-white text-[10px] font-black hover:bg-[#285cc0] active:scale-[0.98] transition-all shadow-[0_10px_18px_rgba(47,102,207,0.18)]"
                                       >
-                                        Sabitle
+                                        {editingQuickNoteId ? 'Güncelle' : 'Sabitle'}
                                       </button>
                                     </div>
                                   </div>
@@ -10974,32 +11313,51 @@ function App() {
                       <div className={`${
                         quickNotes.filter((note) =>
                           !quickNoteSearch.trim() ||
-                          String(note.text || '').toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
+                          `${getQuickNoteTitle(note)} ${getQuickNoteDetail(note)}`.toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
                         ).length > 0 ? 'max-h-[330px] overflow-y-auto custom-scrollbar p-4' : 'p-4'
                       }`}>
                         {quickNotes.filter((note) =>
                           !quickNoteSearch.trim() ||
-                          String(note.text || '').toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
+                          `${getQuickNoteTitle(note)} ${getQuickNoteDetail(note)}`.toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
                         ).length > 0 ? (
                           <div className="grid grid-cols-1 gap-2.5">
                             {quickNotes
                               .filter((note) =>
                                 !quickNoteSearch.trim() ||
-                                String(note.text || '').toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
+                                `${getQuickNoteTitle(note)} ${getQuickNoteDetail(note)}`.toLocaleLowerCase('tr-TR').includes(quickNoteSearch.trim().toLocaleLowerCase('tr-TR'))
                               )
                               .map((note) => (
                                 <div
                                   key={note.id}
-                                  className="min-h-[42px] rounded-[11px] border border-[#eceff4] bg-[#fcfdff] px-3 py-2 transition-all hover:-translate-y-[1px] hover:shadow-[0_10px_22px_rgba(30,43,70,0.06)]"
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => openQuickNoteComposerForEdit(note)}
+                                  onKeyDown={(event) => {
+                                    if (event.key === 'Enter' || event.key === ' ') {
+                                      event.preventDefault();
+                                      openQuickNoteComposerForEdit(note);
+                                    }
+                                  }}
+                                  className="min-h-[46px] rounded-[11px] bg-[#fcfdff] px-3 py-2 transition-all hover:-translate-y-[1px] hover:shadow-[0_10px_22px_rgba(30,43,70,0.06)] cursor-pointer"
                                 >
                                   <div className="flex items-start gap-2">
                                     <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#40aee8] shrink-0" />
-                                    <div className="min-w-0 flex-1 text-[11px] font-semibold leading-5 text-[#596270] whitespace-pre-wrap">
-                                      {note.text}
+                                    <div className="min-w-0 flex-1">
+                                      <div className="text-[11.5px] font-black leading-5 text-[#354052] truncate">
+                                        {getQuickNoteTitle(note)}
+                                      </div>
+                                      {getQuickNoteDetail(note) && (
+                                        <div className="text-[10.5px] font-semibold leading-4 text-[#7b8799] line-clamp-2 whitespace-pre-wrap">
+                                          {getQuickNoteDetail(note)}
+                                        </div>
+                                      )}
                                     </div>
                                     <button
                                       type="button"
-                                      onClick={() => setPendingDeleteQuickNoteId(note.id)}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        setPendingDeleteQuickNoteId(note.id);
+                                      }}
                                       className="w-5 h-5 rounded-[5px] text-[#c2c8d2] hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
                                     >
                                       ×
@@ -11007,7 +11365,10 @@ function App() {
                                   </div>
 
                                   {pendingDeleteQuickNoteId === note.id && (
-                                    <div className="mt-2 ml-3 rounded-[10px] bg-[#fff5f5] border border-[#ffd4d4] px-2.5 py-2 flex items-center justify-between gap-2">
+                                    <div
+                                      onClick={(event) => event.stopPropagation()}
+                                      className="mt-2 ml-3 rounded-[10px] bg-[#fff5f5] px-2.5 py-2 flex items-center justify-between gap-2"
+                                    >
                                       <span className="text-[10px] font-bold text-[#b42318]">Bu not silinsin mi?</span>
                                       <div className="flex items-center gap-1.5">
                                         <button
@@ -14326,7 +14687,7 @@ function App() {
 
                                           <button
                                             type="button"
-                                            onClick={() => openTaskModalForTimeChartPeriod(period)}
+                                            onClick={(event) => openTaskModalForTimeChartPeriod(period, event)}
                                             className="w-full h-7 rounded-[6px] border border-dashed border-blue-100 bg-blue-50/30 text-blue-400 text-[14px] font-black hover:bg-blue-50 transition-all"
                                             title="Bu alana görev ekle"
                                           >
@@ -14336,7 +14697,7 @@ function App() {
                                       ) : (
                                         <button
                                           type="button"
-                                          onClick={() => openTaskModalForTimeChartPeriod(period)}
+                                          onClick={(event) => openTaskModalForTimeChartPeriod(period, event)}
                                           className="w-full h-full min-h-[110px] rounded-[8px] border border-dashed border-transparent hover:border-blue-200 hover:bg-blue-50/30 text-transparent hover:text-blue-400 text-[20px] font-black transition-all"
                                           title="Bu güne görev ekle"
                                         >
@@ -16300,6 +16661,134 @@ function App() {
                 className="h-9 px-5 rounded-[11px] bg-[#ff3600] text-white text-[11px] font-black hover:bg-[#e03000] active:scale-[0.98] transition-all"
               >
                 Kaydet
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {calendarQuickTaskDraft.isOpen && (
+        <div className="fixed inset-0 z-[760] flex items-center justify-center px-5 py-6 bg-zinc-950/18 backdrop-blur-[2px] animate-fade-in" onClick={closeCalendarQuickTaskCreator}>
+          <form
+            onSubmit={saveCalendarQuickTaskFromModal}
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-[520px] rounded-[22px] bg-white shadow-[0_28px_90px_rgba(15,23,42,0.24)] overflow-hidden animate-modal"
+          >
+            <div className="h-[66px] px-6 bg-[linear-gradient(135deg,#fff_0%,#f5f8ff_58%,#fff1ec_100%)] flex items-center justify-between">
+              <div>
+                <div className="text-[16px] font-black text-[#293241] tracking-[-0.02em]">Takvimden Görev Oluştur</div>
+                <div className="mt-0.5 text-[11px] font-bold text-[#8b96a6]">Tarih ve proje seç; görev ilgili projeye kaydedilir.</div>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeCalendarQuickTaskCreator}
+                className="w-8 h-8 rounded-full bg-white/70 text-[#8b96a6] hover:bg-white hover:text-[#ff3600] transition-all flex items-center justify-center"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Proje</span>
+                  <select
+                    value={calendarQuickTaskDraft.projectName}
+                    onChange={(event) => updateCalendarQuickTaskProject(event.target.value)}
+                    className="w-full h-[40px] rounded-[12px] bg-[#f6f8fb] px-3 text-[12px] font-bold text-[#354052] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
+                  >
+                    {visibleProjectNames.map((projectName) => (
+                      <option key={`calendar-task-project-${projectName}`} value={projectName}>
+                        {projectName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Tarih</span>
+                  <input
+                    type="date"
+                    value={calendarQuickTaskDraft.date}
+                    onChange={(event) =>
+                      setCalendarQuickTaskDraft((prevDraft) => ({
+                        ...prevDraft,
+                        date: event.target.value
+                      }))
+                    }
+                    className="w-full h-[40px] rounded-[12px] bg-[#f6f8fb] px-3 text-[12px] font-bold text-[#354052] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
+                  />
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Durum / Kolon</span>
+                <select
+                  value={calendarQuickTaskDraft.status}
+                  onChange={(event) =>
+                    setCalendarQuickTaskDraft((prevDraft) => ({
+                      ...prevDraft,
+                      status: event.target.value
+                    }))
+                  }
+                  className="w-full h-[40px] rounded-[12px] bg-[#f6f8fb] px-3 text-[12px] font-bold text-[#354052] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
+                >
+                  {getCalendarQuickTaskStatusOptions(calendarQuickTaskDraft.projectName).map((statusName) => (
+                    <option key={`calendar-task-status-${statusName}`} value={statusName}>
+                      {statusName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Görev Başlığı</span>
+                <input
+                  value={calendarQuickTaskDraft.title}
+                  onChange={(event) =>
+                    setCalendarQuickTaskDraft((prevDraft) => ({
+                      ...prevDraft,
+                      title: event.target.value
+                    }))
+                  }
+                  placeholder="Örn. Tasarım revizyonu hazırlanacak"
+                  className="w-full h-[42px] rounded-[12px] bg-[#f6f8fb] px-3 text-[13px] font-bold text-[#293241] placeholder:text-[#a8b1bf] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
+                  autoFocus
+                />
+              </label>
+
+              <label className="block">
+                <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Açıklama</span>
+                <textarea
+                  value={calendarQuickTaskDraft.description}
+                  onChange={(event) =>
+                    setCalendarQuickTaskDraft((prevDraft) => ({
+                      ...prevDraft,
+                      description: event.target.value
+                    }))
+                  }
+                  placeholder="Detay yaz..."
+                  rows={4}
+                  className="w-full resize-none rounded-[12px] bg-[#f6f8fb] px-3 py-2.5 text-[12.5px] font-semibold leading-5 text-[#354052] placeholder:text-[#a8b1bf] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
+                />
+              </label>
+            </div>
+
+            <div className="h-[62px] px-6 bg-[#fafbfc] flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeCalendarQuickTaskCreator}
+                className="h-[34px] px-4 rounded-full bg-white text-[#7b8799] text-[11px] font-black hover:bg-[#f3f5f8] transition-all"
+              >
+                Vazgeç
+              </button>
+
+              <button
+                type="submit"
+                className="h-[34px] px-5 rounded-full bg-[#ff3600] text-white text-[11px] font-black hover:bg-[#e03000] active:scale-[0.98] transition-all shadow-[0_10px_22px_rgba(255,54,0,0.18)]"
+              >
+                Görevi Oluştur
               </button>
             </div>
           </form>
