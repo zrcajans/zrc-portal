@@ -10351,9 +10351,9 @@ function App() {
 
             <div
               onClick={(event) => event.stopPropagation()}
-              className="fixed top-[44px] right-[98px] z-[681] w-[390px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
+              className="fixed top-[43px] left-1/2 -translate-x-1/2 z-[681] w-[390px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
             >
-            <span className="absolute -top-1.5 right-[86px] w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
+            <span className="absolute -top-1.5 left-[43%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
 
             <div className="h-[54px] px-4 border-b border-zinc-100 flex items-center justify-between">
               <div>
@@ -10534,9 +10534,9 @@ function App() {
         {isNotificationsOpen && (
           <div
             onClick={(event) => event.stopPropagation()}
-            className="fixed top-[44px] right-[92px] z-[680] w-[360px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
+            className="fixed top-[43px] left-1/2 -translate-x-1/2 z-[680] w-[360px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
           >
-            <span className="absolute -top-1.5 right-[58px] w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
+            <span className="absolute -top-1.5 left-[57%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
             <div className="h-[54px] px-4 border-b border-zinc-100 flex items-center justify-between">
               <div>
                 <div className="text-[13px] font-black text-zinc-800">Bildirimler</div>
