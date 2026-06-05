@@ -6834,7 +6834,6 @@ function App() {
     const safeDateValue = formatDateForTaskModal(safeDate);
     const fallbackProjectName =
       selectedProject ||
-      highlightedProject ||
       visibleProjectNames[0] ||
       projectList[0] ||
       '';
@@ -9540,7 +9539,6 @@ function App() {
     };
   }, [
     selectedProject,
-    highlightedProject,
     visibleProjectNames,
     projectList,
     currentAccountType,
