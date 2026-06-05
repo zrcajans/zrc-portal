@@ -731,6 +731,7 @@ function App() {
   const [calendarFocusedDate, setCalendarFocusedDate] = useState(() => new Date());
 
   const timeChartScrollRef = useRef(null);
+  const calendarTaskOpenLockRef = useRef(0);
   const [timeChartView, setTimeChartView] = useState('Gün');
   const [timeChartStartDate, setTimeChartStartDate] = useState(() => {
     const now = new Date();
@@ -6821,6 +6822,12 @@ function App() {
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
+    const now = Date.now();
+
+    if (now - calendarTaskOpenLockRef.current < 220) return;
+
+    calendarTaskOpenLockRef.current = now;
+
     if (!requirePermission('createTasks', 'Bu rol takvimden görev oluşturamaz.')) return;
 
     const safeDate = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
@@ -6842,19 +6849,36 @@ function App() {
       return;
     }
 
+    const fallbackBoard = projectBoards[fallbackProjectName] || createDefaultProjectBoard();
+    const fallbackColumns = fallbackBoard.columns || createDefaultProjectBoard().columns || [];
+
     setCalendarFocusedDate(safeDate);
     setCalendarNewTaskDate(safeDateValue);
     setEditingTask(null);
-    setIsTaskModalOpen(false);
-
+    setSelectedProject(fallbackProjectName);
+    setSelectedColumnId(fallbackColumns[0]?.id || '');
     setCalendarTaskModalContext({
-      isOpen: false,
-      pendingOpen: true,
+      isOpen: true,
+      pendingOpen: false,
       projectName: fallbackProjectName,
       date: safeDateValue
     });
 
-    setSelectedProject(fallbackProjectName);
+    setIsTaskModalOpen(true);
+
+    window.setTimeout(() => {
+      setSelectedProject(fallbackProjectName);
+      setSelectedColumnId(fallbackColumns[0]?.id || '');
+      setCalendarNewTaskDate(safeDateValue);
+      setEditingTask(null);
+      setCalendarTaskModalContext({
+        isOpen: true,
+        pendingOpen: false,
+        projectName: fallbackProjectName,
+        date: safeDateValue
+      });
+      setIsTaskModalOpen(true);
+    }, 40);
   };
 
   const changeCalendarTaskModalProject = (projectName) => {
@@ -6871,35 +6895,16 @@ function App() {
 
   useEffect(() => {
     if (!calendarTaskModalContext.pendingOpen || !calendarTaskModalContext.projectName) return;
-    if (selectedProject !== calendarTaskModalContext.projectName) return;
 
-    const targetBoard = projectBoards[calendarTaskModalContext.projectName] || currentBoard || createDefaultProjectBoard();
-    const targetColumns =
-      selectedProject === calendarTaskModalContext.projectName && boardColumns.length > 0
-        ? boardColumns
-        : targetBoard.columns || createDefaultProjectBoard().columns || [];
-
-    const openTimer = window.setTimeout(() => {
-      setSelectedColumnId(targetColumns[0]?.id || '');
-      setEditingTask(null);
-      setCalendarNewTaskDate(calendarTaskModalContext.date || formatDateForTaskModal(new Date()));
-      setCalendarTaskModalContext((prevContext) => ({
-        ...prevContext,
-        isOpen: true,
-        pendingOpen: false
-      }));
-      setIsTaskModalOpen(true);
-    }, 60);
-
-    return () => window.clearTimeout(openTimer);
+    setCalendarTaskModalContext((prevContext) => ({
+      ...prevContext,
+      isOpen: true,
+      pendingOpen: false
+    }));
+    setIsTaskModalOpen(true);
   }, [
     calendarTaskModalContext.pendingOpen,
-    calendarTaskModalContext.projectName,
-    calendarTaskModalContext.date,
-    selectedProject,
-    boardColumns,
-    currentBoard,
-    projectBoards
+    calendarTaskModalContext.projectName
   ]);
 
   const openTaskModalForCalendarDay = (date, event = null) => {
@@ -9505,6 +9510,43 @@ function App() {
     openCalendarQuickTaskCreator(targetDate, event);
   };
 
+  useEffect(() => {
+    const handleGlobalCalendarDayPointerUp = (event) => {
+      const target = event.target;
+
+      if (target?.closest?.('[data-calendar-task-button="true"]')) return;
+
+      const dayElement = target?.closest?.('[data-zrc-calendar-day], [data-calendar-day]');
+
+      if (!dayElement) return;
+
+      const dateValue =
+        dayElement.getAttribute('data-zrc-calendar-day') ||
+        dayElement.getAttribute('data-calendar-day');
+
+      if (!dateValue) return;
+
+      const [year, month, day] = dateValue.split('-').map(Number);
+
+      if (!year || !month || !day) return;
+
+      openCalendarQuickTaskCreator(new Date(year, month - 1, day), event);
+    };
+
+    document.addEventListener('pointerup', handleGlobalCalendarDayPointerUp, true);
+
+    return () => {
+      document.removeEventListener('pointerup', handleGlobalCalendarDayPointerUp, true);
+    };
+  }, [
+    selectedProject,
+    highlightedProject,
+    visibleProjectNames,
+    projectList,
+    currentAccountType,
+    projectBoards
+  ]);
+
   const projectChatGroups = visibleProjectNames.map((projectName) => ({
     id: `project-chat-${projectName}`,
     type: 'project',
@@ -11631,6 +11673,7 @@ function App() {
                                 key={`home-calendar-month-${day.toISOString()}`}
                                 role="button"
                                 tabIndex={0}
+                                data-zrc-calendar-day={formatDateForTaskModal(day)}
                                 onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                 onMouseUp={(event) => {
                                   if (event.target?.closest?.('[data-calendar-task-button="true"]')) return;
@@ -11708,6 +11751,7 @@ function App() {
                               <button
                                 key={`home-week-head-${day.toISOString()}`}
                                 type="button"
+                                data-zrc-calendar-day={formatDateForTaskModal(day)}
                                 onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                 className={`border-r border-[#edf0f4] last:border-r-0 text-center text-[10px] font-bold transition-all ${
                                   isToday ? 'text-[#56a8e8] bg-[#f8fbff]' : 'text-[#9aa3b1] hover:bg-[#fafcff]'
@@ -11729,12 +11773,15 @@ function App() {
                             return (
                               <div
                                 key={`home-week-allday-${day.toISOString()}`}
+                                data-zrc-calendar-day={formatDateForTaskModal(day)}
                                 onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                 className="px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden cursor-pointer hover:bg-[#fafcff]"
                               >
                                 {allDayTasks[0] ? (
                                   <button
                                     type="button"
+                                    data-calendar-task-button="true"
+                                    onPointerUp={(event) => event.stopPropagation()}
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       openMenuCalendarTask(allDayTasks[0]);
@@ -11762,6 +11809,7 @@ function App() {
                                 return (
                                   <div
                                     key={`home-week-hour-${day.toISOString()}-${hour}`}
+                                    data-zrc-calendar-day={formatDateForTaskModal(day)}
                                     onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                     className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
                                   >
@@ -11769,6 +11817,8 @@ function App() {
                                       <button
                                         key={`home-week-task-${task.projectName}-${task.id}`}
                                         type="button"
+                                        data-calendar-task-button="true"
+                                        onPointerUp={(event) => event.stopPropagation()}
                                         onClick={(event) => {
                                           event.stopPropagation();
                                           openMenuCalendarTask(task);
@@ -11793,6 +11843,7 @@ function App() {
                       <div className="bg-white">
                         <button
                           type="button"
+                          data-zrc-calendar-day={formatDateForTaskModal(calendarFocusedDate)}
                           onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
                           className="w-full h-[36px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4] hover:bg-[#fafcff] transition-all"
                         >
@@ -11807,6 +11858,7 @@ function App() {
                             Tüm Gün
                           </div>
                           <div
+                            data-zrc-calendar-day={formatDateForTaskModal(calendarFocusedDate)}
                             onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
                             className="px-2 flex items-center cursor-pointer hover:bg-[#fafcff]"
                           >
@@ -11837,6 +11889,7 @@ function App() {
                                   {hour}:00
                                 </div>
                                 <div
+                                  data-zrc-calendar-day={formatDateForTaskModal(calendarFocusedDate)}
                                   onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
                                   className="relative bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
                                 >
@@ -11870,6 +11923,7 @@ function App() {
                             <div key={`home-list-group-${group.day.toISOString()}`}>
                               <button
                                 type="button"
+                                data-zrc-calendar-day={formatDateForTaskModal(group.day)}
                                 onClick={(event) => openHomeCalendarQuickTaskForDate(group.day, event)}
                                 className="w-full h-[30px] px-3.5 bg-[#f1f3f6] border-b border-[#d6dce5] hover:bg-[#e9edf3] transition-all flex items-center justify-between"
                               >
@@ -14224,6 +14278,7 @@ function App() {
                                 <div
                                   key={day.toISOString()}
                                   data-calendar-day={formatDateForTaskModal(day)}
+                                  data-zrc-calendar-day={formatDateForTaskModal(day)}
                                   className={`group min-h-[86px] border-r border-b border-zinc-100 last:border-r-0 px-2 py-1.5 relative ${
                                     canCreateTaskInSelectedProject ? 'cursor-pointer hover:bg-blue-50/30' : 'cursor-default'
                                   } transition-colors ${
@@ -14233,6 +14288,7 @@ function App() {
                                   {canCreateTaskInSelectedProject && (
                                     <button
                                       type="button"
+                                      data-zrc-calendar-day={formatDateForTaskModal(day)}
                                       aria-label={`${day.getDate()} için görev ekle`}
                                       onClick={(event) => {
                                         event.preventDefault();
@@ -14305,6 +14361,7 @@ function App() {
                                 <div
                                   key={`week-${day.toISOString()}`}
                                   data-calendar-day={formatDateForTaskModal(day)}
+                                  data-zrc-calendar-day={formatDateForTaskModal(day)}
                                   className={`group min-h-[310px] border-r border-b border-zinc-100 last:border-r-0 px-2.5 py-2 relative transition-colors ${
                                     canCreateTaskInSelectedProject ? 'cursor-pointer hover:bg-blue-50/30' : 'cursor-default'
                                   }`}
@@ -14312,6 +14369,7 @@ function App() {
                                   {canCreateTaskInSelectedProject && (
                                     <button
                                       type="button"
+                                      data-zrc-calendar-day={formatDateForTaskModal(day)}
                                       aria-label={`${day.getDate()} için görev ekle`}
                                       onClick={(event) => {
                                         event.preventDefault();
