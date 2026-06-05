@@ -718,7 +718,9 @@ function App() {
 
   const [calendarTaskModalContext, setCalendarTaskModalContext] = useState({
     isOpen: false,
-    projectName: ''
+    pendingOpen: false,
+    projectName: '',
+    date: ''
   });
 
   const [isCalendarDisplayMenuOpen, setIsCalendarDisplayMenuOpen] = useState(false);
@@ -4551,7 +4553,9 @@ function App() {
     setEditingTask(null);
     setCalendarTaskModalContext({
       isOpen: false,
-      projectName: ''
+      pendingOpen: false,
+      projectName: '',
+      date: ''
     });
   };
 
@@ -6838,19 +6842,19 @@ function App() {
       return;
     }
 
-    const fallbackBoard = projectBoards[fallbackProjectName] || createDefaultProjectBoard();
-    const fallbackColumns = fallbackBoard.columns || createDefaultProjectBoard().columns || [];
-
     setCalendarFocusedDate(safeDate);
     setCalendarNewTaskDate(safeDateValue);
-    setSelectedProject(fallbackProjectName);
-    setSelectedColumnId(fallbackColumns[0]?.id || '');
     setEditingTask(null);
+    setIsTaskModalOpen(false);
+
     setCalendarTaskModalContext({
-      isOpen: true,
-      projectName: fallbackProjectName
+      isOpen: false,
+      pendingOpen: true,
+      projectName: fallbackProjectName,
+      date: safeDateValue
     });
-    setIsTaskModalOpen(true);
+
+    setSelectedProject(fallbackProjectName);
   };
 
   const changeCalendarTaskModalProject = (projectName) => {
@@ -6864,6 +6868,39 @@ function App() {
       projectName
     }));
   };
+
+  useEffect(() => {
+    if (!calendarTaskModalContext.pendingOpen || !calendarTaskModalContext.projectName) return;
+    if (selectedProject !== calendarTaskModalContext.projectName) return;
+
+    const targetBoard = projectBoards[calendarTaskModalContext.projectName] || currentBoard || createDefaultProjectBoard();
+    const targetColumns =
+      selectedProject === calendarTaskModalContext.projectName && boardColumns.length > 0
+        ? boardColumns
+        : targetBoard.columns || createDefaultProjectBoard().columns || [];
+
+    const openTimer = window.setTimeout(() => {
+      setSelectedColumnId(targetColumns[0]?.id || '');
+      setEditingTask(null);
+      setCalendarNewTaskDate(calendarTaskModalContext.date || formatDateForTaskModal(new Date()));
+      setCalendarTaskModalContext((prevContext) => ({
+        ...prevContext,
+        isOpen: true,
+        pendingOpen: false
+      }));
+      setIsTaskModalOpen(true);
+    }, 60);
+
+    return () => window.clearTimeout(openTimer);
+  }, [
+    calendarTaskModalContext.pendingOpen,
+    calendarTaskModalContext.projectName,
+    calendarTaskModalContext.date,
+    selectedProject,
+    boardColumns,
+    currentBoard,
+    projectBoards
+  ]);
 
   const openTaskModalForCalendarDay = (date, event = null) => {
     openCalendarQuickTaskCreator(date, event);
@@ -11595,6 +11632,10 @@ function App() {
                                 role="button"
                                 tabIndex={0}
                                 onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
+                                onMouseUp={(event) => {
+                                  if (event.target?.closest?.('[data-calendar-task-button="true"]')) return;
+                                  openHomeCalendarQuickTaskForDate(day, event);
+                                }}
                                 onKeyDown={(event) => {
                                   if (event.key === 'Enter' || event.key === ' ') {
                                     event.preventDefault();
@@ -11624,6 +11665,8 @@ function App() {
                                     <button
                                       key={`home-cal-task-${day.toISOString()}-${task.projectName}-${task.id}`}
                                       type="button"
+                                      data-calendar-task-button="true"
+                                      onMouseUp={(event) => event.stopPropagation()}
                                       onClick={(event) => {
                                         event.stopPropagation();
                                         openMenuCalendarTask(task);
@@ -16757,7 +16800,9 @@ function App() {
           setCalendarNewTaskDate(null);
           setCalendarTaskModalContext({
             isOpen: false,
-            projectName: ''
+            pendingOpen: false,
+            projectName: '',
+            date: ''
           });
         }}
         onSave={handleSaveTask}
