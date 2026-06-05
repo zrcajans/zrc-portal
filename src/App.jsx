@@ -11212,7 +11212,7 @@ function App() {
 
                     <div className="zrc-home-card relative bg-white rounded-[13px] shadow-[0_12px_32px_rgba(30,43,70,0.06)] overflow-visible">
                       {(isQuickNoteSearchOpen || isQuickNoteComposerOpen) && (
-                        <div className="px-4 pt-4 space-y-3">
+                        <div className={`${isQuickNoteSearchOpen ? 'px-4 pt-4 space-y-3' : 'h-0'} relative z-[640]`}>
                           {isQuickNoteSearchOpen && (
                             <div className="h-[38px] rounded-[12px] bg-[#f7f9fc] border border-[#e7ebf1] px-3 flex items-center gap-2">
                               <svg className="w-[15px] h-[15px] text-[#9aa4b2] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
@@ -11239,10 +11239,18 @@ function App() {
                           {isQuickNoteComposerOpen && (
                             <form
                               onSubmit={createQuickNoteFromHome}
-                              className="zrc-note-composer-float relative w-full max-w-[460px] md:-mr-7 rounded-[18px] bg-[linear-gradient(135deg,#eef7ff_0%,#f5f0ff_45%,#fff6ef_100%)] shadow-[0_24px_48px_rgba(55,81,145,0.18)] p-4 overflow-hidden"
+                              className="zrc-note-composer-float absolute right-1 top-[-44px] z-[680] w-[382px] max-w-[calc(100vw-48px)] rounded-[18px] shadow-[0_28px_56px_rgba(55,81,145,0.22)] p-4 overflow-hidden"
+                              style={{
+                                backgroundColor: '#f7f4ea',
+                                backgroundImage:
+                                  'radial-gradient(circle at 14% 18%, rgba(47,102,207,0.13) 0 1px, transparent 1.2px), radial-gradient(circle at 82% 24%, rgba(255,54,0,0.11) 0 1px, transparent 1.3px), radial-gradient(circle at 38% 76%, rgba(41,50,65,0.08) 0 1px, transparent 1.3px), linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(238,247,255,0.92) 42%, rgba(255,245,235,0.95) 100%)',
+                                backgroundSize: '26px 26px, 31px 31px, 35px 35px, 100% 100%'
+                              }}
                             >
+                              <div className="absolute -top-2 right-7 w-4 h-4 rotate-45 bg-[#f8f5ed]" />
                               <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-[#5fb7ff]/22 blur-2xl" />
                               <div className="absolute -bottom-12 -left-10 w-28 h-28 rounded-full bg-[#ff7a45]/14 blur-2xl" />
+                              <div className="absolute inset-0 opacity-[0.18] pointer-events-none bg-[linear-gradient(90deg,rgba(41,50,65,0.08)_1px,transparent_1px),linear-gradient(0deg,rgba(41,50,65,0.06)_1px,transparent_1px)] bg-[length:18px_18px]" />
                               <div className="absolute top-3 right-4 w-11 h-2 rounded-full bg-white/80 shadow-[0_5px_14px_rgba(66,86,130,0.14)] rotate-[3deg]" />
 
                               <div className="relative z-10 flex items-start gap-3">
@@ -11261,7 +11269,7 @@ function App() {
                                     value={quickNoteTitleDraft}
                                     onChange={(event) => setQuickNoteTitleDraft(event.target.value)}
                                     placeholder="Başlık"
-                                    className="w-full h-[34px] bg-white/68 backdrop-blur rounded-[12px] px-3 text-[13px] font-black text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:bg-white/90 transition-all"
+                                    className="w-full h-[34px] bg-white/74 backdrop-blur rounded-[12px] px-3 text-[13px] font-black text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:bg-white/95 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]"
                                   />
 
                                   <textarea
@@ -11275,7 +11283,7 @@ function App() {
                                     }}
                                     placeholder="Detaylı açıklama yaz..."
                                     rows={4}
-                                    className="mt-2 w-full resize-none bg-white/62 backdrop-blur rounded-[13px] px-3 py-2.5 text-[12.5px] font-semibold leading-5 text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:bg-white/86 transition-all"
+                                    className="mt-2 w-full resize-none bg-white/70 backdrop-blur rounded-[13px] px-3 py-2.5 text-[12.5px] font-semibold leading-5 text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:bg-white/94 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]"
                                   />
 
                                   <div className="mt-3 flex items-center justify-between">
