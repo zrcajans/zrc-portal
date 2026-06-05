@@ -716,6 +716,11 @@ function App() {
     date: ''
   });
 
+  const [calendarTaskModalContext, setCalendarTaskModalContext] = useState({
+    isOpen: false,
+    projectName: ''
+  });
+
   const [isCalendarDisplayMenuOpen, setIsCalendarDisplayMenuOpen] = useState(false);
   const [isMenuCalendarFilterOpen, setIsMenuCalendarFilterOpen] = useState(false);
   const [isMenuCalendarStatusOpen, setIsMenuCalendarStatusOpen] = useState(false);
@@ -4544,6 +4549,10 @@ function App() {
 
     setIsTaskModalOpen(false);
     setEditingTask(null);
+    setCalendarTaskModalContext({
+      isOpen: false,
+      projectName: ''
+    });
   };
 
   const handleSaveStage = async (updatedColumn) => {
@@ -6829,19 +6838,31 @@ function App() {
       return;
     }
 
+    const fallbackBoard = projectBoards[fallbackProjectName] || createDefaultProjectBoard();
+    const fallbackColumns = fallbackBoard.columns || createDefaultProjectBoard().columns || [];
+
     setCalendarFocusedDate(safeDate);
     setCalendarNewTaskDate(safeDateValue);
-
-    const statusOptions = getCalendarQuickTaskStatusOptions(fallbackProjectName);
-
-    setCalendarQuickTaskDraft({
+    setSelectedProject(fallbackProjectName);
+    setSelectedColumnId(fallbackColumns[0]?.id || '');
+    setEditingTask(null);
+    setCalendarTaskModalContext({
       isOpen: true,
-      projectName: fallbackProjectName,
-      title: '',
-      description: '',
-      status: statusOptions[0] || 'Yeni Görev',
-      date: safeDateValue
+      projectName: fallbackProjectName
     });
+    setIsTaskModalOpen(true);
+  };
+
+  const changeCalendarTaskModalProject = (projectName) => {
+    const targetBoard = projectBoards[projectName] || createDefaultProjectBoard();
+    const targetColumns = targetBoard.columns || createDefaultProjectBoard().columns || [];
+
+    setSelectedProject(projectName);
+    setSelectedColumnId(targetColumns[0]?.id || '');
+    setCalendarTaskModalContext((prevContext) => ({
+      ...prevContext,
+      projectName
+    }));
   };
 
   const openTaskModalForCalendarDay = (date, event = null) => {
@@ -16675,134 +16696,6 @@ function App() {
         </div>
       )}
 
-      {calendarQuickTaskDraft.isOpen && (
-        <div className="fixed inset-0 z-[760] flex items-center justify-center px-5 py-6 bg-zinc-950/18 backdrop-blur-[2px] animate-fade-in" onClick={closeCalendarQuickTaskCreator}>
-          <form
-            onSubmit={saveCalendarQuickTaskFromModal}
-            onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[520px] rounded-[22px] bg-white shadow-[0_28px_90px_rgba(15,23,42,0.24)] overflow-hidden animate-modal"
-          >
-            <div className="h-[66px] px-6 bg-[linear-gradient(135deg,#fff_0%,#f5f8ff_58%,#fff1ec_100%)] flex items-center justify-between">
-              <div>
-                <div className="text-[16px] font-black text-[#293241] tracking-[-0.02em]">Takvimden Görev Oluştur</div>
-                <div className="mt-0.5 text-[11px] font-bold text-[#8b96a6]">Tarih ve proje seç; görev ilgili projeye kaydedilir.</div>
-              </div>
-
-              <button
-                type="button"
-                onClick={closeCalendarQuickTaskCreator}
-                className="w-8 h-8 rounded-full bg-white/70 text-[#8b96a6] hover:bg-white hover:text-[#ff3600] transition-all flex items-center justify-center"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Proje</span>
-                  <select
-                    value={calendarQuickTaskDraft.projectName}
-                    onChange={(event) => updateCalendarQuickTaskProject(event.target.value)}
-                    className="w-full h-[40px] rounded-[12px] bg-[#f6f8fb] px-3 text-[12px] font-bold text-[#354052] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
-                  >
-                    {visibleProjectNames.map((projectName) => (
-                      <option key={`calendar-task-project-${projectName}`} value={projectName}>
-                        {projectName}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="block">
-                  <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Tarih</span>
-                  <input
-                    type="date"
-                    value={calendarQuickTaskDraft.date}
-                    onChange={(event) =>
-                      setCalendarQuickTaskDraft((prevDraft) => ({
-                        ...prevDraft,
-                        date: event.target.value
-                      }))
-                    }
-                    className="w-full h-[40px] rounded-[12px] bg-[#f6f8fb] px-3 text-[12px] font-bold text-[#354052] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
-                  />
-                </label>
-              </div>
-
-              <label className="block">
-                <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Durum / Kolon</span>
-                <select
-                  value={calendarQuickTaskDraft.status}
-                  onChange={(event) =>
-                    setCalendarQuickTaskDraft((prevDraft) => ({
-                      ...prevDraft,
-                      status: event.target.value
-                    }))
-                  }
-                  className="w-full h-[40px] rounded-[12px] bg-[#f6f8fb] px-3 text-[12px] font-bold text-[#354052] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
-                >
-                  {getCalendarQuickTaskStatusOptions(calendarQuickTaskDraft.projectName).map((statusName) => (
-                    <option key={`calendar-task-status-${statusName}`} value={statusName}>
-                      {statusName}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Görev Başlığı</span>
-                <input
-                  value={calendarQuickTaskDraft.title}
-                  onChange={(event) =>
-                    setCalendarQuickTaskDraft((prevDraft) => ({
-                      ...prevDraft,
-                      title: event.target.value
-                    }))
-                  }
-                  placeholder="Örn. Tasarım revizyonu hazırlanacak"
-                  className="w-full h-[42px] rounded-[12px] bg-[#f6f8fb] px-3 text-[13px] font-bold text-[#293241] placeholder:text-[#a8b1bf] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
-                  autoFocus
-                />
-              </label>
-
-              <label className="block">
-                <span className="block mb-1.5 text-[10px] font-black text-[#7b8799] uppercase tracking-[0.04em]">Açıklama</span>
-                <textarea
-                  value={calendarQuickTaskDraft.description}
-                  onChange={(event) =>
-                    setCalendarQuickTaskDraft((prevDraft) => ({
-                      ...prevDraft,
-                      description: event.target.value
-                    }))
-                  }
-                  placeholder="Detay yaz..."
-                  rows={4}
-                  className="w-full resize-none rounded-[12px] bg-[#f6f8fb] px-3 py-2.5 text-[12.5px] font-semibold leading-5 text-[#354052] placeholder:text-[#a8b1bf] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
-                />
-              </label>
-            </div>
-
-            <div className="h-[62px] px-6 bg-[#fafbfc] flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={closeCalendarQuickTaskCreator}
-                className="h-[34px] px-4 rounded-full bg-white text-[#7b8799] text-[11px] font-black hover:bg-[#f3f5f8] transition-all"
-              >
-                Vazgeç
-              </button>
-
-              <button
-                type="submit"
-                className="h-[34px] px-5 rounded-full bg-[#ff3600] text-white text-[11px] font-black hover:bg-[#e03000] active:scale-[0.98] transition-all shadow-[0_10px_22px_rgba(255,54,0,0.18)]"
-              >
-                Görevi Oluştur
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
       <TaskDetailModal
         isOpen={Boolean(detailTaskInfo)}
         task={detailTaskInfo?.task}
@@ -16824,12 +16717,48 @@ function App() {
         onDeleteFile={deleteTaskStoredFileFromSupabase}
       />
 
+      {isTaskModalOpen && calendarTaskModalContext.isOpen && !editingTask && (
+        <div className="fixed left-1/2 top-[calc(50%-338px)] -translate-x-1/2 z-[780] w-[min(680px,calc(100vw-48px))] animate-fade-in pointer-events-none">
+          <div className="pointer-events-auto mx-auto rounded-[16px] bg-white/96 shadow-[0_18px_54px_rgba(15,23,42,0.16)] px-4 py-3 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-[10px] font-black text-[#8b96a6] uppercase tracking-[0.08em]">
+                Takvimden görev oluşturuluyor
+              </div>
+              <div className="mt-0.5 text-[12px] font-bold text-[#293241]">
+                Görevin ekleneceği projeyi seç
+              </div>
+            </div>
+
+            <label className="min-w-[260px] flex items-center gap-2">
+              <span className="text-[10px] font-black text-[#8b96a6] uppercase tracking-[0.06em]">
+                Proje
+              </span>
+              <select
+                value={calendarTaskModalContext.projectName}
+                onChange={(event) => changeCalendarTaskModalProject(event.target.value)}
+                className="h-[34px] min-w-[190px] rounded-[11px] bg-[#f6f8fb] px-3 text-[12px] font-black text-[#354052] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
+              >
+                {visibleProjectNames.map((projectName) => (
+                  <option key={`calendar-taskmodal-project-${projectName}`} value={projectName}>
+                    {projectName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      )}
+
       <TaskModal
         isOpen={isTaskModalOpen}
         onClose={() => {
           setIsTaskModalOpen(false);
           setEditingTask(null);
           setCalendarNewTaskDate(null);
+          setCalendarTaskModalContext({
+            isOpen: false,
+            projectName: ''
+          });
         }}
         onSave={handleSaveTask}
         initialData={editingTask}
