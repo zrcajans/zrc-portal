@@ -354,7 +354,7 @@ function CustomSelect({
       {open && (
         <div
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-0 top-[42px] z-[920] min-w-full rounded-[12px] bg-white/98 shadow-[0_18px_46px_rgba(15,23,42,0.14)] p-1.5 space-y-1 animate-fade-in ${menuClassName}`}
+          className={`absolute left-0 top-[42px] z-[1400] min-w-full rounded-[12px] bg-white shadow-[0_20px_52px_rgba(15,23,42,0.18)] p-1.5 space-y-1 animate-fade-in ${menuClassName}`}
         >
           {normalizedOptions.map((option) => {
             const isSelected = option.label === value;
@@ -418,9 +418,25 @@ function CustomSelect({
 }
 
 function MiniUser({ user }) {
+  const avatarValue = String(user?.avatar || '').trim();
+  const cleanName = String(user?.name || '').trim();
+  const fallbackInitials = createAvatarFromName(cleanName || 'Kullanıcı');
+  const shouldRenderImage =
+    avatarValue.startsWith('data:image') ||
+    avatarValue.startsWith('http://') ||
+    avatarValue.startsWith('https://');
+  const safeTextAvatar =
+    avatarValue && avatarValue.length <= 4 && !avatarValue.includes('/')
+      ? avatarValue
+      : fallbackInitials;
+
   return (
-    <span className="w-6 h-6 rounded-full bg-[#8c5220] text-white text-[8px] font-black flex items-center justify-center">
-      {user.avatar}
+    <span className="w-6 h-6 rounded-full bg-[#8c5220] text-white text-[8px] font-black flex items-center justify-center overflow-hidden shrink-0">
+      {shouldRenderImage ? (
+        <img src={avatarValue} alt={cleanName || 'Kullanıcı'} className="w-full h-full object-cover" />
+      ) : (
+        safeTextAvatar
+      )}
     </span>
   );
 }
@@ -814,7 +830,7 @@ export default function TaskModal({
         </div>
 
         <div className="p-5 pt-5 pb-4">
-          <div className="mb-3 flex justify-center">
+          <div className="relative z-[1300] mb-3 flex justify-center">
             <div className="w-full max-w-[360px]">
               <div className="text-center">
                 <FieldLabel>Proje</FieldLabel>
@@ -832,12 +848,12 @@ export default function TaskModal({
                 buttonClassName={`h-8 rounded-full text-[11.5px] justify-center ${
                   !canChangeProject || projectSelectOptions.length <= 1 ? 'pointer-events-none opacity-70' : ''
                 }`}
-                menuClassName="w-[360px] max-w-[calc(100vw-80px)]"
+                menuClassName="w-[360px] max-w-[calc(100vw-80px)] [&_span]:whitespace-normal [&_span]:truncate-none [&_button]:h-auto [&_button]:min-h-8 [&_button]:py-1.5"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-[1fr_120px_110px] gap-3 items-end">
+          <div className="relative z-[1] grid grid-cols-[1fr_120px_110px] gap-3 items-end">
             <div>
               <FieldLabel>Ad *</FieldLabel>
               <input
