@@ -208,7 +208,7 @@ function DateInput({ label, value, onChange }) {
           onChange={(event) => onChange(event.target.value)}
           onFocus={() => setIsOpen(true)}
           placeholder="29 Mayıs 2026"
-          className="w-full h-8 rounded-full border border-slate-200 bg-white px-3 pr-8 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
+          className="w-full h-8 rounded-full border border-transparent bg-slate-50 px-3 pr-8 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
         />
 
         {value && (
@@ -223,7 +223,7 @@ function DateInput({ label, value, onChange }) {
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 top-[54px] z-[900] w-[268px] rounded-[10px] bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.22)] p-3">
+        <div className="absolute left-0 top-[54px] z-[900] w-[268px] rounded-[12px] bg-white shadow-[0_20px_54px_rgba(15,23,42,0.16)] p-3">
           <div className="flex items-center justify-between mb-2">
             <button
               type="button"
@@ -323,7 +323,7 @@ function CustomSelect({
           event.stopPropagation();
           onToggle();
         }}
-        className={`w-full h-9 rounded-[9px] border border-slate-200 bg-white px-3 text-left flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:border-blue-200 hover:bg-slate-50 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-500/10 transition-all ${buttonClassName}`}
+        className={`w-full h-9 rounded-[10px] border border-transparent bg-slate-50 px-3 text-left flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:bg-white focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all ${buttonClassName}`}
         style={
           selectedOption?.bg
             ? {
@@ -354,7 +354,7 @@ function CustomSelect({
       {open && (
         <div
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-0 top-[42px] z-[920] min-w-full rounded-[9px] bg-white border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.18)] p-1.5 space-y-1 animate-fade-in ${menuClassName}`}
+          className={`absolute left-0 top-[42px] z-[920] min-w-full rounded-[12px] bg-white/98 shadow-[0_18px_46px_rgba(15,23,42,0.14)] p-1.5 space-y-1 animate-fade-in ${menuClassName}`}
         >
           {normalizedOptions.map((option) => {
             const isSelected = option.label === value;
@@ -367,7 +367,7 @@ function CustomSelect({
                   onChange(option.label);
                   onClose();
                 }}
-                className={`w-full h-7 rounded-[6px] px-2.5 flex items-center justify-between gap-2 text-left transition-all ${
+                className={`w-full h-7 rounded-[8px] px-2.5 flex items-center justify-between gap-2 text-left transition-all ${
                   option.bg ? 'hover:brightness-[0.97]' : 'hover:bg-slate-50'
                 }`}
                 style={
@@ -443,14 +443,14 @@ export default function TaskModal({
     typeof option === 'string' ? { label: option } : option
   );
   const defaultStatus = columnStatusOptions[0]?.label || 'Bekliyor';
-  const users = (teamMembers.length ? teamMembers : defaultUsers)
+  const users = (Array.isArray(teamMembers) ? teamMembers : [])
     .filter((user) => user?.status !== 'Pasif')
     .map((user, index) => ({
       id: user.id || `user-${index}`,
       name: user.name || 'İsimsiz Kişi',
       avatar: user.avatar || createAvatarFromName(user.name)
     }));
-  const defaultFollower = users[0] || defaultUsers[0];
+  const defaultFollower = users[0] || null;
   const customerListOptions = customers
     .map((customer) => customer.name)
     .filter(Boolean);
@@ -477,7 +477,7 @@ export default function TaskModal({
     tags: '',
     customer: 'Müşteri Seçin...',
     assignees: [],
-    followers: [defaultFollower]
+    followers: defaultFollower ? [defaultFollower] : []
   });
 
   const [openUserPicker, setOpenUserPicker] = useState(null);
@@ -515,7 +515,9 @@ export default function TaskModal({
         tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : initialData.tags || '',
         customer: initialData.customer || 'Müşteri Seçin...',
         assignees: initialData.assignees || [],
-        followers: initialData.followers?.length ? initialData.followers : [defaultFollowerRef.current]
+        followers: initialData.followers?.length
+          ? initialData.followers
+          : (defaultFollowerRef.current ? [defaultFollowerRef.current] : [])
       });
       return;
     }
@@ -534,7 +536,7 @@ export default function TaskModal({
       tags: '',
       customer: 'Müşteri Seçin...',
       assignees: [],
-      followers: [defaultFollowerRef.current]
+      followers: defaultFollowerRef.current ? [defaultFollowerRef.current] : []
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialData, calendarDefaultDate]);
@@ -545,6 +547,21 @@ export default function TaskModal({
     if (!isOpen || initialData?.id) return;
     setForm((prev) => ({ ...prev, status: defaultStatus }));
   }, [isOpen, initialData, defaultStatus]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscapeKey);
+    return () => window.removeEventListener('keydown', handleEscapeKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen && !isClosing) return null;
 
@@ -737,45 +754,28 @@ export default function TaskModal({
         </div>
 
         <div className="p-5 pt-5 pb-4">
-          <div className="mb-4 rounded-[12px] bg-slate-50/80 border border-slate-100 px-3.5 py-3">
-            <FieldLabel>Proje Seçimi</FieldLabel>
+          <div className="mb-3">
+            <FieldLabel>Proje</FieldLabel>
 
-            <div className="flex items-center gap-3">
-              <select
+            <div className="flex items-center gap-2">
+              <CustomSelect
                 value={selectedProjectName}
-                disabled={!canChangeProject || projectSelectOptions.length <= 1}
-                onChange={(event) => onProjectChange?.(event.target.value)}
-                onClick={(event) => event.stopPropagation()}
-                className={`h-9 flex-1 rounded-[10px] border px-3 text-[12px] font-black outline-none transition-all ${
-                  canChangeProject && projectSelectOptions.length > 1
-                    ? 'bg-white border-[#b8d3ff] text-slate-700 focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-500/10 cursor-pointer'
-                    : 'bg-white/70 border-slate-200 text-slate-500 cursor-not-allowed'
+                options={projectSelectOptions.length ? projectSelectOptions : ['Proje seçilmedi']}
+                onChange={(value) => onProjectChange?.(value)}
+                open={canChangeProject && openDropdown === 'project'}
+                onToggle={() => {
+                  if (canChangeProject && projectSelectOptions.length > 1) toggleDropdown('project');
+                }}
+                onClose={closeDropdown}
+                buttonClassName={`h-8 rounded-full text-[11.5px] ${
+                  !canChangeProject || projectSelectOptions.length <= 1 ? 'pointer-events-none opacity-70' : ''
                 }`}
-              >
-                {projectSelectOptions.length > 0 ? (
-                  projectSelectOptions.map((project) => (
-                    <option key={`task-modal-project-${project}`} value={project}>
-                      {project}
-                    </option>
-                  ))
-                ) : (
-                  <option value="Proje seçilmedi">Proje seçilmedi</option>
-                )}
-              </select>
+                menuClassName="w-full"
+              />
 
-              <span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black ${
-                canChangeProject
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'bg-slate-100 text-slate-400'
-              }`}>
-                {canChangeProject ? 'Değiştirilebilir' : 'Kilitli'}
+              <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[9.5px] font-black text-slate-400">
+                {canChangeProject ? 'Seçilebilir' : 'Kilitli'}
               </span>
-            </div>
-
-            <div className="mt-1.5 text-[10px] font-bold text-slate-400">
-              {canChangeProject
-                ? 'Takvimden görev oluştururken proje seçilebilir.'
-                : 'Projeler menüsünden görev oluştururken mevcut proje sabit kalır.'}
             </div>
           </div>
 
@@ -786,7 +786,7 @@ export default function TaskModal({
                 type="text"
                 value={form.title}
                 onChange={(event) => updateField('title', event.target.value)}
-                className="w-full h-9 rounded-[9px] border border-[#b8d3ff] bg-white px-3 text-[12.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-500/10 transition-all"
+                className="w-full h-9 rounded-[10px] border border-transparent bg-slate-50 px-3 text-[12.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
                 autoFocus
               />
             </div>
@@ -837,7 +837,7 @@ export default function TaskModal({
             <textarea
               value={form.description}
               onChange={(event) => updateField('description', event.target.value)}
-              className="w-full h-[82px] resize-none rounded-[9px] border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
+              className="w-full h-[82px] resize-none rounded-[10px] border border-transparent bg-slate-50 px-3 py-2.5 text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
             />
           </div>
 
@@ -863,7 +863,7 @@ export default function TaskModal({
                 value={form.tags}
                 onChange={(event) => updateField('tags', event.target.value)}
                 placeholder="Etiket ekle"
-                className="w-full h-8 rounded-full border border-slate-200 bg-white px-3 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-blue-300"
+                className="w-full h-8 rounded-full border border-transparent bg-slate-50 px-3 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
               />
             </div>
 
