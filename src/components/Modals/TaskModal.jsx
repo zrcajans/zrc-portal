@@ -459,7 +459,7 @@ export default function TaskModal({
     typeof option === 'string' ? { label: option } : option
   );
   const defaultStatus = columnStatusOptions[0]?.label || 'Bekliyor';
-  const isLegacyDemoTaskPerson = (person = {}) => {
+  const isHiddenTaskPickerPerson = (person = {}) => {
     const normalize = (value = '') =>
       String(value || '')
         .trim()
@@ -478,16 +478,16 @@ export default function TaskModal({
     const email = normalize(person.email || '');
 
     return (
-      ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
-      ['ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
-      ['ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
-      ['ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
+      ['user-1', 'user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
+      ['enes', 'ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
+      ['eneszaric', 'ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
+      ['enes@zrcajans.com', 'enszrc@gmail.com', 'ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
     );
   };
 
   const users = (Array.isArray(teamMembers) ? teamMembers : [])
     .filter((user) => user?.status !== 'Pasif')
-    .filter((user) => !isLegacyDemoTaskPerson(user))
+    .filter((user) => !isHiddenTaskPickerPerson(user))
     .map((user, index) => ({
       id: user.id || `user-${index}`,
       name: user.name || 'İsimsiz Kişi',
