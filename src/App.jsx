@@ -5135,6 +5135,14 @@ function App() {
       )
   );
 
+  // Ana Sayfa takvimi için: seçili proje şartı aranmaz,
+  // çünkü tıklayınca zaten proje seçici açılır.
+  const canCreateTaskFromCalendar = Boolean(
+    currentPermissions.createTasks &&
+    currentAccountType !== 'Müşteri' &&
+    visibleProjectNames.length > 0
+  );
+
   const showProjectSettingsControls = Boolean(currentPermissions.manageProjectSettings || currentPermissions.manageProjects);
   const showTeamManagementPage = Boolean(currentPermissions.manageTeam);
   const showCustomerManagementPage = Boolean(currentPermissions.manageCustomers);
@@ -14277,12 +14285,12 @@ function App() {
                                   data-calendar-day={formatDateForTaskModal(day)}
                                   data-zrc-calendar-day={formatDateForTaskModal(day)}
                                   className={`group min-h-[86px] border-r border-b border-zinc-100 last:border-r-0 px-2 py-1.5 relative ${
-                                    canCreateTaskInSelectedProject ? 'cursor-pointer hover:bg-blue-50/30' : 'cursor-default'
+                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-blue-50/30' : 'cursor-default'
                                   } transition-colors ${
                                     isCurrentMonth ? 'bg-white' : 'bg-zinc-50/60'
                                   }`}
                                 >
-                                  {canCreateTaskInSelectedProject && (
+                                  {canCreateTaskFromCalendar && (
                                     <button
                                       type="button"
                                       data-zrc-calendar-day={formatDateForTaskModal(day)}
@@ -14314,7 +14322,7 @@ function App() {
                                         +{dayTasks.length - 3}
                                       </span>
                                     ) : (
-                                      canCreateTaskInSelectedProject ? (
+                                      canCreateTaskFromCalendar ? (
                                         <span className="opacity-0 group-hover:opacity-100 text-[13px] leading-none font-black text-blue-400 transition-opacity">
                                           +
                                         </span>
@@ -14360,10 +14368,10 @@ function App() {
                                   data-calendar-day={formatDateForTaskModal(day)}
                                   data-zrc-calendar-day={formatDateForTaskModal(day)}
                                   className={`group min-h-[310px] border-r border-b border-zinc-100 last:border-r-0 px-2.5 py-2 relative transition-colors ${
-                                    canCreateTaskInSelectedProject ? 'cursor-pointer hover:bg-blue-50/30' : 'cursor-default'
+                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-blue-50/30' : 'cursor-default'
                                   }`}
                                 >
-                                  {canCreateTaskInSelectedProject && (
+                                  {canCreateTaskFromCalendar && (
                                     <button
                                       type="button"
                                       data-zrc-calendar-day={formatDateForTaskModal(day)}
@@ -14416,13 +14424,13 @@ function App() {
                         {calendarView === 'Gün' && (
                           <div
                             onClick={(event) => {
-                              if (!canCreateTaskInSelectedProject) return;
+                              if (!canCreateTaskFromCalendar) return;
                               handleCalendarDayClick(event, calendarFocusedDate);
                             }}
                             role="button"
                             tabIndex={0}
                             className={`min-h-[430px] bg-white p-5 transition-colors ${
-                              canCreateTaskInSelectedProject ? 'cursor-pointer hover:bg-blue-50/20' : 'cursor-default'
+                              canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-blue-50/20' : 'cursor-default'
                             }`}
                           >
                             <div className="flex items-center justify-between mb-3">
@@ -14431,7 +14439,7 @@ function App() {
                                 <div className="mt-1 text-[10.5px] font-bold text-zinc-400">{calendarDayHelperText}</div>
                               </div>
 
-                              {canCreateTaskInSelectedProject && (
+                              {canCreateTaskFromCalendar && (
                                 <button
                                   type="button"
                                   data-calendar-task-button="true"
