@@ -16799,38 +16799,6 @@ function App() {
         onDeleteFile={deleteTaskStoredFileFromSupabase}
       />
 
-      {isTaskModalOpen && calendarTaskModalContext.isOpen && !editingTask && (
-        <div className="fixed left-1/2 top-[calc(50%-338px)] -translate-x-1/2 z-[780] w-[min(680px,calc(100vw-48px))] animate-fade-in pointer-events-none">
-          <div className="pointer-events-auto mx-auto rounded-[16px] bg-white/96 shadow-[0_18px_54px_rgba(15,23,42,0.16)] px-4 py-3 flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="text-[10px] font-black text-[#8b96a6] uppercase tracking-[0.08em]">
-                Takvimden görev oluşturuluyor
-              </div>
-              <div className="mt-0.5 text-[12px] font-bold text-[#293241]">
-                Görevin ekleneceği projeyi seç
-              </div>
-            </div>
-
-            <label className="min-w-[260px] flex items-center gap-2">
-              <span className="text-[10px] font-black text-[#8b96a6] uppercase tracking-[0.06em]">
-                Proje
-              </span>
-              <select
-                value={calendarTaskModalContext.projectName}
-                onChange={(event) => changeCalendarTaskModalProject(event.target.value)}
-                className="h-[34px] min-w-[190px] rounded-[11px] bg-[#f6f8fb] px-3 text-[12px] font-black text-[#354052] outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(47,102,207,0.10)] transition-all"
-              >
-                {visibleProjectNames.map((projectName) => (
-                  <option key={`calendar-taskmodal-project-${projectName}`} value={projectName}>
-                    {projectName}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </div>
-      )}
-
       <TaskModal
         isOpen={isTaskModalOpen}
         onClose={() => {
