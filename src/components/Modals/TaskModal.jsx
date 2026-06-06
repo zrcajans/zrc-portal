@@ -208,7 +208,7 @@ function DateInput({ label, value, onChange }) {
           onChange={(event) => onChange(event.target.value)}
           onFocus={() => setIsOpen(true)}
           placeholder="29 Mayıs 2026"
-          className="w-full h-8 rounded-full border border-[#263244]/15 bg-slate-50 px-3 pr-8 shadow-[inset_0_0_0_1px_rgba(38,50,68,0.16),0_6px_16px_rgba(15,23,42,0.045)] text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all"
+          className="w-full h-8 rounded-full border border-slate-200 bg-white px-3 pr-8  text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
         />
 
         {value && (
@@ -223,7 +223,7 @@ function DateInput({ label, value, onChange }) {
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 top-[54px] z-[900] w-[268px] rounded-[12px] bg-white shadow-[0_20px_54px_rgba(15,23,42,0.16)] p-3">
+        <div className="absolute left-0 top-[54px] z-[900] w-[268px] rounded-[10px] bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.22)] p-3">
           <div className="flex items-center justify-between mb-2">
             <button
               type="button"
@@ -323,7 +323,7 @@ function CustomSelect({
           event.stopPropagation();
           onToggle();
         }}
-        className={`w-full h-9 rounded-[10px] border border-[#263244]/15 bg-slate-50 px-3 text-left shadow-[inset_0_0_0_1px_rgba(38,50,68,0.16),0_6px_16px_rgba(15,23,42,0.045)] flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:bg-white focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all ${buttonClassName}`}
+        className={`w-full h-9 rounded-[9px] border border-slate-200 bg-white px-3 text-left flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:border-blue-200 hover:bg-slate-50 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-500/10 transition-all ${buttonClassName}`}
         style={
           selectedOption?.bg
             ? {
@@ -354,7 +354,7 @@ function CustomSelect({
       {open && (
         <div
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-0 top-[42px] z-[1600] min-w-full rounded-[12px] bg-white shadow-[0_20px_52px_rgba(15,23,42,0.18)] p-1.5 space-y-1 animate-fade-in ${menuClassName}`}
+          className={`absolute left-0 top-[42px] z-[1200] min-w-full rounded-[12px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] p-1.5 space-y-1 animate-fade-in ${menuClassName}`}
         >
           {normalizedOptions.map((option) => {
             const isSelected = option.label === value;
@@ -839,7 +839,7 @@ export default function TaskModal({
           <button
             type="button"
             onClick={handleClose}
-            className="absolute -right-3 -top-3 w-8 h-8 rounded-full bg-white text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center shadow-[0_10px_24px_rgba(15,23,42,0.18)] z-20"
+            className="absolute -right-3 -top-3 w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-white transition-all flex items-center justify-center shadow-[0_10px_24px_rgba(15,23,42,0.16)] z-20"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.7" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -857,7 +857,7 @@ export default function TaskModal({
         </div>
 
         <div className="p-5 pt-5 pb-4">
-          <div className="relative z-[1500] mb-3 flex justify-center">
+          <div className="relative z-[1100] mb-3 flex justify-center">
             <div className="w-full max-w-[360px]">
               <div className="text-center">
                 <FieldLabel>Proje</FieldLabel>
@@ -887,7 +887,7 @@ export default function TaskModal({
                 type="text"
                 value={form.title}
                 onChange={(event) => updateField('title', event.target.value)}
-                className="w-full h-9 rounded-[10px] border border-[#263244]/15 bg-slate-50 px-3 text-[12.5px] shadow-[inset_0_0_0_1px_rgba(38,50,68,0.16),0_6px_16px_rgba(15,23,42,0.045)] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all"
+                className="w-full h-9 rounded-[10px] border border-slate-200 bg-white px-3 text-[12.5px]  font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
                 autoFocus
               />
             </div>
@@ -932,7 +932,7 @@ export default function TaskModal({
             <textarea
               value={form.description}
               onChange={(event) => updateField('description', event.target.value)}
-              className="w-full h-[82px] resize-none rounded-[10px] border border-[#263244]/15 bg-slate-50 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(38,50,68,0.16),0_6px_16px_rgba(15,23,42,0.045)] text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all"
+              className="w-full h-[82px] resize-none rounded-[10px] border border-slate-200 bg-white px-3 py-2.5  text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
             />
           </div>
 
@@ -958,7 +958,7 @@ export default function TaskModal({
                 value={form.tags}
                 onChange={(event) => updateField('tags', event.target.value)}
                 placeholder="Etiket ekle"
-                className="w-full h-8 rounded-full border border-[#263244]/15 bg-slate-50 px-3 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all"
+                className="w-full h-8 rounded-full border border-slate-200 bg-white px-3 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
               />
             </div>
 
