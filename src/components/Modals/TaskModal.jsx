@@ -425,7 +425,20 @@ function MiniUser({ user }) {
   );
 }
 
-export default function TaskModal({ isOpen, onClose, onSave, initialData, statusOptions: dynamicStatusOptions = [], teamMembers = [], customers = [], calendarDefaultDate = null }) {
+export default function TaskModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  statusOptions: dynamicStatusOptions = [],
+  teamMembers = [],
+  customers = [],
+  calendarDefaultDate = null,
+  projectName = '',
+  projectOptions = [],
+  canChangeProject = false,
+  onProjectChange = null
+}) {
   const columnStatusOptions = (dynamicStatusOptions.length ? dynamicStatusOptions : defaultStatusOptions).map((option) =>
     typeof option === 'string' ? { label: option } : option
   );
@@ -445,6 +458,14 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, status
     'Müşteri Seçin...',
     ...(customerListOptions.length ? customerListOptions : defaultCustomerOptions.slice(1))
   ];
+  const cleanProjectName = String(projectName || '').trim();
+  const projectSelectOptions = Array.from(
+    new Set([
+      ...(cleanProjectName ? [cleanProjectName] : []),
+      ...projectOptions.map((project) => String(project || '').trim()).filter(Boolean)
+    ])
+  );
+  const selectedProjectName = cleanProjectName || projectSelectOptions[0] || 'Proje seçilmedi';
 
   const [form, setForm] = useState({
     title: '',
@@ -499,7 +520,8 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, status
       return;
     }
 
-    // Takvimden tıklanınca gelen tarih varsa başlangıç ve bitiş tarihlerine yaz
+    // Takvimden tıklanınca gelen tarih sadece başlangıç tarihine yazılır.
+    // Bitiş tarihi bilinçli olarak boş bırakılır.
     const calendarDate = calendarDefaultDate ? toDisplayDate(calendarDefaultDate) : '';
 
     setForm({
@@ -508,7 +530,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, status
       priority: 'Düşük',
       description: '',
       startDate: calendarDate,
-      endDate: calendarDate,
+      endDate: '',
       tags: '',
       customer: 'Müşteri Seçin...',
       assignees: [],
@@ -715,6 +737,48 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, status
         </div>
 
         <div className="p-5 pt-5 pb-4">
+          <div className="mb-4 rounded-[12px] bg-slate-50/80 border border-slate-100 px-3.5 py-3">
+            <FieldLabel>Proje Seçimi</FieldLabel>
+
+            <div className="flex items-center gap-3">
+              <select
+                value={selectedProjectName}
+                disabled={!canChangeProject || projectSelectOptions.length <= 1}
+                onChange={(event) => onProjectChange?.(event.target.value)}
+                onClick={(event) => event.stopPropagation()}
+                className={`h-9 flex-1 rounded-[10px] border px-3 text-[12px] font-black outline-none transition-all ${
+                  canChangeProject && projectSelectOptions.length > 1
+                    ? 'bg-white border-[#b8d3ff] text-slate-700 focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-500/10 cursor-pointer'
+                    : 'bg-white/70 border-slate-200 text-slate-500 cursor-not-allowed'
+                }`}
+              >
+                {projectSelectOptions.length > 0 ? (
+                  projectSelectOptions.map((project) => (
+                    <option key={`task-modal-project-${project}`} value={project}>
+                      {project}
+                    </option>
+                  ))
+                ) : (
+                  <option value="Proje seçilmedi">Proje seçilmedi</option>
+                )}
+              </select>
+
+              <span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black ${
+                canChangeProject
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'bg-slate-100 text-slate-400'
+              }`}>
+                {canChangeProject ? 'Değiştirilebilir' : 'Kilitli'}
+              </span>
+            </div>
+
+            <div className="mt-1.5 text-[10px] font-bold text-slate-400">
+              {canChangeProject
+                ? 'Takvimden görev oluştururken proje seçilebilir.'
+                : 'Projeler menüsünden görev oluştururken mevcut proje sabit kalır.'}
+            </div>
+          </div>
+
           <div className="grid grid-cols-[1fr_112px_102px_38px] gap-3 items-end">
             <div>
               <FieldLabel>Ad *</FieldLabel>

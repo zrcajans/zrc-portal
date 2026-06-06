@@ -16815,6 +16815,10 @@ function App() {
         onSave={handleSaveTask}
         initialData={editingTask}
         calendarDefaultDate={calendarNewTaskDate}
+        projectName={calendarTaskModalContext.isOpen ? calendarTaskModalContext.projectName : selectedProject}
+        projectOptions={visibleProjectNames}
+        canChangeProject={Boolean(calendarTaskModalContext.isOpen && !editingTask)}
+        onProjectChange={changeCalendarTaskModalProject}
         statusOptions={boardColumns.map((column) => ({
           label: column.title,
           bg: column.color,
