@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 const defaultStatusOptions = [
   { label: 'Bekliyor', bg: '#f4bd61', text: '#7a4c0f' },
@@ -425,7 +425,7 @@ function MiniUser({ user }) {
   );
 }
 
-export default function TaskModal({ isOpen, onClose, onSave, initialData, statusOptions: dynamicStatusOptions = [], teamMembers = [], customers = [] }) {
+export default function TaskModal({ isOpen, onClose, onSave, initialData, statusOptions: dynamicStatusOptions = [], teamMembers = [], customers = [], calendarDefaultDate = null }) {
   const columnStatusOptions = (dynamicStatusOptions.length ? dynamicStatusOptions : defaultStatusOptions).map((option) =>
     typeof option === 'string' ? { label: option } : option
   );
@@ -464,6 +464,17 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, status
   const [isClosing, setIsClosing] = useState(false);
   const [pendingRemoveUser, setPendingRemoveUser] = useState(null);
 
+  // Ref'ler: defaultStatus ve defaultFollower, proje değişince güncellenir.
+  // Bunları ref olarak tutuyoruz ki modal açıkken proje değiştiğinde
+  // tüm form sıfırlanmasın, sadece status alanı güncellensin.
+  const defaultStatusRef = useRef(defaultStatus);
+  defaultStatusRef.current = defaultStatus;
+  const defaultFollowerRef = useRef(defaultFollower);
+  defaultFollowerRef.current = defaultFollower;
+
+  // Ana form başlatma: Modal açılırken veya calendarDefaultDate değişince çalışır.
+  // defaultStatus ve defaultFollower intentionally excluded from deps:
+  // proje değişince form sıfırlanmasin, sadece status ayrı effect ile güncellenir.
   useEffect(() => {
     if (!isOpen) return;
 
@@ -475,7 +486,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, status
     if (initialData?.id) {
       setForm({
         title: initialData.title || '',
-        status: initialData.status || defaultStatus,
+        status: initialData.status || defaultStatusRef.current,
         priority: initialData.priority || 'Düşük',
         description: initialData.description || initialData.richDescription || '',
         startDate: toDisplayDate(initialData.startDate || ''),
@@ -483,24 +494,35 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, status
         tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : initialData.tags || '',
         customer: initialData.customer || 'Müşteri Seçin...',
         assignees: initialData.assignees || [],
-        followers: initialData.followers?.length ? initialData.followers : [defaultFollower]
+        followers: initialData.followers?.length ? initialData.followers : [defaultFollowerRef.current]
       });
       return;
     }
 
+    // Takvimden tıklanınca gelen tarih varsa başlangıç ve bitiş tarihlerine yaz
+    const calendarDate = calendarDefaultDate ? toDisplayDate(calendarDefaultDate) : '';
+
     setForm({
       title: '',
-      status: defaultStatus,
+      status: defaultStatusRef.current,
       priority: 'Düşük',
       description: '',
-      startDate: '',
-      endDate: '',
+      startDate: calendarDate,
+      endDate: calendarDate,
       tags: '',
       customer: 'Müşteri Seçin...',
       assignees: [],
-      followers: [defaultFollower]
+      followers: [defaultFollowerRef.current]
     });
-  }, [isOpen, initialData, defaultStatus, defaultFollower?.id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialData, calendarDefaultDate]);
+
+  // Sadece status güncellemesi: Kullanıcı banner'dan proje değiştirince
+  // yazdığı başlığı silmeden yalnızca durum alanını günceller.
+  useEffect(() => {
+    if (!isOpen || initialData?.id) return;
+    setForm((prev) => ({ ...prev, status: defaultStatus }));
+  }, [isOpen, initialData, defaultStatus]);
 
   if (!isOpen && !isClosing) return null;
 
