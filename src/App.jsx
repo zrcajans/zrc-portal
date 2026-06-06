@@ -4481,8 +4481,8 @@ function App() {
 
     const cleanedTaskData = {
       ...taskData,
-      assignees: filterTaskPeopleBySelectedProjectTeam(taskData.assignees || []),
-      followers: filterTaskPeopleBySelectedProjectTeam(taskData.followers || [])
+      assignees: filterTaskAssigneesForSave(taskData.assignees || []),
+      followers: filterTaskFollowersForSave(taskData.followers || [])
     };
 
     const previousColumn = boardColumns.find((column) => column.tasks.some((task) => task.id === cleanedTaskData.id));
@@ -5805,8 +5805,8 @@ function App() {
       const copiedTask = {
         ...task,
         id: `task-${Date.now()}`,
-        assignees: filterTaskPeopleBySelectedProjectTeam(task.assignees || []),
-        followers: filterTaskPeopleBySelectedProjectTeam(task.followers || []),
+        assignees: filterTaskAssigneesForSave(task.assignees || []),
+        followers: filterTaskFollowersForSave(task.followers || []),
         title: `${task.title} - Kopya`,
         comments: [],
         files: [],
@@ -8342,16 +8342,28 @@ function App() {
   const selectedProjectTeamMembers = projectAssignableMembers.filter((member) =>
     selectedProjectTeamMemberIds.includes(member.id)
   );
-  const taskModalTeamMembers = selectedProjectTeamMembers;
+  const taskModalTeamMembers = activeTeamMembers;
 
-  const filterTaskPeopleBySelectedProjectTeam = (people = []) =>
+  const filterTaskAssigneesForSave = (people = []) =>
     (people || []).filter((person) => {
       if (!person?.id) return false;
-      if (!selectedProjectTeamMemberIds.includes(person.id)) return false;
 
-      const matchedMember = projectAssignableMembers.find((member) => member.id === person.id);
+      const matchedMember = activeTeamMembers.find((member) => member.id === person.id);
+      if (!matchedMember) return false;
 
-      return matchedMember && normalizeTeamRole(matchedMember.role) !== 'Müşteri/Misafir';
+      const role = normalizeTeamRole(matchedMember.role);
+      return role === 'Yönetici' || role === 'Ekip Üyesi';
+    });
+
+  const filterTaskFollowersForSave = (people = []) =>
+    (people || []).filter((person) => {
+      if (!person?.id) return false;
+
+      const personId = String(person.id || '');
+      if (personId.startsWith('customer-')) return true;
+
+      const matchedMember = activeTeamMembers.find((member) => member.id === person.id);
+      return Boolean(matchedMember);
     });
 
   const createTeamMemberFromCenter = (event) => {

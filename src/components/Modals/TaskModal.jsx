@@ -208,7 +208,7 @@ function DateInput({ label, value, onChange }) {
           onChange={(event) => onChange(event.target.value)}
           onFocus={() => setIsOpen(true)}
           placeholder="29 Mayıs 2026"
-          className="w-full h-8 rounded-full border border-transparent bg-slate-50 px-3 pr-8 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
+          className="w-full h-8 rounded-full border border-transparent bg-slate-50 px-3 pr-8 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.035),0_5px_14px_rgba(15,23,42,0.035)] text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
         />
 
         {value && (
@@ -323,7 +323,7 @@ function CustomSelect({
           event.stopPropagation();
           onToggle();
         }}
-        className={`w-full h-9 rounded-[10px] border border-transparent bg-slate-50 px-3 text-left flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:bg-white focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all ${buttonClassName}`}
+        className={`w-full h-9 rounded-[10px] border border-transparent bg-slate-50 px-3 text-left shadow-[inset_0_0_0_1px_rgba(15,23,42,0.035),0_5px_14px_rgba(15,23,42,0.035)] flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:bg-white focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all ${buttonClassName}`}
         style={
           selectedOption?.bg
             ? {
@@ -448,7 +448,8 @@ export default function TaskModal({
     .map((user, index) => ({
       id: user.id || `user-${index}`,
       name: user.name || 'İsimsiz Kişi',
-      avatar: user.avatar || createAvatarFromName(user.name)
+      avatar: user.avatar || createAvatarFromName(user.name),
+      role: user.role || ''
     }));
   const defaultFollower = users[0] || null;
   const customerListOptions = customers
@@ -456,7 +457,7 @@ export default function TaskModal({
     .filter(Boolean);
   const customerOptions = [
     'Müşteri Seçin...',
-    ...(customerListOptions.length ? customerListOptions : defaultCustomerOptions.slice(1))
+    ...customerListOptions
   ];
   const cleanProjectName = String(projectName || '').trim();
   const projectSelectOptions = Array.from(
@@ -466,6 +467,30 @@ export default function TaskModal({
     ])
   );
   const selectedProjectName = cleanProjectName || projectSelectOptions[0] || 'Proje seçilmedi';
+  const assigneeUsers = users.filter((user) => {
+    const role = String(user.role || '');
+    return role === 'Yönetici' || role === 'Ekip Üyesi' || (!role && user.name);
+  });
+  const customerFollowerUsers = customers
+    .map((customer, index) => {
+      const cleanName = String(customer?.name || '').trim();
+      if (!cleanName) return null;
+
+      return {
+        id: `customer-${customer.id || customer.supabaseId || index}`,
+        name: cleanName,
+        avatar: createAvatarFromName(cleanName),
+        role: 'Müşteri/Misafir'
+      };
+    })
+    .filter(Boolean);
+  const followerUsers = Array.from(
+    new Map(
+      [...users, ...customerFollowerUsers]
+        .filter((user) => user?.id && user?.name)
+        .map((user) => [String(user.id), user])
+    ).values()
+  );
 
   const [form, setForm] = useState({
     title: '',
@@ -484,6 +509,19 @@ export default function TaskModal({
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
   const [pendingRemoveUser, setPendingRemoveUser] = useState(null);
+  const draftMemoryRef = useRef(null);
+
+  const getDraftContextKey = () =>
+    initialData?.id
+      ? `edit-${initialData.id}`
+      : `new-${calendarDefaultDate || 'manual'}-${selectedProjectName}`;
+
+  const rememberCurrentDraft = () => {
+    draftMemoryRef.current = {
+      contextKey: getDraftContextKey(),
+      form
+    };
+  };
 
   // Ref'ler: defaultStatus ve defaultFollower, proje değişince güncellenir.
   // Bunları ref olarak tutuyoruz ki modal açıkken proje değiştiğinde
@@ -503,6 +541,14 @@ export default function TaskModal({
     setOpenUserPicker(null);
     setPendingRemoveUser(null);
     setIsClosing(false);
+
+    const rememberedDraft = draftMemoryRef.current;
+    const currentDraftContextKey = getDraftContextKey();
+
+    if (rememberedDraft?.contextKey === currentDraftContextKey) {
+      setForm(rememberedDraft.form);
+      return;
+    }
 
     if (initialData?.id) {
       setForm({
@@ -565,7 +611,11 @@ export default function TaskModal({
 
   if (!isOpen && !isClosing) return null;
 
-  const handleClose = () => {
+  const handleClose = (rememberDraft = true) => {
+    if (rememberDraft) {
+      rememberCurrentDraft();
+    }
+
     setOpenDropdown(null);
     setOpenUserPicker(null);
     setPendingRemoveUser(null);
@@ -666,13 +716,21 @@ export default function TaskModal({
       ]
     };
 
+    draftMemoryRef.current = null;
     onSave(task, form.status);
   };
 
   const selectedPriority = priorityOptions.find((priority) => priority.label === form.priority) || priorityOptions[0];
 
   return (
-    <div className={`fixed inset-0 z-[700] flex items-start justify-center px-5 pt-[92px] pb-5 bg-zinc-950/40 backdrop-blur-[3.5px] ${isClosing ? 'task-modal-overlay-exit' : 'task-modal-overlay-enter'}`}>
+    <div
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          handleClose(true);
+        }
+      }}
+      className={`fixed inset-0 z-[700] flex items-start justify-center px-5 pt-[92px] pb-5 bg-zinc-950/40 backdrop-blur-[3.5px] ${isClosing ? 'task-modal-overlay-exit' : 'task-modal-overlay-enter'}`}
+    >
       <style>{`
         @keyframes taskModalOverlayIn {
           from { opacity: 0; }
@@ -725,7 +783,9 @@ export default function TaskModal({
 
       <form
         onSubmit={handleSubmit}
-        onClick={() => {
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation();
           setOpenDropdown(null);
           setOpenUserPicker(null);
           setPendingRemoveUser(null);
@@ -736,7 +796,7 @@ export default function TaskModal({
           <button
             type="button"
             onClick={handleClose}
-            className="absolute right-3 top-3 w-7 h-7 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-white transition-all flex items-center justify-center shadow-sm z-20"
+            className="absolute -right-3 -top-3 w-8 h-8 rounded-full bg-white text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center shadow-[0_10px_24px_rgba(15,23,42,0.18)] z-20"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.7" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -754,10 +814,12 @@ export default function TaskModal({
         </div>
 
         <div className="p-5 pt-5 pb-4">
-          <div className="mb-3">
-            <FieldLabel>Proje</FieldLabel>
+          <div className="mb-3 flex justify-center">
+            <div className="w-full max-w-[360px]">
+              <div className="text-center">
+                <FieldLabel>Proje</FieldLabel>
+              </div>
 
-            <div className="flex items-center gap-2">
               <CustomSelect
                 value={selectedProjectName}
                 options={projectSelectOptions.length ? projectSelectOptions : ['Proje seçilmedi']}
@@ -767,26 +829,22 @@ export default function TaskModal({
                   if (canChangeProject && projectSelectOptions.length > 1) toggleDropdown('project');
                 }}
                 onClose={closeDropdown}
-                buttonClassName={`h-8 rounded-full text-[11.5px] ${
+                buttonClassName={`h-8 rounded-full text-[11.5px] justify-center ${
                   !canChangeProject || projectSelectOptions.length <= 1 ? 'pointer-events-none opacity-70' : ''
                 }`}
-                menuClassName="w-full"
+                menuClassName="w-[360px] max-w-[calc(100vw-80px)]"
               />
-
-              <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[9.5px] font-black text-slate-400">
-                {canChangeProject ? 'Seçilebilir' : 'Kilitli'}
-              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-[1fr_112px_102px_38px] gap-3 items-end">
+          <div className="grid grid-cols-[1fr_120px_110px] gap-3 items-end">
             <div>
               <FieldLabel>Ad *</FieldLabel>
               <input
                 type="text"
                 value={form.title}
                 onChange={(event) => updateField('title', event.target.value)}
-                className="w-full h-9 rounded-[10px] border border-transparent bg-slate-50 px-3 text-[12.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
+                className="w-full h-9 rounded-[10px] border border-transparent bg-slate-50 px-3 text-[12.5px] shadow-[inset_0_0_0_1px_rgba(15,23,42,0.035),0_5px_14px_rgba(15,23,42,0.035)] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
                 autoFocus
               />
             </div>
@@ -824,12 +882,6 @@ export default function TaskModal({
               />
             </div>
 
-            <div>
-              <FieldLabel>Sahip</FieldLabel>
-              <div className="w-8 h-8 rounded-full bg-[#8c5220] text-white text-[8px] font-black flex items-center justify-center">
-                EZ
-              </div>
-            </div>
           </div>
 
           <div className="mt-3">
@@ -837,7 +889,7 @@ export default function TaskModal({
             <textarea
               value={form.description}
               onChange={(event) => updateField('description', event.target.value)}
-              className="w-full h-[82px] resize-none rounded-[10px] border border-transparent bg-slate-50 px-3 py-2.5 text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
+              className="w-full h-[82px] resize-none rounded-[10px] border border-transparent bg-slate-50 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.035),0_5px_14px_rgba(15,23,42,0.035)] text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
             />
           </div>
 
@@ -928,7 +980,7 @@ export default function TaskModal({
                 <div onClick={(event) => event.stopPropagation()}
                   className="absolute left-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
                   {users.length > 0 ? (
-                    users.map((user) => (
+                    assigneeUsers.map((user) => (
                       <button
                         key={user.id}
                         type="button"
@@ -941,7 +993,7 @@ export default function TaskModal({
                     ))
                   ) : (
                     <div className="px-2 py-2 text-[11px] font-bold text-slate-400">
-                      Aktif ekip üyesi yok.
+                      Seçilebilir ekip/yönetici yok.
                     </div>
                   )}
                 </div>
@@ -950,7 +1002,7 @@ export default function TaskModal({
 
             <div className="relative">
               <div className="flex items-center justify-between">
-                <FieldLabel>Takip Edenler:</FieldLabel>
+                <FieldLabel>Takip Edenler: {form.followers.length ? `${form.followers.length} kişi` : 'Hiç Kimse'}</FieldLabel>
               </div>
 
               <div className="flex items-center justify-end gap-1.5 min-h-[28px]">
@@ -993,7 +1045,7 @@ export default function TaskModal({
                 <div onClick={(event) => event.stopPropagation()}
                   className="absolute right-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
                   {users.length > 0 ? (
-                    users.map((user) => (
+                    followerUsers.map((user) => (
                       <button
                         key={user.id}
                         type="button"
@@ -1006,7 +1058,7 @@ export default function TaskModal({
                     ))
                   ) : (
                     <div className="px-2 py-2 text-[11px] font-bold text-slate-400">
-                      Aktif ekip üyesi yok.
+                      Seçilebilir takipçi yok.
                     </div>
                   )}
                 </div>
