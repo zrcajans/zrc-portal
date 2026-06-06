@@ -6856,44 +6856,21 @@ function App() {
       return;
     }
 
-    const fallbackBoard = projectBoards[fallbackProjectName] || createDefaultProjectBoard();
-    const fallbackColumns = fallbackBoard.columns || createDefaultProjectBoard().columns || [];
-
     setCalendarFocusedDate(safeDate);
     setCalendarNewTaskDate(safeDateValue);
     setEditingTask(null);
     setSelectedProject(fallbackProjectName);
-    setSelectedColumnId(fallbackColumns[0]?.id || '');
     setCalendarTaskModalContext({
       isOpen: true,
       pendingOpen: false,
       projectName: fallbackProjectName,
       date: safeDateValue
     });
-
     setIsTaskModalOpen(true);
-
-    window.setTimeout(() => {
-      setSelectedProject(fallbackProjectName);
-      setSelectedColumnId(fallbackColumns[0]?.id || '');
-      setCalendarNewTaskDate(safeDateValue);
-      setEditingTask(null);
-      setCalendarTaskModalContext({
-        isOpen: true,
-        pendingOpen: false,
-        projectName: fallbackProjectName,
-        date: safeDateValue
-      });
-      setIsTaskModalOpen(true);
-    }, 40);
   };
 
   const changeCalendarTaskModalProject = (projectName) => {
-    const targetBoard = projectBoards[projectName] || createDefaultProjectBoard();
-    const targetColumns = targetBoard.columns || createDefaultProjectBoard().columns || [];
-
     setSelectedProject(projectName);
-    setSelectedColumnId(targetColumns[0]?.id || '');
     setCalendarTaskModalContext((prevContext) => ({
       ...prevContext,
       projectName
@@ -9373,7 +9350,6 @@ function App() {
     setActiveContentMenu('Projeler');
     setActiveMenu('Projeler');
     setActiveTab('Görevler');
-    setSelectedColumnId(boardColumns[0]?.id || '');
     setEditingTask(null);
     setCalendarNewTaskDate(null);
     setIsTaskModalOpen(true);
