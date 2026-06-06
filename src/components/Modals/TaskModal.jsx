@@ -208,7 +208,7 @@ function DateInput({ label, value, onChange }) {
           onChange={(event) => onChange(event.target.value)}
           onFocus={() => setIsOpen(true)}
           placeholder="29 Mayıs 2026"
-          className="w-full h-8 rounded-full border border-transparent bg-slate-50 px-3 pr-8 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.035),0_5px_14px_rgba(15,23,42,0.035)] text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
+          className="w-full h-8 rounded-full border border-[#263244]/15 bg-slate-50 px-3 pr-8 shadow-[inset_0_0_0_1px_rgba(38,50,68,0.16),0_6px_16px_rgba(15,23,42,0.045)] text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all"
         />
 
         {value && (
@@ -323,7 +323,7 @@ function CustomSelect({
           event.stopPropagation();
           onToggle();
         }}
-        className={`w-full h-9 rounded-[10px] border border-transparent bg-slate-50 px-3 text-left shadow-[inset_0_0_0_1px_rgba(15,23,42,0.035),0_5px_14px_rgba(15,23,42,0.035)] flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:bg-white focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all ${buttonClassName}`}
+        className={`w-full h-9 rounded-[10px] border border-[#263244]/15 bg-slate-50 px-3 text-left shadow-[inset_0_0_0_1px_rgba(38,50,68,0.16),0_6px_16px_rgba(15,23,42,0.045)] flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:bg-white focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all ${buttonClassName}`}
         style={
           selectedOption?.bg
             ? {
@@ -354,7 +354,7 @@ function CustomSelect({
       {open && (
         <div
           onClick={(event) => event.stopPropagation()}
-          className={`absolute left-0 top-[42px] z-[1400] min-w-full rounded-[12px] bg-white shadow-[0_20px_52px_rgba(15,23,42,0.18)] p-1.5 space-y-1 animate-fade-in ${menuClassName}`}
+          className={`absolute left-0 top-[42px] z-[1600] min-w-full rounded-[12px] bg-white shadow-[0_20px_52px_rgba(15,23,42,0.18)] p-1.5 space-y-1 animate-fade-in ${menuClassName}`}
         >
           {normalizedOptions.map((option) => {
             const isSelected = option.label === value;
@@ -459,8 +459,35 @@ export default function TaskModal({
     typeof option === 'string' ? { label: option } : option
   );
   const defaultStatus = columnStatusOptions[0]?.label || 'Bekliyor';
+  const isLegacyDemoTaskPerson = (person = {}) => {
+    const normalize = (value = '') =>
+      String(value || '')
+        .trim()
+        .toLocaleLowerCase('tr-TR')
+        .replaceAll('ı', 'i')
+        .replaceAll('ğ', 'g')
+        .replaceAll('ü', 'u')
+        .replaceAll('ş', 's')
+        .replaceAll('ö', 'o')
+        .replaceAll('ç', 'c')
+        .replace(/[^a-z0-9@._-]/g, '');
+
+    const id = String(person.id || '');
+    const username = normalize(person.username || '');
+    const name = normalize(person.name || '');
+    const email = normalize(person.email || '');
+
+    return (
+      ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
+      ['ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
+      ['ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
+      ['ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
+    );
+  };
+
   const users = (Array.isArray(teamMembers) ? teamMembers : [])
     .filter((user) => user?.status !== 'Pasif')
+    .filter((user) => !isLegacyDemoTaskPerson(user))
     .map((user, index) => ({
       id: user.id || `user-${index}`,
       name: user.name || 'İsimsiz Kişi',
@@ -830,7 +857,7 @@ export default function TaskModal({
         </div>
 
         <div className="p-5 pt-5 pb-4">
-          <div className="relative z-[1300] mb-3 flex justify-center">
+          <div className="relative z-[1500] mb-3 flex justify-center">
             <div className="w-full max-w-[360px]">
               <div className="text-center">
                 <FieldLabel>Proje</FieldLabel>
@@ -848,7 +875,7 @@ export default function TaskModal({
                 buttonClassName={`h-8 rounded-full text-[11.5px] justify-center ${
                   !canChangeProject || projectSelectOptions.length <= 1 ? 'pointer-events-none opacity-70' : ''
                 }`}
-                menuClassName="w-[360px] max-w-[calc(100vw-80px)] [&_span]:whitespace-normal [&_span]:truncate-none [&_button]:h-auto [&_button]:min-h-8 [&_button]:py-1.5"
+                menuClassName="w-[360px] max-w-[calc(100vw-80px)] [&_span]:whitespace-normal [&_span]:!truncate-none [&_button]:h-auto [&_button]:min-h-8 [&_button]:py-1.5"
               />
             </div>
           </div>
@@ -860,7 +887,7 @@ export default function TaskModal({
                 type="text"
                 value={form.title}
                 onChange={(event) => updateField('title', event.target.value)}
-                className="w-full h-9 rounded-[10px] border border-transparent bg-slate-50 px-3 text-[12.5px] shadow-[inset_0_0_0_1px_rgba(15,23,42,0.035),0_5px_14px_rgba(15,23,42,0.035)] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
+                className="w-full h-9 rounded-[10px] border border-[#263244]/15 bg-slate-50 px-3 text-[12.5px] shadow-[inset_0_0_0_1px_rgba(38,50,68,0.16),0_6px_16px_rgba(15,23,42,0.045)] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all"
                 autoFocus
               />
             </div>
@@ -905,7 +932,7 @@ export default function TaskModal({
             <textarea
               value={form.description}
               onChange={(event) => updateField('description', event.target.value)}
-              className="w-full h-[82px] resize-none rounded-[10px] border border-transparent bg-slate-50 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.035),0_5px_14px_rgba(15,23,42,0.035)] text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
+              className="w-full h-[82px] resize-none rounded-[10px] border border-[#263244]/15 bg-slate-50 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(38,50,68,0.16),0_6px_16px_rgba(15,23,42,0.045)] text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all"
             />
           </div>
 
@@ -931,7 +958,7 @@ export default function TaskModal({
                 value={form.tags}
                 onChange={(event) => updateField('tags', event.target.value)}
                 placeholder="Etiket ekle"
-                className="w-full h-8 rounded-full border border-transparent bg-slate-50 px-3 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] transition-all"
+                className="w-full h-8 rounded-full border border-[#263244]/15 bg-slate-50 px-3 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-[#263244]/25 focus:shadow-[0_0_0_3px_rgba(38,50,68,0.08)] transition-all"
               />
             </div>
 
@@ -994,7 +1021,7 @@ export default function TaskModal({
 
               {openUserPicker === 'assignees' && (
                 <div onClick={(event) => event.stopPropagation()}
-                  className="absolute left-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
+                  className="absolute left-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-[#263244]/15 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
                   {users.length > 0 ? (
                     assigneeUsers.map((user) => (
                       <button
@@ -1059,7 +1086,7 @@ export default function TaskModal({
 
               {openUserPicker === 'followers' && (
                 <div onClick={(event) => event.stopPropagation()}
-                  className="absolute right-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
+                  className="absolute right-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-[#263244]/15 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
                   {users.length > 0 ? (
                     followerUsers.map((user) => (
                       <button
@@ -1087,7 +1114,7 @@ export default function TaskModal({
           <button
             type="button"
             onClick={handleClose}
-            className="h-8 px-4 rounded-full bg-white border border-slate-200 text-slate-500 text-[11px] font-black hover:text-slate-800 hover:border-slate-300 transition-all"
+            className="h-8 px-4 rounded-full bg-white border border-[#263244]/15 text-slate-500 text-[11px] font-black hover:text-slate-800 hover:border-slate-300 transition-all"
           >
             İptal
           </button>
