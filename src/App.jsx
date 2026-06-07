@@ -943,6 +943,7 @@ function App() {
   );
 
   const [projectSettingsDraft, setProjectSettingsDraft] = useState(() => createDefaultProjectSettings(selectedProject));
+  const [isProjectTeamPickerOpen, setIsProjectTeamPickerOpen] = useState(false);
 
   const getCurrentDataSnapshot = () =>
     createDataSnapshot({
@@ -1158,6 +1159,7 @@ function App() {
       ...(projectSettings[selectedProject] || {}),
       title: projectSettings[selectedProject]?.title || selectedProject
     });
+    setIsProjectTeamPickerOpen(false);
   }, [selectedProject, projectSettings]);
 
   useEffect(() => {
@@ -2893,6 +2895,24 @@ function App() {
               : []
             ).filter((memberId) => !isSupabaseUuid(memberId));
 
+            const ownerLikeMemberIds = [
+              supabaseAuthUserId,
+              currentUserId,
+              currentRoleMember?.id
+            ]
+              .filter(Boolean)
+              .map(String);
+
+            const cleanDbTeamMemberIds = dbTeamMemberIds.filter((memberId) => {
+              const cleanMemberId = String(memberId || '');
+
+              if (!cleanMemberId) return false;
+              if (isZrcAjansIdentityRecord({ id: cleanMemberId })) return false;
+              if (currentAccountType === 'Patron' && ownerLikeMemberIds.includes(cleanMemberId)) return false;
+
+              return true;
+            });
+
             nextSettings[project.name] = {
               ...createDefaultProjectSettings(project.name),
               ...previousProjectSettings,
@@ -2900,7 +2920,7 @@ function App() {
               description: project.description || previousProjectSettings.description || '',
               customer: linkedCustomer?.name || previousProjectSettings.customer || '',
               customerId: linkedCustomerId || previousProjectSettings.customerId || '',
-              teamMemberIds: Array.from(new Set([...dbTeamMemberIds, ...localTeamMemberIds])),
+              teamMemberIds: Array.from(new Set([...cleanDbTeamMemberIds, ...localTeamMemberIds])),
               status: project.status || previousProjectSettings.status || 'Aktif',
               color: project.color || previousProjectSettings.color || '#ff3600'
             };
@@ -6342,17 +6362,16 @@ function App() {
       ...(projectSettings[selectedProject] || {})
     };
 
-    const assignableMemberIds = teamMembers
-      .filter((member) => member.status !== 'Pasif' && normalizeTeamRole(member.role) !== 'Müşteri/Misafir')
-      .map((member) => member.id);
+    const assignableMemberIds = projectTeamAssignableMembers.map((member) => String(member.id));
 
     const previousTeamMemberIds = Array.isArray(previousSettings.teamMemberIds)
-      ? previousSettings.teamMemberIds
+      ? previousSettings.teamMemberIds.map(String).filter((memberId) => assignableMemberIds.includes(memberId))
       : [];
 
     const nextTeamMemberIds = Array.from(
       new Set(
         (Array.isArray(projectSettingsDraft.teamMemberIds) ? projectSettingsDraft.teamMemberIds : [])
+          .map(String)
           .filter((memberId) => assignableMemberIds.includes(memberId))
       )
     );
@@ -8763,13 +8782,21 @@ function App() {
   const projectAssignableMembers = zrcTaskSelectableMembers.filter(
     (member) => normalizeTeamRole(member.role) !== 'Müşteri/Misafir'
   );
+  const projectTeamAssignableMembers = projectAssignableMembers.filter(
+    (member) => !isZrcAjansIdentityRecord(member)
+  );
 
   const selectedProjectSettings = projectSettings[selectedProject] || createDefaultProjectSettings(selectedProject);
   const selectedProjectTeamMemberIds = Array.isArray(selectedProjectSettings.teamMemberIds)
     ? selectedProjectSettings.teamMemberIds
+        .map(String)
+        .filter((memberId) => projectTeamAssignableMembers.some((member) => String(member.id) === memberId))
     : [];
-  const selectedProjectTeamMembers = projectAssignableMembers.filter((member) =>
-    selectedProjectTeamMemberIds.includes(member.id)
+  const selectedProjectTeamMembers = projectTeamAssignableMembers.filter((member) =>
+    selectedProjectTeamMemberIds.includes(String(member.id))
+  );
+  const availableProjectTeamMembers = projectTeamAssignableMembers.filter(
+    (member) => !selectedProjectTeamMemberIds.includes(String(member.id))
   );
   const taskModalTeamMembers = projectAssignableMembers;
 
@@ -16849,79 +16876,123 @@ function App() {
                               })}
                             </div>
 
-                            <div className="rounded-[13px] border border-zinc-200 bg-zinc-50/70 p-3">
+                            <div className="relative rounded-[13px] border border-zinc-200 bg-zinc-50/70 p-3">
                               <div className="flex items-center justify-between gap-3">
                                 <div>
                                   <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.08em]">Proje Ekibi</div>
                                   <div className="mt-0.5 text-[10px] font-bold text-zinc-400">
-                                    Bu projede çalışacak ekip üyelerini seç.
+                                    Kurucu hesap listelenmez; sadece projede çalışacak ekip üyeleri seçilir.
                                   </div>
                                 </div>
 
                                 <span className="h-6 px-2.5 rounded-full bg-white border border-zinc-200 text-[9px] font-black text-zinc-500">
-                                  {(projectSettingsDraft.teamMemberIds || []).length} kişi
+                                  {selectedProjectTeamMembers.length} kişi
                                 </span>
                               </div>
 
-                              <div className="mt-3 rounded-[10px] bg-white border border-zinc-200 px-3 py-2 text-[9.5px] font-bold text-zinc-400 leading-4">
-                                Bir kişi projeden çıkarılırsa, o kişinin bu projedeki görevli ve takipçi bağlantıları otomatik temizlenir.
-                              </div>
-
-                              <div className="mt-3 grid grid-cols-2 gap-2 max-h-[170px] overflow-y-auto custom-scrollbar pr-1">
-                                {projectAssignableMembers.length > 0 ? (
-                                  projectAssignableMembers.map((member) => {
-                                    const isSelectedMember = (projectSettingsDraft.teamMemberIds || []).includes(member.id);
-
-                                    return (
+                              <div className="mt-3 flex flex-wrap gap-2 min-h-[38px] rounded-[10px] bg-white border border-zinc-200 px-2 py-2">
+                                {selectedProjectTeamMembers.length > 0 ? (
+                                  selectedProjectTeamMembers.map((member) => (
+                                    <div
+                                      key={`selected-project-member-${member.id}`}
+                                      className="h-8 pl-1.5 pr-2 rounded-full bg-zinc-50 border border-zinc-200 flex items-center gap-2 shadow-[0_6px_14px_rgba(15,23,42,0.035)]"
+                                    >
+                                      <span className="w-6 h-6 rounded-full bg-zinc-800 text-white text-[8px] font-black flex items-center justify-center overflow-hidden shrink-0">
+                                        {renderProfileAvatar(member.avatar, createAvatarFromName(member.name))}
+                                      </span>
+                                      <span className="text-[10px] font-black text-zinc-700 max-w-[130px] truncate">
+                                        {member.name}
+                                      </span>
                                       <button
-                                        key={`project-team-${member.id}`}
                                         type="button"
                                         onClick={() => {
                                           if (!currentPermissions.manageProjectSettings) return;
 
                                           setProjectSettingsDraft((prevDraft) => {
-                                            const currentIds = Array.isArray(prevDraft.teamMemberIds) ? prevDraft.teamMemberIds : [];
+                                            const currentIds = Array.isArray(prevDraft.teamMemberIds) ? prevDraft.teamMemberIds.map(String) : [];
 
                                             return {
                                               ...prevDraft,
-                                              teamMemberIds: currentIds.includes(member.id)
-                                                ? currentIds.filter((id) => id !== member.id)
-                                                : [...currentIds, member.id]
+                                              teamMemberIds: currentIds.filter((id) => id !== String(member.id))
                                             };
                                           });
                                         }}
                                         disabled={!currentPermissions.manageProjectSettings}
-                                        className={`h-10 rounded-[10px] border px-2.5 flex items-center gap-2 text-left transition-all ${
-                                          isSelectedMember
-                                            ? 'bg-[#fff3ef] border-[#ff3600]/20 text-[#ff3600]'
-                                            : 'bg-white border-zinc-200 text-zinc-600 hover:border-[#ff3600]/20'
-                                        } ${!currentPermissions.manageProjectSettings ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className="w-5 h-5 rounded-full bg-white text-zinc-400 hover:text-[#ff3600] hover:bg-[#fff3ef] flex items-center justify-center text-[13px] font-black transition-all disabled:opacity-40"
+                                        title="Projeden çıkar"
                                       >
-                                        <span className={`w-6 h-6 rounded-[8px] flex items-center justify-center text-[8px] font-black shrink-0 overflow-hidden ${
-                                          isSelectedMember ? 'bg-[#ff3600] text-white' : 'bg-zinc-100 text-zinc-500'
-                                        }`}>
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="h-8 px-2 flex items-center text-[10px] font-bold text-zinc-400">
+                                    Henüz ekip üyesi eklenmedi.
+                                  </div>
+                                )}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!currentPermissions.manageProjectSettings) return;
+                                  setIsProjectTeamPickerOpen((prev) => !prev);
+                                }}
+                                disabled={!currentPermissions.manageProjectSettings || availableProjectTeamMembers.length === 0}
+                                className={`mt-2 h-9 w-full rounded-[10px] text-[11px] font-black flex items-center justify-center gap-2 transition-all ${
+                                  currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0
+                                    ? 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-[0_10px_20px_rgba(15,23,42,0.12)]'
+                                    : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
+                                }`}
+                              >
+                                <span className="text-[15px] leading-none">+</span>
+                                <span>{availableProjectTeamMembers.length > 0 ? 'Ekip Üyesi Ekle' : 'Eklenebilir ekip üyesi yok'}</span>
+                              </button>
+
+                              {isProjectTeamPickerOpen && currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0 && (
+                                <div className="absolute left-3 right-3 top-[calc(100%-6px)] z-[120] rounded-[14px] border border-zinc-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.16)] overflow-hidden">
+                                  <div className="px-3 py-2 border-b border-zinc-100">
+                                    <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.08em]">Ekip Üyesi Seç</div>
+                                    <div className="mt-0.5 text-[9px] font-bold text-zinc-400">
+                                      Zaten ekli olan kişiler burada görünmez.
+                                    </div>
+                                  </div>
+
+                                  <div className="max-h-[190px] overflow-y-auto custom-scrollbar p-1.5">
+                                    {availableProjectTeamMembers.map((member) => (
+                                      <button
+                                        key={`available-project-member-${member.id}`}
+                                        type="button"
+                                        onClick={() => {
+                                          setProjectSettingsDraft((prevDraft) => {
+                                            const currentIds = Array.isArray(prevDraft.teamMemberIds) ? prevDraft.teamMemberIds.map(String) : [];
+
+                                            return {
+                                              ...prevDraft,
+                                              teamMemberIds: Array.from(new Set([...currentIds, String(member.id)]))
+                                            };
+                                          });
+                                          setIsProjectTeamPickerOpen(false);
+                                        }}
+                                        className="w-full min-h-[42px] rounded-[11px] px-2.5 py-2 flex items-center gap-2 text-left hover:bg-zinc-50 transition-all"
+                                      >
+                                        <span className="w-8 h-8 rounded-full bg-zinc-800 text-white text-[9px] font-black flex items-center justify-center overflow-hidden shrink-0">
                                           {renderProfileAvatar(member.avatar, createAvatarFromName(member.name))}
                                         </span>
 
                                         <span className="min-w-0 flex-1">
-                                          <span className="block text-[10.5px] font-black truncate">{member.name}</span>
-                                          <span className="block text-[8px] font-bold opacity-60 truncate">@{member.username || createUsernameFromMember(member)}</span>
+                                          <span className="block text-[11px] font-black text-zinc-700 truncate">{member.name}</span>
+                                          <span className="block text-[8.5px] font-bold text-zinc-400 truncate">@{member.username || createUsernameFromMember(member)}</span>
                                         </span>
 
-                                        {isSelectedMember && (
-                                          <span className="w-5 h-5 rounded-full bg-[#ff3600] text-white text-[10px] font-black flex items-center justify-center shrink-0">
-                                            ✓
-                                          </span>
-                                        )}
+                                        <span className="w-6 h-6 rounded-full bg-[#fff3ef] text-[#ff3600] text-[15px] font-black flex items-center justify-center shrink-0">
+                                          +
+                                        </span>
                                       </button>
-                                    );
-                                  })
-                                ) : (
-                                  <div className="col-span-2 h-16 rounded-[10px] border border-dashed border-zinc-200 bg-white flex items-center justify-center text-[10px] font-black text-zinc-400">
-                                    Aktif ekip üyesi yok
+                                    ))}
                                   </div>
-                                )}
-                              </div>
+                                </div>
+                              )}
                             </div>
 
                             <div className="pt-2 flex items-center justify-end gap-2">
