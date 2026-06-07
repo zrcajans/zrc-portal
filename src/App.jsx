@@ -5474,6 +5474,23 @@ function App() {
     return false;
   };
 
+  const isTaskAssignedToCurrentUserForCalendar = (task = {}) =>
+    isPeopleListLinkedToCurrentUser(task.assignees || []);
+
+  const isTaskVisibleInCalendarForCurrentUser = (task = {}, projectName = '') => {
+    if (currentAccountType === 'Patron') return true;
+
+    if (currentAccountType === 'Ekip Üyesi') {
+      return isTaskAssignedToCurrentUserForCalendar(task);
+    }
+
+    if (currentAccountType === 'Müşteri') {
+      return isCurrentCustomerProject(projectName);
+    }
+
+    return false;
+  };
+
   const isProjectVisibleForCurrentUser = (projectName = '') => {
     if (currentAccountType === 'Patron') return true;
     if (currentAccountType === 'Ekip Üyesi') return isCurrentUserProjectMember(projectName);
@@ -7018,35 +7035,39 @@ function App() {
 
   const visibleCalendarTasks = [
     ...visibleBoardColumns.flatMap((column) =>
-      column.tasks.map((task) => {
-        const startDate = getCalendarTaskStartDate(task);
-        const endDate = getCalendarTaskEndDate(task);
-
-        return {
-          ...task,
-          columnTitle: column.title,
-          calendarStartDate: startDate,
-          calendarEndDate: endDate,
-          calendarSortDate: endDate || startDate,
-          isArchivedCalendarTask: false
-        };
-      })
-    ),
-    ...(calendarDisplayOptions.hideArchivedTasks
-      ? []
-      : visibleArchivedTasks.map((task) => {
+      column.tasks
+        .filter((task) => isTaskVisibleInCalendarForCurrentUser(task, selectedProject))
+        .map((task) => {
           const startDate = getCalendarTaskStartDate(task);
           const endDate = getCalendarTaskEndDate(task);
 
           return {
             ...task,
-            columnTitle: task.sourceColumnTitle || 'Arşiv',
+            columnTitle: column.title,
             calendarStartDate: startDate,
             calendarEndDate: endDate,
             calendarSortDate: endDate || startDate,
-            isArchivedCalendarTask: true
+            isArchivedCalendarTask: false
           };
-        }))
+        })
+    ),
+    ...(calendarDisplayOptions.hideArchivedTasks
+      ? []
+      : visibleArchivedTasks
+          .filter((task) => isTaskVisibleInCalendarForCurrentUser(task, selectedProject))
+          .map((task) => {
+            const startDate = getCalendarTaskStartDate(task);
+            const endDate = getCalendarTaskEndDate(task);
+
+            return {
+              ...task,
+              columnTitle: task.sourceColumnTitle || 'Arşiv',
+              calendarStartDate: startDate,
+              calendarEndDate: endDate,
+              calendarSortDate: endDate || startDate,
+              isArchivedCalendarTask: true
+            };
+          }))
   ];
 
   const calendarTasks = visibleCalendarTasks
@@ -7902,20 +7923,24 @@ function App() {
   };
 
   const timeChartAllTasks = [
-    ...reportTasks.map((task) => ({
-      ...task,
-      isArchivedTimeChartTask: false,
-      ownerId: getTimeChartTaskOwnerId(task)
-    })),
+    ...reportTasks
+      .filter((task) => isTaskVisibleInCalendarForCurrentUser(task, selectedProject))
+      .map((task) => ({
+        ...task,
+        isArchivedTimeChartTask: false,
+        ownerId: getTimeChartTaskOwnerId(task)
+      })),
     ...(timeChartFilters.hideArchived
       ? []
-      : archivedTasks.map((task) => ({
-          ...task,
-          columnTitle: task.sourceColumnTitle || 'Arşiv',
-          columnColor: '#94a3b8',
-          isArchivedTimeChartTask: true,
-          ownerId: getTimeChartTaskOwnerId(task)
-        })))
+      : archivedTasks
+          .filter((task) => isTaskVisibleInCalendarForCurrentUser(task, selectedProject))
+          .map((task) => ({
+            ...task,
+            columnTitle: task.sourceColumnTitle || 'Arşiv',
+            columnColor: '#94a3b8',
+            isArchivedTimeChartTask: true,
+            ownerId: getTimeChartTaskOwnerId(task)
+          })))
   ];
 
   const timeChartFilteredTasks = timeChartAllTasks
@@ -8100,6 +8125,7 @@ function App() {
   };
 
   const ganttAllTasks = reportTasks
+    .filter((task) => isTaskVisibleInCalendarForCurrentUser(task, selectedProject))
     .map((task) => {
       const startDate = getGanttTaskStartDate(task);
       const endDate = getGanttTaskEndDate(task);
@@ -9726,11 +9752,16 @@ function App() {
     homeOpenTasks.filter((task) => isHomeCurrentUserInList(task.followers || []))
   );
 
-  const homeTodayTasks = homeOpenTasks.filter((task) =>
+  const homeCalendarVisibleOpenTasks =
+    currentAccountType === 'Ekip Üyesi'
+      ? homeOpenTasks.filter((task) => isTaskVisibleInCalendarForCurrentUser(task, task.projectName))
+      : homeOpenTasks;
+
+  const homeTodayTasks = homeCalendarVisibleOpenTasks.filter((task) =>
     doesTaskOverlapCalendarRange(task, todayStart, new Date(tomorrowStart.getTime() - 1))
   );
 
-  const homeOverdueTasks = homeOpenTasks.filter((task) => {
+  const homeOverdueTasks = homeCalendarVisibleOpenTasks.filter((task) => {
     const date = task.homeDate || task.calendarStartDate || task.calendarEndDate;
     return date ? date < todayStart : false;
   });
@@ -9766,6 +9797,7 @@ function App() {
         : 'Size Atanan Görevler';
 
   const homeCalendarTasks = homeAllProjectTasks
+    .filter((task) => isTaskVisibleInCalendarForCurrentUser(task, task.projectName))
     .filter((task) => !isReportTaskCompleted(task))
     .filter((task) => task.calendarStartDate || task.calendarEndDate || task.homeDate)
     .sort((firstTask, secondTask) => {
