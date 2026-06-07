@@ -10804,6 +10804,7 @@ function App() {
       <style>{`
         .zrc-main-shell > div:not([class*="fixed"]) {
           padding-left: 44px;
+          padding-right: 52px;
           box-sizing: border-box;
         }
 
@@ -10816,6 +10817,7 @@ function App() {
 
         .zrc-project-board-page > div:not([class*="fixed"]) {
           padding-left: 44px !important;
+          padding-right: 52px !important;
           box-sizing: border-box;
         }
 
