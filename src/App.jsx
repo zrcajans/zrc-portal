@@ -299,7 +299,7 @@ const normalizeCustomerRecord = (customer = {}) => ({
 const getTeamRoleTone = (role = '') => {
   const normalizedRole = normalizeTeamRole(role);
 
-  if (normalizedRole === 'Yönetici') return 'bg-[#fff3ef] border-[#ff3600]/15 text-[#ff3600]';
+  if (normalizedRole === 'Yönetici') return 'bg-[#ff3600] border-[#ff3600] text-white';
   if (normalizedRole === 'Müşteri/Misafir') return 'bg-violet-50 border-violet-100 text-violet-600';
 
   return 'bg-blue-50 border-blue-100 text-blue-600';
@@ -651,6 +651,7 @@ function App() {
 
   const [currentUserId, setCurrentUserId] = useState(() => readStorageValue('currentUserId', '') || '');
   const [supabaseAuthUserId, setSupabaseAuthUserId] = useState('');
+  const [currentAssignedSupabaseTaskIds, setCurrentAssignedSupabaseTaskIds] = useState([]);
   const [loginDraft, setLoginDraft] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [authLoginLoading, setAuthLoginLoading] = useState(false);
@@ -1580,7 +1581,7 @@ function App() {
         priority: getSafeSupabasePriority(taskData.priority),
         status: targetStatus || targetColumn?.title || 'Bekliyor',
         start_date: getSupabaseSafeDate(taskData.startDate),
-        due_date: getSupabaseSafeDate(taskData.dueDate || taskData.date),
+        due_date: getSupabaseSafeDate(taskData.dueDate || taskData.endDate),
         end_date: getSupabaseSafeDate(taskData.endDate),
         tags: Array.isArray(taskData.tags) ? taskData.tags : [],
         is_archived: false,
@@ -1714,7 +1715,7 @@ function App() {
         priority: getSafeSupabasePriority(taskData.priority),
         status: targetStatus || targetColumn?.title || 'Yeni Görev',
         start_date: getSupabaseSafeDate(taskData.startDate),
-        due_date: getSupabaseSafeDate(taskData.dueDate || taskData.date),
+        due_date: getSupabaseSafeDate(taskData.dueDate || taskData.endDate),
         end_date: getSupabaseSafeDate(taskData.endDate),
         tags: Array.isArray(taskData.tags) ? taskData.tags : [],
         is_archived: false,
@@ -3664,7 +3665,7 @@ function App() {
 
   const getSupabaseHealthStateClass = (state = 'idle') => {
     if (state === 'ok') return 'bg-emerald-50 border-emerald-100 text-emerald-700';
-    if (state === 'warning') return 'bg-amber-50 border-amber-100 text-amber-700';
+    if (state === 'warning') return 'bg-zinc-100 border-zinc-200 text-zinc-700';
     if (state === 'error') return 'bg-red-50 border-red-100 text-red-600';
 
     return 'bg-slate-50 border-slate-100 text-slate-600';
@@ -4073,7 +4074,7 @@ function App() {
       priority: getSafeSupabasePriority(task.priority),
       status: isArchived ? (task.status || column?.title || 'Arşiv') : (column?.title || task.status || 'Yeni Görev'),
       start_date: getSupabaseSafeDate(task.startDate),
-      due_date: getSupabaseSafeDate(task.dueDate || task.date),
+      due_date: getSupabaseSafeDate(task.dueDate || task.endDate),
       end_date: getSupabaseSafeDate(task.endDate),
       tags: Array.isArray(task.tags) ? task.tags : String(task.tags || '').split(',').map((tag) => tag.trim()).filter(Boolean),
       is_archived: isArchived || task.isArchived === true,
@@ -4306,7 +4307,7 @@ function App() {
 
   const getSupabaseRealtimeClass = () => {
     if (supabaseRealtimeStatus.state === 'connected') return 'bg-emerald-50 border-emerald-100 text-emerald-700';
-    if (supabaseRealtimeStatus.state === 'syncing') return 'bg-amber-50 border-amber-100 text-amber-700';
+    if (supabaseRealtimeStatus.state === 'syncing') return 'bg-zinc-100 border-zinc-200 text-zinc-700';
     if (supabaseRealtimeStatus.state === 'error') return 'bg-red-50 border-red-100 text-red-600';
 
     return 'bg-slate-50 border-slate-100 text-slate-600';
@@ -4403,7 +4404,7 @@ function App() {
 
   const getPwaInstallClass = () => {
     if (pwaInstallStatus.state === 'installed') return 'bg-emerald-50 border-emerald-100 text-emerald-700';
-    if (pwaInstallStatus.state === 'ready') return 'bg-amber-50 border-amber-100 text-amber-700';
+    if (pwaInstallStatus.state === 'ready') return 'bg-zinc-100 border-zinc-200 text-zinc-700';
     if (pwaInstallStatus.state === 'error') return 'bg-red-50 border-red-100 text-red-600';
 
     return 'bg-slate-50 border-slate-100 text-slate-600';
@@ -4569,6 +4570,12 @@ function App() {
       dueDate: task.due_date || '',
       endDate: task.end_date || '',
       tags: Array.isArray(task.tags) ? task.tags : [],
+      assigneeIds: (task._assignees || [])
+        .map((link) => String(link.user_id || link.userId || link.id || '').trim())
+        .filter(Boolean),
+      followerIds: (task._followers || [])
+        .map((link) => String(link.user_id || link.userId || link.id || '').trim())
+        .filter(Boolean),
       assignees: (task._assignees || []).map(mapSupabaseTaskUserLinkToLocalPerson).filter(Boolean),
       followers: (task._followers || []).map(mapSupabaseTaskUserLinkToLocalPerson).filter(Boolean),
       comments: (task._comments || []).map(mapSupabaseCommentToLocalComment),
@@ -5279,9 +5286,13 @@ function App() {
     setIsTaskModalOpen(true);
   };
 
-  const currentRoleMember = currentUserId
-    ? teamMembers.find((member) => member.id === currentUserId && member.status !== 'Pasif') || null
-    : null;
+  const currentRoleMember =
+    (isSupabaseUuid(supabaseAuthUserId)
+      ? teamMembers.find((member) => String(member.id) === String(supabaseAuthUserId) && member.status !== 'Pasif')
+      : null) ||
+    (currentUserId
+      ? teamMembers.find((member) => String(member.id) === String(currentUserId) && member.status !== 'Pasif') || null
+      : null);
 
   const currentProfileNameParts = [profileDraft.firstName, profileDraft.lastName]
     .map((part) => String(part || '').trim())
@@ -5300,7 +5311,14 @@ function App() {
     currentProfileInitials;
 
   const normalizedCurrentRawRole = normalizeTeamRole(currentRoleMember?.role || '');
-  const isZrcOwnerAccount = Boolean(currentRoleMember && isZrcAjansIdentityRecord(currentRoleMember));
+  const isZrcOwnerAccount = Boolean(
+    currentRoleMember &&
+      isZrcAjansIdentityRecord(currentRoleMember) &&
+      (
+        !isSupabaseUuid(supabaseAuthUserId) ||
+        String(currentRoleMember.id || '') === String(supabaseAuthUserId || '')
+      )
+  );
   const currentUserRole =
     normalizedCurrentRawRole === 'Müşteri/Misafir'
       ? 'Müşteri/Misafir'
@@ -5318,6 +5336,44 @@ function App() {
   const currentActorId = currentUserId || currentRoleMember?.id || 'anonymous-user';
   const currentActorName = currentProfileName;
   const currentActorAvatar = currentProfileAvatar;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAssignedTaskIds = async () => {
+      if (currentAccountType !== 'Ekip Üyesi' || !isSupabaseUuid(currentUserId) || authSessionLoading) {
+        if (isMounted) setCurrentAssignedSupabaseTaskIds([]);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('task_assignees')
+          .select('task_id')
+          .eq('user_id', currentUserId);
+
+        if (error) throw error;
+
+        const nextIds = Array.from(
+          new Set(
+            (data || [])
+              .map((row) => String(row.task_id || '').trim())
+              .filter(Boolean)
+          )
+        );
+
+        if (isMounted) setCurrentAssignedSupabaseTaskIds(nextIds);
+      } catch {
+        if (isMounted) setCurrentAssignedSupabaseTaskIds([]);
+      }
+    };
+
+    loadAssignedTaskIds();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentAccountType, currentUserId, authSessionLoading, supabaseLastRealtimeAt]);
 
   const getIdentityValuesFromRecord = (record = {}) =>
     [
@@ -5541,8 +5597,34 @@ function App() {
       .some((value) => currentIds.has(String(value)));
   };
 
-  const isTaskAssignedToCurrentUserForCalendar = (task = {}) =>
-    Array.isArray(task.assignees) && task.assignees.some(isPersonStrictlyCurrentUser);
+  const getTaskSupabaseRecordId = (task = {}) => {
+    const directId = String(task.supabaseId || '').trim();
+    if (directId) return directId;
+
+    const rawId = String(task.id || '').trim();
+    if (rawId.startsWith('supabase-')) return rawId.replace('supabase-', '').trim();
+
+    return '';
+  };
+
+  const isTaskAssignedToCurrentUserForCalendar = (task = {}) => {
+    const currentIds = getCurrentStrictUserIdSet();
+    const taskSupabaseId = getTaskSupabaseRecordId(task);
+
+    if (taskSupabaseId && isSupabaseUuid(currentUserId)) {
+      const rawAssigneeIds = Array.isArray(task.assigneeIds)
+        ? task.assigneeIds.map((value) => String(value || '').trim()).filter(Boolean)
+        : [];
+
+      if (rawAssigneeIds.length > 0) {
+        return rawAssigneeIds.some((assigneeId) => currentIds.has(String(assigneeId)));
+      }
+
+      return currentAssignedSupabaseTaskIds.map(String).includes(String(taskSupabaseId));
+    }
+
+    return Array.isArray(task.assignees) && task.assignees.some(isPersonStrictlyCurrentUser);
+  };
 
   const isTaskVisibleInCalendarForCurrentUser = (task = {}, projectName = '') => {
     if (currentAccountType === 'Patron') return true;
@@ -6742,9 +6824,9 @@ function App() {
     if (type === 'Görsel') return 'bg-emerald-50 text-emerald-600';
     if (type === 'Video') return 'bg-purple-50 text-purple-600';
     if (type === 'PDF') return 'bg-red-50 text-red-600';
-    if (type === 'Word') return 'bg-blue-50 text-blue-600';
+    if (type === 'Word') return 'bg-zinc-100 text-zinc-700';
     if (type === 'Excel') return 'bg-green-50 text-green-600';
-    if (type === 'Sunum') return 'bg-orange-50 text-orange-600';
+    if (type === 'Sunum') return 'bg-zinc-100 text-zinc-700';
 
     return 'bg-slate-50 text-slate-500';
   };
@@ -7652,10 +7734,10 @@ function App() {
 
   const getReportPriorityStyle = (priority) => {
     if (priority === 'Acil') return 'bg-red-50 text-red-600 border-red-100';
-    if (priority === 'Yüksek') return 'bg-orange-50 text-orange-600 border-orange-100';
+    if (priority === 'Yüksek') return 'bg-zinc-100 text-zinc-700 border-orange-100';
     if (priority === 'Düşük') return 'bg-emerald-50 text-emerald-600 border-emerald-100';
 
-    return 'bg-blue-50 text-blue-600 border-blue-100';
+    return 'bg-zinc-100 text-zinc-700 border-blue-100';
   };
 
   const reportSummaryCards = [
@@ -7663,7 +7745,7 @@ function App() {
       title: 'Toplam Görev',
       value: reportTotalTasks,
       description: 'Aktif görev havuzu',
-      tone: 'bg-blue-50 text-blue-600'
+      tone: 'bg-zinc-100 text-zinc-700'
     },
     {
       title: 'Tamamlanan',
@@ -7763,7 +7845,7 @@ function App() {
   const getTimelineStatusStyle = (task) => {
     if (isReportTaskCompleted(task)) return 'bg-emerald-50 text-emerald-600 border-emerald-100';
     if (task.timelineEndDate && task.timelineEndDate < todayStart) return 'bg-red-50 text-red-600 border-red-100';
-    if (task.timelineDate && isSameCalendarDay(task.timelineDate, todayStart)) return 'bg-blue-50 text-blue-600 border-blue-100';
+    if (task.timelineDate && isSameCalendarDay(task.timelineDate, todayStart)) return 'bg-zinc-100 text-zinc-700 border-blue-100';
 
     return 'bg-zinc-50 text-zinc-500 border-zinc-100';
   };
@@ -7856,7 +7938,7 @@ function App() {
   };
 
   const zrcAjansTimelineMember = {
-    id: currentRoleMember?.id || currentActorId || 'zrc-ajans-system-member',
+    id: zrcAjansSystemMember?.id || 'user-1',
     name: 'ZRC AJANS',
     username: 'zrcajans',
     email: 'info@zrcajans.com',
@@ -7969,7 +8051,7 @@ function App() {
 
   const getTimeChartTaskColor = (task) => {
     if (task.priority === 'Acil') return 'bg-red-100 text-red-700 border-red-200';
-    if (task.priority === 'Yüksek') return 'bg-orange-100 text-orange-700 border-orange-200';
+    if (task.priority === 'Yüksek') return 'bg-zinc-900 text-white border-zinc-900';
     if (task.priority === 'Düşük') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
 
     return 'bg-violet-100 text-violet-700 border-violet-200';
@@ -8256,10 +8338,10 @@ function App() {
     if (isReportTaskCompleted(task)) return 'bg-emerald-100 text-emerald-700 border-emerald-200 opacity-70';
     if (task.ganttEndDate && task.ganttEndDate < todayStart) return 'bg-red-100 text-red-700 border-red-200';
     if (task.priority === 'Acil') return 'bg-red-100 text-red-700 border-red-200';
-    if (task.priority === 'Yüksek') return 'bg-orange-100 text-orange-700 border-orange-200';
+    if (task.priority === 'Yüksek') return 'bg-zinc-900 text-white border-zinc-900';
     if (task.priority === 'Düşük') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
 
-    return 'bg-blue-100 text-blue-700 border-blue-200';
+    return 'bg-zinc-900 text-white border-zinc-900';
   };
 
   const goToPreviousGanttPeriod = () => {
@@ -8355,12 +8437,12 @@ function App() {
 
   const getNotificationTone = (type) => {
     if (type === 'overdue') return 'bg-red-50 text-red-600 border-red-100';
-    if (type === 'today') return 'bg-blue-50 text-blue-600 border-blue-100';
-    if (type === 'soon') return 'bg-orange-50 text-orange-600 border-orange-100';
+    if (type === 'today') return 'bg-zinc-100 text-zinc-700 border-blue-100';
+    if (type === 'soon') return 'bg-zinc-100 text-zinc-700 border-orange-100';
     if (type === 'comment') return 'bg-violet-50 text-violet-600 border-violet-100';
     if (type === 'file') return 'bg-emerald-50 text-emerald-600 border-emerald-100';
     if (type === 'assignment') return 'bg-sky-50 text-sky-600 border-sky-100';
-    if (type === 'status') return 'bg-amber-50 text-amber-600 border-amber-100';
+    if (type === 'status') return 'bg-zinc-100 text-zinc-700 border-zinc-200';
     if (type === 'message') return 'bg-indigo-50 text-indigo-600 border-indigo-100';
     if (type === 'task') return 'bg-lime-50 text-lime-600 border-lime-100';
 
@@ -8848,9 +8930,9 @@ function App() {
   const getGlobalSearchTypeStyle = (type) => {
     if (type === 'Dosya') return 'bg-emerald-50 text-emerald-600 border-emerald-100';
     if (type === 'Yorum') return 'bg-violet-50 text-violet-600 border-violet-100';
-    if (type === 'Not') return 'bg-orange-50 text-orange-600 border-orange-100';
+    if (type === 'Not') return 'bg-zinc-100 text-zinc-700 border-orange-100';
 
-    return 'bg-blue-50 text-blue-600 border-blue-100';
+    return 'bg-zinc-100 text-zinc-700 border-blue-100';
   };
 
   const closeGlobalSearch = () => {
@@ -9893,7 +9975,7 @@ function App() {
         ]
       : currentAccountType === 'Müşteri'
         ? [
-            { label: 'Projelerim', action: () => { setActiveMenu('Projeler'); setActiveContentMenu('Projeler'); setActiveTab('Görevler'); }, tone: 'bg-[#fff3ef] text-[#ff3600] border-[#ff3600]/10' },
+            { label: 'Projelerim', action: () => { setActiveMenu('Projeler'); setActiveContentMenu('Projeler'); setActiveTab('Görevler'); }, tone: 'bg-[#ff3600] text-white border-[#ff3600]' },
             { label: 'Yazışmalar', action: () => { setActiveMenu('Yazışmalar'); setActiveContentMenu('Yazışmalar'); }, tone: 'bg-white text-[#394150] border-[#e5e8ee]' },
             { label: 'Dosyalarım', action: () => { setActiveMenu('Projeler'); setActiveContentMenu('Projeler'); setActiveTab('Dosyalar'); }, tone: 'bg-white text-[#394150] border-[#e5e8ee]' }
           ]
@@ -9901,7 +9983,7 @@ function App() {
             ...(canCreateTaskInSelectedProject
               ? [{ label: 'Yeni Görev', action: () => openQuickTaskFromHome(), tone: 'bg-[#ff3600] text-white border-[#ff3600]' }]
               : []),
-            { label: 'Görevlerim', action: () => { setActiveMenu('Projeler'); setActiveContentMenu('Projeler'); setActiveTab('Görevler'); }, tone: 'bg-[#fff3ef] text-[#ff3600] border-[#ff3600]/10' },
+            { label: 'Görevlerim', action: () => { setActiveMenu('Projeler'); setActiveContentMenu('Projeler'); setActiveTab('Görevler'); }, tone: 'bg-[#ff3600] text-white border-[#ff3600]' },
             { label: 'Takvimim', action: () => { setActiveMenu('Takvim'); setActiveContentMenu('Takvim'); }, tone: 'bg-white text-[#394150] border-[#e5e8ee]' },
             { label: 'Yazışmalar', action: () => { setActiveMenu('Yazışmalar'); setActiveContentMenu('Yazışmalar'); }, tone: 'bg-white text-[#394150] border-[#e5e8ee]' }
           ];
@@ -9909,21 +9991,21 @@ function App() {
   const homeRoleSummaryItems =
     currentAccountType === 'Patron'
       ? [
-          { label: 'Proje', value: visibleProjectNames.length, tone: 'bg-[#fff3ef] text-[#ff3600] border-[#ff3600]/10' },
-          { label: 'Açık Görev', value: homeOpenTasks.length, tone: 'bg-blue-50 text-blue-600 border-blue-100' },
+          { label: 'Proje', value: visibleProjectNames.length, tone: 'bg-[#ff3600] text-white border-[#ff3600]' },
+          { label: 'Açık Görev', value: homeOpenTasks.length, tone: 'bg-zinc-100 text-zinc-700 border-blue-100' },
           { label: 'Aktif Ekip', value: teamMembers.filter((member) => member.status !== 'Pasif').length, tone: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
           { label: 'Müşteri', value: customers.length, tone: 'bg-violet-50 text-violet-600 border-violet-100' }
         ]
       : currentAccountType === 'Müşteri'
         ? [
-            { label: 'Proje', value: visibleProjectNames.length, tone: 'bg-blue-50 text-blue-600 border-blue-100' },
-            { label: 'Açık İş', value: homeOpenTasks.length, tone: 'bg-[#fff3ef] text-[#ff3600] border-[#ff3600]/10' },
+            { label: 'Proje', value: visibleProjectNames.length, tone: 'bg-zinc-100 text-zinc-700 border-blue-100' },
+            { label: 'Açık İş', value: homeOpenTasks.length, tone: 'bg-[#ff3600] text-white border-[#ff3600]' },
             { label: 'Dosya', value: visibleHomeProjectFiles.length, tone: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
             { label: 'Bildirim', value: unreadNotificationCount, tone: 'bg-indigo-50 text-indigo-600 border-indigo-100' }
           ]
         : [
-            { label: 'Atanan', value: homeAssignedTasks.length, tone: 'bg-[#fff3ef] text-[#ff3600] border-[#ff3600]/10' },
-            { label: 'Takipte', value: homeFollowingTasks.length, tone: 'bg-blue-50 text-blue-600 border-blue-100' },
+            { label: 'Atanan', value: homeAssignedTasks.length, tone: 'bg-[#ff3600] text-white border-[#ff3600]' },
+            { label: 'Takipte', value: homeFollowingTasks.length, tone: 'bg-zinc-100 text-zinc-700 border-blue-100' },
             { label: 'Bugün', value: homeTodayTasks.length, tone: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
             { label: 'Geciken', value: homeOverdueTasks.length, tone: 'bg-red-50 text-red-600 border-red-100' }
           ];
@@ -10652,7 +10734,7 @@ function App() {
         }}
         className={`w-full flex items-center justify-between gap-3 transition-all ${
           openProfileDropdown === id
-            ? `${buttonClassName} bg-white border-[#ff3600]/35 shadow-[0_0_0_4px_rgba(255,54,0,0.06)]`
+            ? `${buttonClassName} bg-white border-[#ff3600] shadow-[0_0_0_4px_rgba(255,54,0,0.06)]`
             : buttonClassName
         }`}
       >
@@ -11408,7 +11490,7 @@ function App() {
 
 
   return (
-    <div className="min-h-screen flex bg-[#f5f6f8] antialiased selection:bg-[#ff3600]/10 overflow-x-hidden relative font-[Inter]">
+    <div className="min-h-screen flex bg-[#f5f6f8] antialiased selection:bg-[#ff3600] overflow-x-hidden relative font-[Inter]">
       {customStyles}
       {renderSupabaseConnectionBadge()}
 
@@ -11654,7 +11736,7 @@ function App() {
                         setIsMessageTaskPickerOpen(false);
                       }}
                       className={`w-full h-8 rounded-[7px] px-2.5 text-left text-[10.5px] font-black transition-all ${
-                        !messageLinkedTaskId ? 'bg-blue-50 text-blue-600' : 'text-zinc-500 hover:bg-zinc-50'
+                        !messageLinkedTaskId ? 'bg-zinc-100 text-zinc-700' : 'text-zinc-500 hover:bg-zinc-50'
                       }`}
                     >
                       Genel proje mesajı
@@ -11669,7 +11751,7 @@ function App() {
                           setIsMessageTaskPickerOpen(false);
                         }}
                         className={`w-full h-8 rounded-[7px] px-2.5 text-left text-[10.5px] font-black transition-all truncate ${
-                          messageLinkedTaskId === task.id ? 'bg-blue-50 text-blue-600' : 'text-zinc-500 hover:bg-zinc-50'
+                          messageLinkedTaskId === task.id ? 'bg-zinc-100 text-zinc-700' : 'text-zinc-500 hover:bg-zinc-50'
                         }`}
                         title={task.title}
                       >
@@ -13601,7 +13683,7 @@ function App() {
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="h-8 px-4 rounded-full bg-white border border-zinc-200 text-zinc-500 text-[10px] font-black hover:text-[#ff3600] hover:border-[#ff3600]/20 transition-all"
+                        className="h-8 px-4 rounded-full bg-white border border-zinc-200 text-zinc-500 text-[10px] font-black hover:text-[#ff3600] hover:border-[#ff3600] transition-all"
                       >
                         Kullanıcı Değiştir
                       </button>
@@ -14076,7 +14158,7 @@ function App() {
                               type="button"
                               onClick={runFullSupabaseRefresh}
                               disabled={supabaseHealthLoading || supabaseBackupLoading}
-                              className="h-9 px-4 rounded-full bg-[#fff3ef] border border-[#ff3600]/10 text-[#ff3600] text-[10px] font-black disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#ff3600] hover:text-white transition-all"
+                              className="h-9 px-4 rounded-full bg-[#ff3600] border border-[#ff3600] text-white text-[10px] font-black disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#ff3600] hover:text-white transition-all"
                             >
                               Tümünü Yenile
                             </button>
@@ -14181,7 +14263,7 @@ function App() {
                             <button
                               type="button"
                               onClick={copyCurrentDataSnapshot}
-                              className="h-9 px-4 rounded-full bg-[#fff3ef] border border-[#ff3600]/10 text-[#ff3600] text-[10px] font-black hover:bg-[#ff3600] hover:text-white transition-all"
+                              className="h-9 px-4 rounded-full bg-[#ff3600] border border-[#ff3600] text-white text-[10px] font-black hover:bg-[#ff3600] hover:text-white transition-all"
                             >
                               Veriyi Kopyala
                             </button>
@@ -14414,7 +14496,7 @@ function App() {
                               }}
                               className={`w-9 h-9 rounded-full border transition-all flex items-center justify-center shadow-sm ${
                                 isEditMode
-                                  ? 'bg-[#ff3600]/10 text-[#ff3600] border-[#ff3600]/25'
+                                  ? 'bg-[#ff3600] text-white border-[#ff3600]'
                                   : 'bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-800 hover:border-zinc-300'
                               }`}
                               title="Kolon düzenleme modu"
@@ -14666,7 +14748,7 @@ function App() {
                                       handleDragStart(e, task.id, column.id);
                                     }}
                                     className={`w-full bg-white p-3.5 rounded-[3px] border border-zinc-100 shadow-[0_6px_16px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)] transition-all duration-200 group relative ${isEditMode ? 'cursor-default opacity-70 hover:shadow-[0_6px_16px_rgba(15,23,42,0.055)]' : 'cursor-pointer'} ${openTaskMenuId === task.id ? 'z-[400]' : 'z-10'} ${
-                                      isSelected ? 'border-[#3b82f6] border-2 bg-blue-50/30' : 'border-zinc-200/50'
+                                      isSelected ? 'border-[#3b82f6] border-2 bg-zinc-50' : 'border-zinc-200/50'
                                     }`}
                                   >
                                     <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[3px]" style={{ backgroundColor: prioColor }} />
@@ -14855,7 +14937,7 @@ function App() {
                                             </h4>
 
                                             <div className="mt-2 flex flex-wrap gap-1.5">
-                                              <span className="h-6 px-2.5 rounded-full bg-orange-50 text-orange-600 text-[9.5px] font-black flex items-center">
+                                              <span className="h-6 px-2.5 rounded-full bg-zinc-100 text-zinc-700 text-[9.5px] font-black flex items-center">
                                                 {task.sourceColumnTitle || 'Eski kolon'}
                                               </span>
 
@@ -14867,7 +14949,7 @@ function App() {
                                             </div>
                                           </div>
 
-                                          <div className="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
+                                          <div className="w-8 h-8 rounded-full bg-zinc-100 text-zinc-700 flex items-center justify-center shrink-0">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
                                               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 7.5h16.5M5.25 7.5v11.25A1.5 1.5 0 006.75 20.25h10.5a1.5 1.5 0 001.5-1.5V7.5M9 11.25h6" />
                                             </svg>
@@ -14919,7 +15001,7 @@ function App() {
                               </div>
                             ) : (
                               <div className="h-[420px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex flex-col items-center justify-center text-center">
-                                <div className="w-16 h-16 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center mb-3">
+                                <div className="w-16 h-16 rounded-full bg-zinc-100 text-zinc-700 flex items-center justify-center mb-3">
                                   <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 7.5h16.5M5.25 7.5v11.25A1.5 1.5 0 006.75 20.25h10.5a1.5 1.5 0 001.5-1.5V7.5M9 11.25h6" />
                                   </svg>
@@ -15077,7 +15159,7 @@ function App() {
                                   data-calendar-day={formatDateForTaskModal(day)}
                                   data-zrc-calendar-day={formatDateForTaskModal(day)}
                                   className={`group min-h-[86px] border-r border-b border-zinc-100 last:border-r-0 px-2 py-1.5 relative ${
-                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-blue-50/30' : 'cursor-default'
+                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
                                   } transition-colors ${
                                     isCurrentMonth ? 'bg-white' : 'bg-zinc-50/60'
                                   }`}
@@ -15161,7 +15243,7 @@ function App() {
                                   data-calendar-day={formatDateForTaskModal(day)}
                                   data-zrc-calendar-day={formatDateForTaskModal(day)}
                                   className={`group min-h-[310px] border-r border-b border-zinc-100 last:border-r-0 px-2.5 py-2 relative transition-colors ${
-                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-blue-50/30' : 'cursor-default'
+                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
                                   }`}
                                 >
                                   {canCreateTaskFromCalendar && (
@@ -15224,7 +15306,7 @@ function App() {
                             role="button"
                             tabIndex={0}
                             className={`min-h-[430px] bg-white p-5 transition-colors ${
-                              canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-blue-50/20' : 'cursor-default'
+                              canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
                             }`}
                           >
                             <div className="flex items-center justify-between mb-3">
@@ -15619,7 +15701,7 @@ function App() {
                                           <button
                                             type="button"
                                             onClick={(event) => openTaskModalForTimeChartPeriod(period, event)}
-                                            className="w-full h-7 rounded-[6px] border border-dashed border-blue-100 bg-blue-50/30 text-blue-400 text-[14px] font-black hover:bg-blue-50 transition-all"
+                                            className="w-full h-7 rounded-[6px] border border-dashed border-blue-100 bg-zinc-50 text-blue-400 text-[14px] font-black hover:bg-blue-50 transition-all"
                                             title="Bu alana görev ekle"
                                           >
                                             +
@@ -15629,7 +15711,7 @@ function App() {
                                         <button
                                           type="button"
                                           onClick={(event) => openTaskModalForTimeChartPeriod(period, event)}
-                                          className="w-full h-full min-h-[110px] rounded-[8px] border border-dashed border-transparent hover:border-blue-200 hover:bg-blue-50/30 text-transparent hover:text-blue-400 text-[20px] font-black transition-all"
+                                          className="w-full h-full min-h-[110px] rounded-[8px] border border-dashed border-transparent hover:border-blue-200 hover:bg-zinc-50 text-transparent hover:text-blue-400 text-[20px] font-black transition-all"
                                           title="Bu güne görev ekle"
                                         >
                                           +
@@ -15748,7 +15830,7 @@ function App() {
                                       }}
                                       className={`group text-left bg-white border rounded-[12px] p-3.5 shadow-sm hover:shadow-[0_12px_26px_rgba(15,23,42,0.075)] transition-all ${
                                         isSelected
-                                          ? 'border-blue-200 ring-2 ring-blue-500/10'
+                                          ? 'border-blue-200 ring-0'
                                           : 'border-zinc-200 hover:border-zinc-300'
                                       }`}
                                     >
@@ -16136,7 +16218,7 @@ function App() {
                                           <div
                                             key={`gantt-cell-${task.id}-${period.key}`}
                                             className={`border-r border-zinc-100 ${
-                                              period.start <= todayStart && period.end >= todayStart ? 'bg-blue-50/30' : 'bg-white'
+                                              period.start <= todayStart && period.end >= todayStart ? 'bg-zinc-50' : 'bg-white'
                                             }`}
                                           />
                                         ))}
@@ -16463,9 +16545,9 @@ function App() {
                           </div>
 
                           <div className="flex items-center gap-2 shrink-0">
-                            <div className="w-[86px] rounded-[14px] bg-[#fff3ef] border border-[#ff3600]/10 p-3">
+                            <div className="w-[86px] rounded-[14px] bg-[#fff3ef] border border-[#ff3600] p-3">
                               <div className="text-[21px] font-black text-[#ff3600]">{teamMembers.length}</div>
-                              <div className="text-[9px] font-black text-[#ff3600]/55">Toplam</div>
+                              <div className="text-[9px] font-black text-white/80">Toplam</div>
                             </div>
 
                             <div className="w-[86px] rounded-[14px] bg-emerald-50 border border-emerald-100 p-3">
@@ -16503,7 +16585,7 @@ function App() {
                             key={item.role}
                             className={`rounded-[15px] border p-3 ${
                               item.active
-                                ? 'bg-[#fff8f5] border-[#ff3600]/20 shadow-sm'
+                                ? 'bg-[#fff8f5] border-[#ff3600] shadow-sm'
                                 : 'bg-white border-zinc-200'
                             }`}
                           >
@@ -16528,7 +16610,7 @@ function App() {
                               <div className="mt-1 text-[10.5px] font-bold text-zinc-400">Kullanıcı adı ve şifre ile giriş hesabı oluştur</div>
                             </div>
 
-                            <div className="w-11 h-11 rounded-[15px] bg-[#ff3600]/10 text-[#ff3600] flex items-center justify-center">
+                            <div className="w-11 h-11 rounded-[15px] bg-[#ff3600] text-white flex items-center justify-center">
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                               </svg>
@@ -16545,7 +16627,7 @@ function App() {
                                   username: prev.username || normalizeCredentialText(event.target.value)
                                 }))}
                                 placeholder="Ad Soyad"
-                                className="w-full h-11 rounded-[13px] border border-zinc-200 bg-zinc-50 px-4 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                                className="w-full h-11 rounded-[13px] border border-zinc-200 bg-zinc-50 px-4 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                               />
                             ) : (
                               <div className="rounded-[13px] border border-blue-100 bg-blue-50/55 px-3.5 py-3">
@@ -16569,7 +16651,7 @@ function App() {
                                 name: role === 'Müşteri/Misafir' ? '' : prev.name,
                                 customerId: role === 'Müşteri/Misafir' ? prev.customerId : ''
                               })),
-                              buttonClassName: 'h-11 rounded-[13px] bg-zinc-50 border border-zinc-200 px-4 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]/25'
+                              buttonClassName: 'h-11 rounded-[13px] bg-zinc-50 border border-zinc-200 px-4 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]'
                             })}
 
                             {teamMemberDraft.role === 'Müşteri/Misafir' && renderSoftSelect({
@@ -16587,7 +16669,7 @@ function App() {
                                   username: prev.username || normalizeCredentialText(selectedCustomer?.name || '')
                                 }));
                               },
-                              buttonClassName: 'h-11 rounded-[13px] bg-zinc-50 border border-zinc-200 px-4 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]/25'
+                              buttonClassName: 'h-11 rounded-[13px] bg-zinc-50 border border-zinc-200 px-4 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]'
                             })}
 
                             <div className="grid grid-cols-2 gap-2">
@@ -16595,14 +16677,14 @@ function App() {
                                 value={teamMemberDraft.username}
                                 onChange={(event) => setTeamMemberDraft((prev) => ({ ...prev, username: normalizeCredentialText(event.target.value) }))}
                                 placeholder="Kullanıcı adı"
-                                className="w-full h-11 rounded-[13px] border border-zinc-200 bg-zinc-50 px-4 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                                className="w-full h-11 rounded-[13px] border border-zinc-200 bg-zinc-50 px-4 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                               />
 
                               <input
                                 value={teamMemberDraft.password}
                                 onChange={(event) => setTeamMemberDraft((prev) => ({ ...prev, password: event.target.value }))}
                                 placeholder="Şifre"
-                                className="w-full h-11 rounded-[13px] border border-zinc-200 bg-zinc-50 px-4 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                                className="w-full h-11 rounded-[13px] border border-zinc-200 bg-zinc-50 px-4 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                               />
                             </div>
                           </div>
@@ -16702,7 +16784,7 @@ function App() {
                                               event.stopPropagation();
                                               copyCredentialTextForMember(member);
                                             }}
-                                            className="h-6 px-2.5 rounded-[8px] bg-[#fff3ef] border border-[#ff3600]/10 text-[#ff3600] hover:bg-[#ff3600] hover:text-white text-[8px] font-black transition-all"
+                                            className="h-6 px-2.5 rounded-[8px] bg-[#ff3600] border border-[#ff3600] text-white hover:bg-[#ff3600] hover:text-white text-[8px] font-black transition-all"
                                           >
                                             Giriş Bilgisi
                                           </button>
@@ -16781,9 +16863,9 @@ function App() {
                               <div className="text-[8.5px] font-black text-white/45">Kayıt</div>
                             </div>
 
-                            <div className="w-[86px] rounded-[13px] bg-[#fff3ef] border border-[#ff3600]/10 px-3 py-2.5">
+                            <div className="w-[86px] rounded-[13px] bg-[#fff3ef] border border-[#ff3600] px-3 py-2.5">
                               <div className="text-[20px] font-black text-[#ff3600]">{customerPageItems.length}</div>
-                              <div className="text-[8.5px] font-black text-[#ff3600]/55">Liste</div>
+                              <div className="text-[8.5px] font-black text-white/80">Liste</div>
                             </div>
                           </div>
                         </div>
@@ -16798,7 +16880,7 @@ function App() {
                                 <div className="mt-0.5 text-[10px] font-bold text-zinc-400">Kısa müşteri kartı oluştur</div>
                               </div>
 
-                              <div className="w-9 h-9 rounded-[12px] bg-[#ff3600]/10 text-[#ff3600] flex items-center justify-center">
+                              <div className="w-9 h-9 rounded-[12px] bg-[#ff3600] text-white flex items-center justify-center">
                                 <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
@@ -16810,14 +16892,14 @@ function App() {
                                 value={customerDraft.name}
                                 onChange={(event) => setCustomerDraft((prev) => ({ ...prev, name: event.target.value }))}
                                 placeholder="Müşteri adı"
-                                className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                                className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                               />
 
                               <input
                                 value={customerDraft.contact}
                                 onChange={(event) => setCustomerDraft((prev) => ({ ...prev, contact: event.target.value }))}
                                 placeholder="Yetkili kişi"
-                                className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                                className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                               />
 
                               <div className="grid grid-cols-2 gap-2">
@@ -16825,14 +16907,14 @@ function App() {
                                   value={customerDraft.email}
                                   onChange={(event) => setCustomerDraft((prev) => ({ ...prev, email: event.target.value }))}
                                   placeholder="E-posta"
-                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                                 />
 
                                 <input
                                   value={customerDraft.phone}
                                   onChange={(event) => setCustomerDraft((prev) => ({ ...prev, phone: event.target.value }))}
                                   placeholder="Telefon"
-                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                                 />
                               </div>
 
@@ -16845,7 +16927,7 @@ function App() {
                                   ...prev,
                                   accountUserId: accountLabel === customerAccountNoneLabel ? '' : getCustomerAccountByLabel(accountLabel)?.id || ''
                                 })),
-                                buttonClassName: 'h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]/25'
+                                buttonClassName: 'h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]'
                               })}
 
                               <textarea
@@ -16853,7 +16935,7 @@ function App() {
                                 onChange={(event) => setCustomerDraft((prev) => ({ ...prev, note: event.target.value }))}
                                 placeholder="Not"
                                 rows={2}
-                                className="w-full resize-none rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 py-2 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                                className="w-full resize-none rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 py-2 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                               />
                             </div>
 
@@ -16872,14 +16954,14 @@ function App() {
                                 <button
                                   type="button"
                                   onClick={() => copyCredentialTextForCustomer(selectedCustomer)}
-                                  className="h-6 px-2.5 rounded-full bg-[#fff3ef] border border-[#ff3600]/10 text-[9px] font-black text-[#ff3600] hover:bg-[#ff3600] hover:text-white transition-all"
+                                  className="h-6 px-2.5 rounded-full bg-[#fff3ef] border border-[#ff3600] text-[9px] font-black text-[#ff3600] hover:bg-[#ff3600] hover:text-white transition-all"
                                 >
                                   Giriş Bilgisi
                                 </button>
                               </div>
 
                               <div className="mt-3 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-[13px] bg-[#ff3600]/10 text-[#ff3600] flex items-center justify-center text-[11px] font-black">
+                                <div className="w-10 h-10 rounded-[13px] bg-[#ff3600] text-white flex items-center justify-center text-[11px] font-black">
                                   {selectedCustomer.avatar || createAvatarFromName(selectedCustomer.name)}
                                 </div>
 
@@ -17012,7 +17094,7 @@ function App() {
                                                 event.stopPropagation();
                                                 copyCredentialTextForCustomer(customer);
                                               }}
-                                              className="h-6 px-2.5 rounded-[8px] bg-[#fff3ef] border border-[#ff3600]/10 text-[#ff3600] hover:bg-[#ff3600] hover:text-white text-[8px] font-black transition-all"
+                                              className="h-6 px-2.5 rounded-[8px] bg-[#ff3600] border border-[#ff3600] text-white hover:bg-[#ff3600] hover:text-white text-[8px] font-black transition-all"
                                             >
                                               Giriş Bilgisi
                                             </button>
@@ -17326,7 +17408,7 @@ function App() {
                                     onClick={() => setProjectSettingsDraft((prevDraft) => ({ ...prevDraft, color }))}
                                     className={`w-7 h-7 rounded-full border transition-all ${
                                       projectSettingsDraft.color === color
-                                        ? 'border-zinc-900 ring-4 ring-zinc-900/10 scale-110'
+                                        ? 'border-zinc-900 ring-2 ring-zinc-900 scale-110'
                                         : 'border-white hover:scale-110 hover:ring-4 hover:ring-zinc-900/5'
                                     }`}
                                     style={{ backgroundColor: color }}
@@ -17482,7 +17564,7 @@ function App() {
                     username: prev.username || normalizeCredentialText(event.target.value)
                   }))}
                   placeholder="Ad Soyad"
-                  className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                  className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                 />
               ) : (
                 <div className="rounded-[12px] border border-blue-100 bg-blue-50/55 px-3 py-2.5">
@@ -17506,7 +17588,7 @@ function App() {
                   name: role === 'Müşteri/Misafir' ? '' : prev.name,
                   customerId: role === 'Müşteri/Misafir' ? prev.customerId : ''
                 })),
-                buttonClassName: 'h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]/25'
+                buttonClassName: 'h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]'
               })}
 
               {teamMemberEditDraft.role === 'Müşteri/Misafir' && renderSoftSelect({
@@ -17525,14 +17607,14 @@ function App() {
                     email: prev.email || selectedCustomer?.email || ''
                   }));
                 },
-                buttonClassName: 'h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]/25'
+                buttonClassName: 'h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]'
               })}
 
               <input
                 value={teamMemberEditDraft.email}
                 onChange={(event) => setTeamMemberEditDraft((prev) => ({ ...prev, email: event.target.value }))}
                 placeholder="E-posta"
-                className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
               />
 
               <div className="grid grid-cols-2 gap-2">
@@ -17540,14 +17622,14 @@ function App() {
                   value={teamMemberEditDraft.username}
                   onChange={(event) => setTeamMemberEditDraft((prev) => ({ ...prev, username: normalizeCredentialText(event.target.value) }))}
                   placeholder="Kullanıcı adı"
-                  className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                  className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                 />
 
                 <input
                   value={teamMemberEditDraft.password}
                   onChange={(event) => setTeamMemberEditDraft((prev) => ({ ...prev, password: event.target.value }))}
                   placeholder="Şifre"
-                  className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                  className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                 />
               </div>
             </div>
@@ -17602,14 +17684,14 @@ function App() {
                 value={customerEditDraft.name}
                 onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, name: event.target.value }))}
                 placeholder="Müşteri adı"
-                className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
               />
 
               <input
                 value={customerEditDraft.contact}
                 onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, contact: event.target.value }))}
                 placeholder="Yetkili kişi"
-                className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
               />
 
               <div className="grid grid-cols-2 gap-3">
@@ -17617,14 +17699,14 @@ function App() {
                   value={customerEditDraft.email}
                   onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, email: event.target.value }))}
                   placeholder="E-posta"
-                  className="h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                  className="h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                 />
 
                 <input
                   value={customerEditDraft.phone}
                   onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, phone: event.target.value }))}
                   placeholder="Telefon"
-                  className="h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                  className="h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                 />
               </div>
 
@@ -17637,7 +17719,7 @@ function App() {
                   ...prev,
                   accountUserId: accountLabel === customerAccountNoneLabel ? '' : getCustomerAccountByLabel(accountLabel)?.id || ''
                 })),
-                buttonClassName: 'h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]/25'
+                buttonClassName: 'h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]'
               })}
 
               <textarea
@@ -17645,7 +17727,7 @@ function App() {
                 onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, note: event.target.value }))}
                 placeholder="Not"
                 rows={3}
-                className="w-full resize-none rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 py-2 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
+                className="w-full resize-none rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 py-2 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
               />
             </div>
 
@@ -18212,7 +18294,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
                       {taskTags.map((tag) => (
                         <span
                           key={tag}
-                          className="h-7 px-3 rounded-full bg-orange-50 text-orange-600 text-[10.5px] font-black flex items-center"
+                          className="h-7 px-3 rounded-full bg-zinc-100 text-zinc-700 text-[10.5px] font-black flex items-center"
                         >
                           {tag}
                         </span>
@@ -18468,7 +18550,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
                           className="group relative bg-white border border-slate-200 rounded-[10px] p-3 shadow-sm hover:shadow-[0_10px_24px_rgba(15,23,42,0.08)] transition-all"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-[10px] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                            <div className="w-10 h-10 rounded-[10px] bg-zinc-100 text-zinc-700 flex items-center justify-center shrink-0">
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-.988-2.387l-4.5-4.5A3.375 3.375 0 0011.625 3.75H8.25A2.25 2.25 0 006 6v12a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 18v-3.75" />
                               </svg>
@@ -18725,10 +18807,10 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
                                 : item.type === 'step'
                                   ? 'bg-green-50 text-green-600'
                                   : item.type === 'file'
-                                    ? 'bg-blue-50 text-blue-600'
+                                    ? 'bg-zinc-100 text-zinc-700'
                                     : item.type === 'comment'
                                       ? 'bg-indigo-50 text-indigo-600'
-                                      : 'bg-orange-50 text-orange-600'
+                                      : 'bg-zinc-100 text-zinc-700'
                             }`}>
                               {getHistoryIcon(item.type)}
                             </div>

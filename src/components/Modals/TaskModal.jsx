@@ -208,7 +208,7 @@ function DateInput({ label, value, onChange }) {
           onChange={(event) => onChange(event.target.value)}
           onFocus={() => setIsOpen(true)}
           placeholder="29 Mayıs 2026"
-          className="w-full h-8 rounded-full border border-slate-200 bg-white px-3 pr-8  text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
+          className="w-full h-8 rounded-full border border-slate-200 bg-white px-3 pr-8  text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-zinc-400 focus:ring-0 transition-all"
         />
 
         {value && (
@@ -228,7 +228,7 @@ function DateInput({ label, value, onChange }) {
             <button
               type="button"
               onClick={() => setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
-              className="w-7 h-7 rounded-full hover:bg-slate-50 text-blue-500 font-black"
+              className="w-7 h-7 rounded-full hover:bg-zinc-50 text-blue-500 font-black"
             >
               ‹
             </button>
@@ -240,7 +240,7 @@ function DateInput({ label, value, onChange }) {
             <button
               type="button"
               onClick={() => setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
-              className="w-7 h-7 rounded-full hover:bg-slate-50 text-blue-500 font-black"
+              className="w-7 h-7 rounded-full hover:bg-zinc-50 text-blue-500 font-black"
             >
               ›
             </button>
@@ -284,12 +284,12 @@ function DateInput({ label, value, onChange }) {
                   onClick={() => selectDate(day)}
                   className={`h-7 rounded-full text-[10.5px] font-black transition-all ${
                     isSelected
-                      ? 'bg-blue-500 text-white shadow-[0_6px_14px_rgba(37,99,235,0.24)]'
+                      ? 'bg-zinc-900 text-white'
                       : isToday
-                        ? 'bg-[#fff3ef] text-[#ff3600] ring-2 ring-[#ff3600]/25'
+                        ? 'bg-[#ff3600] text-white'
                         : isCurrentMonth
-                          ? 'text-slate-600 hover:bg-blue-50 hover:text-blue-600'
-                          : 'text-slate-300 hover:bg-slate-50'
+                          ? 'text-slate-600 hover:bg-zinc-100 hover:text-zinc-900'
+                          : 'text-slate-300 hover:bg-zinc-50'
                   }`}
                   title={isToday ? 'Bugün' : undefined}
                 >
@@ -331,7 +331,7 @@ function CustomSelect({
           event.stopPropagation();
           onToggle();
         }}
-        className={`w-full h-9 rounded-[9px] border border-slate-200 bg-white px-3 text-left flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:border-blue-200 hover:bg-slate-50 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-500/10 transition-all ${buttonClassName}`}
+        className={`w-full h-9 rounded-[9px] border border-slate-200 bg-white px-3 text-left flex items-center justify-between gap-2 text-[11px] font-black text-slate-600 hover:border-zinc-300 hover:bg-zinc-50 focus:outline-none focus:border-zinc-400 focus:ring-0 transition-all ${buttonClassName}`}
         style={
           selectedOption?.bg
             ? {
@@ -376,7 +376,7 @@ function CustomSelect({
                   onClose();
                 }}
                 className={`w-full h-7 rounded-[8px] px-2.5 flex items-center justify-between gap-2 text-left transition-all ${
-                  option.bg ? 'hover:brightness-[0.97]' : 'hover:bg-slate-50'
+                  option.bg ? 'hover:brightness-[0.97]' : 'hover:bg-zinc-50'
                 }`}
                 style={
                   option.bg
@@ -579,8 +579,6 @@ export default function TaskModal({
   // tüm form sıfırlanmasın, sadece status alanı güncellensin.
   const defaultStatusRef = useRef(defaultStatus);
   defaultStatusRef.current = defaultStatus;
-  const defaultFollowerRef = useRef(defaultFollower);
-  defaultFollowerRef.current = defaultFollower;
 
   // Ana form başlatma: Modal açılırken veya calendarDefaultDate değişince çalışır.
   // defaultStatus ve defaultFollower intentionally excluded from deps:
@@ -608,7 +606,7 @@ export default function TaskModal({
         priority: initialData.priority || 'Düşük',
         description: initialData.description || initialData.richDescription || '',
         startDate: toDisplayDate(initialData.startDate || ''),
-        endDate: toDisplayDate(initialData.endDate || initialData.date || ''),
+        endDate: toDisplayDate(initialData.endDate || initialData.dueDate || ''),
         tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : initialData.tags || '',
         customer: initialData.customer || 'Müşteri Seçin...',
         assignees: initialData.assignees || [],
@@ -631,7 +629,7 @@ export default function TaskModal({
       tags: '',
       customer: 'Müşteri Seçin...',
       assignees: [],
-      followers: defaultFollowerRef.current ? [defaultFollowerRef.current] : []
+      followers: []
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialData, calendarDefaultDate]);
@@ -744,7 +742,7 @@ export default function TaskModal({
       richDescription: form.description.trim(),
       startDate: form.startDate.trim(),
       endDate: form.endDate.trim(),
-      date: form.endDate.trim() || form.startDate.trim(),
+      date: form.endDate.trim(),
       tags: form.tags,
       customer: form.customer === 'Müşteri Seçin...' ? '' : form.customer,
       assignees: form.assignees,
@@ -778,7 +776,7 @@ export default function TaskModal({
           handleClose(true);
         }
       }}
-      className={`fixed inset-0 z-[700] flex items-start justify-center px-5 pt-[92px] pb-5 bg-zinc-950/40 backdrop-blur-[3.5px] ${isClosing ? 'task-modal-overlay-exit' : 'task-modal-overlay-enter'}`}
+      className={`fixed inset-0 z-[700] flex items-start justify-center px-5 pt-[92px] pb-5 bg-zinc-950/35 backdrop-blur-[3.5px] ${isClosing ? 'task-modal-overlay-exit' : 'task-modal-overlay-enter'}`}
     >
       <style>{`
         @keyframes taskModalOverlayIn {
@@ -893,7 +891,7 @@ export default function TaskModal({
                 type="text"
                 value={form.title}
                 onChange={(event) => updateField('title', event.target.value)}
-                className="w-full h-9 rounded-[10px] border border-slate-200 bg-white px-3 text-[12.5px]  font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
+                className="w-full h-9 rounded-[10px] border border-slate-200 bg-white px-3 text-[12.5px]  font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-zinc-400 focus:ring-0 transition-all"
                 autoFocus
               />
             </div>
@@ -938,7 +936,7 @@ export default function TaskModal({
             <textarea
               value={form.description}
               onChange={(event) => updateField('description', event.target.value)}
-              className="w-full h-[82px] resize-none rounded-[10px] border border-slate-200 bg-white px-3 py-2.5  text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
+              className="w-full h-[82px] resize-none rounded-[10px] border border-slate-200 bg-white px-3 py-2.5  text-[12px] font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-zinc-400 focus:ring-0 transition-all"
             />
           </div>
 
@@ -964,7 +962,7 @@ export default function TaskModal({
                 value={form.tags}
                 onChange={(event) => updateField('tags', event.target.value)}
                 placeholder="Etiket ekle"
-                className="w-full h-8 rounded-full border border-slate-200 bg-white px-3 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#b8d3ff] focus:ring-2 focus:ring-blue-500/10 transition-all"
+                className="w-full h-8 rounded-full border border-slate-200 bg-white px-3 text-[11.5px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-zinc-400 focus:ring-0 transition-all"
               />
             </div>
 
@@ -1027,14 +1025,14 @@ export default function TaskModal({
 
               {openUserPicker === 'assignees' && (
                 <div onClick={(event) => event.stopPropagation()}
-                  className="absolute left-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-[#263244]/15 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
+                  className="absolute left-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-zinc-200 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
                   {users.length > 0 ? (
                     assigneeUsers.map((user) => (
                       <button
                         key={user.id}
                         type="button"
                         onClick={() => toggleUser('assignees', user)}
-                        className="w-full h-8 rounded-[7px] px-2 flex items-center gap-2 hover:bg-slate-50 text-left"
+                        className="w-full h-8 rounded-[7px] px-2 flex items-center gap-2 hover:bg-zinc-50 text-left"
                       >
                         <MiniUser user={user} />
                         <span className="text-[11px] font-bold text-slate-600">{user.name}</span>
@@ -1053,11 +1051,11 @@ export default function TaskModal({
           </div>
         </div>
 
-        <div className="h-[58px] px-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between rounded-b-[13px]">
+        <div className="h-[58px] px-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-[13px]">
           <button
             type="button"
             onClick={handleClose}
-            className="h-8 px-4 rounded-full bg-white border border-[#263244]/15 text-slate-500 text-[11px] font-black hover:text-slate-800 hover:border-slate-300 transition-all"
+            className="h-8 px-4 rounded-full bg-white border border-zinc-200 text-slate-500 text-[11px] font-black hover:text-slate-800 hover:border-slate-300 transition-all"
           >
             İptal
           </button>
