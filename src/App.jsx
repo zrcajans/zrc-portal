@@ -16932,33 +16932,35 @@ function App() {
                                 )}
                               </div>
 
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (!currentPermissions.manageProjectSettings) return;
-                                  setIsProjectTeamPickerOpen((prev) => !prev);
-                                }}
-                                disabled={!currentPermissions.manageProjectSettings || availableProjectTeamMembers.length === 0}
-                                className={`mt-2 h-9 w-full rounded-[10px] text-[11px] font-black flex items-center justify-center gap-2 transition-all ${
-                                  currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0
-                                    ? 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-[0_10px_20px_rgba(15,23,42,0.12)]'
-                                    : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
-                                }`}
-                              >
-                                <span className="text-[15px] leading-none">+</span>
-                                <span>{availableProjectTeamMembers.length > 0 ? 'Ekip Üyesi Ekle' : 'Eklenebilir ekip üyesi yok'}</span>
-                              </button>
+                              <div className="mt-2 flex items-center justify-start">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!currentPermissions.manageProjectSettings) return;
+                                    setIsProjectTeamPickerOpen((prev) => !prev);
+                                  }}
+                                  disabled={!currentPermissions.manageProjectSettings || availableProjectTeamMembers.length === 0}
+                                  className={`h-7 px-3 rounded-[8px] text-[10px] font-black flex items-center justify-center gap-1.5 transition-all ${
+                                    currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0
+                                      ? 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-[0_8px_16px_rgba(15,23,42,0.10)]'
+                                      : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
+                                  }`}
+                                >
+                                  <span className="text-[13px] leading-none">+</span>
+                                  <span>{availableProjectTeamMembers.length > 0 ? 'Ekip Üyesi Ekle' : 'Eklenebilir üye yok'}</span>
+                                </button>
+                              </div>
 
                               {isProjectTeamPickerOpen && currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0 && (
-                                <div className="absolute left-3 right-3 top-[calc(100%-6px)] z-[120] rounded-[14px] border border-zinc-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.16)] overflow-hidden">
-                                  <div className="px-3 py-2 border-b border-zinc-100">
-                                    <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.08em]">Ekip Üyesi Seç</div>
-                                    <div className="mt-0.5 text-[9px] font-bold text-zinc-400">
+                                <div className="relative z-[120] mt-2 rounded-[12px] border border-zinc-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.13)] overflow-hidden">
+                                  <div className="px-3 py-2 border-b border-zinc-100 bg-zinc-50/70">
+                                    <div className="text-[9.5px] font-black text-zinc-500 uppercase tracking-[0.08em]">Ekip Üyesi Seç</div>
+                                    <div className="mt-0.5 text-[8.5px] font-bold text-zinc-400">
                                       Zaten ekli olan kişiler burada görünmez.
                                     </div>
                                   </div>
 
-                                  <div className="max-h-[190px] overflow-y-auto custom-scrollbar p-1.5">
+                                  <div className="max-h-[126px] overflow-y-auto custom-scrollbar p-1.5">
                                     {availableProjectTeamMembers.map((member) => (
                                       <button
                                         key={`available-project-member-${member.id}`}
