@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v270-description-datepicker-fix';
+const ZRC_APP_BUILD_LABEL = 'v271-ekip-gorev-yetki-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -4980,6 +4980,12 @@ function App() {
     };
 
     const targetColumn = boardColumns.find((column) => column.title === finalTargetStatus) || previousColumn || boardColumns[0];
+
+    if (previousTask && !canCurrentUserModifyTask({ ...previousTask, ...cleanedTaskData }, cleanedTaskData.projectName || selectedProject)) {
+      showPermissionWarning('Bu görev sana atanmadığı için düzenleyemezsin.');
+      return;
+    }
+
     const wasAssignedToMe = previousTask ? isCurrentProfileInUsers(previousTask.assignees || []) : false;
     const isAssignedToMe = isCurrentProfileInUsers(cleanedTaskData.assignees || []);
 
@@ -5388,6 +5394,11 @@ function App() {
       return;
     }
 
+    if (!canCurrentUserModifyTask(detailTaskInfo.task, getProjectNameForTask(detailTaskInfo.task) || selectedProject)) {
+      showPermissionWarning('Bu görev sana atanmadığı için düzenleyemezsin.');
+      return;
+    }
+
     setEditingTask({
       ...detailTaskInfo.task,
       status: detailTaskInfo.columnTitle || 'Bekliyor'
@@ -5707,6 +5718,34 @@ function App() {
 
     return isTaskAssignedToCurrentUserForCalendar(task);
   };
+
+  const isTaskAssignedToCurrentUserForAction = (task = {}) =>
+    isTaskAssignedToCurrentUserForCalendar(task);
+
+  const canCurrentUserModifyTask = (task = {}, projectName = '') => {
+    if (!task) return false;
+    if (isZrcOwnerAccount) return true;
+
+    if (currentAccountType === 'Ekip Üyesi') {
+      const taskProjectName = projectName || task.projectName || task.project || task.projectTitle || selectedProject;
+
+      return Boolean(
+        taskProjectName &&
+        isCurrentUserProjectMember(taskProjectName) &&
+        isTaskAssignedToCurrentUserForAction(task)
+      );
+    }
+
+    return false;
+  };
+
+  const isCurrentUserAssignedToTask = (task = {}) =>
+    currentAccountType === 'Ekip Üyesi' && isTaskAssignedToCurrentUserForAction(task);
+
+  const isCurrentUserReadonlyTask = (task = {}, projectName = '') =>
+    currentAccountType === 'Ekip Üyesi' &&
+    isCurrentUserProjectMember(projectName || task.projectName || selectedProject) &&
+    !isTaskAssignedToCurrentUserForAction(task);
 
   const isProjectVisibleForCurrentUser = (projectName = '') => {
     if (currentAccountType === 'Patron') return true;
@@ -6182,6 +6221,11 @@ function App() {
       return;
     }
 
+    if (sourceTask && !canCurrentUserModifyTask(sourceTask, getProjectNameForTask(sourceTask) || selectedProject)) {
+      showPermissionWarning('Bu görev sana atanmadığı için işlem yapamazsın.');
+      return;
+    }
+
     setBoardColumns((prevColumns) =>
       prevColumns.map((column) => ({
         ...column,
@@ -6253,6 +6297,13 @@ function App() {
   };
 
   const addTaskComment = (taskId, commentText) => {
+    const sourceTask = detailTaskInfo?.task || reportTasks.find((task) => task.id === taskId) || null;
+
+    if (sourceTask && !canCurrentUserModifyTask(sourceTask, getProjectNameForTask(sourceTask) || selectedProject)) {
+      showPermissionWarning('Bu görev sana atanmadığı için yorum ekleyemezsin.');
+      return;
+    }
+
     const cleanComment = commentText.trim();
     if (!cleanComment) return;
 
@@ -6288,6 +6339,13 @@ function App() {
   };
 
   const deleteTaskComment = (taskId, commentId) => {
+    const sourceTask = detailTaskInfo?.task || reportTasks.find((task) => task.id === taskId) || null;
+
+    if (sourceTask && !canCurrentUserModifyTask(sourceTask, getProjectNameForTask(sourceTask) || selectedProject)) {
+      showPermissionWarning('Bu görev sana atanmadığı için yorum silemezsin.');
+      return;
+    }
+
     const currentComments = detailTaskInfo?.task?.comments || [];
     const deletedComment = currentComments.find((comment) => comment.id === commentId);
 
@@ -6406,6 +6464,11 @@ function App() {
 
       if (currentAccountType === 'Ekip Üyesi' && !isCurrentUserProjectMember(selectedProject)) {
         showPermissionWarning('Bu projede görev düzenleme yetkin yok.');
+        return;
+      }
+
+      if (!canCurrentUserModifyTask(task, selectedProject)) {
+        showPermissionWarning('Bu görev sana atanmadığı için düzenleyemezsin.');
         return;
       }
 
@@ -6594,6 +6657,16 @@ function App() {
   const supabaseRealtimeRefreshTimer = useRef(null);
 
   const handleDragStart = (e, taskId, sourceColId) => {
+    const sourceColumn = boardColumns.find((column) => column.id === sourceColId);
+    const sourceTask = sourceColumn?.tasks.find((task) => task.id === taskId) || null;
+
+    if (!sourceTask || !canCurrentUserModifyTask(sourceTask, selectedProject)) {
+      draggedTaskInfo.current = null;
+      e.preventDefault();
+      showPermissionWarning('Bu görev sana atanmadığı için durumunu değiştiremezsin.');
+      return;
+    }
+
     draggedTaskInfo.current = { taskId, sourceColId };
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -6611,6 +6684,12 @@ function App() {
     const sourceColumnBeforeMove = boardColumns.find((column) => column.id === sourceColId);
     const targetColumnBeforeMove = boardColumns.find((column) => column.id === targetColId);
     const taskBeforeMove = sourceColumnBeforeMove?.tasks.find((task) => task.id === taskId) || null;
+
+    if (taskBeforeMove && !canCurrentUserModifyTask(taskBeforeMove, selectedProject)) {
+      draggedTaskInfo.current = null;
+      showPermissionWarning('Bu görev sana atanmadığı için durumunu değiştiremezsin.');
+      return;
+    }
 
     setBoardColumns((prevColumns) => {
       const updatedCols = prevColumns.map((col) => ({ ...col, tasks: [...col.tasks] }));
@@ -14808,13 +14887,17 @@ function App() {
                                 return (
                                   <div
                                     key={task.id}
-                                    draggable={currentPermissions.editTasks}
+                                    draggable={Boolean(currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject))}
                                     onClick={() => {
                                       if (isEditMode) return;
                                       openTaskDetail(task, column.title);
                                     }}
                                     onDragStart={(e) => {
-                                      if (!currentPermissions.editTasks) return;
+                                      if (!currentPermissions.editTasks || !canCurrentUserModifyTask(task, selectedProject)) {
+                                        e.preventDefault();
+                                        showPermissionWarning('Bu görev sana atanmadığı için durumunu değiştiremezsin.');
+                                        return;
+                                      }
                                       handleDragStart(e, task.id, column.id);
                                     }}
                                     className={`w-full bg-white p-3.5 rounded-[3px] border border-zinc-100 shadow-[0_6px_16px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)] transition-all duration-200 group relative ${isEditMode ? 'cursor-default opacity-70 hover:shadow-[0_6px_16px_rgba(15,23,42,0.055)]' : 'cursor-pointer'} ${openTaskMenuId === task.id ? 'z-[400]' : 'z-10'} ${
@@ -14857,7 +14940,7 @@ function App() {
                                           Detayı aç
                                         </button>
 
-                                        {currentPermissions.editTasks && (
+                                        {currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject) && (
                                           <button
                                             type="button"
                                             onClick={() => handleTaskAction('duzenle', column.id, task)}
@@ -17830,9 +17913,9 @@ function App() {
         onUpdate={updateTaskFromDetail}
         onAddComment={addTaskComment}
         onDeleteComment={deleteTaskComment}
-        canEditTask={currentPermissions.editTasks}
-        canManageFiles={currentPermissions.manageFiles}
-        canComment={currentPermissions.comment}
+        canEditTask={Boolean(currentPermissions.editTasks && detailTaskInfo?.task && canCurrentUserModifyTask(detailTaskInfo.task, getProjectNameForTask(detailTaskInfo.task) || selectedProject))}
+        canManageFiles={Boolean(currentPermissions.manageFiles && detailTaskInfo?.task && canCurrentUserModifyTask(detailTaskInfo.task, getProjectNameForTask(detailTaskInfo.task) || selectedProject))}
+        canComment={Boolean(currentPermissions.comment && detailTaskInfo?.task && canCurrentUserModifyTask(detailTaskInfo.task, getProjectNameForTask(detailTaskInfo.task) || selectedProject))}
         currentAccountType={currentAccountType}
         currentActorId={currentActorId}
         currentActorName={currentActorName}
@@ -18330,6 +18413,12 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#f7f8fa]">
+          {!canEditTask && currentAccountType === 'Ekip Üyesi' && (
+            <div className="mx-4 mt-4 rounded-[10px] border border-zinc-200 bg-white px-3.5 py-2.5 text-[11px] font-black text-zinc-500">
+              Bu görev sana atanmadığı için sadece görüntüleyebilirsin.
+            </div>
+          )}
+
           {activeDetailTab === 'Detaylar' ? (
             <div className="grid grid-cols-[1fr_250px] gap-4 p-4">
               <section className="bg-white border border-slate-200 rounded-[10px] p-4 shadow-[0_8px_22px_rgba(15,23,42,0.035)]">
