@@ -30,7 +30,7 @@ function Sidebar({
   const isProjectsPanelOpen = activeMenu === 'Projeler' && isPanelOpen;
   const isOtherPanelOpen = activeMenu === 'Diğer' && isPanelOpen;
   const activeTeamCount = teamMembers.filter((member) => member.status !== 'Pasif').length;
-  const canCreateProject = permissions?.manageProjects !== false;
+  const canCreateProject = currentAccountType !== 'Müşteri' && currentUserRole !== 'Müşteri/Misafir';
   const projectList = Array.isArray(visibleProjects) ? visibleProjects : projects;
   const getProjectAccentColor = (projectName = '') =>
     projectSettings?.[projectName]?.color || '#ff3600';
@@ -113,7 +113,7 @@ function Sidebar({
 
   const handleCreateProject = () => {
     if (!canCreateProject) {
-      alert('Yeni proje oluşturma yetkisi sadece Yönetici rolünde var.');
+      alert('Müşteri/Misafir hesabı proje oluşturamaz.');
       return;
     }
 
@@ -362,7 +362,7 @@ function Sidebar({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                <span>{canCreateProject ? 'Yeni Proje Oluştur' : 'Sadece Yönetici Proje Açabilir'}</span>
+                <span>{canCreateProject ? 'Yeni Proje Oluştur' : 'Müşteri Proje Açamaz'}</span>
               </button>
 
               <div className="w-full h-[1px] bg-zinc-100 mb-3 shrink-0" />
@@ -372,7 +372,7 @@ function Sidebar({
                   <div className="rounded-[10px] border border-zinc-200 bg-zinc-50 px-3 py-4 text-center">
                     <div className="text-[11px] font-black text-zinc-500">Görünür proje yok</div>
                     <div className="mt-1 text-[9.5px] font-bold text-zinc-400 leading-4">
-                      Bu hesap için atanmış veya müşteriyle eşleşen proje bulunmuyor.
+                      Henüz atanmış proje yok. Ekip üyesiysen yeni proje oluşturabilirsin.
                     </div>
                   </div>
                 )}

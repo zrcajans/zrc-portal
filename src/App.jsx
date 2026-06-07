@@ -2741,6 +2741,8 @@ function App() {
   };
 
   const syncProjectListChangeToSupabase = (previousProjects = [], nextProjects = []) => {
+    if (currentAccountType !== 'Patron') return;
+
     const previousProjectNames = normalizeProjectNameList(previousProjects);
     const nextProjectNames = normalizeProjectNameList(nextProjects);
 
@@ -2763,6 +2765,35 @@ function App() {
       const previousProjectNames = normalizeProjectNameList(prevProjects);
       const rawNextProjects = typeof updater === 'function' ? updater(previousProjectNames) : updater;
       const nextProjectNames = normalizeProjectNameList(rawNextProjects);
+      const addedProjectNames = nextProjectNames.filter((projectName) => !previousProjectNames.includes(projectName));
+
+      if (addedProjectNames.length > 0) {
+        setProjectSettings((prevSettings) => {
+          const nextSettings = { ...prevSettings };
+
+          addedProjectNames.forEach((projectName) => {
+            const baseSettings = {
+              ...createDefaultProjectSettings(projectName),
+              ...(nextSettings[projectName] || {}),
+              title: nextSettings[projectName]?.title || projectName
+            };
+
+            const ownerTeamMemberIds =
+              currentAccountType === 'Ekip Üyesi' && currentUserId
+                ? [currentUserId]
+                : (Array.isArray(baseSettings.teamMemberIds) ? baseSettings.teamMemberIds : []);
+
+            nextSettings[projectName] = {
+              ...baseSettings,
+              teamMemberIds: Array.from(new Set(ownerTeamMemberIds)),
+              ownerId: currentUserId || baseSettings.ownerId || '',
+              createdById: currentUserId || baseSettings.createdById || ''
+            };
+          });
+
+          return nextSettings;
+        });
+      }
 
       window.setTimeout(() => {
         syncProjectListChangeToSupabase(previousProjectNames, nextProjectNames);
@@ -2849,24 +2880,36 @@ function App() {
           projectCustomersByProjectId.set(customerLink.project_id, customerLink.customer_id);
         });
 
-        setProjectSettings(() => {
+        setProjectSettings((prevSettings) => {
           const nextSettings = {};
 
           cleanDbProjects.forEach((project) => {
             const linkedCustomerId = projectCustomersByProjectId.get(project.id) || project.customer_id || '';
             const linkedCustomer = customersById.get(linkedCustomerId);
+            const previousProjectSettings = prevSettings[project.name] || {};
+            const dbTeamMemberIds = projectMembersByProjectId.get(project.id) || [];
+            const localTeamMemberIds = (Array.isArray(previousProjectSettings.teamMemberIds)
+              ? previousProjectSettings.teamMemberIds
+              : []
+            ).filter((memberId) => !isSupabaseUuid(memberId));
 
             nextSettings[project.name] = {
               ...createDefaultProjectSettings(project.name),
-              ...(nextSettings[project.name] || {}),
+              ...previousProjectSettings,
               title: project.name,
-              description: project.description || '',
-              customer: linkedCustomer?.name || '',
-              customerId: linkedCustomerId || '',
-              teamMemberIds: projectMembersByProjectId.get(project.id) || [],
-              status: project.status || 'Aktif',
-              color: project.color || '#ff3600'
+              description: project.description || previousProjectSettings.description || '',
+              customer: linkedCustomer?.name || previousProjectSettings.customer || '',
+              customerId: linkedCustomerId || previousProjectSettings.customerId || '',
+              teamMemberIds: Array.from(new Set([...dbTeamMemberIds, ...localTeamMemberIds])),
+              status: project.status || previousProjectSettings.status || 'Aktif',
+              color: project.color || previousProjectSettings.color || '#ff3600'
             };
+          });
+
+          Object.entries(prevSettings || {}).forEach(([projectName, settings]) => {
+            if (!nextSettings[projectName] && !cleanDbProjects.some((project) => project.name === projectName)) {
+              nextSettings[projectName] = settings;
+            }
           });
 
           return nextSettings;
@@ -5299,8 +5342,16 @@ function App() {
 
   const isCurrentUserProjectMember = (projectName = '') => {
     const settings = projectSettings[projectName] || {};
+    const teamMemberIds = Array.isArray(settings.teamMemberIds) ? settings.teamMemberIds.map(String) : [];
 
-    return Boolean(currentUserId && (settings.teamMemberIds || []).includes(currentUserId));
+    if (!currentUserId || teamMemberIds.length === 0) return false;
+    if (teamMemberIds.includes(String(currentUserId))) return true;
+
+    if (isZrcAjansIdentityRecord(currentRoleMember)) {
+      return teamMemberIds.some((memberId) => isZrcAjansIdentityRecord({ id: memberId }));
+    }
+
+    return false;
   };
 
   const isCurrentCustomerProject = (projectName = '') => {
