@@ -649,6 +649,7 @@ function App() {
   });
 
   const [currentUserId, setCurrentUserId] = useState(() => readStorageValue('currentUserId', '') || '');
+  const [supabaseAuthUserId, setSupabaseAuthUserId] = useState('');
   const [loginDraft, setLoginDraft] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [authLoginLoading, setAuthLoginLoading] = useState(false);
@@ -1601,27 +1602,53 @@ function App() {
           }))
         );
 
-        const assigneeIds = (taskData.assignees || [])
-          .map((person) => person?.id || person?.userId)
-          .filter(isSupabaseUuid);
+        const { data: activeSessionData } = await supabase.auth.getSession();
+        const activeAuthUserId = activeSessionData?.session?.user?.id || supabaseAuthUserId || currentUserId;
 
-        const followerIds = (taskData.followers || [])
-          .map((person) => person?.id || person?.userId)
-          .filter(isSupabaseUuid);
+        const getSupabaseUserIdForTaskPerson = (person = {}) => {
+          const rawId = person?.id || person?.userId;
 
-        await supabase.from('task_assignees').delete().eq('task_id', savedTask.id);
-        await supabase.from('task_followers').delete().eq('task_id', savedTask.id);
+          if (isSupabaseUuid(rawId)) return rawId;
+
+          if (isZrcAjansIdentityRecord(person) && isSupabaseUuid(activeAuthUserId)) {
+            return activeAuthUserId;
+          }
+
+          return null;
+        };
+
+        const uniqueSupabaseUserIds = (people = []) =>
+          Array.from(
+            new Set(
+              (people || [])
+                .map(getSupabaseUserIdForTaskPerson)
+                .filter(isSupabaseUuid)
+            )
+          );
+
+        const assigneeIds = uniqueSupabaseUserIds(taskData.assignees || []);
+        const followerIds = uniqueSupabaseUserIds(taskData.followers || []);
+
+        const { error: deleteAssigneesError } = await supabase.from('task_assignees').delete().eq('task_id', savedTask.id);
+        if (deleteAssigneesError) throw deleteAssigneesError;
+
+        const { error: deleteFollowersError } = await supabase.from('task_followers').delete().eq('task_id', savedTask.id);
+        if (deleteFollowersError) throw deleteFollowersError;
 
         if (assigneeIds.length > 0) {
-          await supabase
+          const { error: insertAssigneesError } = await supabase
             .from('task_assignees')
             .insert(assigneeIds.map((userId) => ({ task_id: savedTask.id, user_id: userId })));
+
+          if (insertAssigneesError) throw insertAssigneesError;
         }
 
         if (followerIds.length > 0) {
-          await supabase
+          const { error: insertFollowersError } = await supabase
             .from('task_followers')
             .insert(followerIds.map((userId) => ({ task_id: savedTask.id, user_id: userId })));
+
+          if (insertFollowersError) throw insertFollowersError;
         }
       }
 
@@ -1698,27 +1725,53 @@ function App() {
           };
         });
 
-        const assigneeIds = (taskData.assignees || [])
-          .map((person) => person?.id || person?.userId)
-          .filter(isSupabaseUuid);
+        const { data: activeSessionData } = await supabase.auth.getSession();
+        const activeAuthUserId = activeSessionData?.session?.user?.id || supabaseAuthUserId || currentUserId;
 
-        const followerIds = (taskData.followers || [])
-          .map((person) => person?.id || person?.userId)
-          .filter(isSupabaseUuid);
+        const getSupabaseUserIdForTaskPerson = (person = {}) => {
+          const rawId = person?.id || person?.userId;
 
-        await supabase.from('task_assignees').delete().eq('task_id', data.id);
-        await supabase.from('task_followers').delete().eq('task_id', data.id);
+          if (isSupabaseUuid(rawId)) return rawId;
+
+          if (isZrcAjansIdentityRecord(person) && isSupabaseUuid(activeAuthUserId)) {
+            return activeAuthUserId;
+          }
+
+          return null;
+        };
+
+        const uniqueSupabaseUserIds = (people = []) =>
+          Array.from(
+            new Set(
+              (people || [])
+                .map(getSupabaseUserIdForTaskPerson)
+                .filter(isSupabaseUuid)
+            )
+          );
+
+        const assigneeIds = uniqueSupabaseUserIds(taskData.assignees || []);
+        const followerIds = uniqueSupabaseUserIds(taskData.followers || []);
+
+        const { error: deleteAssigneesError } = await supabase.from('task_assignees').delete().eq('task_id', data.id);
+        if (deleteAssigneesError) throw deleteAssigneesError;
+
+        const { error: deleteFollowersError } = await supabase.from('task_followers').delete().eq('task_id', data.id);
+        if (deleteFollowersError) throw deleteFollowersError;
 
         if (assigneeIds.length > 0) {
-          await supabase
+          const { error: insertAssigneesError } = await supabase
             .from('task_assignees')
             .insert(assigneeIds.map((userId) => ({ task_id: data.id, user_id: userId })));
+
+          if (insertAssigneesError) throw insertAssigneesError;
         }
 
         if (followerIds.length > 0) {
-          await supabase
+          const { error: insertFollowersError } = await supabase
             .from('task_followers')
             .insert(followerIds.map((userId) => ({ task_id: data.id, user_id: userId })));
+
+          if (insertFollowersError) throw insertFollowersError;
         }
       }
 
@@ -4350,7 +4403,7 @@ function App() {
 
     if (!userId) return null;
 
-    if (userId === String(currentUserId || '') || userId === String(currentRoleMember?.id || '')) {
+    if (userId === String(supabaseAuthUserId || '') || userId === String(currentUserId || '') || userId === String(currentRoleMember?.id || '')) {
       return {
         id: userId,
         name: 'ZRC AJANS',
@@ -4612,7 +4665,7 @@ function App() {
 
   useEffect(() => {
     loadSelectedProjectBoardFromSupabase();
-  }, [selectedProject, supabaseWorkspaceId, currentUserId, authSessionLoading]);
+  }, [selectedProject, supabaseWorkspaceId, currentUserId, supabaseAuthUserId, authSessionLoading]);
 
 
   // --- MODAL KAYIT İŞLEMLERİ ---
@@ -8626,9 +8679,11 @@ function App() {
   };
 
   const realActiveTeamMembers = activeTeamMembers.filter((member) => !isLegacyDemoTaskPerson(member));
-  const zrcCanonicalId = isSupabaseUuid(currentActorId)
-    ? currentActorId
-    : (isSupabaseUuid(currentRoleMember?.id) ? currentRoleMember.id : currentActorId || 'user-1');
+  const zrcCanonicalId = isSupabaseUuid(supabaseAuthUserId)
+    ? supabaseAuthUserId
+    : (isSupabaseUuid(currentActorId)
+      ? currentActorId
+      : (isSupabaseUuid(currentRoleMember?.id) ? currentRoleMember.id : currentActorId || 'user-1'));
 
   const zrcAjansSystemMember = {
     id: zrcCanonicalId,
@@ -10661,6 +10716,10 @@ function App() {
 
         const authUser = data?.session?.user || null;
 
+        if (isMounted) {
+          setSupabaseAuthUserId(authUser?.id || '');
+        }
+
         if (!authUser) {
           const looksLikeSupabaseUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(currentUserId || ''));
 
@@ -10772,6 +10831,7 @@ function App() {
       }
 
       const authUser = signInData?.user;
+      setSupabaseAuthUserId(authUser?.id || '');
 
       if (!authUser) {
         setLoginError('Supabase kullanıcı bilgisi alınamadı.');
@@ -10799,6 +10859,7 @@ function App() {
     await supabase.auth.signOut();
     setAuthSessionLoading(false);
     setSupabaseWorkspaceId('');
+    setSupabaseAuthUserId('');
     removeStorageValue(NAVIGATION_STORAGE_KEYS.activeMenu);
     removeStorageValue(NAVIGATION_STORAGE_KEYS.activeContentMenu);
     removeStorageValue(NAVIGATION_STORAGE_KEYS.activeTab);
