@@ -10894,7 +10894,7 @@ function App() {
         }}
       />
 
-      <main onClick={handleMainClick} className="zrc-main-shell flex-1 pl-[68px] min-h-screen bg-white transition-colors duration-300 flex flex-col overflow-hidden">
+      <main onClick={handleMainClick} className="zrc-main-shell flex-1 pl-[68px] min-h-screen bg-[#f5f6f8] transition-colors duration-300 flex flex-col overflow-hidden">
         <TopNavbar
           unreadNotificationCount={unreadNotificationCount}
           isNotificationsOpen={isNotificationsOpen}
@@ -13795,7 +13795,12 @@ function App() {
                             </button>
                           )}
 
-                          <button className="w-9 h-9 rounded-full border border-zinc-200/80 bg-white hover:bg-white hover:text-zinc-800 hover:border-zinc-300 transition-all flex items-center justify-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]" title="Ara">
+                          <button
+                            type="button"
+                            onClick={openGlobalSearch}
+                            className="w-9 h-9 rounded-full border border-zinc-200/80 bg-white hover:bg-white hover:text-zinc-800 hover:border-zinc-300 transition-all flex items-center justify-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+                            title="Ara"
+                          >
                             <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
