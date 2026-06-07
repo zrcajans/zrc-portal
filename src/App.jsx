@@ -7341,7 +7341,37 @@ function App() {
   const timeChartProjectMemberIds = Array.isArray(projectSettings[selectedProject]?.teamMemberIds)
     ? projectSettings[selectedProject].teamMemberIds
     : [];
-  const timeChartProjectMembers = projectAssignableMembers
+
+  const isHiddenTimeChartMember = (member = {}) => {
+    const normalize = (value = '') =>
+      String(value || '')
+        .trim()
+        .toLocaleLowerCase('tr-TR')
+        .replaceAll('ı', 'i')
+        .replaceAll('ğ', 'g')
+        .replaceAll('ü', 'u')
+        .replaceAll('ş', 's')
+        .replaceAll('ö', 'o')
+        .replaceAll('ç', 'c')
+        .replace(/[^a-z0-9@._-]/g, '');
+
+    const id = String(member.id || '');
+    const username = normalize(member.username || '');
+    const name = normalize(member.name || '');
+    const email = normalize(member.email || '');
+
+    return (
+      ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
+      ['enes', 'ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
+      ['eneszaric', 'ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
+      ['enes@zrcajans.com', 'enszrc@gmail.com', 'ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
+    );
+  };
+
+  const timeChartProjectMembers = teamMembers
+    .filter((member) => member.status !== 'Pasif')
+    .filter((member) => normalizeTeamRole(member.role) !== 'Müşteri/Misafir')
+    .filter((member) => !isHiddenTimeChartMember(member))
     .filter((member) => timeChartProjectMemberIds.length === 0 || timeChartProjectMemberIds.includes(member.id))
     .map((member) => ({
       id: member.id,
