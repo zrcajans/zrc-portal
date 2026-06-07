@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v158-proje-crud-supabase-sync';
+const ZRC_APP_BUILD_LABEL = 'v264-takvim-raw-assignee-tdz-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -867,6 +867,61 @@ function App() {
 
     return savedProfile;
   });
+
+  const currentAuthUserIdForRole = String(supabaseAuthUserId || '').trim();
+  const hasSupabaseAuthUserForRole =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentAuthUserIdForRole);
+
+  const currentRoleMember =
+    (hasSupabaseAuthUserForRole
+      ? teamMembers.find((member) => String(member.id) === currentAuthUserIdForRole && member.status !== 'Pasif')
+      : null) ||
+    (currentUserId
+      ? teamMembers.find((member) => String(member.id) === String(currentUserId) && member.status !== 'Pasif') || null
+      : null);
+
+  const currentProfileNameParts = [profileDraft.firstName, profileDraft.lastName]
+    .map((part) => String(part || '').trim())
+    .filter(Boolean);
+  const rawCurrentProfileName = currentProfileNameParts.join(' ');
+  const currentProfileName = isLegacyDemoTeamMemberRecord({ name: rawCurrentProfileName, email: profileDraft.email })
+    ? 'ZRC AJANS'
+    : rawCurrentProfileName || currentRoleMember?.name || 'ZRC AJANS';
+  const currentProfileInitials = createAvatarFromName(currentProfileName);
+
+  const currentProfileAvatar =
+    profileDraft.avatarDataUrl ||
+    (typeof currentRoleMember?.avatar === 'string' && currentRoleMember.avatar.startsWith('data:image')
+      ? currentRoleMember.avatar
+      : '') ||
+    currentProfileInitials;
+
+  const normalizedCurrentRawRole = normalizeTeamRole(currentRoleMember?.role || '');
+  const isZrcOwnerAccount = Boolean(
+    currentRoleMember &&
+      isZrcAjansIdentityRecord(currentRoleMember) &&
+      (
+        !hasSupabaseAuthUserForRole ||
+        String(currentRoleMember.id || '') === currentAuthUserIdForRole
+      )
+  );
+  const currentUserRole =
+    normalizedCurrentRawRole === 'Müşteri/Misafir'
+      ? 'Müşteri/Misafir'
+      : isZrcOwnerAccount
+        ? 'Yönetici'
+        : 'Ekip Üyesi';
+  const currentAccountType =
+    isZrcOwnerAccount
+      ? 'Patron'
+      : currentUserRole === 'Müşteri/Misafir'
+        ? 'Müşteri'
+        : 'Ekip Üyesi';
+  const isLoggedIn = Boolean(currentUserId && currentRoleMember);
+  const currentPermissions = getPermissionsForRole(currentUserRole);
+  const currentActorId = currentUserId || currentRoleMember?.id || 'anonymous-user';
+  const currentActorName = currentProfileName;
+  const currentActorAvatar = currentProfileAvatar;
 
   const [profilePreferences, setProfilePreferences] = useState(() => {
     const savedPreferences = normalizeStorageObject(readStorageValue('profilePreferences', null), null);
@@ -5285,57 +5340,6 @@ function App() {
     setDetailTaskInfo(null);
     setIsTaskModalOpen(true);
   };
-
-  const currentRoleMember =
-    (isSupabaseUuid(supabaseAuthUserId)
-      ? teamMembers.find((member) => String(member.id) === String(supabaseAuthUserId) && member.status !== 'Pasif')
-      : null) ||
-    (currentUserId
-      ? teamMembers.find((member) => String(member.id) === String(currentUserId) && member.status !== 'Pasif') || null
-      : null);
-
-  const currentProfileNameParts = [profileDraft.firstName, profileDraft.lastName]
-    .map((part) => String(part || '').trim())
-    .filter(Boolean);
-  const rawCurrentProfileName = currentProfileNameParts.join(' ');
-  const currentProfileName = isLegacyDemoTeamMemberRecord({ name: rawCurrentProfileName, email: profileDraft.email })
-    ? 'ZRC AJANS'
-    : rawCurrentProfileName || currentRoleMember?.name || 'ZRC AJANS';
-  const currentProfileInitials = createAvatarFromName(currentProfileName);
-
-  const currentProfileAvatar =
-    profileDraft.avatarDataUrl ||
-    (typeof currentRoleMember?.avatar === 'string' && currentRoleMember.avatar.startsWith('data:image')
-      ? currentRoleMember.avatar
-      : '') ||
-    currentProfileInitials;
-
-  const normalizedCurrentRawRole = normalizeTeamRole(currentRoleMember?.role || '');
-  const isZrcOwnerAccount = Boolean(
-    currentRoleMember &&
-      isZrcAjansIdentityRecord(currentRoleMember) &&
-      (
-        !isSupabaseUuid(supabaseAuthUserId) ||
-        String(currentRoleMember.id || '') === String(supabaseAuthUserId || '')
-      )
-  );
-  const currentUserRole =
-    normalizedCurrentRawRole === 'Müşteri/Misafir'
-      ? 'Müşteri/Misafir'
-      : isZrcOwnerAccount
-        ? 'Yönetici'
-        : 'Ekip Üyesi';
-  const currentAccountType =
-    isZrcOwnerAccount
-      ? 'Patron'
-      : currentUserRole === 'Müşteri/Misafir'
-        ? 'Müşteri'
-        : 'Ekip Üyesi';
-  const isLoggedIn = Boolean(currentUserId && currentRoleMember);
-  const currentPermissions = getPermissionsForRole(currentUserRole);
-  const currentActorId = currentUserId || currentRoleMember?.id || 'anonymous-user';
-  const currentActorName = currentProfileName;
-  const currentActorAvatar = currentProfileAvatar;
 
   useEffect(() => {
     let isMounted = true;
