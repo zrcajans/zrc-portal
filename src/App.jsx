@@ -4554,6 +4554,48 @@ function App() {
         return true;
       });
 
+      const allExistingTasks = [
+        ...((existingBoard.columns || []).flatMap((item) => item.tasks || [])),
+        ...(existingBoard.archivedTasks || [])
+      ];
+
+      const getExistingLocalTaskForSupabaseTask = (supabaseTaskId = '') =>
+        allExistingTasks.find((task) => {
+          const taskSupabaseId = String(task.supabaseId || '').trim();
+          const taskId = String(task.id || '').trim();
+
+          return taskSupabaseId === String(supabaseTaskId) || taskId === `supabase-${supabaseTaskId}`;
+        }) || null;
+
+      const mergeLocalOnlyTaskPeople = (mappedTask = {}, previousTask = {}) => {
+        const mergePeople = (dbPeople = [], localPeople = []) => {
+          const nextPeopleMap = new Map();
+
+          (dbPeople || []).forEach((person) => {
+            if (person?.id) nextPeopleMap.set(String(person.id), person);
+          });
+
+          (localPeople || []).forEach((person) => {
+            if (!person?.id) return;
+
+            const personId = String(person.id);
+
+            if (isSupabaseUuid(personId)) return;
+            if (isZrcAjansIdentityRecord(person)) return;
+            if (!zrcTaskSelectableMembers.some((member) => String(member.id) === personId)) return;
+            if (!nextPeopleMap.has(personId)) nextPeopleMap.set(personId, person);
+          });
+
+          return Array.from(nextPeopleMap.values());
+        };
+
+        return {
+          ...mappedTask,
+          assignees: mergePeople(mappedTask.assignees || [], previousTask?.assignees || []),
+          followers: mergePeople(mappedTask.followers || [], previousTask?.followers || [])
+        };
+      };
+
       const nextColumns = baseColumns.map((column) => {
         const existingColumn = (existingBoard.columns || []).find((item) => {
           const itemTitle = normalizeColumnTitleForDisplay(item.title);
@@ -4573,7 +4615,12 @@ function App() {
 
             return dbColumnTitle === normalizeColumnTitleForDisplay(column.title);
           })
-          .map((task) => mapSupabaseTaskToLocalTask(task, column.title));
+          .map((task) =>
+            mergeLocalOnlyTaskPeople(
+              mapSupabaseTaskToLocalTask(task, column.title),
+              getExistingLocalTaskForSupabaseTask(task.id)
+            )
+          );
 
         return {
           ...column,
@@ -4585,7 +4632,11 @@ function App() {
         .filter((task) => task.is_archived === true)
         .map((task) => {
           const dbColumn = dbColumnsById.get(task.column_id);
-          return mapSupabaseTaskToLocalTask(task, normalizeColumnTitleForDisplay(dbColumn?.title || task.status || 'Arşiv'));
+
+          return mergeLocalOnlyTaskPeople(
+            mapSupabaseTaskToLocalTask(task, normalizeColumnTitleForDisplay(dbColumn?.title || task.status || 'Arşiv')),
+            getExistingLocalTaskForSupabaseTask(task.id)
+          );
         });
 
       return {
@@ -8750,28 +8801,34 @@ function App() {
   };
 
   const realActiveTeamMembers = activeTeamMembers.filter((member) => !isLegacyDemoTaskPerson(member));
+  const storedZrcAjansMember =
+    realActiveTeamMembers.find((member) => isZrcAjansIdentityRecord(member)) ||
+    teamMembers.find((member) => isZrcAjansIdentityRecord(member)) ||
+    null;
+
   const zrcCanonicalId = isSupabaseUuid(supabaseAuthUserId)
     ? supabaseAuthUserId
-    : (isSupabaseUuid(currentActorId)
-      ? currentActorId
-      : (isSupabaseUuid(currentRoleMember?.id) ? currentRoleMember.id : currentActorId || 'user-1'));
+    : (isSupabaseUuid(storedZrcAjansMember?.id)
+      ? storedZrcAjansMember.id
+      : (storedZrcAjansMember?.id || 'user-1'));
 
   const zrcAjansSystemMember = {
     id: zrcCanonicalId,
     name: 'ZRC AJANS',
     username: 'zrcajans',
     email: 'info@zrcajans.com',
-    avatar: currentProfileAvatar || 'ZRC',
+    avatar:
+      currentAccountType === 'Patron'
+        ? currentProfileAvatar || storedZrcAjansMember?.avatar || 'ZRC'
+        : storedZrcAjansMember?.avatar || 'ZRC',
     role: 'Yönetici',
     status: 'Aktif',
-    workspaceId: currentRoleMember?.workspaceId || ''
+    workspaceId: storedZrcAjansMember?.workspaceId || currentRoleMember?.workspaceId || ''
   };
 
-  const realActiveTeamMembersWithoutLocalZrc = realActiveTeamMembers.filter((member) => {
-    if (!isZrcAjansIdentityRecord(member)) return true;
-
-    return isSupabaseUuid(member.id) && member.id !== zrcAjansSystemMember.id;
-  });
+  const realActiveTeamMembersWithoutLocalZrc = realActiveTeamMembers.filter(
+    (member) => !isZrcAjansIdentityRecord(member)
+  );
 
   const zrcTaskSelectableMembers = Array.from(
     new Map(
