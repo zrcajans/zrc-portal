@@ -10802,6 +10802,10 @@ function App() {
       {renderSupabaseConnectionBadge()}
 
       <style>{`
+        .zrc-main-shell > div:first-child {
+          background: #ffffff !important;
+        }
+
         .zrc-main-shell > div:not([class*="fixed"]) {
           padding-left: 44px;
           padding-right: 52px;
