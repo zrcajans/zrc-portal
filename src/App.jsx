@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v272-gorev-atama-bildirim-fix';
+const ZRC_APP_BUILD_LABEL = 'v274-ekip-baskasina-gorev-atayabilir';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -5061,13 +5061,17 @@ function App() {
       id: previousTask?.id || taskData.id || `task-${Date.now()}`,
       supabaseId: existingSupabaseTaskId || taskData.supabaseId || previousTask?.supabaseId || '',
       status: finalTargetStatus,
-      assignees: filterTaskAssigneesForSave(taskData.assignees || previousTask?.assignees || []),
+      assignees: normalizeAssigneesForCurrentAccountSave(
+        taskData.assignees || previousTask?.assignees || [],
+        previousTask?.assignees || [],
+        Boolean(previousTask)
+      ),
       followers: filterTaskFollowersForSave(taskData.followers || previousTask?.followers || [])
     };
 
     const targetColumn = boardColumns.find((column) => column.title === finalTargetStatus) || previousColumn || boardColumns[0];
 
-    if (previousTask && !canCurrentUserModifyTask({ ...previousTask, ...cleanedTaskData }, cleanedTaskData.projectName || selectedProject)) {
+    if (previousTask && !canCurrentUserModifyTask(previousTask, previousTask.projectName || cleanedTaskData.projectName || selectedProject)) {
       showPermissionWarning('Bu görev sana atanmadığı için düzenleyemezsin.');
       return;
     }
@@ -6607,11 +6611,16 @@ function App() {
     if (action === 'kopyala') {
       if (!ensureCanCreateTaskInSelectedProject('Bu rol görev kopyalayamaz.')) return;
 
+      if (currentAccountType === 'Ekip Üyesi' && !canCurrentUserModifyTask(task, selectedProject)) {
+        showPermissionWarning('Bu görev sana atanmadığı için kopyalayamazsın.');
+        return;
+      }
+
       const copiedTask = {
         ...task,
         id: `task-${Date.now()}`,
-        assignees: filterTaskAssigneesForSave(task.assignees || []),
-        followers: filterTaskFollowersForSave(task.followers || []),
+        assignees: normalizeAssigneesForCurrentAccountSave(task.assignees || [], [], false),
+        followers: [],
         title: `${task.title} - Kopya`,
         comments: [],
         files: [],
@@ -7853,10 +7862,10 @@ function App() {
       priority: 'Normal',
       status: targetColumn.title,
       startDate: taskDate,
-      dueDate: taskDate,
-      endDate: taskDate,
-      date: taskDate,
-      assignees: [],
+      dueDate: '',
+      endDate: '',
+      date: '',
+      assignees: normalizeAssigneesForCurrentAccountSave([], [], false),
       followers: [],
       tags: [],
       customer: '',
@@ -9380,7 +9389,16 @@ function App() {
   const availableProjectTeamMembers = projectTeamAssignableMembers.filter(
     (member) => !selectedProjectTeamMemberIds.includes(String(member.id))
   );
-  const taskModalTeamMembers = projectAssignableMembers;
+
+  const currentTaskModalMember =
+    projectAssignableMembers.find((member) => String(member.id || '') === String(currentUserId || '')) ||
+    projectAssignableMembers.find((member) => String(member.id || '') === String(supabaseAuthUserId || '')) ||
+    (currentRoleMember && !isZrcAjansIdentityRecord(currentRoleMember) ? currentRoleMember : null);
+
+  const taskModalTeamMembers =
+    currentAccountType === 'Ekip Üyesi'
+      ? projectAssignableMembers
+      : projectAssignableMembers;
 
   const normalizeTaskPersonForSave = (person = {}, allowedRoles = []) => {
     if (!person?.id && !person?.name) return null;
@@ -9422,6 +9440,31 @@ function App() {
         .map((person) => normalizeTaskPersonForSave(person, ['Yönetici', 'Ekip Üyesi']))
         .filter(Boolean)
     );
+
+  const getCurrentMemberForTaskAssignee = () => {
+    if (currentRoleMember && !isZrcAjansIdentityRecord(currentRoleMember)) {
+      return normalizeTaskPersonForSave(currentRoleMember, ['Ekip Üyesi']);
+    }
+
+    return (
+      projectAssignableMembers.find((member) => String(member.id || '') === String(currentUserId || '')) ||
+      projectAssignableMembers.find((member) => String(member.id || '') === String(supabaseAuthUserId || '')) ||
+      null
+    );
+  };
+
+  const normalizeAssigneesForCurrentAccountSave = (people = [], previousAssignees = [], isEditingExistingTask = false) => {
+    const cleanedAssignees = filterTaskAssigneesForSave(people);
+    if (currentAccountType !== 'Ekip Üyesi') return cleanedAssignees;
+
+    const currentMember = getCurrentMemberForTaskAssignee();
+
+    if (cleanedAssignees.length > 0) {
+      return cleanedAssignees;
+    }
+
+    return uniqueTaskPeopleById(currentMember ? [currentMember] : []);
+  };
 
   const filterTaskFollowersForSave = (people = []) =>
     uniqueTaskPeopleById(
@@ -15110,7 +15153,7 @@ function App() {
                                           </button>
                                         )}
 
-                                        {canCreateTaskInSelectedProject && (
+                                        {canCreateTaskInSelectedProject && (currentAccountType !== 'Ekip Üyesi' || canCurrentUserModifyTask(task, selectedProject)) && (
                                           <button
                                             type="button"
                                             onClick={() => handleTaskAction('kopyala', column.id, task)}
