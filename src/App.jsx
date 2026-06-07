@@ -4345,6 +4345,36 @@ function App() {
     }).format(new Date(year, month - 1, day));
   };
 
+  const mapSupabaseTaskUserLinkToLocalPerson = (link = {}) => {
+    const userId = String(link.user_id || link.userId || link.id || '').trim();
+
+    if (!userId) return null;
+
+    if (userId === String(currentUserId || '') || userId === String(currentRoleMember?.id || '')) {
+      return {
+        id: userId,
+        name: 'ZRC AJANS',
+        username: 'zrcajans',
+        email: 'info@zrcajans.com',
+        avatar: currentProfileAvatar || 'ZRC',
+        role: 'Yönetici'
+      };
+    }
+
+    const matchedMember = teamMembers.find((member) => String(member.id || '') === userId);
+
+    if (!matchedMember || isLegacyDemoTeamMemberRecord(matchedMember)) return null;
+
+    return {
+      id: matchedMember.id,
+      name: matchedMember.name,
+      username: matchedMember.username || '',
+      email: matchedMember.email || '',
+      avatar: matchedMember.avatar || createAvatarFromName(matchedMember.name),
+      role: normalizeTeamRole(matchedMember.role)
+    };
+  };
+
   const mapSupabaseTaskToLocalTask = (task = {}, columnTitle = 'Yeni Görev') => {
     const dateValue = task.due_date || task.end_date || task.start_date || '';
 
@@ -4362,8 +4392,8 @@ function App() {
       dueDate: task.due_date || '',
       endDate: task.end_date || '',
       tags: Array.isArray(task.tags) ? task.tags : [],
-      assignees: [],
-      followers: [],
+      assignees: (task._assignees || []).map(mapSupabaseTaskUserLinkToLocalPerson).filter(Boolean),
+      followers: (task._followers || []).map(mapSupabaseTaskUserLinkToLocalPerson).filter(Boolean),
       comments: (task._comments || []).map(mapSupabaseCommentToLocalComment),
       steps: (task._steps || []).map(mapSupabaseStepToLocalStep),
       files: (task._files || []).map(mapSupabaseFileToLocalFile),
@@ -4520,6 +4550,24 @@ function App() {
 
         if (filesError) throw filesError;
 
+        const { data: dbAssignees, error: assigneesError } = await supabase
+          .from('task_assignees')
+          .select('task_id, user_id')
+          .in('task_id', taskIds);
+
+        if (assigneesError) {
+          console.warn('[ZRC Supabase] Görevli bağlantıları okunamadı.', assigneesError);
+        }
+
+        const { data: dbFollowers, error: followersError } = await supabase
+          .from('task_followers')
+          .select('task_id, user_id')
+          .in('task_id', taskIds);
+
+        if (followersError) {
+          console.warn('[ZRC Supabase] Takipçi bağlantıları okunamadı.', followersError);
+        }
+
         const commentsByTask = new Map();
         (dbComments || []).forEach((comment) => {
           commentsByTask.set(comment.task_id, [...(commentsByTask.get(comment.task_id) || []), comment]);
@@ -4535,11 +4583,23 @@ function App() {
           filesByTask.set(file.task_id, [...(filesByTask.get(file.task_id) || []), file]);
         });
 
+        const assigneesByTask = new Map();
+        (dbAssignees || []).forEach((assignee) => {
+          assigneesByTask.set(assignee.task_id, [...(assigneesByTask.get(assignee.task_id) || []), assignee]);
+        });
+
+        const followersByTask = new Map();
+        (dbFollowers || []).forEach((follower) => {
+          followersByTask.set(follower.task_id, [...(followersByTask.get(follower.task_id) || []), follower]);
+        });
+
         enrichedTasks = (dbTasks || []).map((task) => ({
           ...task,
           _comments: commentsByTask.get(task.id) || [],
           _steps: stepsByTask.get(task.id) || [],
-          _files: filesByTask.get(task.id) || []
+          _files: filesByTask.get(task.id) || [],
+          _assignees: assigneesByTask.get(task.id) || [],
+          _followers: followersByTask.get(task.id) || []
         }));
       }
 
@@ -4991,6 +5051,10 @@ function App() {
     setIsTaskModalOpen(true);
   };
 
+  const currentRoleMember = currentUserId
+    ? teamMembers.find((member) => member.id === currentUserId && member.status !== 'Pasif') || null
+    : null;
+
   const currentProfileNameParts = [profileDraft.firstName, profileDraft.lastName]
     .map((part) => String(part || '').trim())
     .filter(Boolean);
@@ -4999,10 +5063,6 @@ function App() {
     ? 'ZRC AJANS'
     : rawCurrentProfileName || currentRoleMember?.name || 'ZRC AJANS';
   const currentProfileInitials = createAvatarFromName(currentProfileName);
-
-  const currentRoleMember = currentUserId
-    ? teamMembers.find((member) => member.id === currentUserId && member.status !== 'Pasif') || null
-    : null;
 
   const currentProfileAvatar =
     profileDraft.avatarDataUrl ||
