@@ -31,3 +31,7 @@ pnpm-debug.log*
 # Temporary files
 *.tmp
 *.temp
+# ZRC lokal otomatik yedekler
+local_backups/
+src/App_v*_before_v*_backup.jsx
+src/*_backup.jsx
