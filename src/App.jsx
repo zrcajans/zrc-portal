@@ -247,6 +247,20 @@ const normalizeCredentialText = (value = '') =>
     .replaceAll('ç', 'c')
     .replace(/[^a-z0-9._-]/g, '');
 
+const isLegacyDemoTeamMemberRecord = (member = {}) => {
+  const id = String(member.id || '');
+  const username = normalizeCredentialText(member.username || '');
+  const name = normalizeCredentialText(member.name || '');
+  const email = normalizeCredentialText(member.email || '');
+
+  return (
+    ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
+    ['ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
+    ['ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
+    ['ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
+  );
+};
+
 const createUsernameFromMember = (member = {}) => {
   const emailName = String(member.email || '').split('@')[0];
 
@@ -345,11 +359,7 @@ const getStartPanelForAccountType = () => ({
 });
 
 const createDefaultTeamMembers = () => [
-  { id: 'user-1', name: 'Enes Zariç', email: 'enes@zrcajans.com', username: 'enes', password: '1234', role: 'Yönetici', avatar: 'EZ', status: 'Aktif' },
-  { id: 'user-2', name: 'Ahmet Yılmaz', email: 'ahmet@zrcajans.com', username: 'ahmet', password: '1234', role: 'Ekip Üyesi', avatar: 'AY', status: 'Aktif' },
-  { id: 'user-3', name: 'Zeynep Kaya', email: 'zeynep@zrcajans.com', username: 'zeynep', password: '1234', role: 'Ekip Üyesi', avatar: 'ZK', status: 'Aktif' },
-  { id: 'user-4', name: 'Can Öz', email: 'can@zrcajans.com', username: 'can', password: '1234', role: 'Ekip Üyesi', avatar: 'CÖ', status: 'Aktif' },
-  { id: 'user-5', name: 'Demo Misafir', email: 'misafir@orneksirket.com', username: 'misafir', password: '1234', role: 'Müşteri/Misafir', avatar: 'DM', status: 'Aktif', customerId: 'customer-1' }
+  { id: 'user-1', name: 'ZRC AJANS', email: 'info@zrcajans.com', username: 'zrcajans', password: '1234', role: 'Yönetici', avatar: 'ZRC', status: 'Aktif' }
 ];
 
 const createDefaultCustomers = () => [];
@@ -618,7 +628,10 @@ function App() {
   const [teamMembers, setTeamMembers] = useState(() => {
     const parsedMembers = readStorageValue('teamMembers', null);
     const initialMembers = Array.isArray(parsedMembers) && parsedMembers.length > 0 ? parsedMembers : createDefaultTeamMembers();
-    return initialMembers.map(normalizeTeamMember);
+
+    return initialMembers
+      .map(normalizeTeamMember)
+      .filter((member) => !isLegacyDemoTeamMemberRecord(member));
   });
 
   const [currentUserId, setCurrentUserId] = useState(() => readStorageValue('currentUserId', '') || '');
@@ -2406,7 +2419,10 @@ function App() {
     const dbUserIds = new Set(mappedMembers.map((member) => member.id).filter(Boolean));
 
     setTeamMembers((prevMembers) => {
-      const localOnlyMembers = (prevMembers || []).filter((member) => !dbUserIds.has(member.id));
+      const localOnlyMembers = (prevMembers || [])
+        .filter((member) => !dbUserIds.has(member.id))
+        .filter((member) => !isLegacyDemoTeamMemberRecord(member));
+
       return [...mappedMembers, ...localOnlyMembers];
     });
   };
