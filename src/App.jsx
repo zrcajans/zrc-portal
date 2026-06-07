@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v267-supabase-login-first-calendar-fix';
+const ZRC_APP_BUILD_LABEL = 'v268-home-menu-calendar-filter-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -10190,6 +10190,7 @@ function App() {
   ];
 
   const menuCalendarTasks = homeAllProjectTasks
+    .filter((task) => isTaskVisibleInCalendarForCurrentUser(task, task.projectName))
     .filter((task) => {
       if (calendarDisplayOptions.hideCompletedTasks && isReportTaskCompleted(task)) return false;
       if (calendarDisplayOptions.hideArchivedTasks && (task.isArchived || task.archived || task.status === 'Arşiv')) return false;
