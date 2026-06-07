@@ -1613,7 +1613,11 @@ function App() {
 
           if (isSupabaseUuid(rawId)) return rawId;
 
-          if (isZrcAjansIdentityRecord(person) && isSupabaseUuid(activeAuthUserId)) {
+          if (isZrcAjansIdentityRecord(person) && isSupabaseUuid(zrcAjansSystemMember?.id)) {
+            return zrcAjansSystemMember.id;
+          }
+
+          if (isZrcAjansIdentityRecord(person) && isSupabaseUuid(activeAuthUserId) && currentAccountType === 'Patron') {
             return activeAuthUserId;
           }
 
@@ -1736,7 +1740,11 @@ function App() {
 
           if (isSupabaseUuid(rawId)) return rawId;
 
-          if (isZrcAjansIdentityRecord(person) && isSupabaseUuid(activeAuthUserId)) {
+          if (isZrcAjansIdentityRecord(person) && isSupabaseUuid(zrcAjansSystemMember?.id)) {
+            return zrcAjansSystemMember.id;
+          }
+
+          if (isZrcAjansIdentityRecord(person) && isSupabaseUuid(activeAuthUserId) && currentAccountType === 'Patron') {
             return activeAuthUserId;
           }
 
@@ -2582,23 +2590,46 @@ function App() {
         await supabase.from('project_members').delete().eq('project_id', savedProjectId);
         await supabase.from('project_customers').delete().eq('project_id', savedProjectId);
 
-        const memberIds = Array.isArray(settings.teamMemberIds)
-          ? settings.teamMemberIds.filter(isSupabaseUuid)
-          : [];
+        const memberIds = Array.from(
+          new Set(
+            (Array.isArray(settings.teamMemberIds) ? settings.teamMemberIds : [])
+              .map(String)
+              .filter(isSupabaseUuid)
+          )
+        );
 
         if (memberIds.length > 0) {
-          const { error: membersError } = await supabase
-            .from('project_members')
-            .insert(
-              memberIds.map((userId) => ({
-                workspace_id: workspaceId,
-                project_id: savedProjectId,
-                user_id: userId,
-                role: 'Üye'
-              }))
-            );
+          const { data: workspaceMemberRows, error: workspaceMemberCheckError } = await supabase
+            .from('workspace_members')
+            .select('user_id')
+            .eq('workspace_id', workspaceId)
+            .eq('status', 'Aktif')
+            .in('user_id', memberIds);
 
-          if (membersError) throw membersError;
+          if (workspaceMemberCheckError) throw workspaceMemberCheckError;
+
+          const activeWorkspaceMemberIds = new Set(
+            (workspaceMemberRows || [])
+              .map((member) => String(member.user_id || ''))
+              .filter(isSupabaseUuid)
+          );
+
+          const cleanMemberIds = memberIds.filter((memberId) => activeWorkspaceMemberIds.has(memberId));
+
+          if (cleanMemberIds.length > 0) {
+            const { error: membersError } = await supabase
+              .from('project_members')
+              .insert(
+                cleanMemberIds.map((userId) => ({
+                  workspace_id: workspaceId,
+                  project_id: savedProjectId,
+                  user_id: userId,
+                  role: 'Üye'
+                }))
+              );
+
+            if (membersError) throw membersError;
+          }
         }
 
         if (customerId) {
@@ -6395,7 +6426,7 @@ function App() {
     draggedTaskInfo.current = null;
   };
 
-  const handleSaveProjectSettings = () => {
+  const handleSaveProjectSettings = async () => {
     if (!requirePermission('manageProjectSettings', 'Proje ayarlarını sadece Yönetici düzenleyebilir.')) return;
 
     if (!selectedProject) return;
@@ -6528,7 +6559,7 @@ function App() {
       setSelectedProject(cleanTitle);
     }
 
-    saveProjectSettingsToSupabase(
+    const projectSettingsSupabaseSaved = await saveProjectSettingsToSupabase(
       cleanTitle,
       {
         ...projectSettingsDraft,
@@ -6542,6 +6573,13 @@ function App() {
       },
       selectedProject
     );
+
+    if (!projectSettingsSupabaseSaved) {
+      alert('Proje ekibi yerelde seçildi ama Supabase kaydı tamamlanamadı. Sağ alttaki hata mesajını kontrol et.');
+      return;
+    }
+
+    await loadWorkspaceStructureFromSupabase();
 
     alert(
       removedTeamMemberIds.length > 0
