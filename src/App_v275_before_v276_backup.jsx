@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v276-dosya-indir-sil-kalici';
+const ZRC_APP_BUILD_LABEL = 'v275-gorev-atama-bildirim-netlestirme';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -7213,7 +7213,7 @@ function App() {
     setPendingFileDeleteKey(null);
   };
 
-  const handleDeleteProjectFile = async (file) => {
+  const handleDeleteProjectFile = (file) => {
     if (!file) return;
     if (!requirePermission('manageFiles', 'Bu rol dosya silemez.')) return;
 
@@ -7222,60 +7222,27 @@ function App() {
       return;
     }
 
-    const sourceTask =
-      file.task ||
-      reportTasks.find((task) => task.id === file.taskId) ||
-      null;
-
-    if (sourceTask && !canCurrentUserModifyTask(sourceTask, getProjectNameForTask(sourceTask) || file.projectName || selectedProject)) {
-      showPermissionWarning('Bu görev sana atanmadığı için dosya silemezsin.');
-      return;
-    }
-
     if (pendingFileDeleteKey !== file.fileKey) {
       setPendingFileDeleteKey(file.fileKey);
       return;
     }
 
-    setSupabaseWriteInfo('saving', 'Dosya siliniyor');
-
-    if (file.storagePath) {
-      const storageDeleted = await deleteTaskStoredFileFromSupabase(file);
-      if (!storageDeleted) return;
-    }
-
-    const isSameFile = (taskFile) =>
-      (taskFile.id || taskFile.name) === (file.id || file.name) ||
-      (file.supabaseId && taskFile.supabaseId === file.supabaseId) ||
-      (file.storagePath && taskFile.storagePath === file.storagePath);
-
-    if (sourceTask?.id) {
-      const nextFiles = (sourceTask.files || []).filter((taskFile) => !isSameFile(taskFile));
-
-      updateTaskFromDetail(
-        sourceTask.id,
-        { files: nextFiles },
-        createHistoryEntry('file-delete', 'Dosya silindi', file.name || 'Dosya')
-      );
-    } else {
-      setBoardColumns((prevColumns) =>
-        prevColumns.map((column) => ({
-          ...column,
-          tasks: column.tasks.map((task) =>
-            task.id === file.taskId
-              ? {
-                  ...task,
-                  files: (task.files || []).filter((taskFile) => !isSameFile(taskFile))
-                }
-              : task
-          )
-        }))
-      );
-    }
+    setBoardColumns((prevColumns) =>
+      prevColumns.map((column) => ({
+        ...column,
+        tasks: column.tasks.map((task) =>
+          task.id === file.taskId
+            ? {
+                ...task,
+                files: (task.files || []).filter((taskFile) => (taskFile.id || taskFile.name) !== (file.id || file.name))
+              }
+            : task
+        )
+      }))
+    );
 
     setSelectedProjectFileKey(null);
     setPendingFileDeleteKey(null);
-    setSupabaseWriteInfo('saved', 'Dosya silindi');
   };
 
   const parseTaskDateValue = (value) => {
@@ -16388,16 +16355,6 @@ function App() {
                                 </div>
 
                                 <div className="mt-auto pt-4 space-y-2">
-                                  {selectedProjectFile.storagePath && (
-                                    <button
-                                      type="button"
-                                      onClick={() => downloadTaskFileFromSupabase(selectedProjectFile)}
-                                      className="w-full h-9 rounded-full bg-[#263244] text-white text-[11px] font-black hover:bg-[#111827] shadow-[0_9px_20px_rgba(15,23,42,0.14)] transition-all"
-                                    >
-                                      Dosyayı İndir
-                                    </button>
-                                  )}
-
                                   {selectedProjectFile.task && (
                                     <button
                                       type="button"
