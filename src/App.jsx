@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v264-takvim-raw-assignee-tdz-fix';
+const ZRC_APP_BUILD_LABEL = 'v265-zrc-timeline-tdz-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -7942,7 +7942,7 @@ function App() {
   };
 
   const zrcAjansTimelineMember = {
-    id: zrcAjansSystemMember?.id || 'user-1',
+    id: 'user-1',
     name: 'ZRC AJANS',
     username: 'zrcajans',
     email: 'info@zrcajans.com',
