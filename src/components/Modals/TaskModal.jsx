@@ -153,6 +153,37 @@ function toDisplayDate(value) {
   return parsed ? formatDateDisplay(parsed) : String(value);
 }
 
+function getPlainTextFromRichValue(value) {
+  if (!value) return '';
+
+  if (typeof value === 'string') {
+    return value === '[object Object]' ? '' : value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(getPlainTextFromRichValue).filter(Boolean).join('\n');
+  }
+
+  if (typeof value === 'object') {
+    if (typeof value.text === 'string') return value.text;
+    if (typeof value.plainText === 'string') return value.plainText;
+    if (typeof value.description === 'string') return value.description;
+    if (typeof value.content === 'string') return value.content;
+
+    if (Array.isArray(value.blocks)) {
+      return value.blocks.map(getPlainTextFromRichValue).filter(Boolean).join('\n');
+    }
+
+    if (Array.isArray(value.children)) {
+      return value.children.map(getPlainTextFromRichValue).filter(Boolean).join('\n');
+    }
+
+    return '';
+  }
+
+  return '';
+}
+
 function getCalendarDays(viewDate) {
   const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
   const offset = (firstDay.getDay() + 6) % 7;
@@ -175,6 +206,7 @@ function FieldLabel({ children }) {
 }
 
 function DateInput({ label, value, onChange }) {
+  const wrapperRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState(() => parseDateValue(value) || new Date());
 
@@ -182,6 +214,19 @@ function DateInput({ label, value, onChange }) {
     const parsed = parseDateValue(value);
     if (parsed) setViewDate(parsed);
   }, [value]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDownOutside = (event) => {
+      if (!wrapperRef.current) return;
+      if (wrapperRef.current.contains(event.target)) return;
+      setIsOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDownOutside, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDownOutside, true);
+  }, [isOpen]);
 
   const days = useMemo(() => getCalendarDays(viewDate), [viewDate]);
 
@@ -196,7 +241,7 @@ function DateInput({ label, value, onChange }) {
   };
 
   return (
-    <div className="relative">
+    <div ref={wrapperRef} className="relative">
       <FieldLabel>
         {label} <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-[#a78bfa] text-[#7c3aed] text-[9px] ml-1">?</span>
       </FieldLabel>
@@ -223,7 +268,10 @@ function DateInput({ label, value, onChange }) {
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 top-[54px] z-[900] w-[268px] rounded-[10px] bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.22)] p-3">
+        <div
+          onPointerDown={(event) => event.stopPropagation()}
+          className="absolute left-0 top-[54px] z-[900] w-[268px] rounded-[10px] bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.22)] p-3"
+        >
           <div className="flex items-center justify-between mb-2">
             <button
               type="button"
@@ -604,7 +652,12 @@ export default function TaskModal({
         title: initialData.title || '',
         status: initialData.status || defaultStatusRef.current,
         priority: initialData.priority || 'Düşük',
-        description: initialData.description || initialData.richDescription || '',
+        description:
+          getPlainTextFromRichValue(initialData.description) ||
+          getPlainTextFromRichValue(initialData.note) ||
+          getPlainTextFromRichValue(initialData.richDescription) ||
+          getPlainTextFromRichValue(initialData.rich_description) ||
+          '',
         startDate: toDisplayDate(initialData.startDate || ''),
         endDate: toDisplayDate(initialData.endDate || initialData.dueDate || ''),
         tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : initialData.tags || '',

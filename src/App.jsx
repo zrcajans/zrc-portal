@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v269-edit-task-save-fix';
+const ZRC_APP_BUILD_LABEL = 'v270-description-datepicker-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1449,6 +1449,37 @@ function App() {
     return ['Düşük', 'Normal', 'Yüksek', 'Acil'].includes(cleanPriority) ? cleanPriority : 'Normal';
   };
 
+  const getPlainTaskDescription = (value) => {
+    if (!value) return '';
+
+    if (typeof value === 'string') {
+      return value === '[object Object]' ? '' : value;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map(getPlainTaskDescription).filter(Boolean).join('\n');
+    }
+
+    if (typeof value === 'object') {
+      if (typeof value.text === 'string') return value.text;
+      if (typeof value.plainText === 'string') return value.plainText;
+      if (typeof value.description === 'string') return value.description;
+      if (typeof value.content === 'string') return value.content;
+
+      if (Array.isArray(value.blocks)) {
+        return value.blocks.map(getPlainTaskDescription).filter(Boolean).join('\n');
+      }
+
+      if (Array.isArray(value.children)) {
+        return value.children.map(getPlainTaskDescription).filter(Boolean).join('\n');
+      }
+
+      return '';
+    }
+
+    return '';
+  };
+
   const getSupabaseSafeDate = (value = '') => {
     const cleanValue = String(value || '').trim();
 
@@ -1631,7 +1662,7 @@ function App() {
         column_id: columnId || null,
         customer_id: isSupabaseUuid(taskData.customerId) ? taskData.customerId : null,
         title: taskData.title || 'Adsız görev',
-        description: taskData.description || taskData.note || '',
+        description: getPlainTaskDescription(taskData.description || taskData.note),
         rich_description: typeof taskData.richDescription === 'object' && taskData.richDescription !== null ? taskData.richDescription : (typeof taskData.rich_description === 'object' && taskData.rich_description !== null ? taskData.rich_description : {}),
         priority: getSafeSupabasePriority(taskData.priority),
         status: targetStatus || targetColumn?.title || 'Bekliyor',
@@ -1766,7 +1797,7 @@ function App() {
         column_id: columnId || null,
         customer_id: isSupabaseUuid(taskData.customerId) ? taskData.customerId : null,
         title: taskData.title || 'Adsız görev',
-        description: taskData.description || taskData.note || '',
+        description: getPlainTaskDescription(taskData.description || taskData.note),
         rich_description: typeof taskData.richDescription === 'object' && taskData.richDescription !== null ? taskData.richDescription : (typeof taskData.rich_description === 'object' && taskData.rich_description !== null ? taskData.rich_description : {}),
         priority: getSafeSupabasePriority(taskData.priority),
         status: targetStatus || targetColumn?.title || 'Yeni Görev',
@@ -4125,7 +4156,7 @@ function App() {
       column_id: columnId || null,
       customer_id: isSupabaseUuid(task.customerId) ? task.customerId : null,
       title: task.title || 'Adsız görev',
-      description: task.description || task.note || '',
+      description: getPlainTaskDescription(task.description || task.note),
       rich_description: task.richDescription || task.rich_description || {},
       priority: getSafeSupabasePriority(task.priority),
       status: isArchived ? (task.status || column?.title || 'Arşiv') : (column?.title || task.status || 'Yeni Görev'),
@@ -4200,7 +4231,7 @@ function App() {
     await syncTaskDetailsToSupabase(task.id, {
       ...task,
       supabaseId: savedTaskId,
-      description: task.description || task.note || '',
+      description: getPlainTaskDescription(task.description || task.note),
       comments: task.comments || [],
       steps: task.steps || [],
       files: task.files || []
@@ -4616,8 +4647,8 @@ function App() {
       id: `supabase-${task.id}`,
       supabaseId: task.id,
       title: task.title || 'Adsız görev',
-      description: task.description || '',
-      note: task.description || '',
+      description: getPlainTaskDescription(task.description),
+      note: getPlainTaskDescription(task.description),
       richDescription: task.rich_description || {},
       priority: task.priority || 'Normal',
       status: task.status || columnTitle,
@@ -8873,8 +8904,8 @@ function App() {
         task.columnTitle,
         task.status,
         task.priority,
-        task.description,
-        task.richDescription,
+        getPlainTaskDescription(task.description),
+        getPlainTaskDescription(task.richDescription),
         task.tags
       ].join(' '),
       task,
