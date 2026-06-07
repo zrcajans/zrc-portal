@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v275-gorev-atama-bildirim-netlestirme';
+const ZRC_APP_BUILD_LABEL = 'v274-ekip-baskasina-gorev-atayabilir';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -3462,7 +3462,7 @@ function App() {
           task_id: taskId || null,
           type: notification.type || 'activity',
           title: notification.title || 'Bildirim',
-          body: notification.meta ? `${notification.text || 'Bildirim'} — ${notification.meta}` : (notification.text || notification.meta || ''),
+          body: notification.text || notification.meta || '',
           is_read: userId === currentUserId ? false : false
         }));
 
@@ -5116,7 +5116,7 @@ function App() {
     if (addedAssigneeUserIds.length > 0) {
       createActivityNotification({
         type: 'assignment',
-        title: 'Sana yeni görev atandı',
+        title: 'Görev sana atandı',
         text: cleanedTaskData.title || 'Adsız görev',
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
@@ -5129,7 +5129,7 @@ function App() {
     if (removedAssigneeUserIds.length > 0) {
       createActivityNotification({
         type: 'assignment',
-        title: 'Görev ataman kaldırıldı',
+        title: 'Görev üzerinden çıkarıldın',
         text: cleanedTaskData.title || 'Adsız görev',
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
