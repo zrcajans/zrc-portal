@@ -16932,15 +16932,15 @@ function App() {
                                 )}
                               </div>
 
-                              <div className="mt-2 flex items-center justify-start">
+                              <div className="mt-2 flex items-center justify-center">
                                 <button
                                   type="button"
                                   onClick={() => {
                                     if (!currentPermissions.manageProjectSettings) return;
-                                    setIsProjectTeamPickerOpen((prev) => !prev);
+                                    setIsProjectTeamPickerOpen(true);
                                   }}
                                   disabled={!currentPermissions.manageProjectSettings || availableProjectTeamMembers.length === 0}
-                                  className={`h-7 px-3 rounded-[8px] text-[10px] font-black flex items-center justify-center gap-1.5 transition-all ${
+                                  className={`h-7 px-3.5 rounded-[8px] text-[10px] font-black flex items-center justify-center gap-1.5 transition-all ${
                                     currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0
                                       ? 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-[0_8px_16px_rgba(15,23,42,0.10)]'
                                       : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
@@ -16952,46 +16952,76 @@ function App() {
                               </div>
 
                               {isProjectTeamPickerOpen && currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0 && (
-                                <div className="relative z-[120] mt-2 rounded-[12px] border border-zinc-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.13)] overflow-hidden">
-                                  <div className="px-3 py-2 border-b border-zinc-100 bg-zinc-50/70">
-                                    <div className="text-[9.5px] font-black text-zinc-500 uppercase tracking-[0.08em]">Ekip Üyesi Seç</div>
-                                    <div className="mt-0.5 text-[8.5px] font-bold text-zinc-400">
-                                      Zaten ekli olan kişiler burada görünmez.
-                                    </div>
-                                  </div>
+                                <div
+                                  className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/25 backdrop-blur-[2px]"
+                                  onMouseDown={(event) => {
+                                    if (event.target === event.currentTarget) {
+                                      setIsProjectTeamPickerOpen(false);
+                                    }
+                                  }}
+                                >
+                                  <div
+                                    className="w-[360px] max-w-[calc(100vw-32px)] rounded-[18px] border border-zinc-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.22)] overflow-hidden"
+                                    onMouseDown={(event) => event.stopPropagation()}
+                                  >
+                                    <div className="h-12 px-4 border-b border-zinc-100 bg-zinc-50/80 flex items-center justify-between gap-3">
+                                      <div>
+                                        <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.08em]">Ekip Üyesi Seç</div>
+                                        <div className="mt-0.5 text-[8.5px] font-bold text-zinc-400">
+                                          Zaten ekli olan kişiler listelenmez.
+                                        </div>
+                                      </div>
 
-                                  <div className="max-h-[126px] overflow-y-auto custom-scrollbar p-1.5">
-                                    {availableProjectTeamMembers.map((member) => (
                                       <button
-                                        key={`available-project-member-${member.id}`}
                                         type="button"
-                                        onClick={() => {
-                                          setProjectSettingsDraft((prevDraft) => {
-                                            const currentIds = Array.isArray(prevDraft.teamMemberIds) ? prevDraft.teamMemberIds.map(String) : [];
-
-                                            return {
-                                              ...prevDraft,
-                                              teamMemberIds: Array.from(new Set([...currentIds, String(member.id)]))
-                                            };
-                                          });
-                                          setIsProjectTeamPickerOpen(false);
-                                        }}
-                                        className="w-full min-h-[42px] rounded-[11px] px-2.5 py-2 flex items-center gap-2 text-left hover:bg-zinc-50 transition-all"
+                                        onClick={() => setIsProjectTeamPickerOpen(false)}
+                                        className="w-7 h-7 rounded-full bg-white border border-zinc-200 text-zinc-400 hover:text-zinc-700 hover:border-zinc-300 flex items-center justify-center text-[15px] font-black transition-all"
+                                        title="Kapat"
                                       >
-                                        <span className="w-8 h-8 rounded-full bg-zinc-800 text-white text-[9px] font-black flex items-center justify-center overflow-hidden shrink-0">
-                                          {renderProfileAvatar(member.avatar, createAvatarFromName(member.name))}
-                                        </span>
-
-                                        <span className="min-w-0 flex-1">
-                                          <span className="block text-[11px] font-black text-zinc-700 truncate">{member.name}</span>
-                                          <span className="block text-[8.5px] font-bold text-zinc-400 truncate">@{member.username || createUsernameFromMember(member)}</span>
-                                        </span>
-
-                                        <span className="w-6 h-6 rounded-full bg-[#fff3ef] text-[#ff3600] text-[15px] font-black flex items-center justify-center shrink-0">
-                                          +
-                                        </span>
+                                        ×
                                       </button>
-                                    ))}
+                                    </div>
+
+                                    <div className="max-h-[260px] overflow-y-auto custom-scrollbar p-2">
+                                      {availableProjectTeamMembers.map((member) => (
+                                        <button
+                                          key={`available-project-member-${member.id}`}
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.preventDefault();
+                                            event.stopPropagation();
+
+                                            setProjectSettingsDraft((prevDraft) => {
+                                              const currentIds = Array.isArray(prevDraft.teamMemberIds) ? prevDraft.teamMemberIds.map(String) : [];
+                                              const memberId = String(member.id);
+
+                                              if (currentIds.includes(memberId)) return prevDraft;
+
+                                              return {
+                                                ...prevDraft,
+                                                teamMemberIds: [...currentIds, memberId]
+                                              };
+                                            });
+
+                                            setIsProjectTeamPickerOpen(false);
+                                          }}
+                                          className="w-full min-h-[46px] rounded-[13px] px-2.5 py-2 flex items-center gap-2.5 text-left hover:bg-zinc-50 active:bg-zinc-100 transition-all"
+                                        >
+                                          <span className="w-9 h-9 rounded-full bg-zinc-900 text-white text-[9px] font-black flex items-center justify-center overflow-hidden shrink-0">
+                                            {renderProfileAvatar(member.avatar, createAvatarFromName(member.name))}
+                                          </span>
+
+                                          <span className="min-w-0 flex-1">
+                                            <span className="block text-[11.5px] font-black text-zinc-700 truncate">{member.name}</span>
+                                            <span className="block text-[8.5px] font-bold text-zinc-400 truncate">@{member.username || createUsernameFromMember(member)}</span>
+                                          </span>
+
+                                          <span className="w-7 h-7 rounded-full bg-[#fff3ef] text-[#ff3600] text-[16px] font-black flex items-center justify-center shrink-0">
+                                            +
+                                          </span>
+                                        </button>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
                               )}
