@@ -10803,12 +10803,16 @@ function App() {
 
       <style>{`
         .zrc-main-shell > div:first-child {
+          width: 100% !important;
+          margin-right: 0 !important;
+          padding-right: 0 !important;
           background: #ffffff !important;
         }
 
         .zrc-main-shell > div:not([class*="fixed"]) {
+          width: calc(100% - 52px);
+          margin-right: 52px;
           padding-left: 44px;
-          padding-right: 52px;
           box-sizing: border-box;
         }
 
@@ -10817,11 +10821,13 @@ function App() {
         .zrc-customer-center-page {
           padding-left: 0 !important;
           box-sizing: border-box;
+          background: #f5f6f8 !important;
         }
 
         .zrc-project-board-page > div:not([class*="fixed"]) {
+          width: calc(100% - 52px) !important;
+          margin-right: 52px !important;
           padding-left: 44px !important;
-          padding-right: 52px !important;
           box-sizing: border-box;
         }
 
