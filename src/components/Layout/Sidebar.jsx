@@ -7,6 +7,7 @@ function Sidebar({
   setIsPanelOpen,
   projects,
   visibleProjects,
+  projectSettings = {},
   setProjects,
   setSelectedProject,
   onSearchClick,
@@ -31,6 +32,8 @@ function Sidebar({
   const activeTeamCount = teamMembers.filter((member) => member.status !== 'Pasif').length;
   const canCreateProject = permissions?.manageProjects !== false;
   const projectList = Array.isArray(visibleProjects) ? visibleProjects : projects;
+  const getProjectAccentColor = (projectName = '') =>
+    projectSettings?.[projectName]?.color || '#ff3600';
 
   const [highlightedProject, setHighlightedProject] = useState(() => {
     try {
@@ -376,6 +379,7 @@ function Sidebar({
 
                 {projectList.map((project, index) => {
                   const isCurrentProject = String(project || '') === String(activeProjectName || '');
+                  const projectAccentColor = getProjectAccentColor(project);
 
                   return (
                     <div
@@ -385,26 +389,47 @@ function Sidebar({
                         setSelectedProject(project);
                         setIsPanelOpen(false);
                       }}
-                      className={`w-full p-3 border rounded-[12px] cursor-pointer transition-all duration-200 group flex items-center justify-between ${
+                      className={`relative w-full min-h-[58px] px-3.5 py-3 border rounded-[14px] cursor-pointer transition-all duration-200 group flex items-center gap-3 overflow-hidden ${
                         isCurrentProject
-                          ? 'bg-[#fff3ef] border-[#ff3600]/30 shadow-[0_12px_26px_rgba(255,54,0,0.08)]'
-                          : 'bg-zinc-50 border-zinc-200/50 hover:border-[#ff3600]/20 hover:bg-white hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)]'
+                          ? 'bg-white border-zinc-300 shadow-[0_12px_28px_rgba(15,23,42,0.08)]'
+                          : 'bg-white border-zinc-200/75 hover:border-zinc-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.07)]'
                       }`}
                     >
-                      <div className="flex items-center space-x-2.5 truncate">
-                        <div className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 ${
-                          isCurrentProject ? 'bg-[#ff3600] text-white' : 'bg-[#ff3600]/5 text-[#ff3600]'
-                        }`}>
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-19.5 0A2.25 2.25 0 004.5 15h15a2.25 2.25 0 002.25-2.25m-19.5 0v.25A2.25 2.25 0 004.5 17.5h15a2.25 2.25 0 002.25-2.25v-.25m-16.5-10.5h3.934a1.5 1.5 0 011.06.44l1.414 1.414a1.5 1.5 0 001.06.44H19.5A2.25 2.25 0 0121.75 9v.75H2.25V6.75z" />
-                          </svg>
-                        </div>
-                        <span className={`text-[12px] font-bold truncate ${
-                          isCurrentProject ? 'text-[#ff3600]' : 'text-zinc-700 group-hover:text-zinc-900'
+                      {isCurrentProject && (
+                        <span
+                          className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full"
+                          style={{ backgroundColor: projectAccentColor }}
+                        />
+                      )}
+
+                      <div
+                        className={`w-8 h-8 rounded-[11px] flex items-center justify-center shrink-0 transition-all ${
+                          isCurrentProject ? 'text-white shadow-sm' : 'bg-zinc-50 text-zinc-500 group-hover:bg-zinc-100'
+                        }`}
+                        style={isCurrentProject ? { backgroundColor: projectAccentColor } : { color: projectAccentColor }}
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-19.5 0A2.25 2.25 0 004.5 15h15a2.25 2.25 0 002.25-2.25m-19.5 0v.25A2.25 2.25 0 004.5 17.5h15a2.25 2.25 0 002.25-2.25v-.25m-16.5-10.5h3.934a1.5 1.5 0 011.06.44l1.414 1.414a1.5 1.5 0 001.06.44H19.5A2.25 2.25 0 0121.75 9v.75H2.25V6.75z" />
+                        </svg>
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className={`text-[12.5px] font-black truncate ${
+                          isCurrentProject ? 'text-zinc-900' : 'text-zinc-700 group-hover:text-zinc-950'
                         }`}>
                           {project}
-                        </span>
+                        </div>
+                        <div className="mt-0.5 text-[9.5px] font-bold text-zinc-400">
+                          Proje
+                        </div>
                       </div>
+
+                      {isCurrentProject && (
+                        <div
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: projectAccentColor }}
+                        />
+                      )}
                     </div>
                   );
                 })}

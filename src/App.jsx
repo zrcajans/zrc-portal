@@ -10838,6 +10838,7 @@ function App() {
         setIsPanelOpen={setIsPanelOpen}
         projects={projects}
         visibleProjects={visibleProjectNames}
+        projectSettings={projectSettings}
         setProjects={handleSidebarProjectsChange}
         setSelectedProject={(project) => {
           setSelectedProject(project);
@@ -16577,10 +16578,10 @@ function App() {
                                             : 'bg-white border-zinc-200 text-zinc-600 hover:border-[#ff3600]/20'
                                         } ${!currentPermissions.manageProjectSettings ? 'opacity-50 cursor-not-allowed' : ''}`}
                                       >
-                                        <span className={`w-6 h-6 rounded-[8px] flex items-center justify-center text-[8px] font-black shrink-0 ${
+                                        <span className={`w-6 h-6 rounded-[8px] flex items-center justify-center text-[8px] font-black shrink-0 overflow-hidden ${
                                           isSelectedMember ? 'bg-[#ff3600] text-white' : 'bg-zinc-100 text-zinc-500'
                                         }`}>
-                                          {member.avatar || createAvatarFromName(member.name)}
+                                          {renderProfileAvatar(member.avatar, createAvatarFromName(member.name))}
                                         </span>
 
                                         <span className="min-w-0 flex-1">
