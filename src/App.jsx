@@ -10802,16 +10802,7 @@ function App() {
       {renderSupabaseConnectionBadge()}
 
       <style>{`
-        .zrc-main-shell > div:first-child {
-          width: 100% !important;
-          margin-right: 0 !important;
-          padding-right: 0 !important;
-          background: #ffffff !important;
-        }
-
-        .zrc-main-shell > div:not([class*="fixed"]):not(.zrc-project-board-page):not(.zrc-team-center-page):not(.zrc-customer-center-page) {
-          width: calc(100% - 52px);
-          margin-right: 52px;
+        .zrc-main-shell > div:not([class*="fixed"]) {
           padding-left: 44px;
           box-sizing: border-box;
         }
@@ -10819,23 +10810,11 @@ function App() {
         .zrc-project-board-page,
         .zrc-team-center-page,
         .zrc-customer-center-page {
-          width: 100% !important;
           padding-left: 0 !important;
           box-sizing: border-box;
-          background: #ffffff !important;
         }
 
-        .zrc-project-board-page > div:first-child {
-          width: 100% !important;
-          margin-right: 0 !important;
-          padding-right: 0 !important;
-          box-sizing: border-box;
-          background: #ffffff !important;
-        }
-
-        .zrc-project-board-page > div:not([class*="fixed"]):not(:first-child) {
-          width: calc(100% - 52px) !important;
-          margin-right: 52px !important;
+        .zrc-project-board-page > div:not([class*="fixed"]) {
           padding-left: 44px !important;
           box-sizing: border-box;
         }
@@ -10913,7 +10892,7 @@ function App() {
         }}
       />
 
-      <main onClick={handleMainClick} className="zrc-main-shell flex-1 pl-[68px] min-h-screen bg-[#f5f6f8] transition-colors duration-300 flex flex-col overflow-hidden">
+      <main onClick={handleMainClick} className="zrc-main-shell flex-1 pl-[68px] min-h-screen bg-white transition-colors duration-300 flex flex-col overflow-hidden">
         <TopNavbar
           unreadNotificationCount={unreadNotificationCount}
           isNotificationsOpen={isNotificationsOpen}
@@ -11371,7 +11350,7 @@ function App() {
 
         {activeContentMenu === 'Ana Sayfa' ? (
           <div className="w-full h-full overflow-y-auto custom-scrollbar bg-[#f3f4f6] animate-fade-in">
-            <div className="min-h-full px-4 pt-4 pb-8">
+            <div className="min-h-full pl-4 pr-[76px] pt-4 pb-8">
               <div className="max-w-[1560px] mx-auto grid grid-cols-[minmax(430px,0.96fr)_minmax(520px,0.78fr)] items-start gap-6">
                 <div className="min-w-0">
                   <section className="mb-8">
@@ -12143,7 +12122,7 @@ function App() {
           </div>
         ) : activeContentMenu === 'Takvimim' ? (
           <div className="w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(47,102,207,0.05),transparent_34%),linear-gradient(180deg,#f7f8fb_0%,#eef1f5_100%)] overflow-hidden animate-fade-in">
-            <div className="h-full px-5 pt-4 pb-6 overflow-y-auto custom-scrollbar">
+            <div className="h-full pl-5 pr-[76px] pt-4 pb-6 overflow-y-auto custom-scrollbar">
               <div className="h-8 flex items-center justify-between">
                 <button
                   type="button"
@@ -13784,7 +13763,7 @@ function App() {
               <div className="flex-1 min-h-0 bg-[#f5f6f8] flex flex-col overflow-hidden h-full">
                 {activeTab === 'Görevler' && (
                   <div className="w-full flex flex-col flex-1 animate-fade-in overflow-hidden h-full bg-[#f5f6f8]">
-                    <div className="w-full h-[54px] px-7 bg-[#f5f6f8] flex items-center justify-between shrink-0 relative z-10">
+                    <div className="w-full h-[54px] pl-7 pr-[76px] bg-[#f5f6f8] flex items-center justify-between shrink-0 relative z-10">
                       <div className="flex items-center gap-3.5">
                         {canCreateTaskInSelectedProject && (
                           <button
@@ -13888,7 +13867,7 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="flex-1 px-5 pt-1.5 pb-5 flex space-x-5 bg-[#f5f6f8] overflow-x-auto overflow-y-hidden h-full custom-scrollbar items-start">
+                    <div className="flex-1 pl-5 pr-[76px] pt-1.5 pb-5 flex space-x-5 bg-[#f5f6f8] overflow-x-auto overflow-y-hidden h-full custom-scrollbar items-start">
                       {(boardView === 'Tüm Görevler' || boardView === 'Üyelere Göre') && isEditMode && currentPermissions.manageColumns && (
                         <button
                           type="button"
@@ -14757,7 +14736,7 @@ function App() {
 
                 {activeTab === 'Zaman Çizelgesi' && (
                   <div className="w-full h-full min-h-0 flex-1 bg-[#f5f6f8] overflow-hidden animate-fade-in">
-                    <div className="px-7 pt-3 pb-4 max-w-[1210px] mx-auto">
+                    <div className="px-7 pt-3 pb-4 max-w-[1160px] mx-auto">
                       <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden h-[calc(100vh-300px)] min-h-[500px] max-h-[640px] flex flex-col">
                         <div className="h-[58px] px-4 border-b border-zinc-100 flex items-center justify-between gap-3 shrink-0">
                           <div className="flex items-center gap-2">
