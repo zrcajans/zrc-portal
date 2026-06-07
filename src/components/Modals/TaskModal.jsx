@@ -478,7 +478,7 @@ export default function TaskModal({
     const email = normalize(person.email || '');
 
     return (
-      ['user-1', 'user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
+      ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
       ['enes', 'ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
       ['eneszaric', 'ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
       ['enes@zrcajans.com', 'enszrc@gmail.com', 'ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
