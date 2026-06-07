@@ -8919,7 +8919,7 @@ function App() {
         .filter(Boolean)
     );
 
-  const createTeamMemberFromCenter = (event) => {
+  const createTeamMemberFromCenter = async (event) => {
     event.preventDefault();
 
     if (!requirePermission('manageTeam', 'Ekip yönetimi sadece Yönetici rolünde var.')) return;
@@ -8933,7 +8933,6 @@ function App() {
         : teamMemberDraft.name.trim();
     const username = normalizeCredentialText(teamMemberDraft.username || name);
     const password = String(teamMemberDraft.password || '').trim();
-    const email = `${username || `kullanici-${Date.now()}`}@zrc.local`;
 
     if (role === 'Müşteri/Misafir' && !customerId) {
       alert('Müşteri/Misafir hesabı için bağlı müşteri seçmelisin.');
@@ -8974,32 +8973,75 @@ function App() {
       return;
     }
 
-    const nextMember = {
-      id: `local-user-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      name,
-      email,
-      username,
-      password,
-      role,
-      customerId,
-      avatar: createAvatarFromName(name),
-      status: 'Aktif',
-      authProvider: 'local'
-    };
+    const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    setTeamMembers((prevMembers) => [nextMember, ...prevMembers]);
-
-    if (customerId) {
-      setCustomers((prevCustomers) =>
-        prevCustomers.map((customer) =>
-          customer.id === customerId ? { ...customer, accountUserId: nextMember.id } : customer
-        )
-      );
+    if (!workspaceId) {
+      alert('Workspace bilgisi alınamadı. Önce ZRC AJANS hesabıyla yeniden giriş yap.');
+      return;
     }
 
-    setTeamMemberDraft({ name: '', email: '', username: '', password: '', role: 'Ekip Üyesi', customerId: '' });
-    setSelectedTeamMemberId(nextMember.id);
-    setPendingTeamDeleteId(null);
+    try {
+      setSupabaseWriteInfo('saving', 'Merkezi ekip hesabı oluşturuluyor');
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token || '';
+
+      if (!accessToken) {
+        alert('Yönetici oturumu bulunamadı. Çıkış yapıp ZRC AJANS hesabıyla tekrar giriş yap.');
+        setSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
+        return;
+      }
+
+      const response = await fetch('/api/create-team-member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          workspaceId,
+          name,
+          username,
+          password,
+          role,
+          customerId: isSupabaseUuid(customerId) ? customerId : ''
+        })
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Merkezi ekip hesabı oluşturulamadı.');
+      }
+
+      const nextMember = normalizeTeamMember({
+        ...(result.member || {}),
+        password: '',
+        authProvider: 'supabase'
+      });
+
+      setTeamMembers((prevMembers) => {
+        const withoutSameMember = (prevMembers || []).filter((member) => member.id !== nextMember.id);
+        return [nextMember, ...withoutSameMember].map(normalizeTeamMember);
+      });
+
+      if (customerId) {
+        setCustomers((prevCustomers) =>
+          prevCustomers.map((customer) =>
+            customer.id === customerId ? { ...customer, accountUserId: nextMember.id } : customer
+          )
+        );
+      }
+
+      setTeamMemberDraft({ name: '', email: '', username: '', password: '', role: 'Ekip Üyesi', customerId: '' });
+      setSelectedTeamMemberId(nextMember.id);
+      setPendingTeamDeleteId(null);
+      setSupabaseWriteInfo('saved', 'Merkezi ekip hesabı oluşturuldu');
+    } catch (error) {
+      const errorMessage = error?.message || 'Merkezi ekip hesabı oluşturulamadı.';
+      alert(errorMessage);
+      setSupabaseWriteInfo('error', errorMessage);
+    }
   };
 
   const toggleTeamMemberStatus = (memberId) => {
@@ -10786,7 +10828,19 @@ function App() {
 
     setTeamMembers((prevMembers) => {
       const existingMembers = Array.isArray(prevMembers) ? prevMembers : [];
-      const withoutSameMember = existingMembers.filter((item) => item.id !== normalizedMember.id);
+      const normalizedUsername = normalizeCredentialText(normalizedMember.username);
+      const withoutSameMember = existingMembers.filter((item) => {
+        if (item.id === normalizedMember.id) return false;
+
+        const itemUsername = normalizeCredentialText(item.username);
+        const isSameLocalAccount =
+          normalizedUsername &&
+          itemUsername === normalizedUsername &&
+          (item.authProvider === 'local' || String(item.id || '').startsWith('local-user-'));
+
+        return !isSameLocalAccount;
+      });
+
       return [normalizedMember, ...withoutSameMember].map(normalizeTeamMember);
     });
 
@@ -10969,12 +11023,9 @@ function App() {
         return;
       }
 
-      if (!loginIdentifier.includes('@')) {
-        setLoginError('Kullanıcı adı veya şifre hatalı.');
-        return;
-      }
-
-      const email = loginIdentifier;
+      const email = loginIdentifier.includes('@')
+        ? loginIdentifier
+        : `${normalizedLoginIdentifier}@zrc.local`;
 
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
