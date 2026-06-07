@@ -8789,12 +8789,9 @@ function App() {
       role === 'Müşteri/Misafir'
         ? (linkedCustomer?.name || '').trim()
         : teamMemberDraft.name.trim();
-    const email =
-      role === 'Müşteri/Misafir'
-        ? (teamMemberDraft.email.trim() || linkedCustomer?.email || '')
-        : teamMemberDraft.email.trim();
     const username = normalizeCredentialText(teamMemberDraft.username || name);
     const password = String(teamMemberDraft.password || '').trim();
+    const email = `${username || `kullanici-${Date.now()}`}@zrc.local`;
 
     if (role === 'Müşteri/Misafir' && !customerId) {
       alert('Müşteri/Misafir hesabı için bağlı müşteri seçmelisin.');
@@ -8802,7 +8799,7 @@ function App() {
     }
 
     if (!name) {
-      alert(role === 'Müşteri/Misafir' ? 'Bağlı müşteri kaydı bulunamadı.' : 'Kişi adı boş olamaz.');
+      alert(role === 'Müşteri/Misafir' ? 'Bağlı müşteri kaydı bulunamadı.' : 'Ad Soyad boş olamaz.');
       return;
     }
 
@@ -8836,7 +8833,7 @@ function App() {
     }
 
     const nextMember = {
-      id: `user-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      id: `local-user-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       name,
       email,
       username,
@@ -8844,7 +8841,8 @@ function App() {
       role,
       customerId,
       avatar: createAvatarFromName(name),
-      status: 'Aktif'
+      status: 'Aktif',
+      authProvider: 'local'
     };
 
     setTeamMembers((prevMembers) => [nextMember, ...prevMembers]);
@@ -10799,11 +10797,11 @@ function App() {
   const handleCredentialLogin = async (event) => {
     event.preventDefault();
 
-    const email = String(loginDraft.username || '').trim();
+    const loginIdentifier = String(loginDraft.username || '').trim();
     const password = String(loginDraft.password || '').trim();
 
-    if (!email || !password) {
-      setLoginError('E-posta ve şifre gir.');
+    if (!loginIdentifier || !password) {
+      setLoginError('Kullanıcı adı/e-posta ve şifre gir.');
       return;
     }
 
@@ -10811,6 +10809,31 @@ function App() {
     setLoginError('');
 
     try {
+      const normalizedLoginIdentifier = normalizeCredentialText(loginIdentifier);
+      const localMember = teamMembers.find((member) => {
+        const isLocalAccount = member.authProvider === 'local' || String(member.id || '').startsWith('local-user-');
+
+        return (
+          isLocalAccount &&
+          member.status !== 'Pasif' &&
+          normalizeCredentialText(member.username) === normalizedLoginIdentifier &&
+          String(member.password || '') === password
+        );
+      });
+
+      if (localMember) {
+        setSupabaseAuthUserId('');
+        handleLoginAsMember(localMember);
+        return;
+      }
+
+      if (!loginIdentifier.includes('@')) {
+        setLoginError('Kullanıcı adı veya şifre hatalı.');
+        return;
+      }
+
+      const email = loginIdentifier;
+
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -10820,9 +10843,9 @@ function App() {
         const cleanMessage = String(signInError.message || '').toLocaleLowerCase('tr-TR');
 
         if (cleanMessage.includes('invalid login credentials')) {
-          setLoginError('E-posta veya şifre hatalı.');
+          setLoginError('Kullanıcı adı/e-posta veya şifre hatalı.');
         } else if (cleanMessage.includes('email not confirmed')) {
-          setLoginError('E-posta hesabı onaylanmamış görünüyor.');
+          setLoginError('Bu e-posta hesabı onaylanmamış görünüyor.');
         } else {
           setLoginError(`Supabase giriş hatası: ${signInError.message}`);
         }
@@ -11016,7 +11039,7 @@ function App() {
                   setLoginDraft((prev) => ({ ...prev, username: event.target.value }));
                   setLoginError('');
                 }}
-                placeholder="E-posta adresi"
+                placeholder="Kullanıcı adı"
                 autoComplete="email"
                 className="login-input w-full h-12 rounded-[16px] border border-zinc-200 bg-zinc-50 px-4 text-[13px] font-bold text-zinc-800 placeholder:text-zinc-300 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-[#ff3600]/45 focus:bg-white transition-all"
               />
@@ -11089,7 +11112,7 @@ function App() {
 
         .zrc-team-center-page > .zrc-center-card,
         .zrc-customer-center-page > .zrc-center-card {
-          margin-left: 0 !important;
+          margin-left: auto !important;
           margin-right: auto !important;
         }
       `}</style>
@@ -16166,7 +16189,7 @@ function App() {
                           <div className="flex items-center justify-between mb-4">
                             <div>
                               <div className="text-[15px] font-black text-zinc-800">Yeni Kişi</div>
-                              <div className="mt-1 text-[10.5px] font-bold text-zinc-400">Ekip listesine kişi ekle</div>
+                              <div className="mt-1 text-[10.5px] font-bold text-zinc-400">Kullanıcı adı ve şifre ile giriş hesabı oluştur</div>
                             </div>
 
                             <div className="w-11 h-11 rounded-[15px] bg-[#ff3600]/10 text-[#ff3600] flex items-center justify-center">
@@ -16225,25 +16248,17 @@ function App() {
                                 setTeamMemberDraft((prev) => ({
                                   ...prev,
                                   customerId: selectedCustomerId,
-                                  username: prev.username || normalizeCredentialText(selectedCustomer?.name || ''),
-                                  email: prev.email || selectedCustomer?.email || ''
+                                  username: prev.username || normalizeCredentialText(selectedCustomer?.name || '')
                                 }));
                               },
                               buttonClassName: 'h-11 rounded-[13px] bg-zinc-50 border border-zinc-200 px-4 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]/25'
                             })}
 
-                            <input
-                              value={teamMemberDraft.email}
-                              onChange={(event) => setTeamMemberDraft((prev) => ({ ...prev, email: event.target.value }))}
-                              placeholder="E-posta"
-                              className="w-full h-11 rounded-[13px] border border-zinc-200 bg-zinc-50 px-4 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
-                            />
-
                             <div className="grid grid-cols-2 gap-2">
                               <input
                                 value={teamMemberDraft.username}
                                 onChange={(event) => setTeamMemberDraft((prev) => ({ ...prev, username: normalizeCredentialText(event.target.value) }))}
-                                placeholder="E-posta adresi"
+                                placeholder="Kullanıcı adı"
                                 className="w-full h-11 rounded-[13px] border border-zinc-200 bg-zinc-50 px-4 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
                               />
 
@@ -16294,10 +16309,10 @@ function App() {
                                     }`}
                                   >
                                     <div className="h-[46px] px-2.5 flex items-center gap-2.5">
-                                      <div className={`w-7 h-7 rounded-[9px] text-white text-[8px] font-black flex items-center justify-center shrink-0 ${
+                                      <div className={`w-7 h-7 rounded-[9px] text-white text-[8px] font-black flex items-center justify-center shrink-0 overflow-hidden ${
                                         isPassive ? 'bg-zinc-300' : 'bg-[#8c5220]'
                                       }`}>
-                                        {member.avatar || createAvatarFromName(member.name)}
+                                        {renderProfileAvatar(member.avatar, createAvatarFromName(member.name))}
                                       </div>
 
                                       <div className="min-w-0 flex-1">
@@ -17109,7 +17124,7 @@ function App() {
                 <input
                   value={teamMemberEditDraft.username}
                   onChange={(event) => setTeamMemberEditDraft((prev) => ({ ...prev, username: normalizeCredentialText(event.target.value) }))}
-                  placeholder="E-posta adresi"
+                  placeholder="Kullanıcı adı"
                   className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600]/35 focus:bg-white"
                 />
 
