@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
 import TopNavbar from './components/Layout/TopNavbar';
 import TaskModal from './components/Modals/TaskModal';
@@ -16951,9 +16952,10 @@ function App() {
                                 </button>
                               </div>
 
-                              {isProjectTeamPickerOpen && currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0 && (
-                                <div
-                                  className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/25 backdrop-blur-[2px]"
+                              {isProjectTeamPickerOpen && currentPermissions.manageProjectSettings && availableProjectTeamMembers.length > 0 &&
+                                createPortal((
+                                  <div
+                                    className="fixed inset-0 z-[2147483000] flex items-center justify-center bg-slate-900/35 backdrop-blur-[3px]"
                                   onMouseDown={(event) => {
                                     if (event.target === event.currentTarget) {
                                       setIsProjectTeamPickerOpen(false);
@@ -16987,7 +16989,7 @@ function App() {
                                         <button
                                           key={`available-project-member-${member.id}`}
                                           type="button"
-                                          onClick={(event) => {
+                                          onPointerDown={(event) => {
                                             event.preventDefault();
                                             event.stopPropagation();
 
@@ -17023,8 +17025,10 @@ function App() {
                                       ))}
                                     </div>
                                   </div>
-                                </div>
-                              )}
+                                  </div>
+                                ),
+                                  document.body
+                                )}
                             </div>
 
                             <div className="pt-2 flex items-center justify-end gap-2">
