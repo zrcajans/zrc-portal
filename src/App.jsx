@@ -14260,7 +14260,7 @@ function App() {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden h-[calc(100vh-345px)] min-h-[390px] max-h-[505px] flex flex-col">
+                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden">
                         <div className="h-[50px] px-5 border-b border-zinc-100 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <button
@@ -14600,8 +14600,8 @@ function App() {
 
                 {activeTab === 'Zaman Çizelgesi' && (
                   <div className="w-full h-full min-h-0 flex-1 bg-[#f5f6f8] overflow-hidden animate-fade-in">
-                    <div className="px-7 pt-2 pb-4 max-w-[1210px] mx-auto">
-                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden">
+                    <div className="px-7 pt-3 pb-4 max-w-[1210px] mx-auto">
+                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden h-[calc(100vh-300px)] min-h-[500px] max-h-[640px] flex flex-col">
                         <div className="h-[58px] px-4 border-b border-zinc-100 flex items-center justify-between gap-3 shrink-0">
                           <div className="flex items-center gap-2">
                             <div className="w-[210px] h-8 rounded-[8px] bg-white border border-zinc-200 flex items-center px-2.5 gap-2">
