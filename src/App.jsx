@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v268-home-menu-calendar-filter-fix';
+const ZRC_APP_BUILD_LABEL = 'v269-edit-task-save-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1632,7 +1632,7 @@ function App() {
         customer_id: isSupabaseUuid(taskData.customerId) ? taskData.customerId : null,
         title: taskData.title || 'Adsız görev',
         description: taskData.description || taskData.note || '',
-        rich_description: taskData.richDescription || taskData.rich_description || {},
+        rich_description: typeof taskData.richDescription === 'object' && taskData.richDescription !== null ? taskData.richDescription : (typeof taskData.rich_description === 'object' && taskData.rich_description !== null ? taskData.rich_description : {}),
         priority: getSafeSupabasePriority(taskData.priority),
         status: targetStatus || targetColumn?.title || 'Bekliyor',
         start_date: getSupabaseSafeDate(taskData.startDate),
@@ -1644,17 +1644,18 @@ function App() {
       };
 
       let savedTask = null;
+      const existingSupabaseTaskId = getSupabaseTaskIdFromLocalTask(taskData) || getSupabaseTaskIdFromLocalTask(taskData.id);
 
-      if (isSupabaseUuid(taskData.supabaseId)) {
+      if (existingSupabaseTaskId) {
         const { data, error } = await supabase
           .from('tasks')
           .update(payload)
-          .eq('id', taskData.supabaseId)
+          .eq('id', existingSupabaseTaskId)
           .select('id')
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
-        savedTask = data;
+        savedTask = data || { id: existingSupabaseTaskId };
       } else {
         const { data, error } = await supabase
           .from('tasks')
@@ -1766,7 +1767,7 @@ function App() {
         customer_id: isSupabaseUuid(taskData.customerId) ? taskData.customerId : null,
         title: taskData.title || 'Adsız görev',
         description: taskData.description || taskData.note || '',
-        rich_description: taskData.richDescription || taskData.rich_description || {},
+        rich_description: typeof taskData.richDescription === 'object' && taskData.richDescription !== null ? taskData.richDescription : (typeof taskData.rich_description === 'object' && taskData.rich_description !== null ? taskData.rich_description : {}),
         priority: getSafeSupabasePriority(taskData.priority),
         status: targetStatus || targetColumn?.title || 'Yeni Görev',
         start_date: getSupabaseSafeDate(taskData.startDate),
@@ -4918,15 +4919,36 @@ function App() {
       return;
     }
 
+    const previousColumn = boardColumns.find((column) =>
+      (column.tasks || []).some((task) =>
+        task.id === taskData.id ||
+        (task.supabaseId && task.supabaseId === taskData.supabaseId) ||
+        (task.supabaseId && task.id === `supabase-${task.supabaseId}`)
+      )
+    );
+    const previousTask = previousColumn?.tasks.find((task) =>
+      task.id === taskData.id ||
+      (task.supabaseId && task.supabaseId === taskData.supabaseId) ||
+      (task.supabaseId && task.id === `supabase-${task.supabaseId}`)
+    ) || null;
+    const existingSupabaseTaskId =
+      taskData.supabaseId ||
+      previousTask?.supabaseId ||
+      getSupabaseTaskIdFromLocalTask(taskData) ||
+      getSupabaseTaskIdFromLocalTask(taskData.id);
+
+    const finalTargetStatus = targetStatus || taskData.status || previousColumn?.title || boardColumns[0]?.title || 'Yeni Görev';
     const cleanedTaskData = {
+      ...(previousTask || {}),
       ...taskData,
-      assignees: filterTaskAssigneesForSave(taskData.assignees || []),
-      followers: filterTaskFollowersForSave(taskData.followers || [])
+      id: previousTask?.id || taskData.id || `task-${Date.now()}`,
+      supabaseId: existingSupabaseTaskId || taskData.supabaseId || previousTask?.supabaseId || '',
+      status: finalTargetStatus,
+      assignees: filterTaskAssigneesForSave(taskData.assignees || previousTask?.assignees || []),
+      followers: filterTaskFollowersForSave(taskData.followers || previousTask?.followers || [])
     };
 
-    const previousColumn = boardColumns.find((column) => column.tasks.some((task) => task.id === cleanedTaskData.id));
-    const previousTask = previousColumn?.tasks.find((task) => task.id === cleanedTaskData.id) || null;
-    const targetColumn = boardColumns.find((column) => column.title === targetStatus) || boardColumns[0];
+    const targetColumn = boardColumns.find((column) => column.title === finalTargetStatus) || previousColumn || boardColumns[0];
     const wasAssignedToMe = previousTask ? isCurrentProfileInUsers(previousTask.assignees || []) : false;
     const isAssignedToMe = isCurrentProfileInUsers(cleanedTaskData.assignees || []);
 
@@ -4936,7 +4958,7 @@ function App() {
         tasks: col.tasks.filter((t) => t.id !== cleanedTaskData.id)
       }));
 
-      const targetColIndex = updatedCols.findIndex((c) => c.title === targetStatus);
+      const targetColIndex = updatedCols.findIndex((c) => c.title === finalTargetStatus);
 
       if (targetColIndex !== -1) {
         updatedCols[targetColIndex].tasks.push(cleanedTaskData);
@@ -4952,9 +4974,9 @@ function App() {
         type: 'task',
         title: 'Yeni görev oluşturuldu',
         text: cleanedTaskData.title || 'Adsız görev',
-        meta: `${selectedProject} · ${targetStatus || targetColumn?.title || 'Görev'}`,
-        task: { ...cleanedTaskData, columnTitle: targetStatus || targetColumn?.title },
-        columnTitle: targetStatus || targetColumn?.title,
+        meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
+        task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
+        columnTitle: finalTargetStatus || targetColumn?.title,
         sortWeight: 740
       });
     }
@@ -4964,29 +4986,32 @@ function App() {
         type: 'assignment',
         title: 'Görev sana atandı',
         text: cleanedTaskData.title || 'Adsız görev',
-        meta: `${selectedProject} · ${targetStatus || targetColumn?.title || 'Görev'}`,
-        task: { ...cleanedTaskData, columnTitle: targetStatus || targetColumn?.title },
-        columnTitle: targetStatus || targetColumn?.title,
+        meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
+        task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
+        columnTitle: finalTargetStatus || targetColumn?.title,
         sortWeight: 920
       });
     }
 
-    if (previousTask && previousColumn?.title !== targetStatus) {
+    if (previousTask && previousColumn?.title !== finalTargetStatus) {
       createActivityNotification({
         type: 'status',
         title: 'Görev durumu değişti',
         text: cleanedTaskData.title || 'Adsız görev',
-        meta: `${previousColumn?.title || 'Eski durum'} → ${targetStatus || targetColumn?.title || 'Yeni durum'}`,
-        task: { ...cleanedTaskData, columnTitle: targetStatus || targetColumn?.title },
-        columnTitle: targetStatus || targetColumn?.title,
+        meta: `${previousColumn?.title || 'Eski durum'} → ${finalTargetStatus || targetColumn?.title || 'Yeni durum'}`,
+        task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
+        columnTitle: finalTargetStatus || targetColumn?.title,
         sortWeight: 820
       });
     }
 
-    const didSaveToSupabase = await saveTaskToSupabase(cleanedTaskData, targetStatus || targetColumn?.title);
+    const didSaveToSupabase = await saveTaskToSupabase(cleanedTaskData, finalTargetStatus || targetColumn?.title);
 
     if (didSaveToSupabase) {
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
+    } else if (existingSupabaseTaskId) {
+      alert('Görev yerelde güncellendi ama Supabase kaydı tamamlanamadı. Sağ alttaki hata mesajını kontrol et.');
+      return;
     }
 
     setIsTaskModalOpen(false);

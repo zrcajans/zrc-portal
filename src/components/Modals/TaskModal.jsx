@@ -594,7 +594,7 @@ export default function TaskModal({
     const rememberedDraft = draftMemoryRef.current;
     const currentDraftContextKey = getDraftContextKey();
 
-    if (rememberedDraft?.contextKey === currentDraftContextKey) {
+    if (!initialData?.id && rememberedDraft?.contextKey === currentDraftContextKey) {
       setForm(rememberedDraft.form);
       return;
     }
