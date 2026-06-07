@@ -234,7 +234,7 @@ function Sidebar({
               setIsPanelOpen(false);
               onProfileSelect?.();
             }}
-            title={`${profileDraft?.firstName || 'Enes'} ${profileDraft?.lastName || 'Zariç'}`}
+            title={`${profileDraft?.firstName || 'ZRC AJANS'} ${profileDraft?.lastName || ''}`.trim()}
             className={`w-[44px] h-[44px] group-hover/sidebar:w-[50px] group-hover/sidebar:h-[50px] rounded-full flex items-center justify-center border-2 cursor-pointer apple-dock-effect hover-grow shadow-md overflow-hidden transition-all duration-500 ${
               activeMenu === 'Profil'
                 ? 'bg-white text-[#ff3600] border-white'
@@ -358,7 +358,7 @@ function Sidebar({
                 </span>
               </div>
 
-              <button onClick={handleCreateProject} className={`w-full text-white text-[12.5px] font-extrabold py-2.5 px-4 rounded-md shadow-sm active:scale-[0.97] transition-all duration-150 flex items-center justify-center space-x-2 shrink-0 mb-4 ${canCreateProject ? 'bg-[#ff3600] hover:bg-[#e03000]' : 'bg-zinc-300 cursor-not-allowed'}`}>
+              <button onClick={handleCreateProject} className={`w-full text-white text-[12.5px] font-extrabold py-2.5 px-4 rounded-md shadow-sm active:scale-[0.97] transition-all duration-150 flex items-center justify-center space-x-2 shrink-0 mb-4 ${canCreateProject ? 'bg-zinc-900 hover:bg-zinc-800' : 'bg-zinc-300 cursor-not-allowed'}`}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -389,10 +389,10 @@ function Sidebar({
                         setSelectedProject(project);
                         setIsPanelOpen(false);
                       }}
-                      className={`relative w-full min-h-[58px] px-3.5 py-3 border rounded-[14px] cursor-pointer transition-all duration-200 group flex items-center gap-3 overflow-hidden ${
+                      className={`relative w-full min-h-[54px] px-3.5 py-2.5 rounded-[9px] cursor-pointer transition-all duration-200 group flex items-center gap-3 overflow-hidden ${
                         isCurrentProject
-                          ? 'bg-white border-zinc-300 shadow-[0_12px_28px_rgba(15,23,42,0.08)]'
-                          : 'bg-white border-zinc-200/75 hover:border-zinc-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.07)]'
+                          ? 'bg-zinc-50 shadow-[0_10px_24px_rgba(15,23,42,0.075)]'
+                          : 'bg-white hover:bg-zinc-50 hover:shadow-[0_10px_22px_rgba(15,23,42,0.055)]'
                       }`}
                     >
                       {isCurrentProject && (
@@ -403,7 +403,7 @@ function Sidebar({
                       )}
 
                       <div
-                        className={`w-8 h-8 rounded-[11px] flex items-center justify-center shrink-0 transition-all ${
+                        className={`w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 transition-all ${
                           isCurrentProject ? 'text-white shadow-sm' : 'bg-zinc-50 text-zinc-500 group-hover:bg-zinc-100'
                         }`}
                         style={isCurrentProject ? { backgroundColor: projectAccentColor } : { color: projectAccentColor }}

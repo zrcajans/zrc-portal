@@ -114,7 +114,7 @@ class ZRCErrorBoundary extends React.Component {
     }
 
     return (
-      <div className="min-h-screen bg-[#f4f6f8] flex items-center justify-center p-6 text-[#263244]">
+      <div className="min-h-screen bg-[#f4f6f8] flex items-center justify-center p-6 text-current">
         <div className="w-full max-w-[760px] rounded-[22px] border border-red-100 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.16)] overflow-hidden">
           <div className="px-6 py-5 border-b border-[#edf0f4] bg-red-50">
             <div className="text-[11px] font-black uppercase tracking-[0.18em] text-red-500">
@@ -818,16 +818,13 @@ function App() {
   const [openProfileDropdown, setOpenProfileDropdown] = useState(null);
   const [profileDraft, setProfileDraft] = useState(() => {
     const savedProfile = normalizeStorageObject(readStorageValue('profileDraft', null), null);
-
-    if (savedProfile) return savedProfile;
-
-    return {
-      firstName: 'Enes',
-      lastName: 'Zariç',
+    const fallbackProfile = {
+      firstName: 'ZRC AJANS',
+      lastName: '',
       title: '',
       language: 'Türkçe',
       status: 'Hiçbiri',
-      email: 'enszrc@gmail.com',
+      email: 'info@zrcajans.com',
       password: '',
       currentPassword: '',
       newPassword: '',
@@ -839,6 +836,19 @@ function App() {
       color: 'Cubicl Mavisi',
       avatarDataUrl: ''
     };
+
+    if (!savedProfile) return fallbackProfile;
+
+    const savedName = `${savedProfile.firstName || ''} ${savedProfile.lastName || ''}`.trim();
+
+    if (isLegacyDemoTeamMemberRecord({ name: savedName, email: savedProfile.email })) {
+      return {
+        ...fallbackProfile,
+        avatarDataUrl: savedProfile.avatarDataUrl || ''
+      };
+    }
+
+    return savedProfile;
   });
 
   const [profilePreferences, setProfilePreferences] = useState(() => {
@@ -4970,7 +4980,10 @@ function App() {
   const currentProfileNameParts = [profileDraft.firstName, profileDraft.lastName]
     .map((part) => String(part || '').trim())
     .filter(Boolean);
-  const currentProfileName = currentProfileNameParts.join(' ') || 'Enes Zariç';
+  const rawCurrentProfileName = currentProfileNameParts.join(' ');
+  const currentProfileName = isLegacyDemoTeamMemberRecord({ name: rawCurrentProfileName, email: profileDraft.email })
+    ? 'ZRC AJANS'
+    : rawCurrentProfileName || currentRoleMember?.name || 'ZRC AJANS';
   const currentProfileInitials = createAvatarFromName(currentProfileName);
 
   const currentRoleMember = currentUserId
@@ -6592,9 +6605,47 @@ function App() {
         projectSettings?.[task.projectName || selectedProject]?.color ||
         '#ff3600';
 
-  const getPremiumCalendarTaskStyle = (task = {}) => ({
-    borderLeftColor: getCalendarTaskAccentColor(task)
-  });
+  const normalizeHexColor = (color = '#ff3600') => {
+    const cleanColor = String(color || '#ff3600').trim();
+
+    if (/^#[0-9a-fA-F]{6}$/.test(cleanColor)) return cleanColor;
+    if (/^#[0-9a-fA-F]{3}$/.test(cleanColor)) {
+      return `#${cleanColor
+        .slice(1)
+        .split('')
+        .map((char) => `${char}${char}`)
+        .join('')}`;
+    }
+
+    return '#ff3600';
+  };
+
+  const mixHexWithWhite = (color = '#ff3600', amount = 0.78) => {
+    const hex = normalizeHexColor(color).replace('#', '');
+    const red = parseInt(hex.slice(0, 2), 16);
+    const green = parseInt(hex.slice(2, 4), 16);
+    const blue = parseInt(hex.slice(4, 6), 16);
+
+    const mixed = [red, green, blue].map((channel) =>
+      Math.round(channel + (255 - channel) * amount)
+        .toString(16)
+        .padStart(2, '0')
+    );
+
+    return `#${mixed.join('')}`;
+  };
+
+  const getPremiumCalendarTaskStyle = (task = {}) => {
+    const accentColor = getCalendarTaskAccentColor(task);
+    const surfaceColor = mixHexWithWhite(accentColor, task.isArchivedCalendarTask ? 0.84 : 0.78);
+
+    return {
+      backgroundColor: surfaceColor,
+      borderColor: mixHexWithWhite(accentColor, 0.45),
+      borderLeftColor: accentColor,
+      color: '#1f2937'
+    };
+  };
 
   const getPremiumCalendarDotStyle = (task = {}) => ({
     backgroundColor: getCalendarTaskAccentColor(task)
@@ -6880,7 +6931,7 @@ function App() {
   const getCalendarTaskBarStyle = (priority, isArchivedTask = false) => {
     if (isArchivedTask) return 'bg-slate-50 text-slate-500 border-slate-200 border-l-[3px] shadow-[0_8px_18px_rgba(15,23,42,0.045)]';
 
-    return 'bg-white text-[#263244] border-[#dfe5ee] border-l-[3px] shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:border-[#cbd5e1] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)]';
+    return 'bg-white text-current border-[#dfe5ee] border-l-[3px] shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:border-[#cbd5e1] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)]';
   };
 
   const handleCalendarDayClick = (event, date) => {
@@ -10040,7 +10091,7 @@ function App() {
         }}
         className={`w-full h-8 rounded-[15px] border px-3 text-[10.5px] font-semibold flex items-center justify-between gap-2 transition-all ${
           openProfileDropdown === id
-            ? 'border-[#9cc9ff] bg-white shadow-[0_0_0_3px_rgba(183,212,255,0.35)] text-[#263244]'
+            ? 'border-[#9cc9ff] bg-white shadow-[0_0_0_3px_rgba(183,212,255,0.35)] text-current'
             : 'border-[#e4e7ec] bg-white text-[#394150] hover:border-[#cfd6e1]'
         }`}
       >
@@ -11900,7 +11951,7 @@ function App() {
                                         className="w-1.5 h-1.5 rounded-full shrink-0"
                                         style={getPremiumCalendarDotStyle(task)}
                                       />
-                                      <span className="min-w-0 flex-1 text-[8px] font-black text-[#263244] truncate">
+                                      <span className="min-w-0 flex-1 text-[8px] font-black text-current truncate">
                                         {formatMenuCalendarTaskTime(task) ? `${formatMenuCalendarTaskTime(task)} · ${task.title}` : task.title}
                                       </span>
                                     </button>
@@ -11965,7 +12016,7 @@ function App() {
                                       event.stopPropagation();
                                       openMenuCalendarTask(allDayTasks[0]);
                                     }}
-                                    className="h-[20px] w-full rounded-[2px] px-2 text-left text-[8px] font-black text-[#263244] truncate"
+                                    className="h-[20px] w-full rounded-[2px] px-2 text-left text-[8px] font-black text-current truncate"
                                     style={{ backgroundColor: `${allDayTasks[0].columnColor || '#8ecae6'}24` }}
                                   >
                                     {allDayTasks[0].title}
@@ -12002,7 +12053,7 @@ function App() {
                                           event.stopPropagation();
                                           openMenuCalendarTask(task);
                                         }}
-                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
                                         style={getPremiumCalendarTaskStyle(task)}
                                       >
                                         <div>{formatMenuCalendarTaskTime(task)}</div>
@@ -12050,7 +12101,7 @@ function App() {
                                   openMenuCalendarTask(task);
                                 }}
                                 data-calendar-task-button="true"
-                                className="h-[22px] mr-1 rounded-[7px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 text-left text-[8px] font-black text-[#263244] truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                className="h-[22px] mr-1 rounded-[7px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 text-left text-[8px] font-black text-current truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
                                 style={getPremiumCalendarTaskStyle(task)}
                               >
                                 {task.title}
@@ -12081,7 +12132,7 @@ function App() {
                                         event.stopPropagation();
                                         openMenuCalendarTask(task);
                                       }}
-                                      className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                      className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
                                       style={getPremiumCalendarTaskStyle(task)}
                                     >
                                       <div>{formatMenuCalendarTaskTime(task)}</div>
@@ -12389,10 +12440,10 @@ function App() {
                                   style={getPremiumCalendarTaskStyle(task)}
                                 >
                                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={getPremiumCalendarDotStyle(task)} />
-                                  <span className="text-[7.5px] font-black text-[#263244] shrink-0">
+                                  <span className="text-[7.5px] font-black text-current shrink-0">
                                     {formatMenuCalendarTaskTime(task)}
                                   </span>
-                                  <span className="min-w-0 flex-1 text-[8.5px] font-black text-[#263244] truncate">
+                                  <span className="min-w-0 flex-1 text-[8.5px] font-black text-current truncate">
                                     {task.title}
                                   </span>
                                 </button>
@@ -12454,7 +12505,7 @@ function App() {
                                   event.stopPropagation();
                                   openMenuCalendarTask(allDayTasks[0]);
                                 }}
-                                className="h-[22px] w-full rounded-[7px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 text-left text-[8px] font-black text-[#263244] truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                className="h-[22px] w-full rounded-[7px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 text-left text-[8px] font-black text-current truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
                                 style={getPremiumCalendarTaskStyle(allDayTasks[0])}
                               >
                                 {allDayTasks[0].title}
@@ -12490,7 +12541,7 @@ function App() {
                                       event.stopPropagation();
                                       openMenuCalendarTask(task);
                                     }}
-                                    className="absolute left-1 right-1 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] transition-all"
+                                    className="absolute left-1 right-1 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] transition-all"
                                     style={getPremiumCalendarTaskStyle(task)}
                                   >
                                     <div className="opacity-80">{formatMenuCalendarTaskTime(task)}</div>
@@ -12547,7 +12598,7 @@ function App() {
                                     event.stopPropagation();
                                     openMenuCalendarTask(task);
                                   }}
-                                  className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] transition-all"
+                                  className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] transition-all"
                                   style={getPremiumCalendarTaskStyle(task)}
                                 >
                                   <div className="opacity-80">{formatMenuCalendarTaskTime(task)}</div>
@@ -12583,10 +12634,10 @@ function App() {
                               onClick={() => openMenuCalendarTask(task)}
                               className="w-full min-h-[38px] grid grid-cols-[64px_1fr] items-center bg-white border-b border-[#edf0f4] border-l-[3px] text-left hover:bg-[#f8fafc] transition-all"
                             >
-                              <div className="px-3 text-[10px] font-black text-[#647084]">
+                              <div className="px-3 text-[10px] font-black text-slate-600">
                                 {formatMenuCalendarTaskTime(task) || ' '}
                               </div>
-                              <div className="min-w-0 text-[10px] font-black text-[#263244] truncate">
+                              <div className="min-w-0 text-[10px] font-black text-current truncate">
                                 <span className="inline-block w-2 h-2 rounded-full mr-2 shadow-[0_0_0_2px_rgba(15,23,42,0.04)]" style={getPremiumCalendarDotStyle(task)} />
                                 {task.title}
                               </div>
@@ -12610,7 +12661,7 @@ function App() {
               <div className="h-full bg-white border border-[#e4e7ec] rounded-[7px] shadow-[0_10px_30px_rgba(15,23,42,0.06)] overflow-hidden flex">
                 <aside className="w-[255px] border-r border-[#e8ebf0] bg-white flex flex-col">
                   <div className="h-[52px] px-4 flex items-center justify-between shrink-0">
-                    <div className="text-[15px] font-bold text-[#263244]">Mesajlar</div>
+                    <div className="text-[15px] font-bold text-current">Mesajlar</div>
 
                     <div className="relative flex items-center gap-1.5">
                       <button
@@ -12727,7 +12778,7 @@ function App() {
                           </div>
 
                           <div>
-                            <div className="text-[14px] font-black text-[#263244]">{selectedChatGroup.name}</div>
+                            <div className="text-[14px] font-black text-current">{selectedChatGroup.name}</div>
                             <div className="mt-0.5 text-[9.5px] font-bold text-[#9aa3b1]">
                               {(selectedChatGroup.members || []).length} üye
                             </div>
@@ -12775,7 +12826,7 @@ function App() {
                                 <div className="absolute left-[48px] bottom-0 w-[86px] h-[2px] bg-[#b8d9ff]" />
                               </div>
 
-                              <div className="text-[18px] font-black text-[#263244]">Yazışmalar</div>
+                              <div className="text-[18px] font-black text-current">Yazışmalar</div>
                               <p className="mt-2 text-[11px] font-semibold leading-5 text-[#3f4858]">
                                 {canSendSelectedChatMessage
                                   ? 'Bu yazışma grubunda henüz mesaj yok. İlk mesajı yazarak konuşmayı başlat.'
@@ -12821,12 +12872,12 @@ function App() {
                           <div className="absolute left-[72px] bottom-0 w-[140px] h-[2px] bg-[#b8d9ff]" />
                         </div>
 
-                        <div className="text-[18px] font-black text-[#263244]">Yazışmalar</div>
+                        <div className="text-[18px] font-black text-current">Yazışmalar</div>
                         <p className="mt-2 text-[11px] font-semibold leading-5 text-[#3f4858]">
                           Yazışmalarınızı görüntülemek ve yazışmaya başlamak için soldaki yazışma listesinden bir yazışmayı seçin.
                         </p>
 
-                        <div className="mt-8 text-[18px] font-black text-[#263244]">Yazışma Grupları</div>
+                        <div className="mt-8 text-[18px] font-black text-current">Yazışma Grupları</div>
                         <p className="mt-2 text-[11px] font-semibold leading-5 text-[#3f4858]">
                           {canCreateChatGroups
                             ? 'Soldaki liste mevcut projelerinizden otomatik oluşur. Ayrıca özel yazışma grubu da oluşturabilirsiniz.'
@@ -12858,7 +12909,7 @@ function App() {
                   className="w-[390px] bg-white rounded-[15px] shadow-[0_28px_90px_rgba(15,23,42,0.24)] overflow-hidden"
                 >
                   <div className="h-12 px-5 flex items-center justify-center relative">
-                    <div className="text-[12px] font-black text-[#263244] flex items-center gap-1.5">
+                    <div className="text-[12px] font-black text-current flex items-center gap-1.5">
                       <span className="text-[#7d8795]">⌕</span>
                       Yazışma Grubu
                     </div>
@@ -12866,7 +12917,7 @@ function App() {
                     <button
                       type="button"
                       onClick={() => setIsChatGroupModalOpen(false)}
-                      className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#eef0f4] text-[#778293] hover:bg-white hover:text-[#263244] transition-all shadow-sm"
+                      className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#eef0f4] text-[#778293] hover:bg-white hover:text-current transition-all shadow-sm"
                     >
                       ×
                     </button>
@@ -12957,7 +13008,7 @@ function App() {
                     </div>
 
                     <div className="min-w-0">
-                      <div className="text-[13px] font-black text-[#263244]">Profil Detayları</div>
+                      <div className="text-[13px] font-black text-current">Profil Detayları</div>
                       <div className="mt-1 text-[11px] font-bold text-[#7c8798] truncate">
                         {profileDraft.firstName} {profileDraft.lastName}
                       </div>
@@ -13062,9 +13113,9 @@ function App() {
                   {activeProfileTab === 'Hesap' && (
                     <div className="space-y-6">
                       <section>
-                        <div className="text-[14px] font-black text-[#263244] mb-4">Hesap Ayarları</div>
+                        <div className="text-[14px] font-black text-current mb-4">Hesap Ayarları</div>
 
-                        <div className="text-[12px] font-black text-[#263244] mb-3">E-Posta Bilgilerini Güncelle</div>
+                        <div className="text-[12px] font-black text-current mb-3">E-Posta Bilgilerini Güncelle</div>
                         <div className="grid grid-cols-2 gap-4">
                           <label className="block">
                             <span className="block text-[10px] font-black text-[#a1aabb] mb-1.5">E-posta</span>
@@ -13096,7 +13147,7 @@ function App() {
                       </section>
 
                       <section className="border-t border-[#edf0f4] pt-5">
-                        <div className="text-[12px] font-black text-[#263244] mb-3">Şifreni Değiştir</div>
+                        <div className="text-[12px] font-black text-current mb-3">Şifreni Değiştir</div>
                         <div className="grid grid-cols-3 gap-4">
                           {[
                             ['currentPassword', 'Güncel şifre'],
@@ -13123,7 +13174,7 @@ function App() {
                       </section>
 
                       <section className="border-t border-[#edf0f4] pt-5">
-                        <div className="text-[12px] font-black text-[#263244] mb-3">Yerelleştirme Ayarları</div>
+                        <div className="text-[12px] font-black text-current mb-3">Yerelleştirme Ayarları</div>
                         <div className="grid grid-cols-3 gap-4">
                           {renderProfileSelect({
                             id: 'profile-date-format',
@@ -13159,7 +13210,7 @@ function App() {
 
                       <section className="border-t border-[#edf0f4] pt-5 grid grid-cols-[1fr_auto] gap-4 items-center">
                         <div>
-                          <div className="text-[12px] font-black text-[#263244]">2 Adımlı Doğrulama</div>
+                          <div className="text-[12px] font-black text-current">2 Adımlı Doğrulama</div>
                           <div className="mt-1 text-[10px] font-semibold text-[#7c8798]">
                             Girişte 6 haneli kod isteyerek hesap güvenliğini artırır.
                           </div>
@@ -13196,7 +13247,7 @@ function App() {
 
                       <section className="border-t border-[#edf0f4] pt-5 grid grid-cols-[1fr_auto] gap-4 items-center">
                         <div>
-                          <div className="text-[12px] font-black text-[#263244]">Hesabı Sil</div>
+                          <div className="text-[12px] font-black text-current">Hesabı Sil</div>
                           <div className="mt-1 text-[10px] font-semibold text-[#7c8798]">
                             Hesabınızı silme işlemi geri alınamaz.
                           </div>
@@ -13220,7 +13271,7 @@ function App() {
                   {activeProfileTab === 'E-Posta Bildirimi' && (
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <div className="text-[14px] font-black text-[#263244]">E-Posta Bildirimi</div>
+                        <div className="text-[14px] font-black text-current">E-Posta Bildirimi</div>
                         <button
                           type="button"
                           onClick={() =>
@@ -13280,7 +13331,7 @@ function App() {
 
                   {activeProfileTab === 'Tarayıcı Bildirimi' && (
                     <div>
-                      <div className="text-[14px] font-black text-[#263244] mb-2">Web Tarayıcısı Bildirimleri</div>
+                      <div className="text-[14px] font-black text-current mb-2">Web Tarayıcısı Bildirimleri</div>
                       <div className="text-[10.5px] font-semibold text-[#7c8798] mb-4">
                         Aktivite ve chat bildirimlerini bilgisayar ekranınızın köşesinde görebilirsiniz.
                       </div>
@@ -13299,7 +13350,7 @@ function App() {
 
                       <div className="mt-5 grid grid-cols-[1fr_200px] gap-4 items-center border-t border-[#edf0f4] pt-5">
                         <div>
-                          <div className="text-[12px] font-black text-[#263244]">Rahatsız Etme Modu</div>
+                          <div className="text-[12px] font-black text-current">Rahatsız Etme Modu</div>
                           <div className="mt-1 text-[10px] font-semibold text-[#7c8798]">
                             Aktifken bildirim sesi kapatılır.
                           </div>
@@ -13330,7 +13381,7 @@ function App() {
 
                   {activeProfileTab === 'E-Posta Kutusu' && (
                     <div>
-                      <div className="text-[14px] font-black text-[#263244] mb-2">E-posta Hesapları</div>
+                      <div className="text-[14px] font-black text-current mb-2">E-posta Hesapları</div>
                       <div className="text-[10.5px] font-semibold text-[#7c8798] mb-4">
                         E-posta hesabı ekleyerek toplantı ve takvim kayıtlarını takip edebilirsiniz.
                       </div>
@@ -13382,11 +13433,11 @@ function App() {
 
                   {activeProfileTab === 'Özelleştirmeler' && (
                     <div>
-                      <div className="text-[14px] font-black text-[#263244] mb-5">Özelleştirmeler</div>
+                      <div className="text-[14px] font-black text-current mb-5">Özelleştirmeler</div>
 
                       <div className="flex items-center justify-between border-b border-[#edf0f4] pb-5">
                         <div>
-                          <div className="text-[12px] font-black text-[#263244]">Uygulama Teması</div>
+                          <div className="text-[12px] font-black text-current">Uygulama Teması</div>
                           <div className="mt-1 text-[10px] font-semibold text-[#7c8798]">Tema tercihini kaydeder.</div>
                         </div>
 
@@ -13408,7 +13459,7 @@ function App() {
                       </div>
 
                       <div className="pt-5">
-                        <div className="text-[12px] font-black text-[#263244]">Navigasyon Rengi</div>
+                        <div className="text-[12px] font-black text-current">Navigasyon Rengi</div>
                         <div className="mt-1 text-[10px] font-semibold text-[#7c8798]">
                           Bu seçim şimdilik profil tercihi olarak kaydedilir; sistem rengini değiştirmez.
                         </div>
@@ -13450,7 +13501,7 @@ function App() {
                     <div>
                       <div className="flex items-start justify-between gap-4 mb-5">
                         <div>
-                          <div className="text-[14px] font-black text-[#263244]">Veri Yönetimi</div>
+                          <div className="text-[14px] font-black text-current">Veri Yönetimi</div>
                           <div className="mt-1 text-[10.5px] font-semibold text-[#7c8798] leading-4">
                             Proje, görev, ekip, müşteri, yazışma ve bildirim verilerini yedekle veya geri yükle.
                           </div>
@@ -13464,7 +13515,7 @@ function App() {
                       <div className="grid grid-cols-4 gap-3">
                         {dataManagementStats.map(([label, value]) => (
                           <div key={`data-management-${label}`} className="rounded-[8px] border border-[#edf0f4] bg-[#fafbfc] px-3 py-3">
-                            <div className="text-[20px] font-black text-[#263244]">{value}</div>
+                            <div className="text-[20px] font-black text-current">{value}</div>
                             <div className="mt-1 text-[9px] font-black text-[#9aa3b1] uppercase tracking-[0.06em]">{label}</div>
                           </div>
                         ))}
@@ -13473,7 +13524,7 @@ function App() {
                       <div className="mt-5 rounded-[10px] border border-[#e5e8ee] bg-[#fafbfc] p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <div className="text-[12px] font-black text-[#263244]">Supabase Kontrol Merkezi</div>
+                            <div className="text-[12px] font-black text-current">Supabase Kontrol Merkezi</div>
                             <div className="mt-1 text-[10px] font-semibold text-[#7c8798] leading-4">
                               Veritabanı tablolarını, Storage erişimini ve manuel senkronu tek yerden kontrol et.
                             </div>
@@ -13581,7 +13632,7 @@ function App() {
 
                       <div className="mt-5 grid grid-cols-[1.2fr_0.8fr] gap-4">
                         <div className="rounded-[8px] border border-[#edf0f4] bg-white p-4">
-                          <div className="text-[12px] font-black text-[#263244]">Yedekleme</div>
+                          <div className="text-[12px] font-black text-current">Yedekleme</div>
                           <div className="mt-1 text-[10px] font-semibold text-[#7c8798] leading-4">
                             Mevcut tarayıcı verisini JSON yedeği olarak indir veya panoya kopyala.
                           </div>
@@ -13610,7 +13661,7 @@ function App() {
                         </div>
 
                         <div className="rounded-[8px] border border-[#edf0f4] bg-white p-4">
-                          <div className="text-[12px] font-black text-[#263244]">Geri Yükleme</div>
+                          <div className="text-[12px] font-black text-current">Geri Yükleme</div>
                           <div className="mt-1 text-[10px] font-semibold text-[#7c8798] leading-4">
                             Daha önce indirilen JSON yedeği mevcut verinin üzerine yazar.
                           </div>
@@ -13664,7 +13715,7 @@ function App() {
 
                   {activeProfileTab === 'Oturumlar' && (
                     <div>
-                      <div className="text-[14px] font-black text-[#263244] mb-4">Aktif Oturumlar</div>
+                      <div className="text-[14px] font-black text-current mb-4">Aktif Oturumlar</div>
 
                       <div className="overflow-hidden border border-[#edf0f4] rounded-[6px]">
                         <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_150px] h-9 bg-[#fafbfc] border-b border-[#edf0f4] items-center px-3 text-[10px] font-black text-[#6b7280]">
@@ -13700,7 +13751,7 @@ function App() {
                         )}
                       </div>
 
-                      <div className="text-[14px] font-black text-[#263244] mt-7 mb-4">Son 2 Ay İçindeki Şüpheli Etkinlikler</div>
+                      <div className="text-[14px] font-black text-current mt-7 mb-4">Son 2 Ay İçindeki Şüpheli Etkinlikler</div>
 
                       <div className="overflow-hidden border border-[#edf0f4] rounded-[6px]">
                         {profilePreferences.suspiciousEvents.length > 0 ? (
@@ -14204,11 +14255,6 @@ function App() {
                                             </div>
                                           ))}
 
-                                          {(!task.assignees || task.assignees.length === 0) && (
-                                            <div className="w-7 h-7 rounded-full bg-[#8c5220] border-2 border-white flex items-center justify-center text-white text-[8px] font-black shadow-sm overflow-hidden" title="ZRC AJANS">
-                                              {renderProfileAvatar(currentActorAvatar, 'ZRC')}
-                                            </div>
-                                          )}
                                         </div>
                                       </div>
                                     </div>
