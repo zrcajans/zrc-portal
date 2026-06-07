@@ -7341,9 +7341,7 @@ function App() {
   const timeChartProjectMemberIds = Array.isArray(projectSettings[selectedProject]?.teamMemberIds)
     ? projectSettings[selectedProject].teamMemberIds
     : [];
-  const timeChartProjectMembers = teamMembers
-    .filter((member) => member.status !== 'Pasif')
-    .filter((member) => normalizeTeamRole(member.role) !== 'Müşteri/Misafir')
+  const timeChartProjectMembers = projectAssignableMembers
     .filter((member) => timeChartProjectMemberIds.length === 0 || timeChartProjectMemberIds.includes(member.id))
     .map((member) => ({
       id: member.id,
@@ -7351,16 +7349,7 @@ function App() {
       avatar: member.avatar || createAvatarFromName(member.name),
       role: normalizeTeamRole(member.role)
     }));
-  const timeChartMembers = timeChartProjectMembers.length > 0
-    ? timeChartProjectMembers
-    : [
-        {
-          id: currentActorId,
-          name: currentActorName,
-          avatar: currentActorAvatar,
-          role: currentUserRole
-        }
-      ];
+  const timeChartMembers = timeChartProjectMembers;
 
   const getTimeChartTaskOwnerId = (task = {}) => {
     const assignedPerson = Array.isArray(task.assignees)
@@ -8390,9 +8379,9 @@ function App() {
 
     return (
       ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
-      ['ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
-      ['ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
-      ['ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
+      ['enes', 'ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
+      ['eneszaric', 'ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
+      ['enes@zrcajans.com', 'enszrc@gmail.com', 'ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
     );
   };
 
