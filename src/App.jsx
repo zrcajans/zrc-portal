@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v271-ekip-gorev-yetki-fix';
+const ZRC_APP_BUILD_LABEL = 'v272-gorev-atama-bildirim-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -3422,7 +3422,8 @@ function App() {
         columnTitle: notification.columnTitle || '',
         chatGroupId: notification.chatGroupId || '',
         messageId: notification.messageId || '',
-        localId: notification.id || ''
+        localId: notification.id || '',
+        targetUserIds: Array.isArray(notification.targetUserIds) ? notification.targetUserIds : []
       };
 
       await supabase
@@ -3438,24 +3439,101 @@ function App() {
           payload
         });
 
-      await supabase
-        .from('notifications')
-        .insert({
+      const targetUserIds = Array.from(
+        new Set(
+          [
+            ...(Array.isArray(notification.targetUserIds) ? notification.targetUserIds : []),
+            ...(Array.isArray(notification.recipientUserIds) ? notification.recipientUserIds : [])
+          ]
+            .map((value) => String(value || '').trim())
+            .filter(isSupabaseUuid)
+        )
+      );
+
+      const finalUserIds = targetUserIds.length > 0
+        ? targetUserIds
+        : [currentUserId].filter(isSupabaseUuid);
+
+      if (finalUserIds.length > 0) {
+        const notificationRows = finalUserIds.map((userId) => ({
           workspace_id: workspaceId,
-          user_id: currentUserId,
+          user_id: userId,
           project_id: projectId || null,
           task_id: taskId || null,
           type: notification.type || 'activity',
           title: notification.title || 'Bildirim',
           body: notification.text || notification.meta || '',
-          is_read: false
-        });
+          is_read: userId === currentUserId ? false : false
+        }));
+
+        const { error: notificationInsertError } = await supabase
+          .from('notifications')
+          .insert(notificationRows);
+
+        if (notificationInsertError) throw notificationInsertError;
+      }
 
       return true;
     } catch (error) {
       setSupabaseWriteInfo('error', `Supabase aktivite hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
+  };
+
+  const findLocalTaskBySupabaseId = (supabaseTaskId = '') => {
+    const cleanTaskId = String(supabaseTaskId || '').trim();
+    if (!cleanTaskId) return null;
+
+    for (const [projectName, board] of Object.entries(projectBoards || {})) {
+      const allTasks = [
+        ...(board?.columns || []).flatMap((column) =>
+          (column.tasks || []).map((task) => ({ ...task, projectName, columnTitle: column.title }))
+        ),
+        ...(board?.archivedTasks || []).map((task) => ({
+          ...task,
+          projectName,
+          columnTitle: task.sourceColumnTitle || task.columnTitle || 'Arşiv'
+        }))
+      ];
+
+      const matchedTask = allTasks.find((task) =>
+        String(task.supabaseId || '') === cleanTaskId ||
+        String(task.id || '') === `supabase-${cleanTaskId}` ||
+        String(task.id || '') === cleanTaskId
+      );
+
+      if (matchedTask) return matchedTask;
+    }
+
+    return null;
+  };
+
+  const mapSupabaseNotificationToLocal = (notification = {}) => {
+    const linkedTask = findLocalTaskBySupabaseId(notification.task_id);
+    const createdAt = notification.created_at || new Date().toISOString();
+
+    return {
+      id: `supabase-notification-${notification.id}`,
+      supabaseId: notification.id,
+      source: 'notification',
+      type: notification.type || 'activity',
+      title: notification.title || 'Bildirim',
+      text: notification.body || '',
+      meta: linkedTask
+        ? `${linkedTask.projectName || selectedProject || 'Proje'} · ${linkedTask.columnTitle || linkedTask.status || 'Görev'}`
+        : '',
+      task: linkedTask || null,
+      taskId: linkedTask?.id || notification.task_id || '',
+      taskTitle: linkedTask?.title || '',
+      projectName: linkedTask?.projectName || '',
+      columnTitle: linkedTask?.columnTitle || '',
+      actor: 'ZRC AJANS',
+      avatar: 'ZRC',
+      userId: currentUserId,
+      createdAt,
+      dateLabel: getActivityDateLabel(createdAt),
+      sortWeight: notification.type === 'assignment' ? 940 : 730
+    };
   };
 
   const mapSupabaseActivityLogToLocal = (log = {}) => {
@@ -3505,11 +3583,19 @@ function App() {
 
       const { data: notificationsData, error: notificationsError } = await supabase
         .from('notifications')
-        .select('id, is_read')
+        .select('id, type, title, body, is_read, project_id, task_id, created_at')
         .eq('workspace_id', workspaceId)
-        .eq('user_id', currentUserId);
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(80);
 
       if (!notificationsError) {
+        const mappedNotifications = (notificationsData || []).map(mapSupabaseNotificationToLocal);
+
+        setActivityNotifications((prevNotifications) =>
+          mergeUniqueByKey(prevNotifications, mappedNotifications, (notification) => notification.supabaseId || notification.id).slice(0, 80)
+        );
+
         const readIds = (notificationsData || [])
           .filter((notification) => notification.is_read)
           .map((notification) => `supabase-notification-${notification.id}`);
@@ -4988,6 +5074,10 @@ function App() {
 
     const wasAssignedToMe = previousTask ? isCurrentProfileInUsers(previousTask.assignees || []) : false;
     const isAssignedToMe = isCurrentProfileInUsers(cleanedTaskData.assignees || []);
+    const previousAssigneeUserIds = previousTask ? getTaskAssigneeUserIdsForNotification(previousTask) : [];
+    const nextAssigneeUserIds = getTaskAssigneeUserIdsForNotification(cleanedTaskData);
+    const addedAssigneeUserIds = nextAssigneeUserIds.filter((userId) => !previousAssigneeUserIds.includes(userId));
+    const removedAssigneeUserIds = previousAssigneeUserIds.filter((userId) => !nextAssigneeUserIds.includes(userId));
 
     setBoardColumns((prev) => {
       const updatedCols = prev.map((col) => ({
@@ -5014,11 +5104,12 @@ function App() {
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
         columnTitle: finalTargetStatus || targetColumn?.title,
+        targetUserIds: addedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 740
       });
     }
 
-    if (isAssignedToMe && !wasAssignedToMe) {
+    if (addedAssigneeUserIds.length > 0) {
       createActivityNotification({
         type: 'assignment',
         title: 'Görev sana atandı',
@@ -5026,7 +5117,21 @@ function App() {
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
         columnTitle: finalTargetStatus || targetColumn?.title,
-        sortWeight: 920
+        targetUserIds: addedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
+        sortWeight: 940
+      });
+    }
+
+    if (removedAssigneeUserIds.length > 0) {
+      createActivityNotification({
+        type: 'assignment',
+        title: 'Görev üzerinden çıkarıldın',
+        text: cleanedTaskData.title || 'Adsız görev',
+        meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
+        task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
+        columnTitle: finalTargetStatus || targetColumn?.title,
+        targetUserIds: removedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
+        sortWeight: 930
       });
     }
 
@@ -5747,6 +5852,21 @@ function App() {
     isCurrentUserProjectMember(projectName || task.projectName || selectedProject) &&
     !isTaskAssignedToCurrentUserForAction(task);
 
+  const getTaskAssigneeUserIdsForNotification = (task = {}) =>
+    Array.from(
+      new Set(
+        [
+          ...(Array.isArray(task.assigneeIds) ? task.assigneeIds : []),
+          ...(Array.isArray(task.assignees) ? task.assignees.map((person) => person?.id || person?.userId) : [])
+        ]
+          .map((value) => String(value || '').trim())
+          .filter(isSupabaseUuid)
+      )
+    );
+
+  const isCurrentSupabaseUserId = (userId = '') =>
+    isSupabaseUuid(currentUserId) && String(userId) === String(currentUserId);
+
   const isProjectVisibleForCurrentUser = (projectName = '') => {
     if (currentAccountType === 'Patron') return true;
     if (currentAccountType === 'Ekip Üyesi') return isCurrentUserProjectMember(projectName);
@@ -6070,6 +6190,8 @@ function App() {
     messageId = '',
     actor = currentProfileName,
     avatar = currentProfileAvatar,
+    targetUserIds = [],
+    recipientUserIds = [],
     sortWeight = 760
   }) => {
     const createdAt = new Date().toISOString();
@@ -6091,6 +6213,8 @@ function App() {
       actor,
       avatar,
       userId: actor === currentProfileName ? currentActorId : '',
+      targetUserIds,
+      recipientUserIds,
       createdAt,
       dateLabel: getActivityDateLabel(createdAt),
       sortWeight
@@ -6265,6 +6389,7 @@ function App() {
         columnTitle: sourceColumnTitle,
         actor: getProfileNameForRecord(historyEntry, currentProfileName),
         avatar: getProfileAvatarForRecord(historyEntry, currentProfileAvatar),
+        targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 780
       });
     }
@@ -6279,6 +6404,7 @@ function App() {
         columnTitle: sourceColumnTitle,
         actor: getProfileNameForRecord(historyEntry, currentProfileName),
         avatar: getProfileAvatarForRecord(historyEntry, currentProfileAvatar),
+        targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 520
       });
     }
@@ -6334,6 +6460,7 @@ function App() {
       meta: `${detailTaskInfo?.task?.title || 'Görev'} · ${currentProfileName}`,
       task: detailTaskInfo?.task || null,
       columnTitle: detailTaskInfo?.columnTitle || '',
+      targetUserIds: getTaskAssigneeUserIdsForNotification(detailTaskInfo?.task || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
       sortWeight: 860
     });
   };
@@ -6728,6 +6855,7 @@ function App() {
         meta: `${sourceColumnBeforeMove?.title || 'Eski durum'} → ${targetColumnBeforeMove?.title || 'Yeni durum'}`,
         task: { ...taskBeforeMove, columnTitle: targetColumnBeforeMove?.title },
         columnTitle: targetColumnBeforeMove?.title,
+        targetUserIds: getTaskAssigneeUserIdsForNotification(taskBeforeMove || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 820
       });
 
@@ -6840,6 +6968,7 @@ function App() {
         text: addedTeamMemberNames.join(', '),
         meta: `${cleanTitle} · Proje Ekibi`,
         projectName: cleanTitle,
+        targetUserIds: addedTeamMemberIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 840
       });
     }
@@ -8708,6 +8837,19 @@ function App() {
         : 'Size ait yeni bildirim yok';
 
   const markNotificationAsRead = (notificationId) => {
+    if (String(notificationId || '').startsWith('supabase-notification-')) {
+      const supabaseNotificationId = String(notificationId).replace('supabase-notification-', '');
+
+      if (isSupabaseUuid(supabaseNotificationId)) {
+        supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('id', supabaseNotificationId)
+          .eq('user_id', currentUserId)
+          .then(() => {});
+      }
+    }
+
     setReadNotificationIds((prevIds) => {
       if (prevIds.includes(notificationId)) return prevIds;
 
@@ -8718,6 +8860,21 @@ function App() {
   };
 
   const markAllNotificationsAsRead = () => {
+    const supabaseNotificationIds = notificationItems
+      .map((item) => String(item.id || ''))
+      .filter((id) => id.startsWith('supabase-notification-'))
+      .map((id) => id.replace('supabase-notification-', ''))
+      .filter(isSupabaseUuid);
+
+    if (supabaseNotificationIds.length > 0) {
+      supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', currentUserId)
+        .in('id', supabaseNotificationIds)
+        .then(() => {});
+    }
+
     setReadNotificationIds((prevIds) => {
       const nextIds = Array.from(new Set([...prevIds, ...notificationItems.map((item) => item.id)]));
       saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
