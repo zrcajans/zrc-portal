@@ -14783,7 +14783,7 @@ function App() {
                           </div>
                         </div>
 
-                        <div className="relative bg-white">
+                        <div className="relative bg-white min-h-0 flex-1 overflow-hidden">
                           <button
                             type="button"
                             onClick={() => scrollTimeChart('left')}
@@ -14802,9 +14802,9 @@ function App() {
                             ›
                           </button>
 
-                          <div ref={timeChartScrollRef} className="overflow-auto custom-scrollbar min-h-0 flex-1">
+                          <div ref={timeChartScrollRef} className="h-full overflow-auto custom-scrollbar min-h-0 overscroll-contain">
                             <div
-                              className="grid"
+                              className="grid pb-4"
                               style={{ gridTemplateColumns: `150px repeat(${Math.max(timeChartPeriods.length, 1)}, minmax(${timeChartView === 'Gün' ? '210px' : '250px'}, 1fr))`, minWidth: `${150 + Math.max(timeChartPeriods.length, 1) * (timeChartView === 'Gün' ? 210 : 250)}px` }}
                             >
                               <div className="h-10 border-r border-b border-zinc-100 bg-white px-4 flex items-center text-[11px] font-black text-zinc-500">
