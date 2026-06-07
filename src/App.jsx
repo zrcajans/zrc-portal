@@ -8788,14 +8788,20 @@ function App() {
   );
 
   const selectedProjectSettings = projectSettings[selectedProject] || createDefaultProjectSettings(selectedProject);
-  const selectedProjectTeamMemberIds = Array.isArray(selectedProjectSettings.teamMemberIds)
-    ? selectedProjectSettings.teamMemberIds
+  const draftProjectTeamMemberIds = Array.isArray(projectSettingsDraft?.teamMemberIds)
+    ? projectSettingsDraft.teamMemberIds
+    : selectedProjectSettings.teamMemberIds;
+
+  const selectedProjectTeamMemberIds = Array.isArray(draftProjectTeamMemberIds)
+    ? draftProjectTeamMemberIds
         .map(String)
         .filter((memberId) => projectTeamAssignableMembers.some((member) => String(member.id) === memberId))
     : [];
+
   const selectedProjectTeamMembers = projectTeamAssignableMembers.filter((member) =>
     selectedProjectTeamMemberIds.includes(String(member.id))
   );
+
   const availableProjectTeamMembers = projectTeamAssignableMembers.filter(
     (member) => !selectedProjectTeamMemberIds.includes(String(member.id))
   );
@@ -16989,7 +16995,7 @@ function App() {
                                         <button
                                           key={`available-project-member-${member.id}`}
                                           type="button"
-                                          onPointerDown={(event) => {
+                                          onClick={(event) => {
                                             event.preventDefault();
                                             event.stopPropagation();
 
