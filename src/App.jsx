@@ -895,7 +895,7 @@ function App() {
   const [pendingProfileDelete, setPendingProfileDelete] = useState(false);
 
   const [calendarDisplayOptions, setCalendarDisplayOptions] = useState({
-    hideLongTasks: true,
+    hideLongTasks: false,
     hideCompletedTasks: true,
     hideArchivedTasks: false
   });
@@ -4956,11 +4956,17 @@ function App() {
     .filter(Boolean);
   const currentProfileName = currentProfileNameParts.join(' ') || 'Enes Zariç';
   const currentProfileInitials = createAvatarFromName(currentProfileName);
-  const currentProfileAvatar = profileDraft.avatarDataUrl || currentProfileInitials;
 
   const currentRoleMember = currentUserId
     ? teamMembers.find((member) => member.id === currentUserId && member.status !== 'Pasif') || null
     : null;
+
+  const currentProfileAvatar =
+    profileDraft.avatarDataUrl ||
+    (typeof currentRoleMember?.avatar === 'string' && currentRoleMember.avatar.startsWith('data:image')
+      ? currentRoleMember.avatar
+      : '') ||
+    currentProfileInitials;
 
   const currentUserRole = normalizeTeamRole(currentRoleMember?.role || 'Yönetici');
   const currentAccountType = getAccountTypeFromRole(currentUserRole);
@@ -6574,6 +6580,17 @@ function App() {
     return difference > oneDay;
   };
 
+  const doesTaskOverlapCalendarRange = (task, rangeStart, rangeEnd) => {
+    if (!task || !rangeStart || !rangeEnd) return false;
+
+    const taskStart = task.calendarStartDate || task.homeDate || task.calendarEndDate;
+    const taskEnd = task.calendarEndDate || task.homeDate || task.calendarStartDate;
+
+    if (!taskStart || !taskEnd) return false;
+
+    return taskStart <= rangeEnd && taskEnd >= rangeStart;
+  };
+
   const getCalendarTaskStartDate = (task) => {
     const date =
       parseTaskDateValue(task.startDate || task.start || task.baslangicTarihi) ||
@@ -6650,7 +6667,11 @@ function App() {
   const calendarTasks = visibleCalendarTasks
     .filter((task) => task.calendarStartDate || task.calendarEndDate)
     .filter((task) => !calendarDisplayOptions.hideCompletedTasks || !isTaskCompletedForCalendar(task))
-    .filter((task) => !calendarDisplayOptions.hideLongTasks || !isTaskLongForCalendar(task))
+    .filter((task) =>
+      !calendarDisplayOptions.hideLongTasks ||
+      !isTaskLongForCalendar(task) ||
+      doesTaskOverlapCalendarRange(task, todayStart, new Date(tomorrowStart.getTime() - 1))
+    )
     .sort((firstTask, secondTask) => {
       const firstTime = firstTask.calendarSortDate ? firstTask.calendarSortDate.getTime() : Number.MAX_SAFE_INTEGER;
       const secondTime = secondTask.calendarSortDate ? secondTask.calendarSortDate.getTime() : Number.MAX_SAFE_INTEGER;
@@ -6662,17 +6683,13 @@ function App() {
     (task) => task.calendarEndDate && task.calendarEndDate < todayStart
   );
 
-  const todayCalendarTasks = calendarTasks.filter((task) => {
-    const targetDate = task.calendarEndDate || task.calendarStartDate;
+  const todayCalendarTasks = calendarTasks.filter((task) =>
+    doesTaskOverlapCalendarRange(task, todayStart, new Date(tomorrowStart.getTime() - 1))
+  );
 
-    return targetDate && targetDate >= todayStart && targetDate < tomorrowStart;
-  });
-
-  const weekCalendarTasks = calendarTasks.filter((task) => {
-    const targetDate = task.calendarEndDate || task.calendarStartDate;
-
-    return targetDate && targetDate >= tomorrowStart && targetDate <= weekEndDate;
-  });
+  const weekCalendarTasks = calendarTasks.filter((task) =>
+    doesTaskOverlapCalendarRange(task, tomorrowStart, weekEndDate)
+  );
 
   const monthStartDate = new Date(calendarMonthDate.getFullYear(), calendarMonthDate.getMonth(), 1);
   const calendarGridStartDate = new Date(monthStartDate);
@@ -7373,7 +7390,7 @@ function App() {
     name: 'ZRC AJANS',
     username: 'zrcajans',
     email: 'info@zrcajans.com',
-    avatar: 'ZRC',
+    avatar: typeof currentProfileAvatar === 'string' && currentProfileAvatar.startsWith('data:image') ? currentProfileAvatar : 'ZRC',
     role: 'Yönetici',
     status: 'Aktif'
   };
@@ -8445,7 +8462,7 @@ function App() {
     name: 'ZRC AJANS',
     username: 'zrcajans',
     email: 'info@zrcajans.com',
-    avatar: 'ZRC',
+    avatar: typeof currentProfileAvatar === 'string' && currentProfileAvatar.startsWith('data:image') ? currentProfileAvatar : 'ZRC',
     role: 'Yönetici',
     status: 'Aktif',
     workspaceId: currentRoleMember?.workspaceId || ''
@@ -9221,10 +9238,9 @@ function App() {
     homeOpenTasks.filter((task) => isHomeCurrentUserInList(task.followers || []))
   );
 
-  const homeTodayTasks = homeOpenTasks.filter((task) => {
-    const date = task.homeDate || task.calendarStartDate || task.calendarEndDate;
-    return date ? isSameCalendarDay(date, todayStart) : false;
-  });
+  const homeTodayTasks = homeOpenTasks.filter((task) =>
+    doesTaskOverlapCalendarRange(task, todayStart, new Date(tomorrowStart.getTime() - 1))
+  );
 
   const homeOverdueTasks = homeOpenTasks.filter((task) => {
     const date = task.homeDate || task.calendarStartDate || task.calendarEndDate;
@@ -9502,7 +9518,11 @@ function App() {
     .filter((task) => {
       if (calendarDisplayOptions.hideCompletedTasks && isReportTaskCompleted(task)) return false;
       if (calendarDisplayOptions.hideArchivedTasks && (task.isArchived || task.archived || task.status === 'Arşiv')) return false;
-      if (calendarDisplayOptions.hideLongTasks && isTaskLongForCalendar(task)) return false;
+      if (
+        calendarDisplayOptions.hideLongTasks &&
+        isTaskLongForCalendar(task) &&
+        !doesTaskOverlapCalendarRange(task, todayStart, new Date(tomorrowStart.getTime() - 1))
+      ) return false;
       if (menuCalendarStatusFilter !== 'Tüm Durumlar' && task.columnTitle !== menuCalendarStatusFilter) return false;
 
       return task.calendarStartDate || task.calendarEndDate || task.homeDate;
@@ -14890,8 +14910,8 @@ function App() {
                             {timeChartMembers.map((member) => (
                               <React.Fragment key={member.id}>
                                 <div className="min-h-[160px] border-r border-b border-zinc-100 bg-white px-4 py-5 flex flex-col items-center justify-center">
-                                  <div className="w-11 h-11 rounded-full bg-[#8c5220] text-white text-[11px] font-black flex items-center justify-center shadow-sm">
-                                    {member.avatar}
+                                  <div className="w-11 h-11 rounded-full bg-[#8c5220] text-white text-[11px] font-black flex items-center justify-center shadow-sm overflow-hidden">
+                                    {renderProfileAvatar(member.avatar, createAvatarFromName(member.name))}
                                   </div>
                                   <div className="mt-2 text-[11px] font-black text-zinc-700 text-center">{member.name}</div>
                                   <div className="mt-0.5 text-[9px] font-bold text-zinc-400">{member.role}</div>
