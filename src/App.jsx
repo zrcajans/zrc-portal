@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v266-calendar-auth-id-hard-lock';
+const ZRC_APP_BUILD_LABEL = 'v267-supabase-login-first-calendar-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -922,10 +922,6 @@ function App() {
   const currentActorId = currentUserId || currentRoleMember?.id || 'anonymous-user';
   const currentActorName = currentProfileName;
   const currentActorAvatar = currentProfileAvatar;
-  const calendarAuthUserId =
-    hasSupabaseAuthUserForRole
-      ? currentAuthUserIdForRole
-      : (isSupabaseUuid(currentUserId) ? String(currentUserId) : '');
 
   const [profilePreferences, setProfilePreferences] = useState(() => {
     const savedPreferences = normalizeStorageObject(readStorageValue('profilePreferences', null), null);
@@ -5349,7 +5345,11 @@ function App() {
     let isMounted = true;
 
     const loadAssignedTaskIds = async () => {
-      if (!calendarAuthUserId || isZrcOwnerAccount || authSessionLoading) {
+      const assignedLookupUserId = isSupabaseUuid(supabaseAuthUserId)
+        ? supabaseAuthUserId
+        : (isSupabaseUuid(currentUserId) ? currentUserId : '');
+
+      if (currentAccountType !== 'Ekip Üyesi' || !assignedLookupUserId || authSessionLoading) {
         if (isMounted) setCurrentAssignedSupabaseTaskIds([]);
         return;
       }
@@ -5358,7 +5358,7 @@ function App() {
         const { data, error } = await supabase
           .from('task_assignees')
           .select('task_id')
-          .eq('user_id', calendarAuthUserId);
+          .eq('user_id', assignedLookupUserId);
 
         if (error) throw error;
 
@@ -5381,7 +5381,7 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [calendarAuthUserId, isZrcOwnerAccount, authSessionLoading, supabaseLastRealtimeAt]);
+  }, [currentAccountType, currentUserId, supabaseAuthUserId, authSessionLoading, supabaseLastRealtimeAt]);
 
   const getIdentityValuesFromRecord = (record = {}) =>
     [
@@ -5580,8 +5580,8 @@ function App() {
   };
 
   const getCurrentStrictUserIdSet = () => {
-    if (calendarAuthUserId) {
-      return new Set([String(calendarAuthUserId)]);
+    if (isSupabaseUuid(supabaseAuthUserId)) {
+      return new Set([String(supabaseAuthUserId)]);
     }
 
     return new Set(
@@ -5623,13 +5623,17 @@ function App() {
     const currentIds = getCurrentStrictUserIdSet();
     const taskSupabaseId = getTaskSupabaseRecordId(task);
 
-    if (taskSupabaseId && calendarAuthUserId) {
+    const assignedLookupUserId = isSupabaseUuid(supabaseAuthUserId)
+      ? supabaseAuthUserId
+      : (isSupabaseUuid(currentUserId) ? currentUserId : '');
+
+    if (taskSupabaseId && assignedLookupUserId) {
       const rawAssigneeIds = Array.isArray(task.assigneeIds)
         ? task.assigneeIds.map((value) => String(value || '').trim()).filter(Boolean)
         : [];
 
       if (rawAssigneeIds.length > 0) {
-        return rawAssigneeIds.some((assigneeId) => currentIds.has(String(assigneeId)));
+        return rawAssigneeIds.includes(String(assignedLookupUserId));
       }
 
       return currentAssignedSupabaseTaskIds.map(String).includes(String(taskSupabaseId));
@@ -5641,7 +5645,7 @@ function App() {
   const isTaskVisibleInCalendarForCurrentUser = (task = {}, projectName = '') => {
     if (isZrcOwnerAccount) return true;
 
-    if (currentUserRole === 'Müşteri/Misafir' || currentAccountType === 'Müşteri') {
+    if (currentAccountType === 'Müşteri') {
       return isCurrentCustomerProject(projectName);
     }
 
@@ -11238,12 +11242,6 @@ function App() {
         );
       });
 
-      if (localMember) {
-        setSupabaseAuthUserId('');
-        handleLoginAsMember(localMember);
-        return;
-      }
-
       const email = loginIdentifier.includes('@')
         ? loginIdentifier
         : `${normalizedLoginIdentifier}@zrc.local`;
@@ -11255,6 +11253,12 @@ function App() {
 
       if (signInError) {
         const cleanMessage = String(signInError.message || '').toLocaleLowerCase('tr-TR');
+
+        if (cleanMessage.includes('invalid login credentials') && localMember) {
+          setSupabaseAuthUserId('');
+          handleLoginAsMember(localMember);
+          return;
+        }
 
         if (cleanMessage.includes('invalid login credentials')) {
           setLoginError('Kullanıcı adı/e-posta veya şifre hatalı.');
