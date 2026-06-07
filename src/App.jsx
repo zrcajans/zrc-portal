@@ -7368,18 +7368,42 @@ function App() {
     );
   };
 
-  const timeChartProjectMembers = teamMembers
-    .filter((member) => member.status !== 'Pasif')
-    .filter((member) => normalizeTeamRole(member.role) !== 'Müşteri/Misafir')
-    .filter((member) => !isHiddenTimeChartMember(member))
-    .filter((member) => timeChartProjectMemberIds.length === 0 || timeChartProjectMemberIds.includes(member.id))
-    .map((member) => ({
-      id: member.id,
-      name: member.name,
-      avatar: member.avatar || createAvatarFromName(member.name),
-      role: normalizeTeamRole(member.role)
-    }));
-  const timeChartMembers = timeChartProjectMembers;
+  const zrcAjansTimelineMember = {
+    id: currentRoleMember?.id || currentActorId || 'zrc-ajans-system-member',
+    name: 'ZRC AJANS',
+    username: 'zrcajans',
+    email: 'info@zrcajans.com',
+    avatar: 'ZRC',
+    role: 'Yönetici',
+    status: 'Aktif'
+  };
+
+  const timeChartAssignableMembers = Array.from(
+    new Map(
+      [
+        ...teamMembers
+          .filter((member) => member.status !== 'Pasif')
+          .filter((member) => normalizeTeamRole(member.role) !== 'Müşteri/Misafir')
+          .filter((member) => !isHiddenTimeChartMember(member)),
+        zrcAjansTimelineMember
+      ]
+        .filter((member) => member?.id)
+        .map((member) => [
+          String(member.id),
+          {
+            id: member.id,
+            name: member.name,
+            avatar: member.avatar || createAvatarFromName(member.name),
+            role: normalizeTeamRole(member.role || 'Yönetici')
+          }
+        ])
+    ).values()
+  );
+
+  const timeChartProjectMembers = timeChartProjectMemberIds.length > 0
+    ? timeChartAssignableMembers.filter((member) => timeChartProjectMemberIds.includes(member.id))
+    : timeChartAssignableMembers;
+  const timeChartMembers = timeChartProjectMembers.length > 0 ? timeChartProjectMembers : timeChartAssignableMembers;
 
   const getTimeChartTaskOwnerId = (task = {}) => {
     const assignedPerson = Array.isArray(task.assignees)
@@ -8416,7 +8440,24 @@ function App() {
   };
 
   const realActiveTeamMembers = activeTeamMembers.filter((member) => !isLegacyDemoTaskPerson(member));
-  const projectAssignableMembers = realActiveTeamMembers.filter(
+  const zrcAjansSystemMember = {
+    id: currentRoleMember?.id || currentActorId || 'zrc-ajans-system-member',
+    name: 'ZRC AJANS',
+    username: 'zrcajans',
+    email: 'info@zrcajans.com',
+    avatar: 'ZRC',
+    role: 'Yönetici',
+    status: 'Aktif',
+    workspaceId: currentRoleMember?.workspaceId || ''
+  };
+  const zrcTaskSelectableMembers = Array.from(
+    new Map(
+      [...realActiveTeamMembers, zrcAjansSystemMember]
+        .filter((member) => member?.id)
+        .map((member) => [String(member.id), member])
+    ).values()
+  );
+  const projectAssignableMembers = zrcTaskSelectableMembers.filter(
     (member) => normalizeTeamRole(member.role) !== 'Müşteri/Misafir'
   );
 
@@ -8427,13 +8468,13 @@ function App() {
   const selectedProjectTeamMembers = projectAssignableMembers.filter((member) =>
     selectedProjectTeamMemberIds.includes(member.id)
   );
-  const taskModalTeamMembers = realActiveTeamMembers;
+  const taskModalTeamMembers = projectAssignableMembers;
 
   const filterTaskAssigneesForSave = (people = []) =>
     (people || []).filter((person) => {
       if (!person?.id) return false;
 
-      const matchedMember = realActiveTeamMembers.find((member) => member.id === person.id);
+      const matchedMember = zrcTaskSelectableMembers.find((member) => member.id === person.id);
       if (!matchedMember) return false;
 
       const role = normalizeTeamRole(matchedMember.role);
@@ -8447,7 +8488,7 @@ function App() {
       const personId = String(person.id || '');
       if (personId.startsWith('customer-')) return true;
 
-      const matchedMember = realActiveTeamMembers.find((member) => member.id === person.id);
+      const matchedMember = zrcTaskSelectableMembers.find((member) => member.id === person.id);
       return Boolean(matchedMember);
     });
 
