@@ -6578,12 +6578,27 @@ function App() {
   };
 
   const getCalendarPriorityStyle = (priority) => {
-    if (priority === 'Acil') return 'bg-red-50 text-red-600 border-red-100';
-    if (priority === 'Yüksek') return 'bg-orange-50 text-orange-600 border-orange-100';
-    if (priority === 'Düşük') return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+    if (priority === 'Acil') return 'bg-slate-50 text-slate-700 border-slate-200';
+    if (priority === 'Yüksek') return 'bg-slate-50 text-slate-700 border-slate-200';
+    if (priority === 'Düşük') return 'bg-slate-50 text-slate-700 border-slate-200';
 
-    return 'bg-blue-50 text-blue-600 border-blue-100';
+    return 'bg-slate-50 text-slate-700 border-slate-200';
   };
+
+  const getCalendarTaskAccentColor = (task = {}) =>
+    task.isArchivedCalendarTask
+      ? '#94a3b8'
+      : task.columnColor ||
+        projectSettings?.[task.projectName || selectedProject]?.color ||
+        '#ff3600';
+
+  const getPremiumCalendarTaskStyle = (task = {}) => ({
+    borderLeftColor: getCalendarTaskAccentColor(task)
+  });
+
+  const getPremiumCalendarDotStyle = (task = {}) => ({
+    backgroundColor: getCalendarTaskAccentColor(task)
+  });
 
   const todayDate = new Date();
   const todayStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
@@ -6863,12 +6878,9 @@ function App() {
   };
 
   const getCalendarTaskBarStyle = (priority, isArchivedTask = false) => {
-    if (isArchivedTask) return 'bg-zinc-100 text-zinc-500 border-zinc-200';
-    if (priority === 'Acil') return 'bg-red-100 text-red-700 border-red-200';
-    if (priority === 'Yüksek') return 'bg-orange-100 text-orange-700 border-orange-200';
-    if (priority === 'Düşük') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+    if (isArchivedTask) return 'bg-slate-50 text-slate-500 border-slate-200 border-l-[3px] shadow-[0_8px_18px_rgba(15,23,42,0.045)]';
 
-    return 'bg-blue-100 text-blue-700 border-blue-200';
+    return 'bg-white text-[#263244] border-[#dfe5ee] border-l-[3px] shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:border-[#cbd5e1] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)]';
   };
 
   const handleCalendarDayClick = (event, date) => {
@@ -11881,14 +11893,14 @@ function App() {
                                         event.stopPropagation();
                                         openMenuCalendarTask(task);
                                       }}
-                                      className="w-full h-[18px] px-1.5 flex items-center gap-1 overflow-hidden rounded-[2px] text-left"
-                                      style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
+                                      className="w-full h-[20px] px-1.5 flex items-center gap-1.5 overflow-hidden rounded-[6px] border border-[#e4e9f1] border-l-[3px] bg-white text-left shadow-[0_5px_12px_rgba(15,23,42,0.035)] hover:shadow-[0_8px_16px_rgba(15,23,42,0.06)] transition-all"
+                                      style={getPremiumCalendarTaskStyle(task)}
                                     >
                                       <span
-                                        className="w-1 h-1 rounded-full shrink-0"
-                                        style={{ backgroundColor: task.columnColor || '#8ecae6' }}
+                                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                                        style={getPremiumCalendarDotStyle(task)}
                                       />
-                                      <span className="min-w-0 flex-1 text-[8px] font-bold text-[#596270] truncate">
+                                      <span className="min-w-0 flex-1 text-[8px] font-black text-[#263244] truncate">
                                         {formatMenuCalendarTaskTime(task) ? `${formatMenuCalendarTaskTime(task)} · ${task.title}` : task.title}
                                       </span>
                                     </button>
@@ -11953,7 +11965,7 @@ function App() {
                                       event.stopPropagation();
                                       openMenuCalendarTask(allDayTasks[0]);
                                     }}
-                                    className="h-[20px] w-full rounded-[2px] px-2 text-left text-[8px] font-bold text-[#596270] truncate"
+                                    className="h-[20px] w-full rounded-[2px] px-2 text-left text-[8px] font-black text-[#263244] truncate"
                                     style={{ backgroundColor: `${allDayTasks[0].columnColor || '#8ecae6'}24` }}
                                   >
                                     {allDayTasks[0].title}
@@ -11990,8 +12002,8 @@ function App() {
                                           event.stopPropagation();
                                           openMenuCalendarTask(task);
                                         }}
-                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[2px] px-2 py-1 text-left text-[8px] font-bold text-[#596270] overflow-hidden"
-                                        style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
+                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                        style={getPremiumCalendarTaskStyle(task)}
                                       >
                                         <div>{formatMenuCalendarTaskTime(task)}</div>
                                         <div className="truncate">{task.title}</div>
@@ -12038,11 +12050,8 @@ function App() {
                                   openMenuCalendarTask(task);
                                 }}
                                 data-calendar-task-button="true"
-                                className="h-[22px] mr-1 rounded-[7px] border px-2 text-left text-[8px] font-black text-[#263244] truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
-                                style={{
-                                  backgroundColor: `${task.columnColor || '#ef4444'}18`,
-                                  borderColor: `${task.columnColor || '#ef4444'}2e`
-                                }}
+                                className="h-[22px] mr-1 rounded-[7px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 text-left text-[8px] font-black text-[#263244] truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                style={getPremiumCalendarTaskStyle(task)}
                               >
                                 {task.title}
                               </button>
@@ -12072,8 +12081,8 @@ function App() {
                                         event.stopPropagation();
                                         openMenuCalendarTask(task);
                                       }}
-                                      className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[2px] px-2 py-1 text-left text-[8px] font-bold text-[#596270] overflow-hidden"
-                                      style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
+                                      className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                      style={getPremiumCalendarTaskStyle(task)}
                                     >
                                       <div>{formatMenuCalendarTaskTime(task)}</div>
                                       <div className="truncate">{task.title}</div>
@@ -12376,13 +12385,10 @@ function App() {
                                     event.stopPropagation();
                                     openMenuCalendarTask(task);
                                   }}
-                                  className="h-[20px] w-full rounded-[7px] px-1.5 flex items-center gap-1 overflow-hidden border text-left shadow-[0_6px_14px_rgba(15,23,42,0.045)] hover:shadow-[0_9px_18px_rgba(15,23,42,0.08)] hover:-translate-y-[1px] transition-all"
-                                  style={{
-                                    backgroundColor: `${task.columnColor || '#ef4444'}18`,
-                                    borderColor: `${task.columnColor || '#ef4444'}2e`
-                                  }}
+                                  className="h-[21px] w-full rounded-[7px] px-1.5 flex items-center gap-1.5 overflow-hidden border border-[#e4e9f1] border-l-[3px] bg-white text-left shadow-[0_6px_14px_rgba(15,23,42,0.045)] hover:shadow-[0_9px_18px_rgba(15,23,42,0.075)] hover:-translate-y-[1px] transition-all"
+                                  style={getPremiumCalendarTaskStyle(task)}
                                 >
-                                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: task.columnColor || '#ef4444' }} />
+                                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={getPremiumCalendarDotStyle(task)} />
                                   <span className="text-[7.5px] font-black text-[#263244] shrink-0">
                                     {formatMenuCalendarTaskTime(task)}
                                   </span>
@@ -12448,11 +12454,8 @@ function App() {
                                   event.stopPropagation();
                                   openMenuCalendarTask(allDayTasks[0]);
                                 }}
-                                className="h-[22px] w-full rounded-[7px] border px-2 text-left text-[8px] font-black text-[#263244] truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
-                                style={{
-                                  backgroundColor: `${allDayTasks[0].columnColor || '#ef4444'}18`,
-                                  borderColor: `${allDayTasks[0].columnColor || '#ef4444'}2e`
-                                }}
+                                className="h-[22px] w-full rounded-[7px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 text-left text-[8px] font-black text-[#263244] truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                style={getPremiumCalendarTaskStyle(allDayTasks[0])}
                               >
                                 {allDayTasks[0].title}
                               </button>
@@ -12487,11 +12490,8 @@ function App() {
                                       event.stopPropagation();
                                       openMenuCalendarTask(task);
                                     }}
-                                    className="absolute left-1 right-1 top-1 min-h-[32px] rounded-[8px] border px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)]"
-                                    style={{
-                                      backgroundColor: `${task.columnColor || '#ef4444'}18`,
-                                      borderColor: `${task.columnColor || '#ef4444'}2e`
-                                    }}
+                                    className="absolute left-1 right-1 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] transition-all"
+                                    style={getPremiumCalendarTaskStyle(task)}
                                   >
                                     <div className="opacity-80">{formatMenuCalendarTaskTime(task)}</div>
                                     <div className="truncate">{task.title}</div>
@@ -12547,11 +12547,8 @@ function App() {
                                     event.stopPropagation();
                                     openMenuCalendarTask(task);
                                   }}
-                                  className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)]"
-                                  style={{
-                                    backgroundColor: `${task.columnColor || '#ef4444'}18`,
-                                    borderColor: `${task.columnColor || '#ef4444'}2e`
-                                  }}
+                                  className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] transition-all"
+                                  style={getPremiumCalendarTaskStyle(task)}
                                 >
                                   <div className="opacity-80">{formatMenuCalendarTaskTime(task)}</div>
                                   <div className="truncate">{task.title}</div>
@@ -12584,13 +12581,13 @@ function App() {
                               key={`list-task-${group.day.toISOString()}-${task.projectName}-${task.id}`}
                               type="button"
                               onClick={() => openMenuCalendarTask(task)}
-                              className="w-full h-[34px] grid grid-cols-[64px_1fr] items-center bg-[#d7c3f1] border-b border-[#cbb6e8] text-left hover:brightness-[0.98]"
+                              className="w-full min-h-[38px] grid grid-cols-[64px_1fr] items-center bg-white border-b border-[#edf0f4] border-l-[3px] text-left hover:bg-[#f8fafc] transition-all"
                             >
-                              <div className="px-3 text-[10px] font-black text-[#332742]">
+                              <div className="px-3 text-[10px] font-black text-[#647084]">
                                 {formatMenuCalendarTaskTime(task) || ' '}
                               </div>
-                              <div className="min-w-0 text-[10px] font-bold text-[#332742] truncate">
-                                <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: task.columnColor || '#14532d' }} />
+                              <div className="min-w-0 text-[10px] font-black text-[#263244] truncate">
+                                <span className="inline-block w-2 h-2 rounded-full mr-2 shadow-[0_0_0_2px_rgba(15,23,42,0.04)]" style={getPremiumCalendarDotStyle(task)} />
                                 {task.title}
                               </div>
                             </button>
@@ -14547,7 +14544,8 @@ function App() {
                                           event.stopPropagation();
                                           openTaskDetail(task, task.columnTitle);
                                         }}
-                                        className={`relative z-40 w-full h-[19px] px-1.5 rounded-[4px] border text-left text-[9.5px] font-black truncate hover:brightness-[0.98] transition-all ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}
+                                        className={`relative z-40 w-full h-[21px] px-1.5 rounded-[7px] border text-left text-[9px] font-black truncate transition-all ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}
+                                        style={getPremiumCalendarTaskStyle(task)}
                                         title={task.title}
                                       >
                                         {task.title}
@@ -14615,7 +14613,8 @@ function App() {
                                           event.stopPropagation();
                                           openTaskDetail(task, task.columnTitle);
                                         }}
-                                        className={`relative z-20 w-full min-h-[28px] px-2 py-1 rounded-[5px] border text-left text-[10px] font-black leading-tight hover:brightness-[0.98] transition-all ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}
+                                        className={`relative z-20 w-full min-h-[30px] px-2 py-1 rounded-[8px] border text-left text-[10px] font-black leading-tight transition-all ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}
+                                        style={getPremiumCalendarTaskStyle(task)}
                                       >
                                         {task.title}
                                       </button>
@@ -14671,7 +14670,8 @@ function App() {
                                     event.stopPropagation();
                                     openTaskDetail(task, task.columnTitle);
                                   }}
-                                  className="w-full bg-white border border-zinc-200 rounded-[10px] p-3 text-left hover:border-zinc-300 hover:shadow-sm transition-all"
+                                  className="w-full bg-white border border-zinc-200 border-l-[3px] rounded-[10px] p-3 text-left hover:border-zinc-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all"
+                                  style={getPremiumCalendarTaskStyle(task)}
                                 >
                                   <div className="flex items-center justify-between gap-3">
                                     <div className="min-w-0">
@@ -14710,7 +14710,8 @@ function App() {
                                       event.stopPropagation();
                                       openTaskDetail(task, task.columnTitle);
                                     }}
-                                    className="w-full bg-white border border-zinc-200 rounded-[10px] p-3 text-left hover:border-zinc-300 hover:shadow-sm transition-all"
+                                    className="w-full bg-white border border-zinc-200 border-l-[3px] rounded-[10px] p-3 text-left hover:border-zinc-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all"
+                                    style={getPremiumCalendarTaskStyle(task)}
                                   >
                                     <div className="flex items-center gap-3">
                                       <div className="w-12 h-12 rounded-[10px] bg-zinc-50 border border-zinc-100 flex flex-col items-center justify-center text-zinc-500 shrink-0">
@@ -15524,7 +15525,7 @@ function App() {
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span
                                             className="w-2.5 h-2.5 rounded-full shrink-0"
-                                            style={{ backgroundColor: task.columnColor || '#94a3b8' }}
+                                            style={getPremiumCalendarDotStyle(task)}
                                           />
                                           <div className="min-w-0">
                                             <div className="text-[11.5px] font-black text-zinc-800 truncate">{task.title}</div>
