@@ -1316,6 +1316,24 @@ function App() {
     return dateStr;
   };
 
+  const getTaskCardDateParts = (task = {}) => {
+    const startDate = formatDateStringShort(task.startDate || task.start || task.baslangicTarihi || '');
+    const endDate = formatDateStringShort(
+      task.endDate ||
+      task.dueDate ||
+      task.deadline ||
+      task.bitisTarihi ||
+      task.date ||
+      ''
+    );
+
+    return {
+      startDate,
+      endDate,
+      hasAnyDate: Boolean(startDate || endDate)
+    };
+  };
+
   // --- STİLLER ---
   const customStyles = (
     <style>
@@ -5281,8 +5299,20 @@ function App() {
       : '') ||
     currentProfileInitials;
 
-  const currentUserRole = normalizeTeamRole(currentRoleMember?.role || 'Yönetici');
-  const currentAccountType = getAccountTypeFromRole(currentUserRole);
+  const normalizedCurrentRawRole = normalizeTeamRole(currentRoleMember?.role || '');
+  const isZrcOwnerAccount = Boolean(currentRoleMember && isZrcAjansIdentityRecord(currentRoleMember));
+  const currentUserRole =
+    normalizedCurrentRawRole === 'Müşteri/Misafir'
+      ? 'Müşteri/Misafir'
+      : isZrcOwnerAccount
+        ? 'Yönetici'
+        : 'Ekip Üyesi';
+  const currentAccountType =
+    isZrcOwnerAccount
+      ? 'Patron'
+      : currentUserRole === 'Müşteri/Misafir'
+        ? 'Müşteri'
+        : 'Ekip Üyesi';
   const isLoggedIn = Boolean(currentUserId && currentRoleMember);
   const currentPermissions = getPermissionsForRole(currentUserRole);
   const currentActorId = currentUserId || currentRoleMember?.id || 'anonymous-user';
@@ -8907,11 +8937,12 @@ function App() {
     teamMembers.find((member) => isZrcAjansIdentityRecord(member)) ||
     null;
 
-  const zrcCanonicalId = isSupabaseUuid(supabaseAuthUserId)
-    ? supabaseAuthUserId
-    : (isSupabaseUuid(storedZrcAjansMember?.id)
-      ? storedZrcAjansMember.id
-      : (storedZrcAjansMember?.id || 'user-1'));
+  const zrcCanonicalId =
+    currentAccountType === 'Patron' && isSupabaseUuid(supabaseAuthUserId)
+      ? supabaseAuthUserId
+      : (isSupabaseUuid(storedZrcAjansMember?.id)
+        ? storedZrcAjansMember.id
+        : (storedZrcAjansMember?.id || 'user-1'));
 
   const zrcAjansSystemMember = {
     id: zrcCanonicalId,
@@ -14620,6 +14651,7 @@ function App() {
                               {column.tasks.map((task) => {
                                 const isSelected = selectedTasks.includes(task.id);
                                 const prioColor = priorityOptions.find((p) => p.label === task.priority)?.color || '#9ca3af';
+                                const taskCardDateParts = getTaskCardDateParts(task);
 
                                 return (
                                   <div
@@ -14738,9 +14770,19 @@ function App() {
                                     )}
 
                                     <div className="flex flex-col space-y-1 pl-1">
-                                      {task.date && (
-                                        <div className={`flex items-center space-x-1.5 text-[12px] font-bold ${task.isDateUrgent ? 'text-red-500' : 'text-zinc-400'}`}>
-                                          <span>{formatDateStringShort(task.date)} {task.isDateUrgent ? ', 15:00' : ''}</span>
+                                      {taskCardDateParts.hasAnyDate && (
+                                        <div className="flex flex-wrap items-center gap-1.5 text-[10.5px] font-black text-zinc-400">
+                                          {taskCardDateParts.startDate && (
+                                            <span className="px-2 py-0.5 rounded-full bg-zinc-50 border border-zinc-100">
+                                              Baş: {taskCardDateParts.startDate}
+                                            </span>
+                                          )}
+
+                                          {taskCardDateParts.endDate && (
+                                            <span className={`px-2 py-0.5 rounded-full border ${task.isDateUrgent ? 'bg-red-50 border-red-100 text-red-500' : 'bg-zinc-50 border-zinc-100 text-zinc-400'}`}>
+                                              Bit: {taskCardDateParts.endDate}{task.isDateUrgent ? ', 15:00' : ''}
+                                            </span>
+                                          )}
                                         </div>
                                       )}
 

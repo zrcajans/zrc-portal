@@ -29,7 +29,10 @@ const createAvatarFromName = (name) => {
 };
 
 const defaultUsers = [
-  { id: 'zrc-ajans', name: 'ZRC AJANS', avatar: 'ZRC', role: 'Yönetici' }
+  { id: 1, name: 'Enes Zariç', avatar: 'EZ' },
+  { id: 2, name: 'Ahmet Yılmaz', avatar: 'AY' },
+  { id: 3, name: 'Zeynep Kaya', avatar: 'ZK' },
+  { id: 4, name: 'Can Öz', avatar: 'CÖ' }
 ];
 
 const months = [
@@ -263,6 +266,11 @@ function DateInput({ label, value, onChange }) {
             {days.map((day) => {
               const isCurrentMonth = day.getMonth() === viewDate.getMonth();
               const selectedDate = parseDateValue(value);
+              const today = new Date();
+              const isToday =
+                today.getFullYear() === day.getFullYear() &&
+                today.getMonth() === day.getMonth() &&
+                today.getDate() === day.getDate();
               const isSelected =
                 selectedDate &&
                 selectedDate.getFullYear() === day.getFullYear() &&
@@ -276,11 +284,14 @@ function DateInput({ label, value, onChange }) {
                   onClick={() => selectDate(day)}
                   className={`h-7 rounded-full text-[10.5px] font-black transition-all ${
                     isSelected
-                      ? 'bg-blue-500 text-white'
-                      : isCurrentMonth
-                        ? 'text-slate-600 hover:bg-blue-50 hover:text-blue-600'
-                        : 'text-slate-300 hover:bg-slate-50'
+                      ? 'bg-blue-500 text-white shadow-[0_6px_14px_rgba(37,99,235,0.24)]'
+                      : isToday
+                        ? 'bg-[#fff3ef] text-[#ff3600] ring-2 ring-[#ff3600]/25'
+                        : isCurrentMonth
+                          ? 'text-slate-600 hover:bg-blue-50 hover:text-blue-600'
+                          : 'text-slate-300 hover:bg-slate-50'
                   }`}
+                  title={isToday ? 'Bugün' : undefined}
                 >
                   {day.getDate()}
                 </button>
@@ -475,7 +486,7 @@ export default function TaskModal({
     const email = normalize(person.email || '');
 
     return (
-      ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
+      ['user-1', 'user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
       ['enes', 'ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
       ['eneszaric', 'ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
       ['enes@zrcajans.com', 'enszrc@gmail.com', 'ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
@@ -601,9 +612,7 @@ export default function TaskModal({
         tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : initialData.tags || '',
         customer: initialData.customer || 'Müşteri Seçin...',
         assignees: initialData.assignees || [],
-        followers: initialData.followers?.length
-          ? initialData.followers
-          : []
+        followers: []
       });
       return;
     }
@@ -739,9 +748,9 @@ export default function TaskModal({
       tags: form.tags,
       customer: form.customer === 'Müşteri Seçin...' ? '' : form.customer,
       assignees: form.assignees,
-      followers: form.followers,
-      avatar: initialData?.avatar || 'ZRC',
-      author: initialData?.author || 'ZRC AJANS',
+      followers: [],
+      avatar: initialData?.avatar || 'EZ',
+      author: initialData?.author || 'Enes Zariç',
       comments: initialData?.comments || [],
       files: initialData?.files || [],
       steps: initialData?.steps || [],
@@ -750,7 +759,7 @@ export default function TaskModal({
           id: `history-${Date.now()}`,
           type: 'created',
           text: 'Görev oluşturuldu',
-          user: 'ZRC AJANS',
+          user: 'Enes Zariç',
           date: new Date().toLocaleString('tr-TR')
         }
       ]
@@ -1040,70 +1049,7 @@ export default function TaskModal({
               )}
             </div>
 
-            <div className="relative">
-              <div className="flex items-center justify-between">
-                <FieldLabel>Takip Edenler: {form.followers.length ? `${form.followers.length} kişi` : 'Hiç Kimse'}</FieldLabel>
-              </div>
-
-              <div className="flex items-center justify-end gap-1.5 min-h-[28px]">
-                {form.followers.map((user) => (
-                  <button
-                    key={user.id}
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleUserRemoveClick('followers', user.id);
-                    }}
-                    className={`relative group rounded-full transition-all ${
-                      pendingRemoveUser === `followers-${user.id}` ? 'ring-2 ring-red-400 ring-offset-2' : ''
-                    }`}
-                    title={
-                      pendingRemoveUser === `followers-${user.id}`
-                        ? `${user.name} kişisini kaldırmak için tekrar tıkla`
-                        : `${user.name} kişisini kaldır`
-                    }
-                  >
-                    <MiniUser user={user} />
-                    <span className={`absolute -right-1 -top-1 w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[9px] leading-none font-black flex items-center justify-center transition-opacity ${
-                      pendingRemoveUser === `followers-${user.id}` ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                    }`}>
-                      ×
-                    </span>
-                  </button>
-                ))}
-
-                <button
-                  type="button"
-                  onClick={(event) => { event.stopPropagation(); setOpenDropdown(null); setPendingRemoveUser(null); setOpenUserPicker(openUserPicker === 'followers' ? null : 'followers'); }}
-                  className="w-7 h-7 rounded-full bg-[#46b16f] text-white text-[16px] font-black flex items-center justify-center"
-                >
-                  +
-                </button>
-              </div>
-
-              {openUserPicker === 'followers' && (
-                <div onClick={(event) => event.stopPropagation()}
-                  className="absolute right-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-[#263244]/15 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
-                  {users.length > 0 ? (
-                    followerUsers.map((user) => (
-                      <button
-                        key={user.id}
-                        type="button"
-                        onClick={() => toggleUser('followers', user)}
-                        className="w-full h-8 rounded-[7px] px-2 flex items-center gap-2 hover:bg-slate-50 text-left"
-                      >
-                        <MiniUser user={user} />
-                        <span className="text-[11px] font-bold text-slate-600">{user.name}</span>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-2 py-2 text-[11px] font-bold text-slate-400">
-                      Seçilebilir takipçi yok.
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Takip Edenler alanı kaldırıldı. Takvim görünürlüğü sadece Görevliler üzerinden çalışır. */}
           </div>
         </div>
 
