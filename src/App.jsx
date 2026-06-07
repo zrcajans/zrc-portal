@@ -11010,6 +11010,7 @@ function App() {
 
           <form
             onSubmit={handleCredentialLogin}
+            noValidate
             className="relative rounded-[30px] border border-white/90 bg-white/90 backdrop-blur-2xl shadow-[0_30px_90px_rgba(15,23,42,0.18)] p-7"
           >
             <div className="flex items-center justify-between">
@@ -11027,20 +11028,20 @@ function App() {
                 Hoş geldin
               </h1>
               <p className="mt-1 text-[11px] font-bold text-zinc-400">
-                Supabase e-posta ve şifrenle giriş yap.
+                Kullanıcı adı veya e-posta ile giriş yap.
               </p>
             </div>
 
             <div className="mt-6 space-y-3">
               <input
-                type="email"
+                type="text"
                 value={loginDraft.username}
                 onChange={(event) => {
                   setLoginDraft((prev) => ({ ...prev, username: event.target.value }));
                   setLoginError('');
                 }}
-                placeholder="Kullanıcı adı"
-                autoComplete="email"
+                placeholder="Kullanıcı adı veya e-posta"
+                autoComplete="username"
                 className="login-input w-full h-12 rounded-[16px] border border-zinc-200 bg-zinc-50 px-4 text-[13px] font-bold text-zinc-800 placeholder:text-zinc-300 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-[#ff3600]/45 focus:bg-white transition-all"
               />
 
@@ -11072,8 +11073,8 @@ function App() {
             </div>
 
             <div className="mt-5 flex items-center justify-between text-[10px] font-black text-zinc-400">
-              <span>Gerçek giriş</span>
-              <span>Supabase Auth</span>
+              <span>Ekip hesabı / Yönetici girişi</span>
+              <span>Kullanıcı adı veya e-posta</span>
             </div>
           </form>
         </div>
