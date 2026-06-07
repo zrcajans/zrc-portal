@@ -5440,13 +5440,24 @@ function App() {
       : record.avatar || fallback;
 
   const renderProfileAvatar = (avatar, fallback = currentProfileInitials) => {
-    const cleanAvatar = avatar || fallback;
+    const cleanAvatar = String(avatar || '').trim();
+    const cleanFallback = String(fallback || currentProfileInitials || 'ZRC').trim();
+    const isImageAvatar =
+      cleanAvatar.startsWith('data:image') ||
+      cleanAvatar.startsWith('http://') ||
+      cleanAvatar.startsWith('https://') ||
+      cleanAvatar.startsWith('blob:');
 
-    if (typeof cleanAvatar === 'string' && cleanAvatar.startsWith('data:image')) {
+    if (isImageAvatar) {
       return <img src={cleanAvatar} alt="Profil" className="w-full h-full object-cover" />;
     }
 
-    return <span>{cleanAvatar || fallback}</span>;
+    const safeTextAvatar =
+      cleanAvatar && cleanAvatar.length <= 4 && !cleanAvatar.includes('/')
+        ? cleanAvatar
+        : cleanFallback;
+
+    return <span>{safeTextAvatar || 'ZRC'}</span>;
   };
 
   const isCurrentProfileInUsers = (users = []) => isPeopleListLinkedToCurrentUser(users);
@@ -7390,7 +7401,7 @@ function App() {
     name: 'ZRC AJANS',
     username: 'zrcajans',
     email: 'info@zrcajans.com',
-    avatar: typeof currentProfileAvatar === 'string' && currentProfileAvatar.startsWith('data:image') ? currentProfileAvatar : 'ZRC',
+    avatar: currentProfileAvatar || 'ZRC',
     role: 'Yönetici',
     status: 'Aktif'
   };
@@ -8462,7 +8473,7 @@ function App() {
     name: 'ZRC AJANS',
     username: 'zrcajans',
     email: 'info@zrcajans.com',
-    avatar: typeof currentProfileAvatar === 'string' && currentProfileAvatar.startsWith('data:image') ? currentProfileAvatar : 'ZRC',
+    avatar: currentProfileAvatar || 'ZRC',
     role: 'Yönetici',
     status: 'Aktif',
     workspaceId: currentRoleMember?.workspaceId || ''
@@ -12009,8 +12020,12 @@ function App() {
                                   event.stopPropagation();
                                   openMenuCalendarTask(task);
                                 }}
-                                className="h-[20px] mr-1 rounded-[2px] px-2 text-left text-[8px] font-bold text-[#596270] truncate"
-                                style={{ backgroundColor: `${task.columnColor || '#8ecae6'}24` }}
+                                data-calendar-task-button="true"
+                                className="h-[22px] mr-1 rounded-[7px] border px-2 text-left text-[8px] font-black text-[#263244] truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                style={{
+                                  backgroundColor: `${task.columnColor || '#ef4444'}18`,
+                                  borderColor: `${task.columnColor || '#ef4444'}2e`
+                                }}
                               >
                                 {task.title}
                               </button>
@@ -12105,13 +12120,13 @@ function App() {
             </div>
           </div>
         ) : activeContentMenu === 'Takvimim' ? (
-          <div className="w-full h-full bg-[#f2f3f5] overflow-hidden animate-fade-in">
-            <div className="h-full px-4 pt-3 pb-6 overflow-y-auto custom-scrollbar">
+          <div className="w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(47,102,207,0.05),transparent_34%),linear-gradient(180deg,#f7f8fb_0%,#eef1f5_100%)] overflow-hidden animate-fade-in">
+            <div className="h-full px-5 pt-4 pb-6 overflow-y-auto custom-scrollbar">
               <div className="h-8 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={openMenuCalendarQuickTask}
-                  className="h-[26px] px-3.5 rounded-full bg-[#45b978] text-white text-[10px] font-black hover:bg-[#37a66a] transition-all flex items-center gap-2"
+                  className="h-8 px-4 rounded-full bg-[#1f9d61] text-white text-[10.5px] font-black hover:bg-[#188b55] transition-all flex items-center gap-2 shadow-[0_10px_24px_rgba(31,157,97,0.18)]"
                 >
                   Görev Oluştur
                   <span className="text-[13px] leading-none">+</span>
@@ -12124,7 +12139,7 @@ function App() {
                     setIsMenuCalendarFilterOpen((prev) => !prev);
                     setIsMenuCalendarStatusOpen(false);
                   }}
-                  className="relative h-[26px] px-3.5 rounded-full bg-[#55ace8] text-white text-[10px] font-black hover:bg-[#439fe0] transition-all flex items-center gap-2"
+                  className="relative h-8 px-4 rounded-full bg-[#2563eb] text-white text-[10.5px] font-black hover:bg-[#1d56d6] transition-all flex items-center gap-2 shadow-[0_10px_24px_rgba(37,99,235,0.18)]"
                 >
                   Filtreler
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
@@ -12233,13 +12248,13 @@ function App() {
                 </button>
               </div>
 
-              <div className="mt-3 bg-white border border-[#e2e5eb] rounded-[4px] shadow-[0_8px_24px_rgba(15,23,42,0.08)] overflow-hidden">
-                <div className="h-[50px] px-4 flex items-center justify-between border-b border-[#edf0f4]">
+              <div className="mt-3 bg-white border border-white/80 rounded-[18px] shadow-[0_24px_60px_rgba(15,23,42,0.08)] overflow-hidden ring-1 ring-slate-200/70">
+                <div className="h-[56px] px-5 flex items-center justify-between border-b border-[#edf0f4] bg-white/95">
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={goToPreviousCalendarPeriod}
-                      className="w-7 h-7 rounded-[4px] text-[#3b4452] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[20px] leading-none"
+                      className="w-8 h-8 rounded-full text-[#3b4452] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[20px] leading-none"
                     >
                       ‹
                     </button>
@@ -12251,7 +12266,7 @@ function App() {
                     <button
                       type="button"
                       onClick={goToNextCalendarPeriod}
-                      className="w-7 h-7 rounded-[4px] text-[#3b4452] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[20px] leading-none"
+                      className="w-8 h-8 rounded-full text-[#3b4452] hover:bg-[#f4f6f8] transition-all flex items-center justify-center text-[20px] leading-none"
                     >
                       ›
                     </button>
@@ -12308,13 +12323,9 @@ function App() {
                           <button
                             key={`menu-calendar-month-${day.toISOString()}`}
                             type="button"
-                            onClick={() => {
-                              setCalendarFocusedDate(day);
-                              if (dayTasks[0]) {
-                                openMenuCalendarTask(dayTasks[0]);
-                              }
-                            }}
-                            className={`relative p-1.5 border-r border-b border-[#edf0f4] text-left overflow-hidden hover:bg-[#fafcff] transition-all ${
+                            onClick={(event) => handleCalendarDayClick(event, day)}
+                            data-zrc-calendar-day={formatDateForTaskModal(day)}
+                            className={`relative p-1.5 border-r border-b border-[#edf0f4] text-left overflow-hidden hover:bg-[#f8fbff] transition-all cursor-pointer ${
                               isCurrentMonth ? 'bg-white' : 'bg-[#fbfcfe]'
                             } ${holidayLabel ? 'bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_6px,#f6f6f6_6px,#f6f6f6_12px)]' : ''}`}
                           >
@@ -12340,17 +12351,28 @@ function App() {
 
                             <div className="mt-1 space-y-1">
                               {dayTasks.slice(0, 3).map((task) => (
-                                <div
+                                <button
                                   key={`menu-month-task-${day.toISOString()}-${task.projectName}-${task.id}`}
-                                  className="h-[18px] px-1.5 flex items-center gap-1 overflow-hidden bg-[#d7c3f1]"
+                                  type="button"
+                                  data-calendar-task-button="true"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openMenuCalendarTask(task);
+                                  }}
+                                  className="h-[20px] w-full rounded-[7px] px-1.5 flex items-center gap-1 overflow-hidden border text-left shadow-[0_6px_14px_rgba(15,23,42,0.045)] hover:shadow-[0_9px_18px_rgba(15,23,42,0.08)] hover:-translate-y-[1px] transition-all"
+                                  style={{
+                                    backgroundColor: `${task.columnColor || '#ef4444'}18`,
+                                    borderColor: `${task.columnColor || '#ef4444'}2e`
+                                  }}
                                 >
-                                  <span className="text-[7.5px] font-black text-[#332742] shrink-0">
+                                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: task.columnColor || '#ef4444' }} />
+                                  <span className="text-[7.5px] font-black text-[#263244] shrink-0">
                                     {formatMenuCalendarTaskTime(task)}
                                   </span>
-                                  <span className="min-w-0 flex-1 text-[8px] font-black text-[#332742] truncate">
+                                  <span className="min-w-0 flex-1 text-[8.5px] font-black text-[#263244] truncate">
                                     {task.title}
                                   </span>
-                                </div>
+                                </button>
                               ))}
 
                               {dayTasks.length > 3 && (
@@ -12393,7 +12415,9 @@ function App() {
                         return (
                           <div
                             key={`week-allday-${day.toISOString()}`}
-                            className={`px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden ${
+                            data-zrc-calendar-day={formatDateForTaskModal(day)}
+                            onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
+                            className={`px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden cursor-pointer hover:bg-[#f8fbff] ${
                               holidayLabel ? 'bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_6px,#f6f6f6_6px,#f6f6f6_12px)]' : ''
                             }`}
                           >
@@ -12402,8 +12426,16 @@ function App() {
                             ) : allDayTasks[0] ? (
                               <button
                                 type="button"
-                                onClick={() => openMenuCalendarTask(allDayTasks[0])}
-                                className="h-[20px] w-full bg-[#d7c3f1] px-2 text-left text-[8px] font-black text-[#332742] truncate"
+                                data-calendar-task-button="true"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openMenuCalendarTask(allDayTasks[0]);
+                                }}
+                                className="h-[22px] w-full rounded-[7px] border px-2 text-left text-[8px] font-black text-[#263244] truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
+                                style={{
+                                  backgroundColor: `${allDayTasks[0].columnColor || '#ef4444'}18`,
+                                  borderColor: `${allDayTasks[0].columnColor || '#ef4444'}2e`
+                                }}
                               >
                                 {allDayTasks[0].title}
                               </button>
@@ -12425,16 +12457,26 @@ function App() {
                             return (
                               <div
                                 key={`week-hour-${day.toISOString()}-${hour}`}
-                                className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)]"
+                                data-zrc-calendar-day={formatDateForTaskModal(day)}
+                                onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
+                                className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#f8fbff]"
                               >
                                 {hourTasks.slice(0, 2).map((task) => (
                                   <button
                                     key={`week-task-${task.projectName}-${task.id}`}
                                     type="button"
-                                    onClick={() => openMenuCalendarTask(task)}
-                                    className="absolute left-1 right-1 top-1 min-h-[30px] bg-[#d7c3f1] px-2 py-1 text-left text-[8px] font-black text-[#332742] overflow-hidden"
+                                    data-calendar-task-button="true"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      openMenuCalendarTask(task);
+                                    }}
+                                    className="absolute left-1 right-1 top-1 min-h-[32px] rounded-[8px] border px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)]"
+                                    style={{
+                                      backgroundColor: `${task.columnColor || '#ef4444'}18`,
+                                      borderColor: `${task.columnColor || '#ef4444'}2e`
+                                    }}
                                   >
-                                    <div>{formatMenuCalendarTaskTime(task)}</div>
+                                    <div className="opacity-80">{formatMenuCalendarTaskTime(task)}</div>
                                     <div className="truncate">{task.title}</div>
                                   </button>
                                 ))}
@@ -12483,10 +12525,18 @@ function App() {
                                 <button
                                   key={`day-task-${task.projectName}-${task.id}`}
                                   type="button"
-                                  onClick={() => openMenuCalendarTask(task)}
-                                  className="absolute left-1 right-6 top-1 min-h-[32px] bg-[#d7c3f1] px-2 py-1 text-left text-[8px] font-black text-[#332742] overflow-hidden"
+                                  data-calendar-task-button="true"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openMenuCalendarTask(task);
+                                  }}
+                                  className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border px-2 py-1 text-left text-[8px] font-black text-[#263244] overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)]"
+                                  style={{
+                                    backgroundColor: `${task.columnColor || '#ef4444'}18`,
+                                    borderColor: `${task.columnColor || '#ef4444'}2e`
+                                  }}
                                 >
-                                  <div>{formatMenuCalendarTaskTime(task)}</div>
+                                  <div className="opacity-80">{formatMenuCalendarTaskTime(task)}</div>
                                   <div className="truncate">{task.title}</div>
                                 </button>
                               ))}
@@ -14128,16 +14178,16 @@ function App() {
                                           {task.assignees?.map((a) => (
                                             <div
                                               key={a.id}
-                                              className="w-7 h-7 rounded-full bg-[#8c5220] border-2 border-white flex items-center justify-center text-white text-[8px] font-black shadow-sm"
+                                              className="w-7 h-7 rounded-full bg-[#8c5220] border-2 border-white flex items-center justify-center text-white text-[8px] font-black shadow-sm overflow-hidden"
                                               title={a.name}
                                             >
-                                              {a.avatar}
+                                              {renderProfileAvatar(a.avatar, createAvatarFromName(a.name))}
                                             </div>
                                           ))}
 
                                           {(!task.assignees || task.assignees.length === 0) && (
-                                            <div className="w-7 h-7 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-300">
-                                              -
+                                            <div className="w-7 h-7 rounded-full bg-[#8c5220] border-2 border-white flex items-center justify-center text-white text-[8px] font-black shadow-sm overflow-hidden" title="ZRC AJANS">
+                                              {renderProfileAvatar(currentActorAvatar, 'ZRC')}
                                             </div>
                                           )}
                                         </div>
