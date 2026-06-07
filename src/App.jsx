@@ -13591,7 +13591,7 @@ function App() {
           </div>
         ) : (activeContentMenu === 'Projeler' || activeContentMenu === 'Diğer') ? (
           selectedProject ? (
-            <div className="zrc-project-board-page w-full h-full bg-white animate-fade-in flex flex-col flex-1 overflow-hidden">
+            <div className="zrc-project-board-page w-full h-full min-h-0 bg-white animate-fade-in flex flex-col flex-1 overflow-hidden">
                             {activeContentMenu === 'Projeler' && (
 <div className="w-full px-7 flex items-end justify-center shrink-0 h-[56px] bg-white relative z-20 border-b border-[#f5f6f8]">
                 <div className="flex items-end justify-center gap-1">
@@ -13629,7 +13629,7 @@ function App() {
               </div>
               )}
 
-              <div className="flex-1 bg-[#f5f6f8] flex flex-col overflow-hidden h-full">
+              <div className="flex-1 min-h-0 bg-[#f5f6f8] flex flex-col overflow-hidden h-full">
                 {activeTab === 'Görevler' && (
                   <div className="w-full flex flex-col flex-1 animate-fade-in overflow-hidden h-full bg-[#f5f6f8]">
                     <div className="w-full h-[54px] px-7 bg-[#f5f6f8] flex items-center justify-between shrink-0 relative z-10">
@@ -14599,8 +14599,8 @@ function App() {
 
 
                 {activeTab === 'Zaman Çizelgesi' && (
-                  <div className="w-full flex-1 bg-[#f5f6f8] overflow-y-auto custom-scrollbar animate-fade-in">
-                    <div className="px-6 py-5">
+                  <div className="w-full h-full min-h-0 flex-1 bg-[#f5f6f8] overflow-y-auto custom-scrollbar animate-fade-in overscroll-contain">
+                    <div className="px-6 pt-5 pb-24">
                       <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden">
                         <div className="h-[58px] px-4 border-b border-zinc-100 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2">
@@ -14802,7 +14802,7 @@ function App() {
                             ›
                           </button>
 
-                          <div ref={timeChartScrollRef} className="overflow-x-auto custom-scrollbar">
+                          <div ref={timeChartScrollRef} className="overflow-x-auto custom-scrollbar min-h-0">
                             <div
                               className="grid"
                               style={{ gridTemplateColumns: `150px repeat(${Math.max(timeChartPeriods.length, 1)}, minmax(${timeChartView === 'Gün' ? '210px' : '250px'}, 1fr))`, minWidth: `${150 + Math.max(timeChartPeriods.length, 1) * (timeChartView === 'Gün' ? 210 : 250)}px` }}
