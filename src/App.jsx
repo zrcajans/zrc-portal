@@ -10809,7 +10809,7 @@ function App() {
           background: #ffffff !important;
         }
 
-        .zrc-main-shell > div:not([class*="fixed"]) {
+        .zrc-main-shell > div:not([class*="fixed"]):not(.zrc-project-board-page):not(.zrc-team-center-page):not(.zrc-customer-center-page) {
           width: calc(100% - 52px);
           margin-right: 52px;
           padding-left: 44px;
@@ -10819,12 +10819,21 @@ function App() {
         .zrc-project-board-page,
         .zrc-team-center-page,
         .zrc-customer-center-page {
+          width: 100% !important;
           padding-left: 0 !important;
           box-sizing: border-box;
-          background: #f5f6f8 !important;
+          background: #ffffff !important;
         }
 
-        .zrc-project-board-page > div:not([class*="fixed"]) {
+        .zrc-project-board-page > div:first-child {
+          width: 100% !important;
+          margin-right: 0 !important;
+          padding-right: 0 !important;
+          box-sizing: border-box;
+          background: #ffffff !important;
+        }
+
+        .zrc-project-board-page > div:not([class*="fixed"]):not(:first-child) {
           width: calc(100% - 52px) !important;
           margin-right: 52px !important;
           padding-left: 44px !important;
