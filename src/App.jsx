@@ -14260,7 +14260,7 @@ function App() {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden">
+                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden h-[calc(100vh-250px)] min-h-[460px] max-h-[610px] flex flex-col">
                         <div className="h-[50px] px-5 border-b border-zinc-100 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <button
@@ -14599,10 +14599,10 @@ function App() {
 
 
                 {activeTab === 'Zaman Çizelgesi' && (
-                  <div className="w-full h-full min-h-0 flex-1 bg-[#f5f6f8] overflow-y-auto custom-scrollbar animate-fade-in overscroll-contain">
-                    <div className="px-7 pt-4 pb-24 max-w-[1210px] mx-auto">
+                  <div className="w-full h-full min-h-0 flex-1 bg-[#f5f6f8] overflow-hidden animate-fade-in">
+                    <div className="px-7 pt-3 pb-4 max-w-[1210px] mx-auto">
                       <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden">
-                        <div className="h-[58px] px-4 border-b border-zinc-100 flex items-center justify-between gap-3">
+                        <div className="h-[58px] px-4 border-b border-zinc-100 flex items-center justify-between gap-3 shrink-0">
                           <div className="flex items-center gap-2">
                             <div className="w-[210px] h-8 rounded-[8px] bg-white border border-zinc-200 flex items-center px-2.5 gap-2">
                               <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
@@ -14802,7 +14802,7 @@ function App() {
                             ›
                           </button>
 
-                          <div ref={timeChartScrollRef} className="overflow-x-auto custom-scrollbar min-h-0">
+                          <div ref={timeChartScrollRef} className="overflow-auto custom-scrollbar min-h-0 flex-1">
                             <div
                               className="grid"
                               style={{ gridTemplateColumns: `150px repeat(${Math.max(timeChartPeriods.length, 1)}, minmax(${timeChartView === 'Gün' ? '210px' : '250px'}, 1fr))`, minWidth: `${150 + Math.max(timeChartPeriods.length, 1) * (timeChartView === 'Gün' ? 210 : 250)}px` }}
