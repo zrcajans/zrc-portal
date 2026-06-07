@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v265-zrc-timeline-tdz-fix';
+const ZRC_APP_BUILD_LABEL = 'v266-calendar-auth-id-hard-lock';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -922,6 +922,10 @@ function App() {
   const currentActorId = currentUserId || currentRoleMember?.id || 'anonymous-user';
   const currentActorName = currentProfileName;
   const currentActorAvatar = currentProfileAvatar;
+  const calendarAuthUserId =
+    hasSupabaseAuthUserForRole
+      ? currentAuthUserIdForRole
+      : (isSupabaseUuid(currentUserId) ? String(currentUserId) : '');
 
   const [profilePreferences, setProfilePreferences] = useState(() => {
     const savedPreferences = normalizeStorageObject(readStorageValue('profilePreferences', null), null);
@@ -5345,7 +5349,7 @@ function App() {
     let isMounted = true;
 
     const loadAssignedTaskIds = async () => {
-      if (currentAccountType !== 'Ekip Üyesi' || !isSupabaseUuid(currentUserId) || authSessionLoading) {
+      if (!calendarAuthUserId || isZrcOwnerAccount || authSessionLoading) {
         if (isMounted) setCurrentAssignedSupabaseTaskIds([]);
         return;
       }
@@ -5354,7 +5358,7 @@ function App() {
         const { data, error } = await supabase
           .from('task_assignees')
           .select('task_id')
-          .eq('user_id', currentUserId);
+          .eq('user_id', calendarAuthUserId);
 
         if (error) throw error;
 
@@ -5377,7 +5381,7 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [currentAccountType, currentUserId, authSessionLoading, supabaseLastRealtimeAt]);
+  }, [calendarAuthUserId, isZrcOwnerAccount, authSessionLoading, supabaseLastRealtimeAt]);
 
   const getIdentityValuesFromRecord = (record = {}) =>
     [
@@ -5575,16 +5579,20 @@ function App() {
     return false;
   };
 
-  const getCurrentStrictUserIdSet = () =>
-    new Set(
+  const getCurrentStrictUserIdSet = () => {
+    if (calendarAuthUserId) {
+      return new Set([String(calendarAuthUserId)]);
+    }
+
+    return new Set(
       [
         currentUserId,
-        currentRoleMember?.id,
-        supabaseAuthUserId
+        currentRoleMember?.id
       ]
         .filter(Boolean)
         .map((value) => String(value))
     );
+  };
 
   const isPersonStrictlyCurrentUser = (person = {}) => {
     const currentIds = getCurrentStrictUserIdSet();
@@ -5615,7 +5623,7 @@ function App() {
     const currentIds = getCurrentStrictUserIdSet();
     const taskSupabaseId = getTaskSupabaseRecordId(task);
 
-    if (taskSupabaseId && isSupabaseUuid(currentUserId)) {
+    if (taskSupabaseId && calendarAuthUserId) {
       const rawAssigneeIds = Array.isArray(task.assigneeIds)
         ? task.assigneeIds.map((value) => String(value || '').trim()).filter(Boolean)
         : [];
@@ -5631,17 +5639,13 @@ function App() {
   };
 
   const isTaskVisibleInCalendarForCurrentUser = (task = {}, projectName = '') => {
-    if (currentAccountType === 'Patron') return true;
+    if (isZrcOwnerAccount) return true;
 
-    if (currentAccountType === 'Ekip Üyesi') {
-      return isTaskAssignedToCurrentUserForCalendar(task);
-    }
-
-    if (currentAccountType === 'Müşteri') {
+    if (currentUserRole === 'Müşteri/Misafir' || currentAccountType === 'Müşteri') {
       return isCurrentCustomerProject(projectName);
     }
 
-    return false;
+    return isTaskAssignedToCurrentUserForCalendar(task);
   };
 
   const isProjectVisibleForCurrentUser = (projectName = '') => {
@@ -11297,6 +11301,7 @@ function App() {
     removeStorageValue(NAVIGATION_STORAGE_KEYS.activeContentMenu);
     removeStorageValue(NAVIGATION_STORAGE_KEYS.activeTab);
     setCurrentUserId('');
+    setCurrentAssignedSupabaseTaskIds([]);
     removeStorageValue('currentUserId');
     setLoginDraft({ username: '', password: '' });
     setLoginError('');
