@@ -261,6 +261,20 @@ const isLegacyDemoTeamMemberRecord = (member = {}) => {
   );
 };
 
+const isZrcAjansIdentityRecord = (record = {}) => {
+  const id = String(record.id || record.userId || '');
+  const username = normalizeCredentialText(record.username || '');
+  const name = normalizeCredentialText(record.name || record.fullName || record.displayName || '');
+  const email = normalizeCredentialText(record.email || '');
+
+  return (
+    id === 'user-1' ||
+    username === 'zrcajans' ||
+    name === 'zrcajans' ||
+    email === 'info@zrcajans.com'
+  );
+};
+
 const createUsernameFromMember = (member = {}) => {
   const emailName = String(member.email || '').split('@')[0];
 
@@ -5592,7 +5606,12 @@ function App() {
   const cleanTaskPeopleByProjectTeam = (people = [], allowedMemberIds = []) => {
     const allowedSet = new Set(allowedMemberIds);
 
-    return (people || []).filter((person) => person?.id && allowedSet.has(person.id));
+    return (people || []).filter((person) => {
+      if (!person?.id) return false;
+      if (isZrcAjansIdentityRecord(person)) return true;
+
+      return allowedSet.has(person.id);
+    });
   };
 
   const syncProjectTasksWithTeam = (projectName, allowedMemberIds = [], removedMemberIds = []) => {
@@ -8547,8 +8566,12 @@ function App() {
   };
 
   const realActiveTeamMembers = activeTeamMembers.filter((member) => !isLegacyDemoTaskPerson(member));
+  const zrcCanonicalId = isSupabaseUuid(currentActorId)
+    ? currentActorId
+    : (isSupabaseUuid(currentRoleMember?.id) ? currentRoleMember.id : currentActorId || 'user-1');
+
   const zrcAjansSystemMember = {
-    id: currentRoleMember?.id || currentActorId || 'zrc-ajans-system-member',
+    id: zrcCanonicalId,
     name: 'ZRC AJANS',
     username: 'zrcajans',
     email: 'info@zrcajans.com',
@@ -8557,9 +8580,16 @@ function App() {
     status: 'Aktif',
     workspaceId: currentRoleMember?.workspaceId || ''
   };
+
+  const realActiveTeamMembersWithoutLocalZrc = realActiveTeamMembers.filter((member) => {
+    if (!isZrcAjansIdentityRecord(member)) return true;
+
+    return isSupabaseUuid(member.id) && member.id !== zrcAjansSystemMember.id;
+  });
+
   const zrcTaskSelectableMembers = Array.from(
     new Map(
-      [...realActiveTeamMembers, zrcAjansSystemMember]
+      [zrcAjansSystemMember, ...realActiveTeamMembersWithoutLocalZrc]
         .filter((member) => member?.id)
         .map((member) => [String(member.id), member])
     ).values()
@@ -8577,27 +8607,60 @@ function App() {
   );
   const taskModalTeamMembers = projectAssignableMembers;
 
-  const filterTaskAssigneesForSave = (people = []) =>
-    (people || []).filter((person) => {
-      if (!person?.id) return false;
+  const normalizeTaskPersonForSave = (person = {}, allowedRoles = []) => {
+    if (!person?.id && !person?.name) return null;
 
-      const matchedMember = zrcTaskSelectableMembers.find((member) => member.id === person.id);
-      if (!matchedMember) return false;
+    if (isZrcAjansIdentityRecord(person)) {
+      return zrcAjansSystemMember;
+    }
 
+    const matchedMember = zrcTaskSelectableMembers.find((member) => String(member.id) === String(person.id));
+    if (!matchedMember) return null;
+
+    if (allowedRoles.length > 0) {
       const role = normalizeTeamRole(matchedMember.role);
-      return role === 'Yönetici' || role === 'Ekip Üyesi';
-    });
+      if (!allowedRoles.includes(role)) return null;
+    }
+
+    return {
+      id: matchedMember.id,
+      name: matchedMember.name,
+      username: matchedMember.username || '',
+      email: matchedMember.email || '',
+      avatar: matchedMember.avatar || createAvatarFromName(matchedMember.name),
+      role: normalizeTeamRole(matchedMember.role)
+    };
+  };
+
+  const uniqueTaskPeopleById = (people = []) =>
+    Array.from(
+      new Map(
+        (people || [])
+          .filter((person) => person?.id)
+          .map((person) => [String(person.id), person])
+      ).values()
+    );
+
+  const filterTaskAssigneesForSave = (people = []) =>
+    uniqueTaskPeopleById(
+      (people || [])
+        .map((person) => normalizeTaskPersonForSave(person, ['Yönetici', 'Ekip Üyesi']))
+        .filter(Boolean)
+    );
 
   const filterTaskFollowersForSave = (people = []) =>
-    (people || []).filter((person) => {
-      if (!person?.id) return false;
+    uniqueTaskPeopleById(
+      (people || [])
+        .map((person) => {
+          if (!person?.id && !person?.name) return null;
 
-      const personId = String(person.id || '');
-      if (personId.startsWith('customer-')) return true;
+          const personId = String(person.id || '');
+          if (personId.startsWith('customer-')) return person;
 
-      const matchedMember = zrcTaskSelectableMembers.find((member) => member.id === person.id);
-      return Boolean(matchedMember);
-    });
+          return normalizeTaskPersonForSave(person);
+        })
+        .filter(Boolean)
+    );
 
   const createTeamMemberFromCenter = (event) => {
     event.preventDefault();

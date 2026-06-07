@@ -29,10 +29,7 @@ const createAvatarFromName = (name) => {
 };
 
 const defaultUsers = [
-  { id: 1, name: 'Enes Zariç', avatar: 'EZ' },
-  { id: 2, name: 'Ahmet Yılmaz', avatar: 'AY' },
-  { id: 3, name: 'Zeynep Kaya', avatar: 'ZK' },
-  { id: 4, name: 'Can Öz', avatar: 'CÖ' }
+  { id: 'zrc-ajans', name: 'ZRC AJANS', avatar: 'ZRC', role: 'Yönetici' }
 ];
 
 const months = [
@@ -494,7 +491,7 @@ export default function TaskModal({
       avatar: user.avatar || createAvatarFromName(user.name),
       role: user.role || ''
     }));
-  const defaultFollower = users[0] || null;
+  const defaultFollower = null;
   const customerListOptions = customers
     .map((customer) => customer.name)
     .filter(Boolean);
@@ -545,7 +542,7 @@ export default function TaskModal({
     tags: '',
     customer: 'Müşteri Seçin...',
     assignees: [],
-    followers: defaultFollower ? [defaultFollower] : []
+    followers: []
   });
 
   const [openUserPicker, setOpenUserPicker] = useState(null);
@@ -606,7 +603,7 @@ export default function TaskModal({
         assignees: initialData.assignees || [],
         followers: initialData.followers?.length
           ? initialData.followers
-          : (defaultFollowerRef.current ? [defaultFollowerRef.current] : [])
+          : []
       });
       return;
     }
@@ -743,8 +740,8 @@ export default function TaskModal({
       customer: form.customer === 'Müşteri Seçin...' ? '' : form.customer,
       assignees: form.assignees,
       followers: form.followers,
-      avatar: initialData?.avatar || 'EZ',
-      author: initialData?.author || 'Enes Zariç',
+      avatar: initialData?.avatar || 'ZRC',
+      author: initialData?.author || 'ZRC AJANS',
       comments: initialData?.comments || [],
       files: initialData?.files || [],
       steps: initialData?.steps || [],
@@ -753,7 +750,7 @@ export default function TaskModal({
           id: `history-${Date.now()}`,
           type: 'created',
           text: 'Görev oluşturuldu',
-          user: 'Enes Zariç',
+          user: 'ZRC AJANS',
           date: new Date().toLocaleString('tr-TR')
         }
       ]

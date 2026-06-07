@@ -358,7 +358,7 @@ function Sidebar({
                 </span>
               </div>
 
-              <button onClick={handleCreateProject} className={`w-full text-white text-[12.5px] font-extrabold py-2.5 px-4 rounded-md shadow-sm active:scale-[0.97] transition-all duration-150 flex items-center justify-center space-x-2 shrink-0 mb-4 ${canCreateProject ? 'bg-zinc-900 hover:bg-zinc-800' : 'bg-zinc-300 cursor-not-allowed'}`}>
+              <button onClick={handleCreateProject} className={`w-full text-[12.5px] font-extrabold py-2.5 px-4 rounded-md shadow-sm active:scale-[0.97] transition-all duration-150 flex items-center justify-center space-x-2 shrink-0 mb-4 ${canCreateProject ? 'bg-zinc-700 text-white hover:bg-zinc-800' : 'bg-zinc-300 text-white cursor-not-allowed'}`}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -391,8 +391,8 @@ function Sidebar({
                       }}
                       className={`relative w-full min-h-[54px] px-3.5 py-2.5 rounded-[9px] cursor-pointer transition-all duration-200 group flex items-center gap-3 overflow-hidden ${
                         isCurrentProject
-                          ? 'bg-zinc-50 shadow-[0_10px_24px_rgba(15,23,42,0.075)]'
-                          : 'bg-white hover:bg-zinc-50 hover:shadow-[0_10px_22px_rgba(15,23,42,0.055)]'
+                          ? 'bg-white shadow-[0_12px_28px_rgba(15,23,42,0.10)] ring-1 ring-zinc-100'
+                          : 'bg-zinc-50/85 shadow-[0_5px_14px_rgba(15,23,42,0.045)] hover:bg-white hover:shadow-[0_12px_24px_rgba(15,23,42,0.075)]'
                       }`}
                     >
                       {isCurrentProject && (
@@ -404,7 +404,7 @@ function Sidebar({
 
                       <div
                         className={`w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 transition-all ${
-                          isCurrentProject ? 'text-white shadow-sm' : 'bg-zinc-50 text-zinc-500 group-hover:bg-zinc-100'
+                          isCurrentProject ? 'text-white shadow-sm' : 'bg-white text-zinc-500 group-hover:bg-zinc-100 shadow-[0_3px_10px_rgba(15,23,42,0.04)]'
                         }`}
                         style={isCurrentProject ? { backgroundColor: projectAccentColor } : { color: projectAccentColor }}
                       >
