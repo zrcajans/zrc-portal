@@ -4499,6 +4499,17 @@ function App() {
     if (!userId) return null;
 
     if (userId === String(supabaseAuthUserId || '') || userId === String(currentUserId || '') || userId === String(currentRoleMember?.id || '')) {
+      if (currentRoleMember && !isLegacyDemoTeamMemberRecord(currentRoleMember)) {
+        return {
+          id: currentRoleMember.id,
+          name: currentRoleMember.name,
+          username: currentRoleMember.username || '',
+          email: currentRoleMember.email || '',
+          avatar: currentRoleMember.avatar || createAvatarFromName(currentRoleMember.name),
+          role: normalizeTeamRole(currentRoleMember.role)
+        };
+      }
+
       return {
         id: userId,
         name: 'ZRC AJANS',
@@ -5474,8 +5485,34 @@ function App() {
     return false;
   };
 
+  const getCurrentStrictUserIdSet = () =>
+    new Set(
+      [
+        currentUserId,
+        currentRoleMember?.id,
+        supabaseAuthUserId
+      ]
+        .filter(Boolean)
+        .map((value) => String(value))
+    );
+
+  const isPersonStrictlyCurrentUser = (person = {}) => {
+    const currentIds = getCurrentStrictUserIdSet();
+
+    return [
+      person.id,
+      person.userId,
+      person.memberId,
+      person.ownerId,
+      person.creatorId,
+      person.createdById
+    ]
+      .filter(Boolean)
+      .some((value) => currentIds.has(String(value)));
+  };
+
   const isTaskAssignedToCurrentUserForCalendar = (task = {}) =>
-    isPeopleListLinkedToCurrentUser(task.assignees || []);
+    Array.isArray(task.assignees) && task.assignees.some(isPersonStrictlyCurrentUser);
 
   const isTaskVisibleInCalendarForCurrentUser = (task = {}, projectName = '') => {
     if (currentAccountType === 'Patron') return true;
@@ -9697,19 +9734,12 @@ function App() {
   const homeCurrentUser =
     currentRoleMember ||
     teamMembers.find((member) => member.id === currentUserId) ||
-    teamMembers.find((member) => member.status !== 'Pasif') ||
-    teamMembers[0] ||
     null;
 
   const isHomeCurrentUserInList = (users = []) => {
     if (!homeCurrentUser) return false;
 
-    return users.some(
-      (user) =>
-        user.id === homeCurrentUser.id ||
-        user.name === homeCurrentUser.name ||
-        user.email === homeCurrentUser.email
-    );
+    return Array.isArray(users) && users.some(isPersonStrictlyCurrentUser);
   };
 
   const homeAllProjectTasks = visibleProjectNames.flatMap((projectName) => {
