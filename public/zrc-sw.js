@@ -1,4 +1,4 @@
-const ZRC_CACHE_NAME = 'zrc-portal-v285';
+const ZRC_CACHE_NAME = 'zrc-portal-v288';
 const ZRC_CORE_ASSETS = [
   '/',
   '/manifest.webmanifest',

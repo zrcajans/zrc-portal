@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v286-mobil-kullanim-konforu';
+const ZRC_APP_BUILD_LABEL = 'v288-pwa-yenileme-dongusu-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -696,13 +696,6 @@ function App() {
             showZrcPwaUpdateBanner(registration);
           }
         });
-      });
-
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (window.__zrcPwaReloading) return;
-
-        window.__zrcPwaReloading = true;
-        window.location.reload();
       });
     };
 
