@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v294-guvenli-service-worker-kaydi';
+const ZRC_APP_BUILD_LABEL = 'v295-mobil-ekran-yukseklik-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,60 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const styleId = 'zrc-mobile-viewport-style';
+
+    const updateViewportUnit = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--zrc-vh', `${vh}px`);
+    };
+
+    updateViewportUnit();
+    window.addEventListener('resize', updateViewportUnit);
+    window.addEventListener('orientationchange', updateViewportUnit);
+
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        :root {
+          --zrc-vh: 1vh;
+        }
+
+        .zrc-mobile-full-height {
+          min-height: calc(var(--zrc-vh) * 100);
+        }
+
+        @media (max-width: 720px) {
+          .min-h-screen {
+            min-height: calc(var(--zrc-vh) * 100) !important;
+          }
+
+          .h-screen {
+            height: calc(var(--zrc-vh) * 100) !important;
+          }
+
+          .max-h-screen {
+            max-height: calc(var(--zrc-vh) * 100) !important;
+          }
+
+          .zrc-safe-area-panel {
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+          }
+        }
+      `;
+
+      document.head.appendChild(style);
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateViewportUnit);
+      window.removeEventListener('orientationchange', updateViewportUnit);
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
