@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v283-mobil-uygulama-kimligi';
+const ZRC_APP_BUILD_LABEL = 'v284-pwa-service-worker';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -572,6 +572,35 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    let isCancelled = false;
+
+    const registerZrcServiceWorker = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
+
+        if (!isCancelled) {
+          console.info('[ZRC PWA] Service worker hazır:', registration.scope);
+        }
+      } catch (error) {
+        console.warn('[ZRC PWA] Service worker kaydı başarısız:', error);
+      }
+    };
+
+    if (document.readyState === 'complete') {
+      registerZrcServiceWorker();
+    } else {
+      window.addEventListener('load', registerZrcServiceWorker, { once: true });
+    }
+
+    return () => {
+      isCancelled = true;
+      window.removeEventListener('load', registerZrcServiceWorker);
+    };
+  }, []);
+
   const [activeMenu, setActiveMenu] = useState(() => getSavedNavigationState().activeMenu);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
