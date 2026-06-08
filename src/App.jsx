@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v311-pwa-kurulum-butonu-yumusatma';
+const ZRC_APP_BUILD_LABEL = 'v312-pwa-kurulum-kapatma';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -693,6 +693,7 @@ function App() {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
     const buttonId = 'zrc-pwa-install-button';
+    const dismissedKey = 'zrc-pwa-install-button-dismissed';
     let deferredPrompt = null;
 
     const isStandalone =
@@ -718,7 +719,7 @@ function App() {
       const button = document.createElement('button');
       button.id = buttonId;
       button.type = 'button';
-      button.textContent = 'ZRC’yi Kur';
+      button.innerHTML = '<span>ZRC’yi Kur</span><span aria-hidden="true" style="margin-left:8px;opacity:.82;font-size:14px;line-height:1;">×</span>';
       button.title = 'ZRC Portalı bu cihaza kur';
       button.style.cssText = [
         'position:fixed',
@@ -738,7 +739,16 @@ function App() {
         'cursor:pointer'
       ].join(';');
 
-      button.addEventListener('click', async () => {
+      button.addEventListener('click', async (event) => {
+        const targetText = event.target?.textContent?.trim();
+
+        if (targetText === '×') {
+          window.localStorage.setItem(dismissedKey, '1');
+          deferredPrompt = null;
+          removeButton();
+          return;
+        }
+
         if (!deferredPrompt) return;
 
         button.textContent = 'Açılıyor...';
