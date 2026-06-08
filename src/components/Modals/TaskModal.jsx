@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 const defaultStatusOptions = [
-  { label: 'Bekliyor', bg: '#f4bd61', text: '#7a4c0f' },
+  { label: 'Yeni Görev', bg: '#f4bd61', text: '#7a4c0f' },
   { label: 'Aktif', bg: '#064e1f', text: '#ffffff' },
   { label: 'Tamamlandı', bg: '#bcd2e8', text: '#294057' },
   { label: 'Askıya Alındı', bg: '#a78bfa', text: '#4c1d95' }
@@ -514,7 +514,7 @@ export default function TaskModal({
   const columnStatusOptions = (dynamicStatusOptions.length ? dynamicStatusOptions : defaultStatusOptions).map((option) =>
     typeof option === 'string' ? { label: option } : option
   );
-  const defaultStatus = columnStatusOptions[0]?.label || 'Bekliyor';
+  const defaultStatus = columnStatusOptions[0]?.label || 'Yeni Görev';
   const isHiddenTaskPickerPerson = (person = {}) => {
     const normalize = (value = '') =>
       String(value || '')
@@ -890,13 +890,13 @@ export default function TaskModal({
           setOpenUserPicker(null);
           setPendingRemoveUser(null);
         }}
-        className={`w-full max-w-[690px] bg-white rounded-[13px] shadow-[0_26px_90px_rgba(15,23,42,0.24)] overflow-visible ${isClosing ? 'task-modal-exit' : 'task-modal-enter'}`}
+        className={`w-full max-w-[690px] max-[720px]:max-w-[calc(100vw-20px)] max-[720px]:max-h-[calc(100vh-24px)] bg-white rounded-[13px] shadow-[0_26px_90px_rgba(15,23,42,0.24)] overflow-visible max-[720px]:overflow-y-auto custom-scrollbar ${isClosing ? 'task-modal-exit' : 'task-modal-enter'}`}
       >
         <div className="relative h-[66px] rounded-t-[13px] bg-white border-b border-slate-100">
           <button
             type="button"
             onClick={handleClose}
-            className="absolute -right-3 -top-3 w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-white transition-all flex items-center justify-center shadow-[0_10px_24px_rgba(15,23,42,0.16)] z-20"
+            className="absolute -right-3 -top-3 max-[720px]:right-2 max-[720px]:top-2 w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-white transition-all flex items-center justify-center shadow-[0_10px_24px_rgba(15,23,42,0.16)] z-20"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.7" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -913,7 +913,7 @@ export default function TaskModal({
           </div>
         </div>
 
-        <div className="p-5 pt-5 pb-4">
+        <div className="p-5 pt-5 pb-4 max-[720px]:p-4">
           <div className="relative z-[1100] mb-3 flex justify-center">
             <div className="w-full max-w-[360px]">
               <div className="text-center">
@@ -937,7 +937,7 @@ export default function TaskModal({
             </div>
           </div>
 
-          <div className="relative z-[1] grid grid-cols-[1fr_120px_110px] gap-3 items-end">
+          <div className="relative z-[1] grid grid-cols-[1fr_120px_110px] max-[720px]:grid-cols-1 gap-3 items-end">
             <div>
               <FieldLabel>Ad *</FieldLabel>
               <input
@@ -993,7 +993,7 @@ export default function TaskModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-3 mt-4">
             <DateInput
               label="Başlangıç Tarihi"
               value={form.startDate}
@@ -1007,7 +1007,7 @@ export default function TaskModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-3">
+          <div className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-3 mt-3">
             <div>
               <FieldLabel>Etiketler</FieldLabel>
               <input
@@ -1034,7 +1034,7 @@ export default function TaskModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-3 mt-4">
             <div className="relative">
               <div className="flex items-center justify-between">
                 <FieldLabel>Görevliler: {form.assignees.length ? `${form.assignees.length} kişi` : 'Hiç Kimse'}</FieldLabel>
@@ -1078,7 +1078,7 @@ export default function TaskModal({
 
               {openUserPicker === 'assignees' && (
                 <div onClick={(event) => event.stopPropagation()}
-                  className="absolute left-0 top-[54px] z-[850] w-[210px] rounded-[9px] bg-white border border-zinc-200 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
+                  className="absolute left-0 top-[54px] z-[850] w-[210px] max-[720px]:w-[calc(100vw-64px)] max-[720px]:max-w-[280px] rounded-[9px] bg-white border border-zinc-200 shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2">
                   {users.length > 0 ? (
                     assigneeUsers.map((user) => (
                       <button
@@ -1104,7 +1104,7 @@ export default function TaskModal({
           </div>
         </div>
 
-        <div className="h-[58px] px-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-[13px]">
+        <div className="h-[58px] px-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-[13px] max-[720px]:sticky max-[720px]:bottom-0 max-[720px]:z-[40]">
           <button
             type="button"
             onClick={handleClose}
