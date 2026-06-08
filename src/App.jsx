@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v303-acilis-ekrani-premium-duzen';
+const ZRC_APP_BUILD_LABEL = 'v305-pwa-kurulum-butonu';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,89 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const buttonId = 'zrc-pwa-install-button';
+    let deferredPrompt = null;
+
+    const isStandalone =
+      window.matchMedia?.('(display-mode: standalone)')?.matches ||
+      window.navigator.standalone === true;
+
+    if (isStandalone) return;
+
+    const removeButton = () => {
+      const oldButton = document.getElementById(buttonId);
+      if (oldButton) oldButton.remove();
+    };
+
+    const showInstallButton = () => {
+      removeButton();
+
+      const button = document.createElement('button');
+      button.id = buttonId;
+      button.type = 'button';
+      button.textContent = 'ZRC’yi Kur';
+      button.title = 'ZRC Portalı bu cihaza kur';
+      button.style.cssText = [
+        'position:fixed',
+        'left:12px',
+        'bottom:12px',
+        'z-index:99991',
+        'height:34px',
+        'padding:0 13px',
+        'border:0',
+        'border-radius:999px',
+        'background:#ff3600',
+        'color:#ffffff',
+        'font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        'font-size:11px',
+        'font-weight:900',
+        'box-shadow:0 14px 34px rgba(255,54,0,.28)',
+        'cursor:pointer'
+      ].join(';');
+
+      button.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+
+        button.textContent = 'Açılıyor...';
+
+        try {
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+        } catch (error) {
+          console.warn('ZRC PWA kurulum penceresi açılamadı:', error);
+        } finally {
+          deferredPrompt = null;
+          removeButton();
+        }
+      });
+
+      document.body.appendChild(button);
+    };
+
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      deferredPrompt = event;
+      showInstallButton();
+    };
+
+    const handleInstalled = () => {
+      deferredPrompt = null;
+      removeButton();
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleInstalled);
+      removeButton();
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
