@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v295-mobil-ekran-yukseklik-fix';
+const ZRC_APP_BUILD_LABEL = 'v296-baglanti-durumu-uyarisi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,74 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const bannerId = 'zrc-offline-status-banner';
+
+    const removeBannerLater = () => {
+      window.setTimeout(() => {
+        const banner = document.getElementById(bannerId);
+        if (banner && window.navigator.onLine) {
+          banner.remove();
+        }
+      }, 2200);
+    };
+
+    const showConnectionBanner = (mode) => {
+      let banner = document.getElementById(bannerId);
+
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = bannerId;
+        banner.style.cssText = [
+          'position:fixed',
+          'left:50%',
+          'bottom:16px',
+          'transform:translateX(-50%)',
+          'z-index:99998',
+          'width:min(calc(100vw - 28px), 360px)',
+          'border-radius:999px',
+          'box-shadow:0 18px 50px rgba(15,23,42,.22)',
+          'padding:10px 14px',
+          'font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+          'font-size:11px',
+          'font-weight:900',
+          'text-align:center'
+        ].join(';');
+
+        document.body.appendChild(banner);
+      }
+
+      if (mode === 'offline') {
+        banner.textContent = 'İnternet bağlantısı yok. Değişiklikler kaydedilemeyebilir.';
+        banner.style.background = '#111827';
+        banner.style.color = '#ffffff';
+        return;
+      }
+
+      banner.textContent = 'Bağlantı geri geldi.';
+      banner.style.background = '#16a34a';
+      banner.style.color = '#ffffff';
+      removeBannerLater();
+    };
+
+    const handleOffline = () => showConnectionBanner('offline');
+    const handleOnline = () => showConnectionBanner('online');
+
+    if (!window.navigator.onLine) {
+      showConnectionBanner('offline');
+    }
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
