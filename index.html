@@ -65,6 +65,60 @@
         animation: zrcStartupLoaderMove 1s ease-in-out infinite;
       }
 
+
+      #zrc-startup-loader-recovery {
+        display: none;
+        margin-top: 4px;
+        text-align: center;
+        color: rgba(255,255,255,.72);
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      #zrc-startup-loader-recovery.zrc-startup-loader-recovery-show {
+        display: block;
+      }
+
+      #zrc-startup-loader-recovery-title {
+        font-size: 12px;
+        font-weight: 900;
+        color: #ffffff;
+        margin-bottom: 4px;
+      }
+
+      #zrc-startup-loader-recovery-text {
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.45;
+        margin-bottom: 10px;
+      }
+
+      .zrc-startup-loader-recovery-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .zrc-startup-loader-recovery-actions button {
+        height: 30px;
+        border: 0;
+        border-radius: 999px;
+        padding: 0 12px;
+        font-size: 10px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .zrc-loader-refresh-btn {
+        background: #ff3600;
+        color: #ffffff;
+      }
+
+      .zrc-loader-reset-btn {
+        background: rgba(255,255,255,.12);
+        color: #ffffff;
+      }
+
       @keyframes zrcStartupLoaderMove {
         0% { transform: translateX(-120%); }
         100% { transform: translateX(260%); }
@@ -76,10 +130,31 @@
       <div id="zrc-startup-loader-card">
         <img src="/zrc-app-icon.png?v=300" alt="ZRC Portal" />
         <div id="zrc-startup-loader-line"></div>
+        <div id="zrc-startup-loader-recovery">
+          <div id="zrc-startup-loader-recovery-title">Yükleme uzun sürdü</div>
+          <div id="zrc-startup-loader-recovery-text">
+            Sayfa takılı kaldıysa yenile veya PWA önbelleğini temizle.
+          </div>
+          <div class="zrc-startup-loader-recovery-actions">
+            <button type="button" class="zrc-loader-refresh-btn" onclick="window.location.reload()">Yenile</button>
+            <button type="button" class="zrc-loader-reset-btn" onclick="window.location.href='/?zrc-reset-pwa=1'">PWA Temizle</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+  
+    <script id="zrc-startup-loader-recovery-script">
+      window.setTimeout(function () {
+        var loader = document.getElementById('zrc-startup-loader');
+        var recovery = document.getElementById('zrc-startup-loader-recovery');
+
+        if (loader && recovery) {
+          recovery.classList.add('zrc-startup-loader-recovery-show');
+        }
+      }, 8000);
+    </script>
   </body>
 </html>
