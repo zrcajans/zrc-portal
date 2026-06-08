@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v307-ios-pwa-meta-duzen';
+const ZRC_APP_BUILD_LABEL = 'v308-iphone-kurulum-uyarisi-yumusatma';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -668,9 +668,21 @@ function App() {
       tip.remove();
     });
 
-    document.body.appendChild(tip);
+    const showTimer = window.setTimeout(() => {
+      if (!document.getElementById(tipId) && window.localStorage.getItem(dismissedKey) !== '1') {
+        document.body.appendChild(tip);
+      }
+    }, 3500);
+
+    const autoCloseTimer = window.setTimeout(() => {
+      if (document.body.contains(tip)) {
+        tip.remove();
+      }
+    }, 18000);
 
     return () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(autoCloseTimer);
       tip.remove();
     };
   }, []);
