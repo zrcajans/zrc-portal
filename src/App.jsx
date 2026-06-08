@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v300-zrc-favicon-logo';
+const ZRC_APP_BUILD_LABEL = 'v301-acilis-logo-yukleme-ekrani';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,20 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const loader = document.getElementById('zrc-startup-loader');
+
+    if (!loader) return;
+
+    loader.classList.add('zrc-startup-loader-hide');
+
+    window.setTimeout(() => {
+      loader.remove();
+    }, 420);
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
