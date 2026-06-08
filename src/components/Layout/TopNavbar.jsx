@@ -14,13 +14,13 @@ function TopNavbar({
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   return (
-    <div className={`w-full ${isProjectsPage ? 'h-[40px]' : 'h-[52px]'} px-7 flex items-center justify-between shrink-0 bg-transparent relative transition-[height] duration-200 ease-out`}>
-      <div className="w-[150px]" />
+    <div className={`w-full ${isProjectsPage ? 'h-[40px]' : 'h-[52px]'} px-7 max-[640px]:px-3 flex items-center justify-between shrink-0 bg-transparent relative transition-[height] duration-200 ease-out`}>
+      <div className="w-[150px] max-[640px]:w-[40px]" />
 
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 max-[640px]:gap-1.5">
         <button
           onClick={onToggleMessages}
-          className={`relative h-[28px] px-4 rounded-[8px] transition-all flex items-center gap-2 text-[11px] font-black tracking-[-0.01em] ${
+          className={`relative h-[28px] px-4 max-[640px]:px-2.5 rounded-[8px] transition-all flex items-center gap-2 max-[640px]:gap-1.5 text-[11px] font-black tracking-[-0.01em] ${
             isMessagesOpen
               ? 'bg-[linear-gradient(135deg,#ffffff_0%,#eef5ff_100%)] text-[#2563eb] shadow-[0_10px_24px_rgba(37,99,235,0.13)]'
               : 'bg-white/68 text-[#7d8898] hover:bg-white hover:text-[#2563eb] shadow-[0_7px_18px_rgba(15,23,42,0.045)] hover:shadow-[0_10px_24px_rgba(37,99,235,0.10)]'
@@ -33,7 +33,7 @@ function TopNavbar({
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 12c0 4.556-4.03 8.25-9 8.25a9.76 9.76 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.924-.924 5.972 5.972 0 001.057-4.035A8.287 8.287 0 013 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
           </svg>
 
-          <span>Mesajlar</span>
+          <span className="max-[640px]:hidden">Mesajlar</span>
 
           {unreadMessageCount > 0 && (
             <span className="ml-0.5 bg-[#2563eb] text-white text-[7px] font-black min-w-[14px] h-[14px] px-1 rounded-full flex items-center justify-center leading-none shadow-[0_4px_10px_rgba(37,99,235,0.25)]">
@@ -44,7 +44,7 @@ function TopNavbar({
 
         <button
           onClick={onToggleNotifications}
-          className={`relative h-[28px] px-4 rounded-[8px] transition-all flex items-center gap-2 text-[11px] font-black tracking-[-0.01em] ${
+          className={`relative h-[28px] px-4 max-[640px]:px-2.5 rounded-[8px] transition-all flex items-center gap-2 max-[640px]:gap-1.5 text-[11px] font-black tracking-[-0.01em] ${
             isNotificationsOpen
               ? 'bg-[linear-gradient(135deg,#ffffff_0%,#fff0ec_100%)] text-[#ff3600] shadow-[0_10px_24px_rgba(255,54,0,0.13)]'
               : 'bg-white/68 text-[#7d8898] hover:bg-white hover:text-[#ff3600] shadow-[0_7px_18px_rgba(15,23,42,0.045)] hover:shadow-[0_10px_24px_rgba(255,54,0,0.10)]'
@@ -56,7 +56,7 @@ function TopNavbar({
             <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022 23.848 23.848 0 005.455 1.31m5.714 0a3 3 0 11-5.714 0" />
           </svg>
 
-          <span>Bildirimler</span>
+          <span className="max-[640px]:hidden">Bildirimler</span>
 
           {unreadNotificationCount > 0 && (
             <span className="ml-0.5 bg-[#ff3600] text-white text-[7px] font-black min-w-[14px] h-[14px] px-1 rounded-full flex items-center justify-center leading-none shadow-[0_4px_10px_rgba(255,54,0,0.22)]">
