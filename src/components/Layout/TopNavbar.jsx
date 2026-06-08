@@ -49,7 +49,7 @@ function TopNavbar({
               ? 'bg-[linear-gradient(135deg,#ffffff_0%,#fff0ec_100%)] text-[#ff3600] shadow-[0_10px_24px_rgba(255,54,0,0.13)]'
               : 'bg-white/68 text-[#7d8898] hover:bg-white hover:text-[#ff3600] shadow-[0_7px_18px_rgba(15,23,42,0.045)] hover:shadow-[0_10px_24px_rgba(255,54,0,0.10)]'
           }`}
-          title="Bildirimler"
+          title={unreadNotificationCount > 0 ? `${unreadNotificationCount} okunmamış bildirim` : 'Bildirimler'}
           type="button"
         >
           <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2.15" viewBox="0 0 24 24">

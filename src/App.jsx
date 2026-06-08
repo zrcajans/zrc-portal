@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v276-dosya-indir-sil-kalici';
+const ZRC_APP_BUILD_LABEL = 'v278-bildirim-paneli-anlik-yenileme';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -11974,7 +11974,15 @@ function App() {
           onToggleNotifications={(event) => {
             event.stopPropagation();
             setIsMessagesOpen(false);
-            setIsNotificationsOpen((prev) => !prev);
+            setIsNotificationsOpen((prev) => {
+              const nextState = !prev;
+
+              if (nextState) {
+                loadActivityLogsFromSupabase();
+              }
+
+              return nextState;
+            });
           }}
           unreadMessageCount={unreadMessageCount}
           isMessagesOpen={isMessagesOpen}
@@ -12194,15 +12202,25 @@ function App() {
                 </div>
               </div>
 
-              {notificationItems.length > 0 && unreadNotificationCount > 0 && (
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={markAllNotificationsAsRead}
-                  className="h-7 px-3 rounded-full bg-zinc-50 border border-zinc-100 text-[9.5px] font-black text-zinc-500 hover:text-zinc-800 hover:bg-white transition-all"
+                  onClick={loadActivityLogsFromSupabase}
+                  className="h-7 px-3 rounded-full bg-white border border-zinc-100 text-[9.5px] font-black text-zinc-500 hover:text-zinc-900 hover:border-zinc-200 transition-all"
                 >
-                  Tümünü Okundu Yap
+                  Yenile
                 </button>
-              )}
+
+                {notificationItems.length > 0 && unreadNotificationCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={markAllNotificationsAsRead}
+                    className="h-7 px-3 rounded-full bg-zinc-900 border border-zinc-900 text-[9.5px] font-black text-white hover:bg-zinc-700 transition-all"
+                  >
+                    Tümünü okundu yap
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="max-h-[420px] overflow-y-auto custom-scrollbar p-2">
