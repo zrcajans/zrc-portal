@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v293-canli-teshis-iyilestirme';
+const ZRC_APP_BUILD_LABEL = 'v294-guvenli-service-worker-kaydi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -788,6 +788,24 @@ function App() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    const isLocalDev =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+
+    const isZrcLiveDomain =
+      window.location.hostname === 'portal.zrcajans.com' ||
+      window.location.hostname.endsWith('.vercel.app');
+
+    if (isLocalDev) {
+      console.info('[ZRC PWA] Local geliştirme ortamında service worker kapalı.');
+      return;
+    }
+
+    if (!isZrcLiveDomain) {
+      console.info('[ZRC PWA] Bu domain için service worker kaydı atlandı:', window.location.hostname);
+      return;
+    }
 
     let isCancelled = false;
 
