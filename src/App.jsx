@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v305-pwa-kurulum-butonu';
+const ZRC_APP_BUILD_LABEL = 'v306-iphone-kurulum-yonlendirme';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,72 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const tipId = 'zrc-ios-pwa-install-tip';
+    const dismissedKey = 'zrc-ios-pwa-install-tip-dismissed';
+
+    const isStandalone =
+      window.matchMedia?.('(display-mode: standalone)')?.matches ||
+      window.navigator.standalone === true;
+
+    if (isStandalone) return;
+    if (window.localStorage.getItem(dismissedKey) === '1') return;
+
+    const ua = window.navigator.userAgent || '';
+    const isIOS =
+      /iPhone|iPad|iPod/i.test(ua) ||
+      (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+
+    if (!isIOS) return;
+    if (document.getElementById(tipId)) return;
+
+    const tip = document.createElement('div');
+    tip.id = tipId;
+    tip.style.cssText = [
+      'position:fixed',
+      'left:12px',
+      'right:12px',
+      'bottom:54px',
+      'z-index:99992',
+      'max-width:420px',
+      'margin:0 auto',
+      'border-radius:20px',
+      'background:#111827',
+      'color:#ffffff',
+      'box-shadow:0 18px 50px rgba(15,23,42,.28)',
+      'padding:12px 12px 12px 14px',
+      'font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+    ].join(';');
+
+    tip.innerHTML = `
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="width:28px;height:28px;border-radius:10px;background:#ff3600;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex:0 0 auto;">Z</div>
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:12px;font-weight:950;margin-bottom:3px;">ZRC’yi iPhone’a kur</div>
+          <div style="font-size:10.5px;font-weight:750;line-height:1.45;color:rgba(255,255,255,.78);">
+            Safari’de Paylaş simgesine bas, sonra <b>Ana Ekrana Ekle</b> seç.
+          </div>
+        </div>
+        <button type="button" aria-label="Kapat" style="width:26px;height:26px;border:0;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-size:15px;font-weight:900;cursor:pointer;flex:0 0 auto;">×</button>
+      </div>
+    `;
+
+    const closeButton = tip.querySelector('button');
+
+    closeButton?.addEventListener('click', () => {
+      window.localStorage.setItem(dismissedKey, '1');
+      tip.remove();
+    });
+
+    document.body.appendChild(tip);
+
+    return () => {
+      tip.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
