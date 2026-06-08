@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v310-pwa-kurulum-mobil-only';
+const ZRC_APP_BUILD_LABEL = 'v311-pwa-kurulum-butonu-yumusatma';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -755,12 +755,25 @@ function App() {
       });
 
       document.body.appendChild(button);
+
+      window.setTimeout(() => {
+        const currentButton = document.getElementById(buttonId);
+
+        if (currentButton && deferredPrompt) {
+          currentButton.remove();
+        }
+      }, 18000);
     };
 
     const handleBeforeInstallPrompt = (event) => {
       event.preventDefault();
       deferredPrompt = event;
-      showInstallButton();
+
+      window.setTimeout(() => {
+        if (deferredPrompt && !document.getElementById(buttonId)) {
+          showInstallButton();
+        }
+      }, 3500);
     };
 
     const handleInstalled = () => {
