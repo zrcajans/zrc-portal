@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v309-pwa-kurulum-bosluk-duzeni';
+const ZRC_APP_BUILD_LABEL = 'v310-pwa-kurulum-mobil-only';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -700,6 +700,12 @@ function App() {
       window.navigator.standalone === true;
 
     if (isStandalone) return;
+
+    const isLikelyMobileInstallTarget =
+      window.innerWidth <= 900 ||
+      /Android|Mobile|Tablet|iPhone|iPad|iPod/i.test(window.navigator.userAgent || '');
+
+    if (!isLikelyMobileInstallTarget) return;
 
     const removeButton = () => {
       const oldButton = document.getElementById(buttonId);
