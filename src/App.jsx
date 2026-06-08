@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v297-canli-surum-kurtarma-etiketi';
+const ZRC_APP_BUILD_LABEL = 'v298-dinamik-surum-etiketi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -619,7 +619,8 @@ function App() {
     const badge = document.createElement('button');
     badge.id = badgeId;
     badge.type = 'button';
-    badge.textContent = 'ZRC v297';
+    const zrcBuildShortLabel = ZRC_APP_BUILD_LABEL.match(/^v\d+/)?.[0] || ZRC_APP_BUILD_LABEL;
+    badge.textContent = `ZRC ${zrcBuildShortLabel}`;
     badge.title = 'Tıkla: PWA kurtarma adresini kopyala';
     badge.style.cssText = [
       'position:fixed',
@@ -647,7 +648,7 @@ function App() {
         await navigator.clipboard.writeText(recoveryUrl);
         badge.textContent = 'Kopyalandı';
         window.setTimeout(() => {
-          badge.textContent = 'ZRC v297';
+          badge.textContent = `ZRC ${zrcBuildShortLabel}`;
         }, 1400);
       } catch (error) {
         window.prompt('PWA kurtarma adresi:', recoveryUrl);
