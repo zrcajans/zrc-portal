@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v312-pwa-kurulum-kapatma';
+const ZRC_APP_BUILD_LABEL = 'v313-pwa-kurulum-tek-seferlik';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -707,6 +707,7 @@ function App() {
       /Android|Mobile|Tablet|iPhone|iPad|iPod/i.test(window.navigator.userAgent || '');
 
     if (!isLikelyMobileInstallTarget) return;
+    if (window.sessionStorage.getItem('zrc-pwa-install-button-session-hidden') === '1') return;
 
     const removeButton = () => {
       const oldButton = document.getElementById(buttonId);
@@ -770,6 +771,7 @@ function App() {
         const currentButton = document.getElementById(buttonId);
 
         if (currentButton && deferredPrompt) {
+          window.sessionStorage.setItem('zrc-pwa-install-button-session-hidden', '1');
           currentButton.remove();
         }
       }, 18000);
