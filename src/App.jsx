@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v278-bildirim-paneli-anlik-yenileme';
+const ZRC_APP_BUILD_LABEL = 'v279-mobil-kurulum-netlestirme';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -4593,12 +4593,31 @@ function App() {
     }
 
     if (isIosDevice() && !pwaInstallPrompt) {
-      window.alert('iPhone/iPad için Safari menüsünden Paylaş → Ana Ekrana Ekle seçeneğini kullan.');
+      const iosInstallMessage = [
+        'iPhone/iPad kurulumu:',
+        '',
+        '1. Bu siteyi Safari ile aç.',
+        '2. Alt menüden Paylaş butonuna bas.',
+        '3. “Ana Ekrana Ekle” seçeneğini seç.',
+        '4. Ekle dediğinde ZRC panel telefonunda uygulama gibi açılır.'
+      ].join('\n');
+
+      setPwaInstallStatus({
+        state: 'ready',
+        label: 'iPhone: Safari > Paylaş > Ana Ekrana Ekle'
+      });
+
+      window.alert(iosInstallMessage);
       return;
     }
 
     if (!pwaInstallPrompt) {
-      window.alert('Kurulum penceresi şu an hazır değil. Chrome/Edge kullanıyorsan sayfayı bir kez yenileyip tekrar dene.');
+      setPwaInstallStatus({
+        state: 'error',
+        label: 'Kurulum hazır değil: sayfayı yenileyip tekrar dene'
+      });
+
+      window.alert('Kurulum penceresi şu an hazır değil. Chrome/Edge kullanıyorsan sayfayı bir kez yenileyip tekrar dene. iPhone kullanıyorsan Safari > Paylaş > Ana Ekrana Ekle yolunu kullan.');
       return;
     }
 
@@ -4639,7 +4658,7 @@ function App() {
     if (isIosDevice()) {
       setPwaInstallStatus({
         state: 'ready',
-        label: 'iOS: Paylaş → Ana Ekrana Ekle'
+        label: 'iPhone: Safari > Paylaş > Ana Ekrana Ekle'
       });
     }
 
@@ -14594,8 +14613,9 @@ function App() {
                               type="button"
                               onClick={handleInstallPwa}
                               className="h-9 px-4 rounded-full bg-[#101827] text-white text-[10px] font-black hover:bg-[#000] transition-all"
+                              title="Telefon veya bilgisayara uygulama gibi kur"
                             >
-                              Mobilden Kur
+                              {pwaInstallStatus.state === 'installed' ? 'Kurulu' : isIosDevice() ? 'iPhone Kurulum' : 'Mobil Kurulum'}
                             </button>
                           </div>
                         </div>
@@ -14619,7 +14639,10 @@ function App() {
                           <span className="px-2.5 py-1 rounded-full bg-white border border-[#edf0f4]">
                             Son canlı senkron: {supabaseLastRealtimeAt ? new Date(supabaseLastRealtimeAt).toLocaleString('tr-TR') : 'Henüz yok'}
                           </span>
-                          <span className={`px-2.5 py-1 rounded-full border ${getPwaInstallClass()}`}>
+                          <span
+                            className={`px-2.5 py-1 rounded-full border ${getPwaInstallClass()}`}
+                            title="Mobil/PWA kurulum durumu"
+                          >
                             {pwaInstallStatus.label}
                           </span>
                         </div>
