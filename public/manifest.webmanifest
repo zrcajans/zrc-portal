@@ -1,16 +1,16 @@
 {
-  "name": "ZRC İş Takip",
-  "short_name": "ZRC",
-  "description": "ZRC iş takip, görev, proje, müşteri ve ekip yönetim paneli.",
+  "name": "ZRC Portal",
+  "short_name": "ZRC Portal",
+  "description": "ZRC AJANS iş takip paneli",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#f4f6f8",
   "theme_color": "#ff3600",
-  "orientation": "any",
   "icons": [
     {
-      "src": "/zrc-icon.svg",
+      "src": "/zrc-app-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
