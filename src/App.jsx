@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v313-pwa-kurulum-tek-seferlik';
+const ZRC_APP_BUILD_LABEL = 'v314-pwa-temizleme-guclendirme';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1087,6 +1087,14 @@ function App() {
         if ('serviceWorker' in navigator) {
           const registrations = await navigator.serviceWorker.getRegistrations();
           await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+
+        try {
+          window.localStorage.removeItem('zrc-ios-pwa-install-tip-dismissed');
+          window.localStorage.removeItem('zrc-pwa-install-button-dismissed');
+          window.sessionStorage.removeItem('zrc-pwa-install-button-session-hidden');
+        } catch (storageError) {
+          console.warn('ZRC PWA kurulum kayıtları temizlenemedi:', storageError);
         }
 
         if ('caches' in window) {
