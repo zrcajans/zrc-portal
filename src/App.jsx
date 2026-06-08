@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v291-pwa-guvenli-onbellek';
+const ZRC_APP_BUILD_LABEL = 'v292-mobil-yatay-tasma-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -608,6 +608,60 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const styleId = 'zrc-mobile-overflow-fix-style';
+
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      html,
+      body,
+      #root {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      img,
+      svg,
+      video,
+      canvas {
+        max-width: 100%;
+      }
+
+      @media (max-width: 720px) {
+        body {
+          position: relative;
+        }
+
+        .custom-scrollbar {
+          overscroll-behavior: contain;
+        }
+
+        input,
+        textarea,
+        select,
+        button {
+          max-width: 100%;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+
+    return () => {
+      style.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
