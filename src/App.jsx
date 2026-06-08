@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v287-tarayici-bildirim-izni';
+const ZRC_APP_BUILD_LABEL = 'v286-mobil-kullanim-konforu';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -11074,89 +11074,6 @@ function App() {
     saveProfileToSupabase(profileDraft, nextPreferences);
   };
 
-  const getBrowserNotificationPermissionLabel = () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      return 'Bu tarayıcı bildirim desteklemiyor.';
-    }
-
-    if (Notification.permission === 'granted') {
-      return 'Tarayıcı izni verildi.';
-    }
-
-    if (Notification.permission === 'denied') {
-      return 'Bildirim izni reddedildi.';
-    }
-
-    return 'Bildirim izni bekliyor.';
-  };
-
-  const requestBrowserNotificationPermission = async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      setProfilePreferences((prev) => {
-        const nextPreferences = {
-          ...prev,
-          browserEnabled: false,
-          lastSavedAt: new Date().toISOString()
-        };
-
-        saveUserPreferencesToSupabase({ profilePreferences: nextPreferences });
-        return nextPreferences;
-      });
-
-      alert('Bu tarayıcı web bildirimi desteklemiyor.');
-      return;
-    }
-
-    if (Notification.permission === 'denied') {
-      setProfilePreferences((prev) => {
-        const nextPreferences = {
-          ...prev,
-          browserEnabled: false,
-          lastSavedAt: new Date().toISOString()
-        };
-
-        saveUserPreferencesToSupabase({ profilePreferences: nextPreferences });
-        return nextPreferences;
-      });
-
-      alert('Bildirim izni daha önce reddedilmiş. Tarayıcı/site ayarlarından ZRC Portal için bildirim iznini açman gerekir.');
-      return;
-    }
-
-    const permission =
-      Notification.permission === 'granted'
-        ? 'granted'
-        : await Notification.requestPermission();
-
-    const isGranted = permission === 'granted';
-
-    setProfilePreferences((prev) => {
-      const nextPreferences = {
-        ...prev,
-        browserEnabled: isGranted,
-        lastSavedAt: new Date().toISOString()
-      };
-
-      saveUserPreferencesToSupabase({ profilePreferences: nextPreferences });
-      return nextPreferences;
-    });
-
-    if (isGranted) {
-      try {
-        new Notification('ZRC Portal', {
-          body: 'Tarayıcı bildirimi aktif. Yeni görev ve mesaj bildirimleri için altyapı hazır.',
-          icon: '/zrc-app-icon.svg'
-        });
-      } catch (error) {
-        console.warn('[ZRC Bildirim] Test bildirimi gösterilemedi:', error);
-      }
-
-      return;
-    }
-
-    alert('Bildirim izni verilmedi. İstersen daha sonra Profil > Tarayıcı Bildirimi alanından tekrar deneyebilirsin.');
-  };
-
   const toggleProfilePreference = (keyName) => {
     setProfilePreferences((prev) => {
       const nextPreferences = {
@@ -14613,16 +14530,14 @@ function App() {
 
                       <button
                         type="button"
-                        onClick={requestBrowserNotificationPermission}
+                        onClick={() => toggleProfilePreference('browserEnabled')}
                         className={`w-full h-10 px-3 rounded-[4px] border flex items-center text-[10.5px] font-semibold ${
                           profilePreferences.browserEnabled
                             ? 'border-emerald-200 bg-emerald-50 text-[#28664b]'
                             : 'border-blue-200 bg-blue-50 text-[#475467]'
                         }`}
                       >
-                        {profilePreferences.browserEnabled
-                          ? `✓ Web tarayıcısı bildirimleri aktif. ${getBrowserNotificationPermissionLabel()}`
-                          : `○ Web tarayıcısı bildirimleri kapalı. ${getBrowserNotificationPermissionLabel()}`}
+                        {profilePreferences.browserEnabled ? '✓ Web tarayıcısı bildirimleri aktif.' : '○ Web tarayıcısı bildirimleri kapalı.'}
                       </button>
 
                       <div className="mt-5 grid grid-cols-[1fr_200px] gap-4 items-center border-t border-[#edf0f4] pt-5">
