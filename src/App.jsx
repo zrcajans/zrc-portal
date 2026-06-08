@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v289-pwa-onbellek-kurtarma';
+const ZRC_APP_BUILD_LABEL = 'v290-yeni-surum-banner-kaldirildi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,13 @@ const createDataSnapshot = ({
 function App() {
   // --- TEMEL STATE'LER ---
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const oldBanner = document.getElementById('zrc-pwa-update-banner');
+    if (oldBanner) oldBanner.remove();
+  }, []);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const currentUrl = new URL(window.location.href);
@@ -709,81 +716,12 @@ function App() {
 
     let isCancelled = false;
 
-    const showZrcPwaUpdateBanner = (registration) => {
-      if (typeof document === 'undefined') return;
-      if (document.getElementById('zrc-pwa-update-banner')) return;
-
-      const banner = document.createElement('div');
-      banner.id = 'zrc-pwa-update-banner';
-      banner.style.cssText = [
-        'position:fixed',
-        'left:50%',
-        'bottom:18px',
-        'transform:translateX(-50%)',
-        'z-index:99999',
-        'width:min( calc(100vw - 28px), 420px )',
-        'background:#111827',
-        'color:#ffffff',
-        'border-radius:18px',
-        'box-shadow:0 24px 70px rgba(15,23,42,.26)',
-        'padding:12px',
-        'font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-      ].join(';');
-
-      banner.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:34px;height:34px;border-radius:12px;background:#ff3600;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">ZRC</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:900;line-height:1.2;">Yeni sürüm hazır</div>
-            <div style="font-size:10px;font-weight:700;opacity:.72;margin-top:2px;">Son güncellemeyi almak için yenile.</div>
-          </div>
-          <button data-zrc-pwa-refresh type="button" style="height:32px;border:0;border-radius:999px;background:#ff3600;color:white;padding:0 12px;font-size:10px;font-weight:900;cursor:pointer;">Güncelle</button>
-          <button data-zrc-pwa-later type="button" style="width:28px;height:28px;border:0;border-radius:999px;background:rgba(255,255,255,.10);color:white;font-size:16px;line-height:1;cursor:pointer;">×</button>
-        </div>
-      `;
-
-      banner.querySelector('[data-zrc-pwa-refresh]')?.addEventListener('click', () => {
-        if (registration?.waiting) {
-          registration.waiting.postMessage({ type: 'ZRC_SKIP_WAITING' });
-        }
-
-        window.location.reload();
-      });
-
-      banner.querySelector('[data-zrc-pwa-later]')?.addEventListener('click', () => {
-        banner.remove();
-      });
-
-      document.body.appendChild(banner);
-    };
-
-    const watchForZrcPwaUpdates = (registration) => {
-      if (!registration || typeof navigator === 'undefined') return;
-
-      if (registration.waiting) {
-        showZrcPwaUpdateBanner(registration);
-      }
-
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-
-        if (!newWorker) return;
-
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            showZrcPwaUpdateBanner(registration);
-          }
-        });
-      });
-    };
-
     const registerZrcServiceWorker = async () => {
       try {
         const registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
 
         if (!isCancelled) {
           console.info('[ZRC PWA] Service worker hazır:', registration.scope);
-          watchForZrcPwaUpdates(registration);
         }
       } catch (error) {
         console.warn('[ZRC PWA] Service worker kaydı başarısız:', error);
