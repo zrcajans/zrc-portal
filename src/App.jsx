@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v296-baglanti-durumu-uyarisi';
+const ZRC_APP_BUILD_LABEL = 'v297-canli-surum-kurtarma-etiketi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,58 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const badgeId = 'zrc-live-build-badge';
+
+    if (document.getElementById(badgeId)) return;
+
+    const badge = document.createElement('button');
+    badge.id = badgeId;
+    badge.type = 'button';
+    badge.textContent = 'ZRC v297';
+    badge.title = 'Tıkla: PWA kurtarma adresini kopyala';
+    badge.style.cssText = [
+      'position:fixed',
+      'right:10px',
+      'bottom:10px',
+      'z-index:99990',
+      'height:24px',
+      'padding:0 9px',
+      'border:1px solid rgba(15,23,42,.08)',
+      'border-radius:999px',
+      'background:rgba(255,255,255,.82)',
+      'backdrop-filter:blur(8px)',
+      'color:#6b7280',
+      'font-size:9px',
+      'font-weight:900',
+      'letter-spacing:.02em',
+      'box-shadow:0 8px 24px rgba(15,23,42,.08)',
+      'cursor:pointer'
+    ].join(';');
+
+    badge.addEventListener('click', async () => {
+      const recoveryUrl = `${window.location.origin}/?zrc-reset-pwa=1`;
+
+      try {
+        await navigator.clipboard.writeText(recoveryUrl);
+        badge.textContent = 'Kopyalandı';
+        window.setTimeout(() => {
+          badge.textContent = 'ZRC v297';
+        }, 1400);
+      } catch (error) {
+        window.prompt('PWA kurtarma adresi:', recoveryUrl);
+      }
+    });
+
+    document.body.appendChild(badge);
+
+    return () => {
+      badge.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
