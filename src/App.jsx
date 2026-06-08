@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v308-iphone-kurulum-uyarisi-yumusatma';
+const ZRC_APP_BUILD_LABEL = 'v309-pwa-kurulum-bosluk-duzeni';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -636,7 +636,7 @@ function App() {
       'position:fixed',
       'left:12px',
       'right:12px',
-      'bottom:54px',
+      'bottom:64px',
       'z-index:99992',
       'max-width:420px',
       'margin:0 auto',
@@ -665,6 +665,8 @@ function App() {
 
     closeButton?.addEventListener('click', () => {
       window.localStorage.setItem(dismissedKey, '1');
+      window.clearTimeout(showTimer);
+      window.clearTimeout(autoCloseTimer);
       tip.remove();
     });
 
@@ -715,7 +717,7 @@ function App() {
       button.style.cssText = [
         'position:fixed',
         'left:12px',
-        'bottom:12px',
+        'bottom:46px',
         'z-index:99991',
         'height:34px',
         'padding:0 13px',
@@ -800,7 +802,7 @@ function App() {
     badge.style.cssText = [
       'position:fixed',
       'right:10px',
-      'bottom:10px',
+      'bottom:12px',
       'z-index:99990',
       'height:24px',
       'padding:0 9px',
