@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v298-dinamik-surum-etiketi';
+const ZRC_APP_BUILD_LABEL = 'v299-supabase-kutusu-gizlendi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -12159,26 +12159,20 @@ function App() {
   };
 
   const renderSupabaseConnectionBadge = () => {
-    const isConnected = supabaseConnectionStatus.state === 'connected';
-    const isChecking = supabaseConnectionStatus.state === 'checking';
+    const hasConnectionError = supabaseConnectionStatus.state === 'error';
+    const hasWriteError = supabaseWriteStatus.state === 'error';
 
-    const badgeClass = isConnected
-      ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-      : isChecking
-        ? 'bg-amber-50 border-amber-200 text-amber-700'
-        : 'bg-red-50 border-red-200 text-red-700';
-
-    const dotClass = isConnected
-      ? 'bg-emerald-500'
-      : isChecking
-        ? 'bg-amber-500'
-        : 'bg-red-500';
+    // Normal kullanımda sağ alttaki Supabase kutusu görünmez.
+    // Sadece gerçek hata varsa küçük uyarı olarak çıkar.
+    if (!hasConnectionError && !hasWriteError) {
+      return null;
+    }
 
     return (
       <div className="fixed right-4 bottom-4 z-[9999] pointer-events-none">
-        <div className={`flex flex-col gap-1 rounded-[18px] border px-3 py-2 text-[10.5px] font-black shadow-[0_12px_28px_rgba(15,23,42,0.12)] ${badgeClass}`}>
+        <div className="flex flex-col gap-1 rounded-[18px] border border-red-200 bg-red-50 px-3 py-2 text-[10.5px] font-black text-red-700 shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${dotClass}`} />
+            <span className="w-2 h-2 rounded-full bg-red-500" />
             <span>{supabaseConnectionStatus.label}</span>
           </div>
           {supabaseWriteStatus.state !== 'idle' && (
