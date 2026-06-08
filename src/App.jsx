@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v285-pwa-yeni-surum-uyarisi';
+const ZRC_APP_BUILD_LABEL = 'v286-mobil-kullanim-konforu';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -572,6 +572,60 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const styleId = 'zrc-mobile-comfort-style';
+
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        overscroll-behavior: none;
+      }
+
+      body {
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+
+      button,
+      [role="button"],
+      input,
+      textarea,
+      select {
+        touch-action: manipulation;
+      }
+
+      @media (max-width: 720px) {
+        input,
+        textarea,
+        select {
+          font-size: 16px !important;
+        }
+
+        .custom-scrollbar {
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .zrc-mobile-safe-bottom {
+          padding-bottom: max(14px, env(safe-area-inset-bottom));
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+
+    return () => {
+      style.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
