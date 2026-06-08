@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v288-pwa-yenileme-dongusu-fix';
+const ZRC_APP_BUILD_LABEL = 'v289-pwa-onbellek-kurtarma';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -109,6 +109,34 @@ class ZRCErrorBoundary extends React.Component {
     window.location.reload();
   };
 
+  resetPwaCacheAndReload = async () => {
+    const confirmed = window.confirm(
+      'Bu işlem ZRC Portal’ın tarayıcıdaki PWA/service worker önbelleğini temizler. Supabase verilerine dokunmaz. Devam edilsin mi?'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      }
+
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames
+            .filter((cacheName) => cacheName.startsWith('zrc-portal-'))
+            .map((cacheName) => caches.delete(cacheName))
+        );
+      }
+    } catch (error) {
+      console.warn('[ZRC PWA] Önbellek temizlenemedi:', error);
+    }
+
+    window.location.reload();
+  };
+
   render() {
     if (!this.state.hasError) {
       return this.props.children;
@@ -169,6 +197,14 @@ class ZRCErrorBoundary extends React.Component {
                 className="h-10 px-4 rounded-full bg-white border border-red-100 text-red-600 text-[11px] font-black hover:bg-red-50 transition-all"
               >
                 Yerel Önbelleği Temizle
+              </button>
+
+              <button
+                type="button"
+                onClick={this.resetPwaCacheAndReload}
+                className="h-10 px-4 rounded-full bg-[#111827] border border-[#111827] text-white text-[11px] font-black hover:bg-black transition-all"
+              >
+                PWA Önbelleğini Temizle
               </button>
             </div>
 
@@ -572,6 +608,48 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const currentUrl = new URL(window.location.href);
+
+    if (currentUrl.searchParams.get('zrc-reset-pwa') !== '1') return;
+
+    let isCancelled = false;
+
+    const resetPwaCacheFromUrl = async () => {
+      try {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames
+              .filter((cacheName) => cacheName.startsWith('zrc-portal-'))
+              .map((cacheName) => caches.delete(cacheName))
+          );
+        }
+      } catch (error) {
+        console.warn('[ZRC PWA] URL ile önbellek temizlenemedi:', error);
+      }
+
+      if (isCancelled) return;
+
+      currentUrl.searchParams.delete('zrc-reset-pwa');
+      window.history.replaceState({}, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+      window.location.reload();
+    };
+
+    resetPwaCacheFromUrl();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
