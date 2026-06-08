@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v290-yeni-surum-banner-kaldirildi';
+const ZRC_APP_BUILD_LABEL = 'v291-pwa-guvenli-onbellek';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {

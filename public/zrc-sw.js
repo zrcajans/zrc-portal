@@ -1,6 +1,5 @@
-const ZRC_CACHE_NAME = 'zrc-portal-v290';
+const ZRC_CACHE_NAME = 'zrc-portal-v291-safe-cache';
 const ZRC_CORE_ASSETS = [
-  '/',
   '/manifest.webmanifest',
   '/zrc-app-icon.svg'
 ];
@@ -44,33 +43,42 @@ self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(request.url);
   const isSameOrigin = requestUrl.origin === self.location.origin;
 
-  if (request.mode === 'navigate') {
+  if (!isSameOrigin) return;
+
+  // HTML sayfa, JS ve CSS dosyaları her zaman ağdan gelsin.
+  // Böylece eski sürüm takılması / beyaz ekran / yenileme döngüsü riski azalır.
+  if (
+    request.mode === 'navigate' ||
+    requestUrl.pathname.endsWith('.js') ||
+    requestUrl.pathname.endsWith('.css') ||
+    requestUrl.pathname.includes('/assets/')
+  ) {
     event.respondWith(
-      fetch(request).catch(async () => {
-        const cachedHome = await caches.match('/');
-        return cachedHome || new Response('ZRC Portal çevrimdışı. İnternet bağlantısını kontrol et.', {
-          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-        });
-      })
+      fetch(request).catch(() =>
+        caches.match(request).then((cachedResponse) => {
+          return cachedResponse || new Response('ZRC Portal çevrimdışı. İnternet bağlantısını kontrol et.', {
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+          });
+        })
+      )
     );
     return;
   }
 
-  if (!isSameOrigin) return;
+  // Sadece ikon/manifest gibi küçük PWA kimlik dosyalarını cache kullanarak aç.
+  if (ZRC_CORE_ASSETS.includes(requestUrl.pathname)) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        return cachedResponse || fetch(request).then((networkResponse) => {
+          const responseCopy = networkResponse.clone();
 
-  event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
+          caches.open(ZRC_CACHE_NAME).then((cache) => {
+            cache.put(request, responseCopy);
+          });
 
-      return fetch(request).then((networkResponse) => {
-        const responseCopy = networkResponse.clone();
-
-        caches.open(ZRC_CACHE_NAME).then((cache) => {
-          cache.put(request, responseCopy);
+          return networkResponse;
         });
-
-        return networkResponse;
-      });
-    })
-  );
+      })
+    );
+  }
 });
