@@ -1,4 +1,4 @@
-const ZRC_CACHE_NAME = 'zrc-portal-v284';
+const ZRC_CACHE_NAME = 'zrc-portal-v285';
 const ZRC_CORE_ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -28,6 +28,12 @@ self.addEventListener('activate', (event) => {
       )
       .then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'ZRC_SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {
