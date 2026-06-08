@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v292-mobil-yatay-tasma-fix';
+const ZRC_APP_BUILD_LABEL = 'v293-canli-teshis-iyilestirme';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -43,6 +43,7 @@ class ZRCErrorBoundary extends React.Component {
 
     try {
       window.localStorage.setItem('zrc-last-ui-error', JSON.stringify(errorPayload, null, 2));
+      window.localStorage.setItem('zrc-last-error-build', ZRC_APP_BUILD_LABEL);
     } catch (storageError) {
       // localStorage erişimi yoksa sessiz geç.
     }
@@ -608,6 +609,26 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const diagnosticPayload = {
+      app: 'ZRC Portal',
+      build: ZRC_APP_BUILD_LABEL,
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      window.localStorage.setItem('zrc-current-build-info', JSON.stringify(diagnosticPayload, null, 2));
+    } catch (error) {
+      // localStorage erişimi yoksa sessiz geç.
+    }
+
+    console.info('[ZRC Portal Build]', diagnosticPayload);
+  }, []);
+
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
