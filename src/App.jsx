@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v320-operasyon-hizlandirma-paketi';
+const ZRC_APP_BUILD_LABEL = 'v321-gorev-dosya-is-akisi-paketi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,353 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  // zrc-task-file-workflow-pack-v321
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const styleId = 'zrc-task-file-workflow-style-v321';
+    const toastId = 'zrc-task-file-workflow-toast-v321';
+
+    const showToast = (message) => {
+      const oldToast = document.getElementById(toastId);
+      if (oldToast) oldToast.remove();
+
+      const toast = document.createElement('div');
+      toast.id = toastId;
+      toast.textContent = message;
+      toast.style.cssText = [
+        'position:fixed',
+        'left:50%',
+        'bottom:calc(max(12px, env(safe-area-inset-bottom)) + 84px)',
+        'transform:translateX(-50%)',
+        'z-index:999999',
+        'max-width:calc(100vw - 28px)',
+        'border-radius:999px',
+        'background:#111827',
+        'color:#ffffff',
+        'box-shadow:0 18px 50px rgba(15,23,42,.24)',
+        'padding:10px 14px',
+        'font-size:11px',
+        'font-weight:900',
+        'font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        'text-align:center',
+        'pointer-events:none'
+      ].join(';');
+
+      document.body.appendChild(toast);
+
+      window.setTimeout(() => {
+        toast.remove();
+      }, 1700);
+    };
+
+    const ensureStyle = () => {
+      if (document.getElementById(styleId)) return;
+
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        .zrc-v321-safe-text,
+        .zrc-v321-file-name,
+        .zrc-v321-task-title {
+          overflow-wrap: anywhere !important;
+          word-break: break-word !important;
+          min-width: 0 !important;
+        }
+
+        .zrc-v321-file-name {
+          line-height: 1.35 !important;
+        }
+
+        .zrc-v321-task-card {
+          min-width: 0 !important;
+          scroll-margin-top: 86px;
+        }
+
+        .zrc-v321-task-card:hover {
+          box-shadow: 0 14px 34px rgba(15,23,42,.10) !important;
+        }
+
+        .zrc-v321-dialog {
+          max-width: calc(100vw - 20px) !important;
+          max-height: calc(100svh - 18px) !important;
+        }
+
+        .zrc-v321-dialog input,
+        .zrc-v321-dialog textarea,
+        .zrc-v321-dialog select {
+          font-size: 16px;
+        }
+
+        .zrc-v321-file-action {
+          min-height: 34px !important;
+          white-space: nowrap !important;
+        }
+
+        input[type="file"] {
+          max-width: 100% !important;
+        }
+
+        input[type="file"]::file-selector-button {
+          min-height: 34px;
+          border: 0;
+          border-radius: 999px;
+          padding: 0 12px;
+          margin-right: 10px;
+          background: #ff3600;
+          color: #ffffff;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        @media (max-width: 920px) {
+          .zrc-v321-task-card {
+            border-radius: 18px !important;
+          }
+
+          .zrc-v321-dialog {
+            border-radius: 20px !important;
+          }
+
+          .zrc-v321-file-action {
+            min-height: 38px !important;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .zrc-v321-task-card {
+            width: 100% !important;
+          }
+
+          .zrc-v321-dialog {
+            width: calc(100vw - 16px) !important;
+            max-width: calc(100vw - 16px) !important;
+            max-height: calc(100svh - 14px) !important;
+          }
+
+          .zrc-v321-dialog button {
+            min-height: 38px;
+          }
+
+          .zrc-v321-dialog .custom-scrollbar {
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+          }
+
+          .zrc-v321-file-name {
+            font-size: 12px !important;
+          }
+
+          .zrc-v321-file-action {
+            flex: 1 1 auto;
+            justify-content: center;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .zrc-v321-dialog {
+            width: calc(100vw - 10px) !important;
+            max-width: calc(100vw - 10px) !important;
+          }
+
+          .zrc-v321-task-title {
+            font-size: 13px !important;
+          }
+
+          input[type="file"]::file-selector-button {
+            width: 100%;
+            margin: 0 0 8px 0;
+          }
+        }
+      `;
+
+      document.head.appendChild(style);
+    };
+
+    const isVisible = (element) => {
+      if (!element) return false;
+      const rect = element.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    };
+
+    const copyText = async (value, successMessage) => {
+      try {
+        await window.navigator.clipboard.writeText(value);
+        showToast(successMessage);
+      } catch (error) {
+        window.prompt(successMessage, value);
+      }
+    };
+
+    const getVisibleDialog = () => {
+      const candidates = Array.from(
+        document.querySelectorAll('[role="dialog"], [class*="Modal"], [class*="modal"], [class*="fixed"][class*="inset-0"]')
+      );
+
+      return candidates.reverse().find(isVisible) || null;
+    };
+
+    const findPrimaryButton = (root = document) => {
+      const buttons = Array.from(root.querySelectorAll('button')).filter(isVisible);
+
+      const badWords = /sil|delete|kaldır|vazgeç|iptal|kapat|temizle/i;
+      const goodWords = /kaydet|güncelle|olustur|oluştur|ekle|yükle|yukle|tamam|uygula/i;
+
+      return buttons.find((button) => {
+        const label = String(button.textContent || button.getAttribute('aria-label') || '').trim();
+        return goodWords.test(label) && !badWords.test(label) && !button.disabled;
+      });
+    };
+
+    const clickPrimarySave = () => {
+      const dialog = getVisibleDialog();
+      const button = findPrimaryButton(dialog || document);
+
+      if (button) {
+        button.click();
+        showToast('İşlem butonu çalıştırıldı');
+      } else {
+        showToast('Kaydet/Ekle butonu bulunamadı');
+      }
+    };
+
+    const openFirstFileInput = () => {
+      const dialog = getVisibleDialog();
+      const root = dialog || document;
+      const fileInput = Array.from(root.querySelectorAll('input[type="file"]')).find(isVisible);
+
+      if (fileInput) {
+        fileInput.click();
+        showToast('Dosya seçimi açıldı');
+      } else {
+        showToast('Dosya yükleme alanı bulunamadı');
+      }
+    };
+
+    const copyActiveDialogSummary = () => {
+      const dialog = getVisibleDialog();
+
+      if (!dialog) {
+        showToast('Açık görev/detay ekranı yok');
+        return;
+      }
+
+      const text = String(dialog.innerText || '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+        .slice(0, 3500);
+
+      if (!text) {
+        showToast('Kopyalanacak detay bulunamadı');
+        return;
+      }
+
+      copyText(text, 'Görev detayı kopyalandı');
+    };
+
+    const enhanceDom = () => {
+      const elements = Array.from(document.querySelectorAll('div, span, p, a, button, td, th, label'));
+
+      elements.slice(0, 1200).forEach((element) => {
+        const rawText = String(element.textContent || '').trim();
+        if (!rawText) return;
+
+        const childCount = element.children?.length || 0;
+        const lower = rawText.toLowerCase();
+
+        if (rawText.length >= 42 && childCount <= 2) {
+          element.classList.add('zrc-v321-safe-text');
+          if (!element.getAttribute('title') && rawText.length <= 220) {
+            element.setAttribute('title', rawText);
+          }
+        }
+
+        if (/\.(png|jpg|jpeg|webp|gif|pdf|docx?|xlsx?|pptx?|zip|rar|mp4|mov|avi|psd|ai|eps)$/i.test(lower)) {
+          element.classList.add('zrc-v321-file-name');
+        }
+
+        if (/dosya|indir|yükle|yukle|download|file/i.test(rawText) && element.tagName === 'BUTTON') {
+          element.classList.add('zrc-v321-file-action');
+        }
+
+        if (/görev|gorev|task/i.test(rawText) && rawText.length > 8 && rawText.length < 140) {
+          element.classList.add('zrc-v321-task-title');
+        }
+      });
+
+      const possibleCards = Array.from(document.querySelectorAll('div, article, button'));
+
+      possibleCards.slice(0, 700).forEach((element) => {
+        const text = String(element.textContent || '');
+        const className = String(element.className || '');
+
+        if (
+          isVisible(element) &&
+          /görev|gorev|task|öncelik|oncelik|tarih|atandı|atandi/i.test(text) &&
+          /rounded|shadow|border|card|task/i.test(className)
+        ) {
+          element.classList.add('zrc-v321-task-card');
+        }
+      });
+
+      const dialog = getVisibleDialog();
+      if (dialog) {
+        dialog.classList.add('zrc-v321-dialog');
+      }
+    };
+
+    let enhanceTimer = null;
+
+    const scheduleEnhance = () => {
+      window.clearTimeout(enhanceTimer);
+      enhanceTimer = window.setTimeout(enhanceDom, 450);
+    };
+
+    const handleKeyDown = (event) => {
+      const key = String(event.key || '').toLowerCase();
+
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        event.preventDefault();
+        clickPrimarySave();
+        return;
+      }
+
+      if (event.altKey && event.shiftKey && key === 'f') {
+        event.preventDefault();
+        openFirstFileInput();
+        return;
+      }
+
+      if (event.altKey && event.shiftKey && key === 'c') {
+        event.preventDefault();
+        copyActiveDialogSummary();
+      }
+    };
+
+    ensureStyle();
+    scheduleEnhance();
+
+    const observer = new MutationObserver(scheduleEnhance);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', scheduleEnhance);
+    window.addEventListener('zrc-app-visible-again', scheduleEnhance);
+    window.addEventListener('online', scheduleEnhance);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', scheduleEnhance);
+      window.removeEventListener('zrc-app-visible-again', scheduleEnhance);
+      window.removeEventListener('online', scheduleEnhance);
+      window.clearTimeout(enhanceTimer);
+      observer.disconnect();
+
+      const style = document.getElementById(styleId);
+      if (style) style.remove();
+    };
+  }, []);
+
   // zrc-operation-boost-pack-v320
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;

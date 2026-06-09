@@ -1,0 +1,26 @@
+{
+  "app": "ZRC Portal",
+  "build": "v321-gorev-dosya-is-akisi-paketi",
+  "generated_at": "2026-06-09T09:35:40.804510+00:00",
+  "shortcuts": [
+    {
+      "keys": "Cmd/Ctrl + Enter",
+      "action": "Açık görev/detay ekranındaki Kaydet/Ekle/Güncelle butonunu çalıştırır"
+    },
+    {
+      "keys": "Alt + Shift + F",
+      "action": "Açık görev/detay ekranındaki dosya seçme alanını açar"
+    },
+    {
+      "keys": "Alt + Shift + C",
+      "action": "Açık görev/detay ekranının görünen metin özetini kopyalar"
+    }
+  ],
+  "improvements": [
+    "Mobil görev detay ekranı taşma azaltma",
+    "Uzun dosya adlarında satır kırma",
+    "Görev kartlarında uzun metin koruması",
+    "Dosya yükleme butonu mobil konforu",
+    "Görev/detay ekranında hızlı klavye işlemleri"
+  ]
+}
