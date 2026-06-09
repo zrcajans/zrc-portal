@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v318-kullanim-konforu-buyuk-paket';
+const ZRC_APP_BUILD_LABEL = 'v319-yayin-guvenligi-kisayol-paketi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,150 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  // zrc-safe-shortcuts-v319
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const toastId = 'zrc-v319-mini-toast';
+
+    const showToast = (message) => {
+      const oldToast = document.getElementById(toastId);
+      if (oldToast) oldToast.remove();
+
+      const toast = document.createElement('div');
+      toast.id = toastId;
+      toast.textContent = message;
+      toast.style.cssText = [
+        'position:fixed',
+        'left:50%',
+        'bottom:calc(max(12px, env(safe-area-inset-bottom)) + 76px)',
+        'transform:translateX(-50%)',
+        'z-index:999999',
+        'max-width:calc(100vw - 28px)',
+        'border-radius:999px',
+        'background:#111827',
+        'color:#ffffff',
+        'box-shadow:0 18px 50px rgba(15,23,42,.24)',
+        'padding:10px 14px',
+        'font-size:11px',
+        'font-weight:900',
+        'font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        'text-align:center',
+        'pointer-events:none'
+      ].join(';');
+
+      document.body.appendChild(toast);
+
+      window.setTimeout(() => {
+        toast.remove();
+      }, 1600);
+    };
+
+    const focusSearchLikeInput = () => {
+      const inputs = Array.from(document.querySelectorAll('input, textarea'));
+      const visibleInputs = inputs.filter((input) => {
+        const rect = input.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && !input.disabled && input.type !== 'hidden';
+      });
+
+      const target =
+        visibleInputs.find((input) => /ara|search|bul/i.test(input.placeholder || '')) ||
+        visibleInputs.find((input) => input.type === 'search') ||
+        visibleInputs[0];
+
+      if (target) {
+        target.focus();
+        if (typeof target.select === 'function') target.select();
+        showToast('Hızlı arama hazır');
+      } else {
+        showToast('Arama alanı bulunamadı');
+      }
+    };
+
+    const copyTechInfo = async () => {
+      const recoveryUrl = `${window.location.origin}/?zrc-reset-pwa=1`;
+      const text = [
+        'ZRC Teknik Bilgi',
+        `Build: ${ZRC_APP_BUILD_LABEL}`,
+        `Adres: ${window.location.href}`,
+        `Kurtarma: ${recoveryUrl}`,
+        `Online: ${window.navigator.onLine ? 'Evet' : 'Hayır'}`,
+        `Zaman: ${new Date().toISOString()}`
+      ].join('\n');
+
+      try {
+        await window.navigator.clipboard.writeText(text);
+        showToast('Teknik bilgi kopyalandı');
+      } catch (error) {
+        window.prompt('ZRC teknik bilgi:', text);
+      }
+    };
+
+    const closeTopLayer = () => {
+      const closeCandidates = Array.from(
+        document.querySelectorAll('button[aria-label*="Kapat"], button[aria-label*="kapat"], button[title*="Kapat"], button[title*="kapat"]')
+      );
+
+      const visibleCloseButton = closeCandidates.find((button) => {
+        const rect = button.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      });
+
+      if (visibleCloseButton) {
+        visibleCloseButton.click();
+        return;
+      }
+
+      document.body.click();
+    };
+
+    const handleKeyDown = (event) => {
+      const key = String(event.key || '').toLowerCase();
+
+      if ((event.metaKey || event.ctrlKey) && key === 'k') {
+        event.preventDefault();
+        focusSearchLikeInput();
+        return;
+      }
+
+      if (event.altKey && event.shiftKey && key === 'z') {
+        event.preventDefault();
+        copyTechInfo();
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        closeTopLayer();
+      }
+    };
+
+    const handleOnline = () => {
+      showToast('Bağlantı geri geldi');
+    };
+
+    const handleOffline = () => {
+      showToast('Bağlantı yok');
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        window.dispatchEvent(new CustomEvent('zrc-app-visible-again'));
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
   // zrc-comfort-pack-v318
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;

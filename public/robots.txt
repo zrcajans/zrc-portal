@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# ZRC Portal özel iş takip panelidir. Arama motorlarında indekslenmemelidir.

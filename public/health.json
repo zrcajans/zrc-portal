@@ -1,0 +1,13 @@
+{
+  "app": "ZRC Portal",
+  "build": "v319-yayin-guvenligi-kisayol-paketi",
+  "generated_at": "2026-06-09T08:41:49.176712+00:00",
+  "commit_before_v319": "2beef49",
+  "live_domain": "portal.zrcajans.com",
+  "recovery_url": "/?zrc-reset-pwa=1",
+  "shortcuts": {
+    "quick_search": "Cmd/Ctrl + K",
+    "copy_tech_info": "Alt + Shift + Z",
+    "close_layer": "Escape"
+  }
+}
