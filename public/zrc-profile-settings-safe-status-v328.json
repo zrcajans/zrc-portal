@@ -1,7 +1,7 @@
 {
   "app": "ZRC Portal",
   "build": "v328-safe-profil-scroll-kesin-fix",
-  "generated_at": "2026-06-09T19:27:43.929348+00:00",
+  "generated_at": "2026-06-09T19:30:29.384643+00:00",
   "scope": "Only Profil/Ayar page classes: zrc-profile-page-safe-v326/v328.",
   "desktop_design": "General desktop design was not changed.",
   "global_hooks": "No global useEffect added.",
