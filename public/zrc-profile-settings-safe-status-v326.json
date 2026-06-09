@@ -1,7 +1,7 @@
 {
   "app": "ZRC Portal",
   "build": "v326-safe-profil-scroll-fix",
-  "generated_at": "2026-06-09T10:41:32.369954+00:00",
+  "generated_at": "2026-06-09T19:20:46.978096+00:00",
   "scope": "Only Profil/Ayar page wrapper .zrc-profile-page-safe-v326 is affected.",
   "desktop_design": "General desktop design was not changed. This is scoped to the profile/settings page.",
   "global_hooks": "No global useEffect added.",
