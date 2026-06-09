@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v317-bildirim-is-akisi-paketi';
+const ZRC_APP_BUILD_LABEL = 'v318-kullanim-konforu-buyuk-paket';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,293 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  // zrc-comfort-pack-v318
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const styleId = 'zrc-comfort-pack-style-v318';
+
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      :root {
+        --zrc-touch-size: 42px;
+        --zrc-mobile-radius: 18px;
+        --zrc-safe-bottom: max(12px, env(safe-area-inset-bottom));
+        --zrc-safe-top: max(10px, env(safe-area-inset-top));
+        --zrc-safe-left: max(12px, env(safe-area-inset-left));
+        --zrc-safe-right: max(12px, env(safe-area-inset-right));
+      }
+
+      html,
+      body,
+      #root {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      img,
+      video,
+      canvas,
+      svg {
+        max-width: 100%;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font-family: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        max-width: 100%;
+      }
+
+      button {
+        touch-action: manipulation;
+      }
+
+      [role="button"],
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .custom-scrollbar {
+        overscroll-behavior: contain;
+      }
+
+      .zrc-text-safe,
+      .zrc-file-name,
+      .zrc-task-title,
+      .zrc-card-title {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      [class*="task"],
+      [class*="Task"],
+      [class*="card"],
+      [class*="Card"] {
+        min-width: 0;
+      }
+
+      [class*="modal"],
+      [class*="Modal"],
+      [role="dialog"] {
+        max-width: calc(100vw - 20px);
+      }
+
+      @media (max-width: 920px) {
+        body {
+          -webkit-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+        }
+
+        input,
+        select,
+        textarea {
+          font-size: 16px !important;
+        }
+
+        textarea {
+          line-height: 1.45;
+        }
+
+        button,
+        input,
+        select {
+          min-height: 38px;
+        }
+
+        [class*="rounded-[24px]"],
+        [class*="rounded-[26px]"],
+        [class*="rounded-[28px]"],
+        [class*="rounded-[30px]"] {
+          border-radius: var(--zrc-mobile-radius);
+        }
+
+        [class*="shadow-[0_24px"],
+        [class*="shadow-[0_28px"],
+        [class*="shadow-[0_30px"],
+        [class*="shadow-[0_35px"] {
+          box-shadow: 0 16px 40px rgba(15,23,42,.14) !important;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .zrc-mobile-stack {
+          display: flex !important;
+          flex-direction: column !important;
+        }
+
+        .zrc-mobile-full {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+
+        .zrc-mobile-hide {
+          display: none !important;
+        }
+
+        .zrc-mobile-scroll {
+          max-height: calc(100svh - 110px) !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        [class*="grid-cols-2"],
+        [class*="grid-cols-3"],
+        [class*="grid-cols-4"] {
+          grid-template-columns: minmax(0, 1fr) !important;
+        }
+
+        [class*="gap-5"],
+        [class*="gap-6"],
+        [class*="gap-7"],
+        [class*="gap-8"] {
+          gap: 12px !important;
+        }
+
+        [class*="p-6"],
+        [class*="p-7"],
+        [class*="p-8"] {
+          padding: 16px !important;
+        }
+
+        [class*="px-6"],
+        [class*="px-7"],
+        [class*="px-8"] {
+          padding-left: 16px !important;
+          padding-right: 16px !important;
+        }
+
+        [class*="py-6"],
+        [class*="py-7"],
+        [class*="py-8"] {
+          padding-top: 16px !important;
+          padding-bottom: 16px !important;
+        }
+
+        [class*="w-[360px]"],
+        [class*="w-[380px]"],
+        [class*="w-[420px]"],
+        [class*="w-[460px]"],
+        [class*="w-[520px]"],
+        [class*="w-[640px]"],
+        [class*="w-[720px]"],
+        [class*="max-w-[720px]"],
+        [class*="max-w-[860px]"],
+        [class*="max-w-[920px]"] {
+          width: calc(100vw - 20px) !important;
+          max-width: calc(100vw - 20px) !important;
+        }
+
+        [class*="fixed"][class*="inset-0"] {
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+
+        .zrc-notification-panel {
+          width: calc(100vw - 20px) !important;
+          max-width: calc(100vw - 20px) !important;
+        }
+
+        #zrc-live-build-badge {
+          opacity: .34 !important;
+        }
+
+        #zrc-live-build-badge:hover {
+          opacity: .85 !important;
+        }
+
+        #zrc-pwa-install-button {
+          max-width: calc(100vw - 24px) !important;
+          white-space: nowrap;
+        }
+
+        #zrc-ios-pwa-install-tip {
+          max-width: calc(100vw - 24px) !important;
+        }
+      }
+
+      @media (max-width: 520px) {
+        h1 {
+          font-size: clamp(22px, 7vw, 34px) !important;
+          line-height: 1.08 !important;
+        }
+
+        h2 {
+          font-size: clamp(18px, 6vw, 28px) !important;
+          line-height: 1.12 !important;
+        }
+
+        h3 {
+          font-size: clamp(15px, 5vw, 22px) !important;
+        }
+
+        table {
+          width: 100%;
+        }
+
+        th,
+        td {
+          max-width: 220px;
+          overflow-wrap: anywhere;
+        }
+
+        [class*="text-[10px]"],
+        [class*="text-[10.5px]"],
+        [class*="text-[11px]"] {
+          line-height: 1.35;
+        }
+      }
+
+      @media (hover: none) and (pointer: coarse) {
+        button:hover,
+        a:hover {
+          transform: none !important;
+        }
+
+        [class*="hover:scale"],
+        [class*="hover:-translate"],
+        [class*="hover:translate"] {
+          transform: none !important;
+        }
+      }
+
+      @media print {
+        #zrc-live-build-badge,
+        #zrc-pwa-install-button,
+        #zrc-ios-pwa-install-tip,
+        #zrc-offline-status-banner,
+        #zrc-startup-loader,
+        #zrc-startup-loader-recovery {
+          display: none !important;
+        }
+
+        body {
+          background: #ffffff !important;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+
+    return () => {
+      style.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
