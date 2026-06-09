@@ -1,0 +1,15 @@
+{
+  "app": "ZRC Portal",
+  "build": "v325-safe-profil-api-baglanti",
+  "generated_at": "2026-06-09T10:39:30.311352+00:00",
+  "scope": "App.jsx içinde sadece mevcut saveProfileToSupabase fonksiyonuna güvenli API katmanı eklendi.",
+  "desktop_design": "No CSS/design changes.",
+  "global_hooks": "No global useEffect added.",
+  "completed": [
+    "Profil kaydı önce api/profile-settings-safe üzerinden denenir.",
+    "API 401/403 dönerse işlem durur ve kullanıcıya hata gösterilir.",
+    "API ağ/404/geçici hata verirse mevcut eski Supabase kayıt akışı yedek olarak devam eder.",
+    "Şifre/parola alanları API payload içinden temizlenir.",
+    "Masaüstü tasarıma dokunulmadı."
+  ]
+}

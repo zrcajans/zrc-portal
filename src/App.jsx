@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v323-masaustu-tasarim-temizlik';
+const ZRC_APP_BUILD_LABEL = 'v325-safe-profil-api-baglanti';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -4187,10 +4187,135 @@ function App() {
     }
   };
 
+  // zrc-profile-settings-safe-api-client-v325
+  const sanitizeProfileDraftForSafeApi = (draft = {}) => ({
+    ...draft,
+    firstName: String(draft.firstName || '').trim(),
+    lastName: String(draft.lastName || '').trim(),
+    email: String(draft.email || '').trim(),
+    title: String(draft.title || '').trim(),
+    language: draft.language || 'Türkçe',
+    status: draft.status || 'Hiçbiri',
+    dateFormat: draft.dateFormat || 'DD/MM/YYYY (30/05/2026)',
+    timeFormat: draft.timeFormat || '24-Saat Formatı (02:21)',
+    timezone: draft.timezone || 'UTC+03:00',
+    password: '',
+    currentPassword: '',
+    newPassword: '',
+    repeatPassword: ''
+  });
+
+  const sanitizeProfilePreferencesForSafeApi = (preferences = {}) => {
+    const clone = { ...(preferences || {}) };
+
+    delete clone.password;
+    delete clone.currentPassword;
+    delete clone.newPassword;
+    delete clone.repeatPassword;
+    delete clone.token;
+    delete clone.secret;
+    delete clone.serviceRoleKey;
+
+    return clone;
+  };
+
+  const saveProfileSettingsWithSafeApi = async ({
+    profileDraft: nextProfileDraft = profileDraft,
+    profilePreferences: nextProfilePreferences = profilePreferences
+  } = {}) => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !isSupabaseUuid(currentUserId)) {
+      return {
+        ok: false,
+        fallback: true,
+        reason: 'workspace-or-user-missing'
+      };
+    }
+
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+
+      const accessToken = sessionData?.session?.access_token;
+
+      if (!accessToken) {
+        return {
+          ok: false,
+          fallback: true,
+          reason: 'session-token-missing'
+        };
+      }
+
+      const response = await fetch('/api/profile-settings-safe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          action: 'save-profile',
+          workspaceId,
+          profileDraft: sanitizeProfileDraftForSafeApi(nextProfileDraft),
+          profilePreferences: sanitizeProfilePreferencesForSafeApi(nextProfilePreferences)
+        })
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message = payload?.error || 'Profil güvenli API kaydı başarısız.';
+
+        if (response.status === 401 || response.status === 403) {
+          return {
+            ok: false,
+            blocked: true,
+            message
+          };
+        }
+
+        return {
+          ok: false,
+          fallback: true,
+          message
+        };
+      }
+
+      return {
+        ok: true,
+        payload
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        fallback: true,
+        message: error?.message || 'Güvenli API kullanılamadı'
+      };
+    }
+  };
+
   const saveProfileToSupabase = async (nextProfileDraft = profileDraft, nextPreferences = profilePreferences) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (!workspaceId || !isSupabaseUuid(currentUserId)) return false;
+
+    // zrc-v325-safe-api-first-profile-save
+    const safeApiResult = await saveProfileSettingsWithSafeApi({
+      profileDraft: nextProfileDraft,
+      profilePreferences: nextPreferences
+    });
+
+    if (safeApiResult?.ok) {
+      setSupabaseWriteInfo('saved', 'Profil güvenli API ile kaydedildi');
+      return true;
+    }
+
+    if (safeApiResult?.blocked) {
+      setSupabaseWriteInfo('error', safeApiResult.message || 'Bu profil ayarı için yetkin yok');
+      alert(safeApiResult.message || 'Bu profil ayarı için yetkin yok.');
+      return false;
+    }
 
     setSupabaseWriteInfo('saving', 'Supabase profil kaydediliyor');
 
