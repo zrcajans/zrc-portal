@@ -1,0 +1,19 @@
+{
+  "app": "ZRC Portal",
+  "build": "v329-safe-profile-settings-api-expanded",
+  "generated_at": "2026-06-09T19:31:22.537392+00:00",
+  "scope": "API only. App.jsx was not modified.",
+  "desktop_design": "No CSS/design changes.",
+  "global_hooks": "No global useEffect added.",
+  "added_actions": [
+    "save-notification-preferences",
+    "security-overview",
+    "feature-status messages improved"
+  ],
+  "security": [
+    "Bearer token required.",
+    "workspace_members active membership required.",
+    "Sensitive fields stripped.",
+    "Audit log writes to user_preferences."
+  ]
+}

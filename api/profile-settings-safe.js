@@ -313,6 +313,135 @@ async function saveProfile(admin, { userId, workspaceId, membership, body }) {
   };
 }
 
+
+async function saveNotificationPreferences(admin, { userId, workspaceId, membership, body }) {
+  const current = await readPreferences(admin, userId);
+  const previousAudit = Array.isArray(current.settingsAuditLog) ? current.settingsAuditLog : [];
+
+  const incoming = stripSensitive(body.notificationPreferences || body.profilePreferences || {});
+  const cleanIncoming = isObject(incoming) ? incoming : {};
+
+  const allowed = {
+    emailInstant: Boolean(cleanIncoming.emailInstant),
+    emailChat: Boolean(cleanIncoming.emailChat),
+    emailActivity: Boolean(cleanIncoming.emailActivity),
+    emailLeave: Boolean(cleanIncoming.emailLeave),
+    emailReminder: Boolean(cleanIncoming.emailReminder),
+    emailImportant: Boolean(cleanIncoming.emailImportant),
+    browserEnabled: Boolean(cleanIncoming.browserEnabled),
+    browserPermission: cleanString(cleanIncoming.browserPermission, 40),
+    doNotDisturb: cleanString(cleanIncoming.doNotDisturb, 80) || 'Kapalı'
+  };
+
+  const nextPreferences = {
+    ...current,
+    profilePreferences: {
+      ...(isObject(current.profilePreferences) ? current.profilePreferences : {}),
+      ...allowed,
+      lastNotificationSavedAt: new Date().toISOString()
+    },
+    settingsAuditLog: [
+      {
+        type: 'notification-preferences-save',
+        at: new Date().toISOString(),
+        role: membership.role || '',
+        username: membership.username || '',
+        via: 'api/profile-settings-safe'
+      },
+      ...previousAudit
+    ].slice(0, 120),
+    updatedAt: new Date().toISOString()
+  };
+
+  await writePreferences(admin, {
+    userId,
+    workspaceId,
+    preferences: nextPreferences
+  });
+
+  return {
+    ok: true,
+    savedAt: nextPreferences.updatedAt,
+    notificationPreferences: allowed
+  };
+}
+
+async function securityOverview(admin, { userId, workspaceId, membership, req }) {
+  const current = await readPreferences(admin, userId);
+  const securityEvents = Array.isArray(current.securityEvents) ? current.securityEvents.slice(0, 40) : [];
+  const auditLog = Array.isArray(current.settingsAuditLog) ? current.settingsAuditLog.slice(0, 40) : [];
+
+  return {
+    ok: true,
+    checkedAt: new Date().toISOString(),
+    userId,
+    workspaceId,
+    membership: {
+      role: membership.role || '',
+      status: membership.status || '',
+      username: membership.username || '',
+      admin: isAdminRole(membership.role)
+    },
+    currentRequest: {
+      userAgent: req.headers['user-agent'] || '',
+      forwardedFor: req.headers['x-forwarded-for'] || '',
+      host: req.headers.host || ''
+    },
+    securityEvents: stripSensitive(securityEvents),
+    settingsAuditLog: stripSensitive(auditLog),
+    limitations: [
+      'Gerçek tüm cihaz listesi için Supabase Auth tarafında ayrıca detaylı oturum altyapısı gerekir.',
+      '2 adımlı doğrulama için gerçek SMS/e-posta kod servisi gerekir.',
+      'E-posta kutusu için IMAP/SMTP veya harici e-posta servis entegrasyonu gerekir.'
+    ]
+  };
+}
+
+async function recordFeatureStatus(admin, { userId, workspaceId, membership, body }) {
+  const feature = cleanString(body.feature, 120);
+  const current = await readPreferences(admin, userId);
+  const previousAudit = Array.isArray(current.settingsAuditLog) ? current.settingsAuditLog : [];
+
+  const messages = {
+    'two-factor-auth': '2 adımlı doğrulama için gerçek SMS/e-posta kod servisi gerekir. Sahte aktif yapılmadı; talep kayda alındı.',
+    'email-inbox': 'E-posta kutusu bağlantısı için gerçek IMAP/SMTP veya e-posta servis entegrasyonu gerekir. Talep kayda alındı.',
+    'restore-backup': 'Geri yükleme veri yazdığı için ayrı güvenli onay akışı gerekir. Otomatik çalıştırılmadı.',
+    'local-to-supabase-sync': 'Yerel veriyi Supabase’e aktarma veri yazdığı için ayrıca güvenli onay akışıyla yapılmalı.',
+    'delete-account': 'Hesap silme yıkıcı işlemdir. Otomatik çalıştırılmadı; ayrıca güvenli onay akışı gerekir.',
+    'mobile-install-help': 'Mobil kurulum PWA yönlendirmesiyle yapılır. iPhone Safari > Paylaş > Ana Ekrana Ekle.'
+  };
+
+  const entry = {
+    type: 'feature-status-request',
+    feature,
+    at: new Date().toISOString(),
+    role: membership.role || '',
+    username: membership.username || '',
+    status: 'backend_required',
+    via: 'api/profile-settings-safe'
+  };
+
+  const nextPreferences = {
+    ...current,
+    settingsAuditLog: [entry, ...previousAudit].slice(0, 120),
+    updatedAt: new Date().toISOString()
+  };
+
+  await writePreferences(admin, {
+    userId,
+    workspaceId,
+    preferences: nextPreferences
+  });
+
+  return {
+    ok: true,
+    status: 'backend_required',
+    feature,
+    message: messages[feature] || 'Bu özellik için ek backend bağlantısı gerekiyor. Sahte aktif yapılmadı; talep kayda alındı.'
+  };
+}
+
+
 async function exportData(admin, { userId, workspaceId, membership }) {
   const adminRole = isAdminRole(membership.role);
 
@@ -465,6 +594,29 @@ export default async function handler(req, res) {
       });
     }
 
+    if (action === 'save-notification-preferences') {
+      const result = await saveNotificationPreferences(admin, {
+        userId,
+        workspaceId,
+        membership,
+        body
+      });
+
+      return sendJson(res, 200, result);
+    }
+
+    if (action === 'security-overview') {
+      await appendAudit(admin, { userId, workspaceId, membership, action });
+      const result = await securityOverview(admin, {
+        userId,
+        workspaceId,
+        membership,
+        req
+      });
+
+      return sendJson(res, 200, result);
+    }
+
     if (action === 'export-data') {
       await appendAudit(admin, { userId, workspaceId, membership, action });
       const result = await exportData(admin, {
@@ -480,14 +632,14 @@ export default async function handler(req, res) {
     }
 
     if (action === 'feature-status') {
-      await appendAudit(admin, { userId, workspaceId, membership, action });
-
-      return sendJson(res, 200, {
-        ok: true,
-        status: 'backend_required',
-        feature: cleanString(body.feature, 120),
-        message: 'Bu özellik için ayrıca güvenli backend bağlantısı gerekir. Sahte aktif yapılmadı; talep kayda alındı.'
+      const result = await recordFeatureStatus(admin, {
+        userId,
+        workspaceId,
+        membership,
+        body
       });
+
+      return sendJson(res, 200, result);
     }
 
     return sendJson(res, 400, {
