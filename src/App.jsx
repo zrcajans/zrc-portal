@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v315-app-oncesi-pwa-reset';
+const ZRC_APP_BUILD_LABEL = 'v316-mobil-pwa-temizlik-paketi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,98 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const styleId = 'zrc-ui-polish-style-v316';
+
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        :root {
+          --zrc-safe-bottom: max(12px, env(safe-area-inset-bottom));
+          --zrc-safe-left: max(12px, env(safe-area-inset-left));
+          --zrc-safe-right: max(12px, env(safe-area-inset-right));
+        }
+
+        #zrc-live-build-badge {
+          right: var(--zrc-safe-right) !important;
+          bottom: var(--zrc-safe-bottom) !important;
+          height: 22px !important;
+          padding: 0 8px !important;
+          font-size: 8.5px !important;
+          opacity: .58 !important;
+          box-shadow: 0 8px 22px rgba(15,23,42,.07) !important;
+        }
+
+        #zrc-live-build-badge:hover {
+          opacity: .92 !important;
+        }
+
+        #zrc-pwa-install-button {
+          left: var(--zrc-safe-left) !important;
+          bottom: calc(var(--zrc-safe-bottom) + 34px) !important;
+          min-width: 0 !important;
+          height: 32px !important;
+          padding: 0 12px !important;
+          font-size: 10.5px !important;
+        }
+
+        #zrc-ios-pwa-install-tip {
+          bottom: calc(var(--zrc-safe-bottom) + 48px) !important;
+          left: var(--zrc-safe-left) !important;
+          right: var(--zrc-safe-right) !important;
+        }
+
+        #zrc-offline-status-banner {
+          bottom: calc(var(--zrc-safe-bottom) + 34px) !important;
+        }
+
+        @media (max-width: 720px) {
+          #zrc-live-build-badge {
+            height: 20px !important;
+            font-size: 8px !important;
+            opacity: .42 !important;
+          }
+
+          #zrc-pwa-install-button {
+            bottom: calc(var(--zrc-safe-bottom) + 28px) !important;
+          }
+
+          #zrc-ios-pwa-install-tip {
+            bottom: calc(var(--zrc-safe-bottom) + 44px) !important;
+          }
+        }
+
+        @media (max-width: 420px) {
+          #zrc-live-build-badge {
+            transform: scale(.92) !important;
+            transform-origin: right bottom !important;
+          }
+        }
+
+        @media print {
+          #zrc-live-build-badge,
+          #zrc-pwa-install-button,
+          #zrc-ios-pwa-install-tip,
+          #zrc-offline-status-banner,
+          #zrc-startup-loader {
+            display: none !important;
+          }
+        }
+      `;
+
+      document.head.appendChild(style);
+    }
+
+    document.documentElement.classList.add('zrc-app-ready');
+
+    return () => {
+      document.documentElement.classList.remove('zrc-app-ready');
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 

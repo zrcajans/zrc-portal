@@ -1,16 +1,23 @@
-const ZRC_CACHE_NAME = 'zrc-portal-v291-safe-cache';
+const ZRC_SW_VERSION = 'v316-safe-pwa';
+const ZRC_CACHE_NAME = `zrc-portal-core-${ZRC_SW_VERSION}`;
+
 const ZRC_CORE_ASSETS = [
   '/manifest.webmanifest',
-  '/zrc-app-icon.svg'
+  '/zrc-favicon-32.png',
+  '/zrc-favicon-192.png',
+  '/zrc-apple-touch-icon.png',
+  '/zrc-app-icon.png',
+  '/favicon.ico'
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
+
   event.waitUntil(
     caches
       .open(ZRC_CACHE_NAME)
-      .then((cache) => cache.addAll(ZRC_CORE_ASSETS))
-      .then(() => self.skipWaiting())
-      .catch(() => self.skipWaiting())
+      .then((cache) => cache.addAll(ZRC_CORE_ASSETS).catch(() => null))
+      .catch(() => null)
   );
 });
 
@@ -18,21 +25,19 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((cacheNames) =>
+      .then((keys) =>
         Promise.all(
-          cacheNames
-            .filter((cacheName) => cacheName.startsWith('zrc-portal-') && cacheName !== ZRC_CACHE_NAME)
-            .map((cacheName) => caches.delete(cacheName))
+          keys.map((key) => {
+            if (key.startsWith('zrc-portal-') && key !== ZRC_CACHE_NAME) {
+              return caches.delete(key);
+            }
+
+            return Promise.resolve();
+          })
         )
       )
-      .then(() => self.clients.claim())
+      .finally(() => self.clients.claim())
   );
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'ZRC_SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
 
 self.addEventListener('fetch', (event) => {
@@ -40,45 +45,33 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
 
-  const requestUrl = new URL(request.url);
-  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const url = new URL(request.url);
 
-  if (!isSameOrigin) return;
+  if (url.origin !== self.location.origin) return;
 
-  // HTML sayfa, JS ve CSS dosyaları her zaman ağdan gelsin.
-  // Böylece eski sürüm takılması / beyaz ekran / yenileme döngüsü riski azalır.
-  if (
-    request.mode === 'navigate' ||
-    requestUrl.pathname.endsWith('.js') ||
-    requestUrl.pathname.endsWith('.css') ||
-    requestUrl.pathname.includes('/assets/')
-  ) {
-    event.respondWith(
-      fetch(request).catch(() =>
-        caches.match(request).then((cachedResponse) => {
-          return cachedResponse || new Response('ZRC Portal çevrimdışı. İnternet bağlantısını kontrol et.', {
-            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-          });
-        })
-      )
-    );
+  if (url.searchParams.get('zrc-reset-pwa') === '1') return;
+
+  const isCoreAsset = ZRC_CORE_ASSETS.includes(url.pathname);
+
+  if (!isCoreAsset) {
     return;
   }
 
-  // Sadece ikon/manifest gibi küçük PWA kimlik dosyalarını cache kullanarak aç.
-  if (ZRC_CORE_ASSETS.includes(requestUrl.pathname)) {
-    event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        return cachedResponse || fetch(request).then((networkResponse) => {
-          const responseCopy = networkResponse.clone();
+  event.respondWith(
+    caches.open(ZRC_CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(request);
 
-          caches.open(ZRC_CACHE_NAME).then((cache) => {
-            cache.put(request, responseCopy);
-          });
+      const networkPromise = fetch(request)
+        .then((response) => {
+          if (response && response.ok) {
+            cache.put(request, response.clone());
+          }
 
-          return networkResponse;
-        });
-      })
-    );
-  }
+          return response;
+        })
+        .catch(() => cached);
+
+      return cached || networkPromise;
+    })
+  );
 });
