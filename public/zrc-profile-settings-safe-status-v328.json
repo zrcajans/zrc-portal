@@ -1,0 +1,15 @@
+{
+  "app": "ZRC Portal",
+  "build": "v328-safe-profil-ic-scroll-fix",
+  "generated_at": "2026-06-09T19:25:41.765579+00:00",
+  "scope": "Only Profil/Ayar page. No global hooks.",
+  "desktop_design": "General desktop design was not changed.",
+  "completed": [
+    "Profil/Ayar sayfası kendi içinde flex column yapıldı.",
+    "Profil üst kartı sabit kaldı.",
+    "Profil sekme kartı kalan yüksekliği aldı.",
+    "Sekme içeriğine kesin iç scroll verildi.",
+    "Aşağı kaymama sorunu için tab içerik alanına overflow-y:auto eklendi.",
+    "Mobil düzen sadece profil/ayar sayfası scope'u içinde kaldı."
+  ]
+}
