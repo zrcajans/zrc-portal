@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v321-gorev-dosya-is-akisi-paketi';
+const ZRC_APP_BUILD_LABEL = 'v322-gorev-modal-genislik-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,113 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  // zrc-modal-width-fix-v322
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const styleId = 'zrc-modal-width-fix-style-v322';
+
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @media (min-width: 921px) {
+          .zrc-task-form-modal-v322 {
+            width: min(980px, calc(100vw - 56px)) !important;
+            max-width: 980px !important;
+          }
+
+          .zrc-task-form-modal-v322 [class*="grid-cols"] {
+            max-width: 100% !important;
+          }
+        }
+
+        @media (max-width: 920px) {
+          .zrc-task-form-modal-v322 {
+            width: calc(100vw - 16px) !important;
+            max-width: calc(100vw - 16px) !important;
+            max-height: calc(100svh - 16px) !important;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .zrc-task-form-modal-v322 {
+            width: calc(100vw - 8px) !important;
+            max-width: calc(100vw - 8px) !important;
+          }
+        }
+      `;
+
+      document.head.appendChild(style);
+    }
+
+    const isVisible = (element) => {
+      if (!element) return false;
+
+      const rect = element.getBoundingClientRect();
+
+      return rect.width > 0 && rect.height > 0;
+    };
+
+    const markTaskFormModal = () => {
+      const candidates = Array.from(document.querySelectorAll('div'));
+
+      let bestCard = null;
+
+      candidates.forEach((element) => {
+        if (!isVisible(element)) return;
+
+        const text = String(element.innerText || '').replace(/\s+/g, ' ').trim();
+
+        const looksLikeTaskForm =
+          /Görev\s+(Ekle|Düzenle)/i.test(text) &&
+          /Ad\s*\*/i.test(text) &&
+          /(Oluştur|Güncelle|Kaydet)/i.test(text);
+
+        if (!looksLikeTaskForm) return;
+
+        const rect = element.getBoundingClientRect();
+
+        if (rect.width < 420 || rect.height < 260) return;
+        if (rect.width >= window.innerWidth - 4 && rect.height >= window.innerHeight - 4) return;
+
+        const computedStyle = window.getComputedStyle(element);
+        const background = computedStyle.backgroundColor || '';
+
+        const isWhiteCard =
+          background.includes('255, 255, 255') ||
+          background === 'white' ||
+          element.className.toString().includes('bg-white');
+
+        if (!isWhiteCard) return;
+
+        if (!bestCard || rect.width < bestCard.getBoundingClientRect().width) {
+          bestCard = element;
+        }
+      });
+
+      if (bestCard) {
+        bestCard.classList.add('zrc-task-form-modal-v322');
+      }
+    };
+
+    markTaskFormModal();
+
+    const observer = new MutationObserver(() => {
+      window.clearTimeout(window.__zrcModalWidthFixTimer);
+      window.__zrcModalWidthFixTimer = window.setTimeout(markTaskFormModal, 120);
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener('resize', markTaskFormModal);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', markTaskFormModal);
+    };
+  }, []);
+
   // zrc-task-file-workflow-pack-v321
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -677,7 +784,7 @@ function App() {
         }
 
         .zrc-v321-dialog {
-          max-width: calc(100vw - 20px) !important;
+          max-width: min(980px, calc(100vw - 32px)) !important;
           max-height: calc(100svh - 18px) !important;
         }
 
@@ -1572,14 +1679,8 @@ function App() {
       [class*="Card"] {
         min-width: 0;
       }
-
-      [class*="modal"],
-      [class*="Modal"],
-      [role="dialog"] {
-        max-width: calc(100vw - 20px);
-      }
-
-      @media (max-width: 920px) {
+      /* v322: Modal genişliği artık global CSS ile zorlanmıyor; her modal kendi max-w değerini kullanır. */
+@media (max-width: 920px) {
         body {
           -webkit-text-size-adjust: 100%;
           text-size-adjust: 100%;
@@ -1681,7 +1782,7 @@ function App() {
         [class*="max-w-[860px]"],
         [class*="max-w-[920px]"] {
           width: calc(100vw - 20px) !important;
-          max-width: calc(100vw - 20px) !important;
+          max-width: min(980px, calc(100vw - 32px)) !important;
         }
 
         [class*="fixed"][class*="inset-0"] {
@@ -1691,7 +1792,7 @@ function App() {
 
         .zrc-notification-panel {
           width: calc(100vw - 20px) !important;
-          max-width: calc(100vw - 20px) !important;
+          max-width: min(980px, calc(100vw - 32px)) !important;
         }
 
         #zrc-live-build-badge {
