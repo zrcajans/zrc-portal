@@ -28,3 +28,127 @@ select {
 body {
   overflow: hidden;
 }
+
+/* zrc-profile-scroll-fix-v326-safe
+   Sadece Profil/Ayar sayfasını etkiler.
+   Genel masaüstü tasarım, görev ekranları, sidebar, kanban ve ana panel etkilenmez.
+*/
+.zrc-profile-page-safe-v326 {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-bottom: 120px;
+}
+
+.zrc-profile-page-safe-v326 .zrc-profile-shell-safe-v326 {
+  padding-bottom: 120px !important;
+}
+
+.zrc-profile-page-safe-v326 input,
+.zrc-profile-page-safe-v326 select,
+.zrc-profile-page-safe-v326 textarea {
+  max-width: 100%;
+}
+
+.zrc-profile-page-safe-v326 .custom-scrollbar {
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+/* Profil panelindeki geniş tablo/satır yapıları taşarsa sadece kendi içinde kayabilsin. */
+.zrc-profile-page-safe-v326 [class*="overflow-hidden"][class*="border"][class*="rounded"] {
+  max-width: 100%;
+}
+
+.zrc-profile-page-safe-v326 [class*="grid-cols-[1fr_1fr_1fr_1fr_1fr_150px]"],
+.zrc-profile-page-safe-v326 [class*="grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_150px]"] {
+  min-width: 900px;
+}
+
+/* Sadece Profil/Ayar sayfasında orta ekran düzeni. */
+@media (max-width: 1180px) {
+  .zrc-profile-page-safe-v326 {
+    overflow-x: hidden !important;
+  }
+
+  .zrc-profile-page-safe-v326 .zrc-profile-shell-safe-v326 {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="grid-cols-[300px_1fr]"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="grid-cols-[1.2fr_0.8fr]"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="grid-cols-4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="overflow-hidden"][class*="border"][class*="rounded"]:has([class*="grid-cols-[1fr_1fr_1fr_1fr_1fr_150px]"]),
+  .zrc-profile-page-safe-v326 [class*="overflow-hidden"][class*="border"][class*="rounded"]:has([class*="grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_150px]"]) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobil web: sadece profil/ayar sayfasında tek kolon ve rahat scroll. */
+@media (max-width: 720px) {
+  .zrc-profile-page-safe-v326 {
+    overflow-x: hidden !important;
+    padding-bottom: max(90px, env(safe-area-inset-bottom));
+  }
+
+  .zrc-profile-page-safe-v326 .zrc-profile-shell-safe-v326 {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 130px !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="grid-cols-4"],
+  .zrc-profile-page-safe-v326 [class*="grid-cols-3"],
+  .zrc-profile-page-safe-v326 [class*="grid-cols-2"],
+  .zrc-profile-page-safe-v326 [class*="grid-cols-[300px_1fr]"],
+  .zrc-profile-page-safe-v326 [class*="grid-cols-[1.2fr_0.8fr]"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="col-span-2"],
+  .zrc-profile-page-safe-v326 [class*="col-span-3"],
+  .zrc-profile-page-safe-v326 [class*="col-span-4"] {
+    grid-column: span 1 / span 1 !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="px-5"] {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="p-5"] {
+    padding: 14px !important;
+  }
+
+  .zrc-profile-page-safe-v326 [class*="gap-7"] {
+    gap: 14px !important;
+  }
+
+  .zrc-profile-page-safe-v326 input,
+  .zrc-profile-page-safe-v326 select,
+  .zrc-profile-page-safe-v326 textarea {
+    font-size: 16px !important;
+  }
+
+  .zrc-profile-page-safe-v326 button {
+    max-width: 100%;
+  }
+}

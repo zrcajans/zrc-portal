@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v325-safe-profil-api-baglanti';
+const ZRC_APP_BUILD_LABEL = 'v326-safe-profil-scroll-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15074,8 +15074,8 @@ function App() {
             )}
           </div>
         ) : activeContentMenu === 'Profil' ? (
-          <div className="w-full h-full bg-[#f2f3f5] overflow-y-auto custom-scrollbar animate-fade-in">
-            <div className="max-w-[1240px] mx-auto px-5 py-4 space-y-4 min-w-[980px]">
+          <div className="zrc-profile-page-safe-v326 w-full h-full min-h-0 bg-[#f2f3f5] overflow-y-auto custom-scrollbar animate-fade-in">
+            <div className="zrc-profile-shell-safe-v326 max-w-[1240px] mx-auto px-5 py-4 pb-20 space-y-4 min-w-[980px]">
               <div className="bg-white border border-[#e5e8ee] rounded-[8px] shadow-[0_8px_24px_rgba(15,23,42,0.06)] px-5 py-4">
                 <div className="grid grid-cols-[300px_1fr] gap-7 items-center">
                   <div className="flex items-center gap-4">
