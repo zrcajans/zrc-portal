@@ -1,0 +1,20 @@
+{
+  "app": "ZRC Portal",
+  "build": "v324-safe-profile-settings-api-foundation",
+  "scope": "API only. App.jsx was not modified.",
+  "desktop_design": "No desktop CSS/design changes.",
+  "created_for": "Profil/Ayar panelindeki butonların ileride güvenli şekilde gerçek işlevlere bağlanması.",
+  "supports": [
+    "save-profile",
+    "health-check",
+    "export-data",
+    "feature-status"
+  ],
+  "security": [
+    "Supabase Auth Bearer token doğrular.",
+    "workspace_members içinde aktif üyelik kontrolü yapar.",
+    "Yönetici/Patron ve ekip üyesi rolünü ayırır.",
+    "Şifre/token/service role gibi hassas alanları dışa aktarmaz.",
+    "user_preferences içine audit log yazabilir."
+  ]
+}
