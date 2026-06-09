@@ -146,6 +146,59 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="msapplication-TileColor" content="#ff3600" />
+  
+    <script id="zrc-preapp-pwa-reset">
+      (function () {
+        try {
+          var params = new URLSearchParams(window.location.search);
+
+          if (params.get('zrc-reset-pwa') !== '1') return;
+
+          try {
+            window.localStorage.removeItem('zrc-ios-pwa-install-tip-dismissed');
+            window.localStorage.removeItem('zrc-pwa-install-button-dismissed');
+            window.sessionStorage.removeItem('zrc-pwa-install-button-session-hidden');
+          } catch (storageError) {
+            console.warn('ZRC PWA kayıtları temizlenemedi:', storageError);
+          }
+
+          var jobs = [];
+
+          if ('serviceWorker' in navigator) {
+            jobs.push(
+              navigator.serviceWorker.getRegistrations()
+                .then(function (registrations) {
+                  return Promise.all(registrations.map(function (registration) {
+                    return registration.unregister();
+                  }));
+                })
+            );
+          }
+
+          if ('caches' in window) {
+            jobs.push(
+              caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (key) {
+                  if (key.indexOf('zrc') !== -1 || key.indexOf('vite') !== -1) {
+                    return caches.delete(key);
+                  }
+
+                  return Promise.resolve();
+                }));
+              })
+            );
+          }
+
+          Promise.allSettled(jobs).finally(function () {
+            var cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState(null, '', cleanUrl);
+            window.location.reload();
+          });
+        } catch (error) {
+          console.warn('ZRC PWA erken reset çalışamadı:', error);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="zrc-startup-loader" aria-label="ZRC Portal yükleniyor">

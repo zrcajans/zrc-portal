@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v314-pwa-temizleme-guclendirme';
+const ZRC_APP_BUILD_LABEL = 'v315-app-oncesi-pwa-reset';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
