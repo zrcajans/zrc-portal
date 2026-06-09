@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v319-yayin-guvenligi-kisayol-paketi';
+const ZRC_APP_BUILD_LABEL = 'v320-operasyon-hizlandirma-paketi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,399 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  // zrc-operation-boost-pack-v320
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const styleId = 'zrc-operation-boost-style-v320';
+    const helpId = 'zrc-operation-help-panel-v320';
+    const toastId = 'zrc-operation-toast-v320';
+
+    try {
+      window.localStorage.setItem('zrc-last-build-label', ZRC_APP_BUILD_LABEL);
+      window.localStorage.setItem('zrc-last-opened-at', new Date().toISOString());
+    } catch (error) {
+      console.warn('ZRC son kullanım bilgisi kaydedilemedi:', error);
+    }
+
+    const ensureStyle = () => {
+      if (document.getElementById(styleId)) return;
+
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        .zrc-v320-safe-text {
+          overflow-wrap: anywhere !important;
+          word-break: break-word !important;
+          min-width: 0 !important;
+        }
+
+        .zrc-v320-focus-ring:focus-visible,
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible {
+          outline: 2px solid rgba(255,54,0,.72) !important;
+          outline-offset: 2px !important;
+        }
+
+        #zrc-operation-help-panel-v320 {
+          position: fixed;
+          inset: 0;
+          z-index: 999999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 18px;
+          background: rgba(0,0,0,.46);
+          backdrop-filter: blur(8px);
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-card {
+          width: min(520px, calc(100vw - 24px));
+          max-height: calc(100svh - 36px);
+          overflow-y: auto;
+          border-radius: 24px;
+          background: #111827;
+          color: #ffffff;
+          box-shadow: 0 26px 80px rgba(0,0,0,.34);
+          font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 18px 18px 12px;
+          border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-title {
+          font-size: 15px;
+          font-weight: 950;
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-build {
+          margin-top: 3px;
+          font-size: 10px;
+          font-weight: 800;
+          color: rgba(255,255,255,.52);
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-close {
+          width: 32px;
+          height: 32px;
+          border: 0;
+          border-radius: 999px;
+          background: rgba(255,255,255,.10);
+          color: #fff;
+          font-size: 18px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-body {
+          padding: 14px 18px 18px;
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 10px 0;
+          border-bottom: 1px solid rgba(255,255,255,.07);
+          font-size: 11px;
+          font-weight: 800;
+          color: rgba(255,255,255,.78);
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-key {
+          flex: 0 0 auto;
+          border-radius: 999px;
+          background: rgba(255,54,0,.16);
+          color: #ffb199;
+          padding: 5px 8px;
+          font-size: 10px;
+          font-weight: 950;
+          white-space: nowrap;
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          padding-top: 14px;
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-actions button {
+          height: 34px;
+          border: 0;
+          border-radius: 999px;
+          padding: 0 12px;
+          background: rgba(255,255,255,.10);
+          color: #fff;
+          font-size: 10.5px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        #zrc-operation-help-panel-v320 .zrc-help-actions button:first-child {
+          background: #ff3600;
+        }
+
+        #zrc-operation-toast-v320 {
+          position: fixed;
+          left: 50%;
+          bottom: calc(max(12px, env(safe-area-inset-bottom)) + 78px);
+          transform: translateX(-50%);
+          z-index: 999999;
+          max-width: calc(100vw - 28px);
+          border-radius: 999px;
+          background: #111827;
+          color: #ffffff;
+          box-shadow: 0 18px 50px rgba(15,23,42,.24);
+          padding: 10px 14px;
+          font-size: 11px;
+          font-weight: 900;
+          font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+          text-align: center;
+          pointer-events: none;
+        }
+
+        @media (max-width: 720px) {
+          #zrc-operation-help-panel-v320 {
+            align-items: flex-end;
+            padding: 10px;
+          }
+
+          #zrc-operation-help-panel-v320 .zrc-help-card {
+            border-radius: 22px;
+            max-height: calc(100svh - 20px);
+          }
+
+          #zrc-operation-help-panel-v320 .zrc-help-row {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 6px;
+          }
+        }
+      `;
+
+      document.head.appendChild(style);
+    };
+
+    const showToast = (message) => {
+      const oldToast = document.getElementById(toastId);
+      if (oldToast) oldToast.remove();
+
+      const toast = document.createElement('div');
+      toast.id = toastId;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      window.setTimeout(() => {
+        toast.remove();
+      }, 1700);
+    };
+
+    const copyText = async (value, successMessage) => {
+      try {
+        await window.navigator.clipboard.writeText(value);
+        showToast(successMessage);
+      } catch (error) {
+        window.prompt(successMessage, value);
+      }
+    };
+
+    const getRecoveryUrl = () => `${window.location.origin}/?zrc-reset-pwa=1`;
+
+    const getTechInfo = () => [
+      'ZRC Teknik Bilgi',
+      `Build: ${ZRC_APP_BUILD_LABEL}`,
+      `Adres: ${window.location.href}`,
+      `Kurtarma: ${getRecoveryUrl()}`,
+      `Online: ${window.navigator.onLine ? 'Evet' : 'Hayır'}`,
+      `Saat: ${new Date().toISOString()}`
+    ].join('\n');
+
+    const closeHelpPanel = () => {
+      const panel = document.getElementById(helpId);
+      if (panel) panel.remove();
+    };
+
+    const openHelpPanel = () => {
+      closeHelpPanel();
+
+      const panel = document.createElement('div');
+      panel.id = helpId;
+      panel.innerHTML = `
+        <div class="zrc-help-card" role="dialog" aria-modal="true" aria-label="ZRC hızlı yardım">
+          <div class="zrc-help-head">
+            <div>
+              <div class="zrc-help-title">ZRC Hızlı Yardım</div>
+              <div class="zrc-help-build">${ZRC_APP_BUILD_LABEL}</div>
+            </div>
+            <button type="button" class="zrc-help-close" aria-label="Kapat">×</button>
+          </div>
+          <div class="zrc-help-body">
+            <div class="zrc-help-row"><span>Hızlı arama alanına odaklan</span><span class="zrc-help-key">Cmd/Ctrl + K</span></div>
+            <div class="zrc-help-row"><span>Teknik bilgi ve kurtarma linki kopyala</span><span class="zrc-help-key">Alt + Shift + Z</span></div>
+            <div class="zrc-help-row"><span>Bu yardım panelini aç/kapat</span><span class="zrc-help-key">Alt + Shift + H</span></div>
+            <div class="zrc-help-row"><span>Browser kaydetme penceresini engelle</span><span class="zrc-help-key">Cmd/Ctrl + S</span></div>
+            <div class="zrc-help-row"><span>Açık katmanı kapat</span><span class="zrc-help-key">Esc</span></div>
+            <div class="zrc-help-actions">
+              <button type="button" data-zrc-action="copy-recovery">Kurtarma Linki</button>
+              <button type="button" data-zrc-action="copy-build">Sürüm Bilgisi</button>
+              <button type="button" data-zrc-action="reset-pwa">PWA Temizle</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      panel.addEventListener('click', (event) => {
+        const target = event.target;
+
+        if (target === panel || target?.classList?.contains('zrc-help-close')) {
+          closeHelpPanel();
+          return;
+        }
+
+        const action = target?.getAttribute?.('data-zrc-action');
+
+        if (action === 'copy-recovery') {
+          copyText(getRecoveryUrl(), 'Kurtarma linki kopyalandı');
+        }
+
+        if (action === 'copy-build') {
+          copyText(getTechInfo(), 'Sürüm bilgisi kopyalandı');
+        }
+
+        if (action === 'reset-pwa') {
+          if (window.confirm('PWA önbelleğini temizleyip sayfayı yenileyelim mi?')) {
+            window.location.href = getRecoveryUrl();
+          }
+        }
+      });
+
+      document.body.appendChild(panel);
+    };
+
+    const focusSearchInput = () => {
+      const candidates = Array.from(document.querySelectorAll('input, textarea'));
+      const visible = candidates.filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && !element.disabled && element.type !== 'hidden';
+      });
+
+      const target =
+        visible.find((element) => /ara|search|bul|filtre/i.test(element.placeholder || '')) ||
+        visible.find((element) => element.type === 'search') ||
+        visible[0];
+
+      if (target) {
+        target.focus();
+        if (typeof target.select === 'function') target.select();
+        showToast('Arama alanı hazır');
+      } else {
+        showToast('Arama alanı bulunamadı');
+      }
+    };
+
+    const isEditableTarget = (target) => {
+      if (!target) return false;
+      const tagName = String(target.tagName || '').toLowerCase();
+      return tagName === 'input' || tagName === 'textarea' || target.isContentEditable;
+    };
+
+    const enhanceVisibleDom = () => {
+      const textNodes = Array.from(document.querySelectorAll('a, button, span, p, div, td, th'));
+
+      textNodes.slice(0, 900).forEach((element) => {
+        const text = String(element.textContent || '').trim();
+
+        if (text.length >= 34 && element.children.length <= 1) {
+          element.classList.add('zrc-v320-safe-text');
+          if (!element.getAttribute('title') && text.length <= 180) {
+            element.setAttribute('title', text);
+          }
+        }
+
+        if ((element.tagName === 'BUTTON' || element.tagName === 'A') && text && !element.getAttribute('aria-label') && text.length <= 60) {
+          element.setAttribute('aria-label', text);
+        }
+      });
+    };
+
+    let enhanceTimer = null;
+
+    const scheduleEnhance = () => {
+      window.clearTimeout(enhanceTimer);
+      enhanceTimer = window.setTimeout(enhanceVisibleDom, 350);
+    };
+
+    ensureStyle();
+    scheduleEnhance();
+
+    const observer = new MutationObserver(scheduleEnhance);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    const handleKeyDown = (event) => {
+      const key = String(event.key || '').toLowerCase();
+
+      if ((event.metaKey || event.ctrlKey) && key === 's') {
+        event.preventDefault();
+        showToast('ZRC otomatik kaydediyor');
+        return;
+      }
+
+      if ((event.metaKey || event.ctrlKey) && key === 'k') {
+        event.preventDefault();
+        focusSearchInput();
+        return;
+      }
+
+      if (event.altKey && event.shiftKey && key === 'h') {
+        event.preventDefault();
+        if (document.getElementById(helpId)) {
+          closeHelpPanel();
+        } else {
+          openHelpPanel();
+        }
+        return;
+      }
+
+      if (event.altKey && event.shiftKey && key === 'z') {
+        event.preventDefault();
+        copyText(getTechInfo(), 'Teknik bilgi kopyalandı');
+        return;
+      }
+
+      if (event.key === 'Backspace' && !isEditableTarget(event.target)) {
+        event.preventDefault();
+        showToast('Tarayıcı geri gitmesi engellendi');
+        return;
+      }
+
+      if (event.key === 'Escape' && document.getElementById(helpId)) {
+        closeHelpPanel();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.clearTimeout(enhanceTimer);
+      observer.disconnect();
+      closeHelpPanel();
+      const style = document.getElementById(styleId);
+      if (style) style.remove();
+    };
+  }, []);
+
   // zrc-safe-shortcuts-v319
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;

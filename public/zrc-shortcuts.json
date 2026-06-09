@@ -1,0 +1,32 @@
+{
+  "app": "ZRC Portal",
+  "build": "v320-operasyon-hizlandirma-paketi",
+  "generated_at": "2026-06-09T09:34:17.958861+00:00",
+  "shortcuts": [
+    {
+      "keys": "Cmd/Ctrl + K",
+      "action": "Hızlı arama alanına odaklan"
+    },
+    {
+      "keys": "Cmd/Ctrl + S",
+      "action": "Tarayıcı kaydet penceresini engelle"
+    },
+    {
+      "keys": "Alt + Shift + H",
+      "action": "ZRC hızlı yardım paneli"
+    },
+    {
+      "keys": "Alt + Shift + Z",
+      "action": "Teknik bilgi ve kurtarma linki kopyala"
+    },
+    {
+      "keys": "Esc",
+      "action": "Yardım panelini kapat"
+    },
+    {
+      "keys": "Backspace",
+      "action": "Yanlışlıkla tarayıcı geri gitmesini engelle"
+    }
+  ],
+  "recovery_url": "/?zrc-reset-pwa=1"
+}
