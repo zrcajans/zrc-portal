@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v316-mobil-pwa-temizlik-paketi';
+const ZRC_APP_BUILD_LABEL = 'v317-bildirim-is-akisi-paketi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -609,6 +609,49 @@ const createDataSnapshot = ({
 
 function App() {
   // --- TEMEL STATE'LER ---
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const styleId = 'zrc-notification-mobile-style-v317';
+
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      .zrc-notification-panel {
+        max-width: calc(100vw - 24px);
+      }
+
+      @media (max-width: 720px) {
+        .zrc-notification-panel {
+          width: calc(100vw - 24px) !important;
+          max-width: calc(100vw - 24px) !important;
+          top: calc(max(58px, env(safe-area-inset-top) + 50px)) !important;
+          max-height: calc(100svh - 88px) !important;
+          border-radius: 16px !important;
+        }
+
+        .zrc-notification-panel > span {
+          display: none !important;
+        }
+
+        .zrc-notification-panel .custom-scrollbar {
+          max-height: calc(100svh - 174px) !important;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .zrc-notification-panel {
+          width: calc(100vw - 18px) !important;
+          max-width: calc(100vw - 18px) !important;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
@@ -4352,6 +4395,21 @@ function App() {
       setSupabaseWriteInfo('error', `Supabase aktivite okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
+
+  // zrc-notification-auto-refresh-v317
+  useEffect(() => {
+    if (!isLoggedIn || authSessionLoading || !supabaseWorkspaceId || !isSupabaseUuid(currentUserId)) return;
+
+    loadActivityLogsFromSupabase();
+
+    const refreshTimer = window.setInterval(() => {
+      loadActivityLogsFromSupabase();
+    }, 60000);
+
+    return () => {
+      window.clearInterval(refreshTimer);
+    };
+  }, [isLoggedIn, authSessionLoading, supabaseWorkspaceId, currentUserId]);
 
   const ensureSupabaseChatGroup = async (group = {}) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
@@ -9627,6 +9685,17 @@ function App() {
 
   const unreadNotificationCount = notificationItems.filter((item) => !readNotificationIds.includes(item.id)).length;
 
+  // zrc-notification-title-badge-v317
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const count = Number(unreadNotificationCount || 0);
+    const label = count > 99 ? '99+' : String(count);
+
+    document.title = count > 0 ? `(${label}) ZRC Portal` : 'ZRC Portal';
+  }, [unreadNotificationCount]);
+
+
   const notificationEmptyDescription =
     currentAccountType === 'Patron'
       ? 'Yeni görev, ekip, müşteri ve proje hareketleri burada görünür.'
@@ -12948,7 +13017,7 @@ function App() {
           <div
             onClick={(event) => event.stopPropagation()}
             style={{ top: activeContentMenu === 'Projeler' ? 43 : 55 }}
-            className="fixed left-1/2 -translate-x-1/2 z-[680] w-[360px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
+            className="zrc-notification-panel fixed left-1/2 -translate-x-1/2 z-[680] w-[360px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
           >
             <span className="absolute -top-1.5 left-[57%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
             <div className="h-[54px] px-4 border-b border-zinc-100 flex items-center justify-between">
