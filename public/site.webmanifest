@@ -7,9 +7,9 @@
   "theme_color": "#111827",
   "icons": [
     {
-      "src": "/zrc-brand-logo.png",
-      "sizes": "320x141",
-      "type": "image/png"
+      "src": "/zrc-brand-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }

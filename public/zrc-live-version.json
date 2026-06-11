@@ -1,6 +1,6 @@
 {
-  "build": "v393b-safe-logo-solid-branding",
-  "note": "Logo doğrudan projeye gömüldü, mobil başlıkta gerçek img olarak gösterildi, şeffaf/açık turuncu seçim dili kaldırıldı.",
-  "commitBefore": "aaf392f",
-  "createdAt": "2026-06-11T18:20:52.984893+00:00"
+  "build": "v394-safe-logo-visible-selected-center",
+  "note": "Logo mobil ve masaüstünde kesin görünür hale getirildi; seçili proje yazıları ortalandı; şeffaf aktif proje rengi kaldırıldı.",
+  "commitBefore": "3c92f70",
+  "createdAt": "2026-06-11T18:24:46.053641+00:00"
 }
