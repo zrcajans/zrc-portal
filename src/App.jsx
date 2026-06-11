@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v347-safe-musteri-giris-hesabi';
+const ZRC_APP_BUILD_LABEL = 'v348-safe-musteri-listesi-kullanici-adi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -18718,6 +18718,10 @@ function App() {
                                       <div className="h-[32px] px-2.5 border-t border-zinc-100 bg-zinc-50/60 flex items-center gap-2">
                                         <div className="min-w-0 flex-1 flex items-center gap-1.5 text-[8.5px] font-bold text-zinc-400">
                                           <span className="truncate">{customer.phone || 'Telefon yok'}</span>
+                                          <span className="w-1 h-1 rounded-full bg-zinc-300 shrink-0" />
+                                          <span className="truncate">
+                                            {getCustomerLinkedAccount(customer)?.username ? `@${getCustomerLinkedAccount(customer)?.username}` : 'Kullanıcı adı yok'}
+                                          </span>
                                         </div>
 
                                         {isAutoCustomer ? (
