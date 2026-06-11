@@ -13407,6 +13407,15 @@ function App() {
                         type="button"
                         className={`zrc-mobile-wizard-option ${mobileTaskWizardData.projectName === project ? 'is-active' : ''}`}
                         onClick={() => {
+                          setSelectedProject(project);
+                          setActiveMenu('Projeler');
+                          setActiveContentMenu('Projeler');
+                          setActiveTab('Görevler');
+                          setIsPanelOpen(false);
+                          setIsMessagesOpen(false);
+                          setIsNotificationsOpen(false);
+                          setIsGlobalSearchOpen(false);
+
                           setMobileTaskWizardData((prev) => ({
                             ...prev,
                             projectName: project
