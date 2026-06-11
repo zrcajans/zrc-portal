@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v348-safe-musteri-listesi-kullanici-adi';
+const ZRC_APP_BUILD_LABEL = 'v349-safe-debug-rozet-temizlik';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -12944,32 +12944,7 @@ function App() {
     setIsGlobalSearchOpen(false);
   };
 
-  const renderSupabaseConnectionBadge = () => {
-    const hasConnectionError = supabaseConnectionStatus.state === 'error';
-    const hasWriteError = supabaseWriteStatus.state === 'error';
-
-    // Normal kullanımda sağ alttaki Supabase kutusu görünmez.
-    // Sadece gerçek hata varsa küçük uyarı olarak çıkar.
-    if (!hasConnectionError && !hasWriteError) {
-      return null;
-    }
-
-    return (
-      <div className="fixed right-4 bottom-4 z-[9999] pointer-events-none">
-        <div className="flex flex-col gap-1 rounded-[18px] border border-red-200 bg-red-50 px-3 py-2 text-[10.5px] font-black text-red-700 shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500" />
-            <span>{supabaseConnectionStatus.label}</span>
-          </div>
-          {supabaseWriteStatus.state !== 'idle' && (
-            <div className="text-[9.5px] font-extrabold opacity-80">
-              {supabaseWriteStatus.label}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  const renderSupabaseConnectionBadge = () => null;
 
   if (!isLoggedIn) {
     return (
