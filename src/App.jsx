@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v346b-safe-musteri-sade';
+const ZRC_APP_BUILD_LABEL = 'v347-safe-musteri-giris-hesabi';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1629,6 +1629,8 @@ function App() {
     contact: '',
     email: '',
     phone: '',
+    username: '',
+    password: '',
     note: '',
     accountUserId: ''
   });
@@ -3466,7 +3468,7 @@ function App() {
       }
 
       setSupabaseWriteInfo('saved', 'Supabase müşteri kaydedildi');
-      return true;
+      return savedCustomer || true;
     } catch (error) {
       setSupabaseWriteInfo('error', `Supabase müşteri hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
@@ -11083,7 +11085,7 @@ function App() {
     customerPageItems[0] ||
     null;
 
-  const createCustomerFromCenter = (event) => {
+  const createCustomerFromCenter = async (event) => {
     event.preventDefault();
 
     if (!requirePermission('manageCustomers', 'Müşteri ekleme yetkisi sadece Yönetici rolünde var.')) return;
@@ -11093,7 +11095,9 @@ function App() {
     const email = '';
     const phone = customerDraft.phone.trim();
     const note = customerDraft.note.trim();
-    const accountUserId = '';
+    const accountUsername = normalizeCredentialText(customerDraft.username || '');
+    const accountPassword = String(customerDraft.password || '').trim();
+    const wantsLoginAccount = Boolean(accountUsername || accountPassword);
 
     if (!name) {
       alert('Müşteri adı boş olamaz.');
@@ -11105,12 +11109,21 @@ function App() {
       return;
     }
 
+    if (wantsLoginAccount && !accountUsername) {
+      alert('Müşteri giriş hesabı için kullanıcı adı yazmalısın.');
+      return;
+    }
+
+    if (wantsLoginAccount && accountPassword.length < 4) {
+      alert('Müşteri giriş şifresi en az 4 karakter olmalı.');
+      return;
+    }
+
     if (
-      accountUserId &&
-      (customers.some((customer) => customer.accountUserId === accountUserId) ||
-        teamMembers.some((member) => member.id === accountUserId && member.customerId))
+      wantsLoginAccount &&
+      teamMembers.some((member) => normalizeCredentialText(member.username) === accountUsername)
     ) {
-      alert('Bu müşteri hesabı zaten başka bir müşteri kartına bağlı.');
+      alert('Bu kullanıcı adı zaten kullanılıyor.');
       return;
     }
 
@@ -11121,26 +11134,103 @@ function App() {
       email,
       phone,
       note,
-      accountUserId,
+      accountUserId: '',
       status: 'Aktif'
     };
 
     setCustomers((prevCustomers) => [nextCustomer, ...prevCustomers]);
-    saveCustomerToSupabase(nextCustomer);
-
-    if (accountUserId) {
-      setTeamMembers((prevMembers) =>
-        prevMembers.map((member) =>
-          member.id === accountUserId
-            ? { ...member, role: 'Müşteri/Misafir', customerId: nextCustomer.id }
-            : member
-        )
-      );
-    }
-
-    setCustomerDraft({ name: '', contact: '', email: '', phone: '', note: '', accountUserId: '' });
     setSelectedCustomerId(nextCustomer.id);
     setPendingCustomerDeleteId(null);
+
+    const savedCustomer = await saveCustomerToSupabase(nextCustomer);
+    const savedCustomerId = savedCustomer?.id || nextCustomer.id;
+
+    if (wantsLoginAccount) {
+      const workspaceId = getCurrentSupabaseWorkspaceId();
+
+      if (!workspaceId) {
+        alert('Müşteri oluşturuldu ama giriş hesabı için workspace bilgisi alınamadı. Çıkış yapıp tekrar giriş yap.');
+        return;
+      }
+
+      try {
+        setSupabaseWriteInfo('saving', 'Müşteri giriş hesabı oluşturuluyor');
+
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || '';
+
+        if (!accessToken) {
+          alert('Müşteri oluşturuldu ama yönetici oturumu bulunamadığı için giriş hesabı açılamadı.');
+          setSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
+          return;
+        }
+
+        const response = await fetch('/api/create-team-member', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({
+            workspaceId,
+            name,
+            username: accountUsername,
+            password: accountPassword,
+            role: 'Müşteri/Misafir',
+            customerId: isSupabaseUuid(savedCustomerId) ? savedCustomerId : ''
+          })
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(result?.error || 'Müşteri giriş hesabı oluşturulamadı.');
+        }
+
+        const nextMember = normalizeTeamMember({
+          ...(result.member || {}),
+          password: '',
+          authProvider: 'supabase'
+        });
+
+        setTeamMembers((prevMembers) => {
+          const withoutSameMember = (prevMembers || []).filter((member) => member.id !== nextMember.id);
+          return [nextMember, ...withoutSameMember].map(normalizeTeamMember);
+        });
+
+        setCustomers((prevCustomers) =>
+          prevCustomers.map((customer) =>
+            customer.id === nextCustomer.id || customer.id === savedCustomerId
+              ? { ...customer, accountUserId: nextMember.id }
+              : customer
+          )
+        );
+
+        saveCustomerToSupabase({
+          ...nextCustomer,
+          id: savedCustomerId,
+          accountUserId: nextMember.id
+        });
+
+        setSelectedTeamMemberId(nextMember.id);
+        setSupabaseWriteInfo('saved', 'Müşteri ve giriş hesabı oluşturuldu');
+      } catch (error) {
+        const errorMessage = error?.message || 'Müşteri giriş hesabı oluşturulamadı.';
+        alert(`Müşteri oluşturuldu ama giriş hesabı açılamadı: ${errorMessage}`);
+        setSupabaseWriteInfo('error', errorMessage);
+      }
+    }
+
+    setCustomerDraft({
+      name: '',
+      contact: '',
+      email: '',
+      phone: '',
+      username: '',
+      password: '',
+      note: '',
+      accountUserId: ''
+    });
   };
 
   const toggleCustomerStatus = (customerId) => {
@@ -18440,7 +18530,7 @@ function App() {
                             <div className="flex items-center justify-between mb-3">
                               <div>
                                 <div className="text-[13.5px] font-black text-zinc-800">Yeni Müşteri</div>
-                                <div className="mt-0.5 text-[10px] font-bold text-zinc-400">Kısa müşteri kartı oluştur</div>
+                                <div className="mt-0.5 text-[10px] font-bold text-zinc-400">Müşteri kartı ve isteğe bağlı giriş hesabı oluştur</div>
                               </div>
 
                               <div className="w-9 h-9 rounded-[12px] bg-[#ff3600] text-white flex items-center justify-center">
@@ -18470,6 +18560,26 @@ function App() {
                                 placeholder="Telefon"
                                 className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                               />
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  value={customerDraft.username}
+                                  onChange={(event) => setCustomerDraft((prev) => ({ ...prev, username: normalizeCredentialText(event.target.value) }))}
+                                  placeholder="Müşteri kullanıcı adı"
+                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
+                                />
+
+                                <input
+                                  value={customerDraft.password}
+                                  onChange={(event) => setCustomerDraft((prev) => ({ ...prev, password: event.target.value }))}
+                                  placeholder="Müşteri şifresi"
+                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
+                                />
+                              </div>
+
+                              <div className="rounded-[11px] border border-orange-100 bg-orange-50 px-3 py-2 text-[10px] font-bold text-orange-600 leading-4">
+                                Kullanıcı adı ve şifre girersen bu müşteri için giriş hesabı da açılır.
+                              </div>
 
 
                               
