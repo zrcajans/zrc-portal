@@ -1,6 +1,6 @@
 {
-  "build": "v379-safe-mobile-project-filter",
-  "note": "Mobilde eski/demo proje adları gizlendi; proje seçimi gerçek proje listesine zorlandı.",
-  "commitBefore": "96b72b9",
-  "createdAt": "2026-06-11T16:44:29.488264+00:00"
+  "build": "v380-safe-hide-mobile-on-desktop",
+  "note": "Mobil özel ekran masaüstünde gizlendi. Mobil akışa dokunulmadı.",
+  "commitBefore": "40475a8",
+  "createdAt": "2026-06-11T16:46:44.125Z"
 }

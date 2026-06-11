@@ -1378,3 +1378,13 @@
     font-weight: 950 !important;
   }
 }
+
+/* ZRC Desktop Guard v380 */
+@media (min-width: 769px) {
+  .zrc-mobile-simple-workspace,
+  .zrc-mobile-wizard-overlay,
+  .zrc-mobile-wizard-sheet,
+  .zrc-mobile-core-nav {
+    display: none !important;
+  }
+}
