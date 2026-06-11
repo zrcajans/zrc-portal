@@ -1,6 +1,6 @@
 {
-  "build": "v381-safe-mobile-project-lock",
-  "note": "Mobil görev oluşturma artık sadece açık projeye kayıt yapar; wizard içinden proje değiştirme kapatıldı.",
-  "commitBefore": "e29ff12",
-  "createdAt": "2026-06-11T16:49:41.588930+00:00"
+  "build": "v382-safe-selected-project-refresh-fix",
+  "note": "Sayfa yenilenince selectedProject artık localStorage’dan okunur; Çalışma/demo projeye geri dönmez.",
+  "commitBefore": "9719dc9",
+  "createdAt": "2026-06-11T16:53:21.573053+00:00"
 }

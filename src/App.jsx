@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v377b-safe-mobile-auto-create'
+const ZRC_APP_BUILD_LABEL = 'v382-safe-selected-project-refresh-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1648,7 +1648,18 @@ function App() {
     accountUserId: ''
   });
 
-  const [selectedProject, setSelectedProject] = useState(() => 'Çalışma');
+  const getInitialSelectedProject = () => {
+    const savedProject = String(readStorageValue('selectedProject', '') || '').trim();
+    const legacyProjectNames = ['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'];
+
+    if (savedProject && !legacyProjectNames.includes(savedProject)) {
+      return savedProject;
+    }
+
+    return '';
+  };
+
+  const [selectedProject, setSelectedProject] = useState(() => getInitialSelectedProject());
 
   const [activeTab, setActiveTab] = useState(() => getSavedNavigationState().activeTab);
   const [activeContentMenu, setActiveContentMenu] = useState(() => getSavedNavigationState().activeContentMenu);
