@@ -1,6 +1,6 @@
 {
-  "build": "v376-safe-mobile-4-step-task",
-  "note": "Mobil görev oluşturma 4 adım oldu: proje seçimi, görev adı, tarihler, görevli seçimi.",
-  "commitBefore": "faca8bf",
-  "createdAt": "2026-06-11T16:26:21.767028+00:00"
+  "build": "v377b-safe-mobile-auto-create",
+  "note": "Mobil görev akışında çoklu görevli seçimi ve form açmadan direkt görev oluşturma eklendi.",
+  "commitBefore": "b5dc93c",
+  "createdAt": "2026-06-11T16:32:09.968183+00:00"
 }

@@ -1342,3 +1342,39 @@
     font-weight: 900 !important;
   }
 }
+
+/* ZRC Mobile Auto Create v377b */
+@media (max-width: 768px) {
+  .zrc-mobile-wizard-option {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+  }
+
+  .zrc-mobile-wizard-option span {
+    display: block !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .zrc-mobile-wizard-option b {
+    flex: 0 0 auto !important;
+    min-height: 24px !important;
+    padding: 5px 9px !important;
+    border-radius: 999px !important;
+    background: #ff5b1f !important;
+    color: white !important;
+    font-size: 10px !important;
+    font-weight: 950 !important;
+  }
+
+  .zrc-mobile-wizard-primary,
+  .zrc-mobile-wizard-secondary {
+    height: 58px !important;
+    min-height: 58px !important;
+    font-size: 16px !important;
+    font-weight: 950 !important;
+  }
+}

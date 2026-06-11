@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v376-safe-mobile-4-step-task';
+const ZRC_APP_BUILD_LABEL = 'v377b-safe-mobile-auto-create'
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1746,8 +1746,8 @@ function App() {
     taskTitle: '',
     startDate: '',
     endDate: '',
-    assigneeId: '',
-    assigneeName: ''
+    assigneeIds: [],
+    assignees: []
   });
 
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -13310,8 +13310,8 @@ function App() {
                     taskTitle: '',
                     startDate: '',
                     endDate: '',
-                    assigneeId: '',
-                    assigneeName: ''
+                    assigneeIds: [],
+                    assignees: []
                   });
                 }}
               >
@@ -13482,7 +13482,7 @@ function App() {
               {mobileTaskWizardStep === 3 && (
                 <div className="zrc-mobile-wizard-body">
                   <div className="zrc-mobile-wizard-title">4 — Görevli Seçimi</div>
-                  <div className="zrc-mobile-wizard-desc">Görevi kime atayacağını seç.</div>
+                  <div className="zrc-mobile-wizard-desc">Bir veya birden fazla görevli seç.</div>
 
                   <div className="zrc-mobile-wizard-options">
                     {(Array.isArray(activeTeamMembers) ? activeTeamMembers : (Array.isArray(teamMembers) ? teamMembers : []))
@@ -13490,21 +13490,46 @@ function App() {
                       .map((member) => {
                         const memberId = member.id || member.user_id || member.username || member.name;
                         const memberName = member.name || member.username || 'İsimsiz kullanıcı';
+                        const isSelected = (mobileTaskWizardData.assigneeIds || []).includes(memberId);
 
                         return (
                           <button
                             key={memberId}
                             type="button"
-                            className={`zrc-mobile-wizard-option ${mobileTaskWizardData.assigneeId === memberId ? 'is-active' : ''}`}
+                            className={`zrc-mobile-wizard-option ${isSelected ? 'is-active' : ''}`}
                             onClick={() => {
-                              setMobileTaskWizardData((prev) => ({
-                                ...prev,
-                                assigneeId: memberId,
-                                assigneeName: memberName
-                              }));
+                              setMobileTaskWizardData((prev) => {
+                                const currentIds = Array.isArray(prev.assigneeIds) ? prev.assigneeIds : [];
+                                const currentAssignees = Array.isArray(prev.assignees) ? prev.assignees : [];
+
+                                if (currentIds.includes(memberId)) {
+                                  return {
+                                    ...prev,
+                                    assigneeIds: currentIds.filter((id) => id !== memberId),
+                                    assignees: currentAssignees.filter((item) => item.id !== memberId)
+                                  };
+                                }
+
+                                return {
+                                  ...prev,
+                                  assigneeIds: [...currentIds, memberId],
+                                  assignees: [
+                                    ...currentAssignees,
+                                    {
+                                      id: memberId,
+                                      name: memberName,
+                                      role: normalizeTeamRole(member?.role || 'Ekip Üyesi'),
+                                      username: member?.username || '',
+                                      email: member?.email || '',
+                                      avatar: member?.avatar || ''
+                                    }
+                                  ]
+                                };
+                              });
                             }}
                           >
-                            {memberName}
+                            <span>{memberName}</span>
+                            {isSelected && <b>Seçildi</b>}
                           </button>
                         );
                       })}
@@ -13544,51 +13569,49 @@ function App() {
                     type="button"
                     className="zrc-mobile-wizard-primary"
                     onClick={() => {
-                      try {
-                        window.localStorage.setItem(
-                          'zrc-mobile-task-wizard-prefill',
-                          JSON.stringify({
-                            projectName: mobileTaskWizardData.projectName,
-                            title: mobileTaskWizardData.taskTitle,
-                            startDate: mobileTaskWizardData.startDate,
-                            dueDate: mobileTaskWizardData.endDate,
-                            assigneeId: mobileTaskWizardData.assigneeId,
-                            assigneeName: mobileTaskWizardData.assigneeName
-                          })
-                        );
-                      } catch (error) {}
+                      const targetProjectName = mobileTaskWizardData.projectName || selectedProject;
+                      const targetColumn = boardColumns?.[0] || {};
+                      const targetStatus = targetColumn?.title || 'Yeni Görev';
+                      const selectedAssignees = Array.isArray(mobileTaskWizardData.assignees)
+                        ? mobileTaskWizardData.assignees
+                        : [];
 
-                      if (mobileTaskWizardData.projectName) {
-                        setSelectedProject(mobileTaskWizardData.projectName);
+                      if (!targetProjectName) return;
+                      if (!String(mobileTaskWizardData.taskTitle || '').trim()) return;
+
+                      if (targetProjectName !== selectedProject) {
+                        setSelectedProject(targetProjectName);
                       }
 
-                      setIsMobileTaskWizardOpen(false);
-                      setEditingTask({
-                        title: mobileTaskWizardData.taskTitle || '',
-                        project: mobileTaskWizardData.projectName || selectedProject,
-                        projectName: mobileTaskWizardData.projectName || selectedProject,
+                      handleSaveTask({
+                        title: String(mobileTaskWizardData.taskTitle || '').trim(),
+                        project: targetProjectName,
+                        projectName: targetProjectName,
+                        status: targetStatus,
+                        columnTitle: targetStatus,
+                        priority: 'Düşük',
+                        description: '',
                         startDate: mobileTaskWizardData.startDate || '',
                         dueDate: mobileTaskWizardData.endDate || '',
                         endDate: mobileTaskWizardData.endDate || '',
-                        assignees: mobileTaskWizardData.assigneeId
-                          ? [{
-                              id: mobileTaskWizardData.assigneeId,
-                              name: mobileTaskWizardData.assigneeName,
-                              role: 'Ekip Üyesi'
-                            }]
-                          : []
+                        assignees: selectedAssignees,
+                        assignedTo: selectedAssignees.map((item) => item.name).filter(Boolean).join(', '),
+                        createdFrom: 'mobile-simple-wizard'
                       });
-                      setCalendarNewTaskDate(null);
-                      setCalendarTaskModalContext({
-                        isOpen: false,
-                        pendingOpen: false,
-                        projectName: '',
-                        date: ''
+
+                      setIsMobileTaskWizardOpen(false);
+                      setMobileTaskWizardStep(1);
+                      setMobileTaskWizardData({
+                        projectName: targetProjectName,
+                        taskTitle: '',
+                        startDate: '',
+                        endDate: '',
+                        assigneeIds: [],
+                        assignees: []
                       });
-                      setIsTaskModalOpen(true);
                     }}
                   >
-                    Formu Aç
+                    Görevi Oluştur
                   </button>
                 )}
               </div>
