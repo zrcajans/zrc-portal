@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v339c-kesin-gorev-duzeltme';
+const ZRC_APP_BUILD_LABEL = 'v346b-safe-musteri-sade';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -11090,10 +11090,10 @@ function App() {
 
     const name = customerDraft.name.trim();
     const contact = customerDraft.contact.trim();
-    const email = customerDraft.email.trim();
+    const email = '';
     const phone = customerDraft.phone.trim();
     const note = customerDraft.note.trim();
-    const accountUserId = customerDraft.accountUserId || '';
+    const accountUserId = '';
 
     if (!name) {
       alert('Müşteri adı boş olamaz.');
@@ -11201,10 +11201,10 @@ function App() {
 
     const name = customerEditDraft.name.trim();
     const contact = customerEditDraft.contact.trim();
-    const email = customerEditDraft.email.trim();
+    const email = editingCustomer.email || '';
     const phone = customerEditDraft.phone.trim();
     const note = customerEditDraft.note.trim();
-    const accountUserId = customerEditDraft.accountUserId || '';
+    const accountUserId = editingCustomer.accountUserId || '';
 
     if (!name) {
       alert('Müşteri adı boş olamaz.');
@@ -18464,35 +18464,15 @@ function App() {
                                 placeholder="Yetkili kişi"
                                 className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                               />
+                              <input
+                                value={customerDraft.phone}
+                                onChange={(event) => setCustomerDraft((prev) => ({ ...prev, phone: event.target.value }))}
+                                placeholder="Telefon"
+                                className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
+                              />
 
-                              <div className="grid grid-cols-2 gap-2">
-                                <input
-                                  value={customerDraft.email}
-                                  onChange={(event) => setCustomerDraft((prev) => ({ ...prev, email: event.target.value }))}
-                                  placeholder="E-posta"
-                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                                />
 
-                                <input
-                                  value={customerDraft.phone}
-                                  onChange={(event) => setCustomerDraft((prev) => ({ ...prev, phone: event.target.value }))}
-                                  placeholder="Telefon"
-                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                                />
-                              </div>
-
-                              {renderSoftSelect({
-                                id: 'customer-new-account-link',
-                                label: 'Bağlı Giriş Hesabı',
-                                value: getCustomerAccountName(customerDraft.accountUserId),
-                                options: customerAccountOptions,
-                                onChange: (accountLabel) => setCustomerDraft((prev) => ({
-                                  ...prev,
-                                  accountUserId: accountLabel === customerAccountNoneLabel ? '' : getCustomerAccountByLabel(accountLabel)?.id || ''
-                                })),
-                                buttonClassName: 'h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]'
-                              })}
-
+                              
                               <textarea
                                 value={customerDraft.note}
                                 onChange={(event) => setCustomerDraft((prev) => ({ ...prev, note: event.target.value }))}
@@ -18537,21 +18517,10 @@ function App() {
                               </div>
 
                               <div className="mt-3 space-y-1.5 text-[10.5px] font-bold">
-                                <div className="flex items-center justify-between gap-3">
-                                  <span className="text-zinc-400">E-posta</span>
-                                  <span className="text-zinc-700 truncate">{selectedCustomer.email || '-'}</span>
-                                </div>
 
                                 <div className="flex items-center justify-between gap-3">
                                   <span className="text-zinc-400">Telefon</span>
                                   <span className="text-zinc-700 truncate">{selectedCustomer.phone || '-'}</span>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-3">
-                                  <span className="text-zinc-400">Giriş hesabı</span>
-                                  <span className="text-zinc-700 truncate">
-                                    {getCustomerLinkedAccount(selectedCustomer)?.name || 'Bağlı değil'}
-                                  </span>
                                 </div>
                               </div>
 
@@ -18638,11 +18607,7 @@ function App() {
                                     {isSelected && (
                                       <div className="h-[32px] px-2.5 border-t border-zinc-100 bg-zinc-50/60 flex items-center gap-2">
                                         <div className="min-w-0 flex-1 flex items-center gap-1.5 text-[8.5px] font-bold text-zinc-400">
-                                          <span className="truncate">{customer.email || 'E-posta yok'}</span>
-                                          <span className="w-1 h-1 rounded-full bg-zinc-300 shrink-0" />
                                           <span className="truncate">{customer.phone || 'Telefon yok'}</span>
-                                          <span className="w-1 h-1 rounded-full bg-zinc-300 shrink-0" />
-                                          <span className="truncate">{getCustomerLinkedAccount(customer)?.name || 'Hesap yok'}</span>
                                         </div>
 
                                         {isAutoCustomer ? (
@@ -19256,35 +19221,15 @@ function App() {
                 placeholder="Yetkili kişi"
                 className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
               />
+              <input
+                value={customerEditDraft.phone}
+                onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, phone: event.target.value }))}
+                placeholder="Telefon"
+                className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
+              />
 
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  value={customerEditDraft.email}
-                  onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, email: event.target.value }))}
-                  placeholder="E-posta"
-                  className="h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                />
 
-                <input
-                  value={customerEditDraft.phone}
-                  onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, phone: event.target.value }))}
-                  placeholder="Telefon"
-                  className="h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                />
-              </div>
-
-              {renderSoftSelect({
-                id: 'customer-edit-account-link',
-                label: 'Bağlı Giriş Hesabı',
-                value: getCustomerAccountName(customerEditDraft.accountUserId),
-                options: customerAccountOptions,
-                onChange: (accountLabel) => setCustomerEditDraft((prev) => ({
-                  ...prev,
-                  accountUserId: accountLabel === customerAccountNoneLabel ? '' : getCustomerAccountByLabel(accountLabel)?.id || ''
-                })),
-                buttonClassName: 'h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-[#ff3600]'
-              })}
-
+              
               <textarea
                 value={customerEditDraft.note}
                 onChange={(event) => setCustomerEditDraft((prev) => ({ ...prev, note: event.target.value }))}
