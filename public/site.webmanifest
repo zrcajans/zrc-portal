@@ -1,14 +1,13 @@
 {
   "name": "ZRC Portal",
   "short_name": "ZRC",
-  "description": "ZRC AJANS iş takip portalı",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1f1f1f",
-  "theme_color": "#ff3600",
+  "background_color": "#f5f6f8",
+  "theme_color": "#111827",
   "icons": [
     {
-      "src": "/zrc-favicon.svg",
+      "src": "/zrc-brand-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

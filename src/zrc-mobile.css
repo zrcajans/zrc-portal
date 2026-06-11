@@ -2054,3 +2054,60 @@
     color: #ff5b1f !important;
   }
 }
+
+/* ZRC Mobile Logo Pastel Branding v393 */
+@media (max-width: 768px) {
+  .zrc-mobile-premium-head {
+    align-items: center !important;
+    min-height: 78px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .zrc-mobile-premium-head > div {
+    display: none !important;
+  }
+
+  .zrc-mobile-premium-head::before {
+    content: "" !important;
+    display: block !important;
+    width: 168px !important;
+    height: 62px !important;
+    background-image: url('/zrc-brand-logo.svg') !important;
+    background-repeat: no-repeat !important;
+    background-position: left center !important;
+    background-size: contain !important;
+  }
+
+  .zrc-mobile-notification-btn {
+    margin-left: auto !important;
+  }
+
+  /* Seçili proje tasarım dili: açık turuncu kaldırıldı */
+  .zrc-mobile-project-option.is-active {
+    background: #eef6f1 !important;
+    box-shadow: inset 0 0 0 2px #b8d7c5 !important;
+    border: 0 !important;
+  }
+
+  .zrc-mobile-project-option.is-active strong {
+    color: #0f2f1f !important;
+  }
+
+  .zrc-mobile-project-option.is-active small {
+    color: #5f7f70 !important;
+  }
+
+  .zrc-mobile-project-option.is-active small::before {
+    content: "● ";
+    color: #7fb99a;
+  }
+
+  .zrc-mobile-project-picker-panel {
+    border-bottom-color: #172338 !important;
+  }
+
+  .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > span {
+    background: #263247 !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+}
