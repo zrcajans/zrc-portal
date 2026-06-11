@@ -1480,3 +1480,88 @@
     border-radius: 22px !important;
   }
 }
+
+/* ZRC Mobile Connected Panels v385 */
+@media (max-width: 768px) {
+  .zrc-mobile-notification-btn {
+    overflow: visible !important;
+  }
+
+  .zrc-main-shell:has([class*="z-[681]"]) .zrc-mobile-notification-btn::after,
+  .zrc-main-shell:has([class*="z-[680]"]) .zrc-mobile-notification-btn::after,
+  .zrc-main-shell:has([class*="z-[690]"]) .zrc-mobile-notification-btn::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -18px;
+    width: 22px;
+    height: 22px;
+    transform: translateX(-50%) rotate(45deg);
+    background: #ffffff;
+    border-radius: 5px;
+    box-shadow: -8px -8px 18px rgba(15, 23, 42, 0.04);
+    z-index: 1;
+  }
+
+  .zrc-main-shell [class*="z-[681]"],
+  .zrc-main-shell [class*="z-[680]"],
+  .zrc-main-shell [class*="z-[690]"] {
+    border: 1px solid rgba(226, 232, 240, 0.95) !important;
+    border-top: 4px solid #ff5b1f !important;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18) !important;
+  }
+
+  .zrc-mobile-project-picker {
+    position: relative !important;
+  }
+
+  .zrc-mobile-project-picker-btn {
+    position: relative !important;
+    z-index: 3 !important;
+  }
+
+  .zrc-mobile-project-picker-btn::after {
+    content: "";
+    position: absolute;
+    left: 34px;
+    bottom: -15px;
+    width: 28px;
+    height: 28px;
+    transform: rotate(45deg);
+    background: #111827;
+    border-radius: 6px;
+    z-index: -1;
+  }
+
+  .zrc-mobile-project-picker-panel {
+    margin-top: 10px !important;
+    padding: 12px !important;
+    border: 0 !important;
+    border-radius: 24px !important;
+    background: linear-gradient(135deg, #111827 0%, #1f2937 100%) !important;
+    box-shadow: 0 22px 52px rgba(17, 24, 39, 0.20) !important;
+  }
+
+  .zrc-mobile-project-option {
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none !important;
+  }
+
+  .zrc-mobile-project-option strong {
+    color: #ffffff !important;
+  }
+
+  .zrc-mobile-project-option small {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  .zrc-mobile-project-option.is-active {
+    border-color: rgba(255, 91, 31, 0.95) !important;
+    background: rgba(255, 91, 31, 0.14) !important;
+  }
+
+  .zrc-mobile-project-option.is-active small {
+    color: #ffb391 !important;
+  }
+}

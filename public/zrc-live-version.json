@@ -1,6 +1,6 @@
 {
-  "build": "v384-safe-mobile-notification-panel",
-  "note": "Mobil bildirim panelinin sağa taşması düzeltildi. Bildirim sayısı cihazlar arası okundu senkronu ayrıca ele alınacak.",
-  "commitBefore": "535fa66",
-  "createdAt": "2026-06-11T17:04:30.662Z"
+  "build": "v385-safe-mobile-connected-panels",
+  "note": "Mobil bildirim ve proje seçim panelleri butonlarıyla görsel olarak bağlandı.",
+  "commitBefore": "6db2002",
+  "createdAt": "2026-06-11T17:07:35.632Z"
 }
