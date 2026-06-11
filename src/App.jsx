@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v367-mobile-final-lock';
+const ZRC_APP_BUILD_LABEL = 'v369-safe-mobile-simple-3-menu';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -13204,6 +13204,65 @@ function App() {
           }}
           onLogout={handleLogout}
         />
+
+
+        <div className="zrc-mobile-core-nav" aria-label="Mobil hızlı menü">
+          <button
+            type="button"
+            className="zrc-mobile-core-nav-btn"
+            onClick={() => {
+              setActiveMenu('Projeler');
+              setActiveContentMenu('Projeler');
+              setActiveTab('Görevler');
+              setIsPanelOpen(false);
+              setIsMessagesOpen(false);
+              setIsNotificationsOpen(false);
+              setIsGlobalSearchOpen(false);
+            }}
+          >
+            Projeler
+          </button>
+
+          <button
+            type="button"
+            className="zrc-mobile-core-nav-btn"
+            onClick={() => {
+              setActiveMenu('Takvimim');
+              setActiveContentMenu('Takvimim');
+              setActiveTab('Görevler');
+              setIsPanelOpen(false);
+              setIsMessagesOpen(false);
+              setIsNotificationsOpen(false);
+              setIsGlobalSearchOpen(false);
+            }}
+          >
+            Takvim
+          </button>
+
+          <button
+            type="button"
+            className="zrc-mobile-core-nav-btn"
+            onClick={(event) => {
+              event.stopPropagation();
+              setIsPanelOpen(false);
+              setIsMessagesOpen(false);
+              setIsGlobalSearchOpen(false);
+              setIsNotificationsOpen((prev) => {
+                const nextState = !prev;
+                if (nextState) {
+                  loadActivityLogsFromSupabase();
+                }
+                return nextState;
+              });
+            }}
+          >
+            Bildirim
+            {unreadNotificationCount > 0 && (
+              <b className="zrc-mobile-core-nav-badge">{unreadNotificationCount}</b>
+            )}
+          </button>
+        </div>
+
 
         {isMessagesOpen && (
           <>
