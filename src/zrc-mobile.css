@@ -2111,3 +2111,81 @@
     border-color: rgba(255, 255, 255, 0.16) !important;
   }
 }
+
+/* ZRC Logo Solid Branding v393b */
+@media (max-width: 768px) {
+  .zrc-mobile-premium-head::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  .zrc-mobile-premium-head > div:not(.zrc-mobile-brand-wrap) {
+    display: none !important;
+  }
+
+  .zrc-mobile-brand-wrap {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 174px !important;
+    height: 70px !important;
+    flex: 0 0 auto !important;
+  }
+
+  .zrc-mobile-brand-logo {
+    display: block !important;
+    width: 174px !important;
+    height: auto !important;
+    max-height: 64px !important;
+    object-fit: contain !important;
+  }
+
+  .zrc-mobile-premium-head {
+    align-items: center !important;
+  }
+
+  .zrc-mobile-notification-btn {
+    background: #ffffff !important;
+  }
+
+  .zrc-mobile-project-picker-panel {
+    background: #ffffff !important;
+    border-left: 1px solid #d9e0e7 !important;
+    border-right: 1px solid #d9e0e7 !important;
+    border-bottom: 3px solid #111827 !important;
+  }
+
+  .zrc-mobile-project-option {
+    background: #f3f5f7 !important;
+    border: 0 !important;
+  }
+
+  .zrc-mobile-project-option.is-active {
+    background: #e8f1ec !important;
+    border: 2px solid #9bb6a5 !important;
+    box-shadow: none !important;
+  }
+
+  .zrc-mobile-project-option.is-active strong {
+    color: #10281b !important;
+  }
+
+  .zrc-mobile-project-option.is-active small {
+    color: #557064 !important;
+  }
+
+  .zrc-mobile-project-option.is-active small::before {
+    content: "● ";
+    color: #6f9b83 !important;
+  }
+
+  .zrc-mobile-empty-task {
+    background: #ffffff !important;
+  }
+
+  .zrc-mobile-wizard-sheet,
+  .zrc-mobile-wizard-option,
+  .zrc-mobile-wizard-field input {
+    background: #ffffff !important;
+  }
+}

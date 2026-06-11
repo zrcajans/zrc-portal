@@ -1,7 +1,6 @@
 {
-  "build": "v393-safe-mobile-logo-pastel-branding",
-  "note": "Mobil başlığa ZRC logosu eklendi, sekme/favicon ZRC yapıldı, seçili proje tasarımı pastel kurumsal dile çekildi.",
-  "logoSource": "public/zrc-apple-touch-icon.png",
-  "commitBefore": "062caa4",
-  "createdAt": "2026-06-11T18:15:46.025807+00:00"
+  "build": "v393b-safe-logo-solid-branding",
+  "note": "Logo doğrudan projeye gömüldü, mobil başlıkta gerçek img olarak gösterildi, şeffaf/açık turuncu seçim dili kaldırıldı.",
+  "commitBefore": "aaf392f",
+  "createdAt": "2026-06-11T18:20:52.984893+00:00"
 }
