@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v372-safe-mobile-overflow-fix';
+const ZRC_APP_BUILD_LABEL = 'v373-safe-mobile-task-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -13257,7 +13257,7 @@ function App() {
                 <small>Proje seçimi</small>
                 <strong>{selectedProject || 'Proje seç'}</strong>
               </div>
-              <span>{isMobileProjectPickerOpen ? '−' : '+'}</span>
+              <span>{isMobileProjectPickerOpen ? '⌃' : '⌄'}</span>
             </button>
 
             {isMobileProjectPickerOpen && (
@@ -13351,7 +13351,10 @@ function App() {
                     )}
 
                     <div className="zrc-mobile-task-date-row">
-                      <span>{task.dueDate || task.due_date || 'Tarih yok'}</span>
+                      {(task.startDate || task.start_date) && (
+                        <span>Başlangıç: {task.startDate || task.start_date}</span>
+                      )}
+                      <span>Bitiş: {task.dueDate || task.due_date || task.endDate || task.end_date || 'Tarih yok'}</span>
                     </div>
                   </div>
                 ))
