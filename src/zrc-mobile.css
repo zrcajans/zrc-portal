@@ -110,3 +110,41 @@
     width: calc(100% - 16px) !important;
   }
 }
+
+/* ZRC Mobile Board Comfort v362 */
+@media (max-width: 768px) {
+  .zrc-project-board-page {
+    padding-bottom: 92px !important;
+  }
+  .zrc-project-board-page [class*="grid-cols-2"], .zrc-project-board-page [class*="grid-cols-3"], .zrc-project-board-page [class*="grid-cols-4"] {
+    grid-template-columns: 1fr !important;
+  }
+  .zrc-project-board-page [class*="overflow-x-auto"] {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  .zrc-project-board-page [class*="min-w-[280px]"], .zrc-project-board-page [class*="min-w-[300px]"], .zrc-project-board-page [class*="min-w-[320px]"], .zrc-project-board-page [class*="w-[280px]"], .zrc-project-board-page [class*="w-[300px]"], .zrc-project-board-page [class*="w-[320px]"] {
+    width: calc(100vw - 38px) !important;
+    min-width: calc(100vw - 38px) !important;
+    max-width: calc(100vw - 38px) !important;
+    scroll-snap-align: center;
+  }
+  .zrc-project-board-page [class*="rounded-[22px]"], .zrc-project-board-page [class*="rounded-[24px]"], .zrc-project-board-page [class*="rounded-[28px]"] {
+    border-radius: 18px !important;
+  }
+  .zrc-project-board-page button {
+    min-height: 40px;
+  }
+  .zrc-project-board-page textarea {
+    min-height: 96px;
+  }
+}
+@media (max-width: 480px) {
+  .zrc-project-board-page [class*="min-w-[280px]"], .zrc-project-board-page [class*="min-w-[300px]"], .zrc-project-board-page [class*="min-w-[320px]"], .zrc-project-board-page [class*="w-[280px]"], .zrc-project-board-page [class*="w-[300px]"], .zrc-project-board-page [class*="w-[320px]"] {
+    width: calc(100vw - 28px) !important;
+    min-width: calc(100vw - 28px) !important;
+    max-width: calc(100vw - 28px) !important;
+  }
+}
