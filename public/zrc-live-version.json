@@ -1,6 +1,6 @@
 {
-  "build": "v388-safe-mobile-active-button-fix",
-  "note": "Mobil Aktife Al butonu küçültüldü ve görev taşınırken eski kolon kopyası engellendi.",
-  "commitBefore": "1fe202e",
-  "createdAt": "2026-06-11T17:46:57.184661+00:00"
+  "build": "v389-safe-mobile-card-refresh",
+  "note": "Mobil Aktife Al rengi #083f1f yapıldı, pull-to-refresh eklendi, görev kartları köşeli ve kontursuz hale getirildi.",
+  "commitBefore": "4ed4e0c",
+  "createdAt": "2026-06-11T17:51:32.524991+00:00"
 }

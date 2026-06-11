@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v388-safe-mobile-active-button-fix';
+const ZRC_APP_BUILD_LABEL = 'v389-safe-mobile-card-refresh';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -13353,7 +13353,28 @@ function App() {
 
         
         
-        <div className="zrc-mobile-simple-workspace">
+        <div
+          className="zrc-mobile-simple-workspace"
+          onTouchStart={(event) => {
+            const scroller = event.currentTarget.closest('.zrc-main-shell');
+            const scrollTop = Number(scroller?.scrollTop || window.scrollY || document.documentElement.scrollTop || 0);
+
+            if (scrollTop <= 2) {
+              window.__zrcMobilePullStartY = event.touches?.[0]?.clientY || 0;
+            } else {
+              window.__zrcMobilePullStartY = null;
+            }
+          }}
+          onTouchEnd={(event) => {
+            const startY = Number(window.__zrcMobilePullStartY || 0);
+            const endY = Number(event.changedTouches?.[0]?.clientY || 0);
+            window.__zrcMobilePullStartY = null;
+
+            if (startY && endY - startY > 95) {
+              window.location.reload();
+            }
+          }}
+        >
           <div className="zrc-mobile-premium-head">
             <div>
               <div className="zrc-mobile-premium-kicker">ZRC Mobil</div>
@@ -13496,9 +13517,6 @@ function App() {
                         <button
                           type="button"
                           className="zrc-mobile-task-active-btn"
-                          style={{
-                            backgroundColor: ((boardColumns || []).find((column) => normalizeColumnTitleForDisplay(column.title) === 'Aktif')?.color || '#0f5132')
-                          }}
                           onClick={(event) => {
                             event.stopPropagation();
                             moveMobileTaskToActiveColumn(task);

@@ -1650,3 +1650,45 @@
     max-width: calc(100% - 86px) !important;
   }
 }
+
+/* ZRC Mobile Card Refresh v389 */
+@media (max-width: 768px) {
+  .zrc-mobile-simple-workspace {
+    overscroll-behavior-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .zrc-main-shell {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .zrc-mobile-task-card {
+    border: 0 !important;
+    outline: 0 !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055) !important;
+    padding: 13px 90px 13px 13px !important;
+  }
+
+  .zrc-mobile-task-section {
+    border-radius: 18px !important;
+  }
+
+  .zrc-mobile-task-active-btn {
+    background: #083f1f !important;
+    background-color: #083f1f !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(8, 63, 31, 0.20) !important;
+  }
+
+  .zrc-mobile-task-active-btn:active {
+    background: #062f18 !important;
+    background-color: #062f18 !important;
+  }
+
+  .zrc-mobile-task-date-row span {
+    border: 0 !important;
+  }
+}
