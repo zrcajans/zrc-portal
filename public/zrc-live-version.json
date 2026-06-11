@@ -1,6 +1,6 @@
 {
-  "build": "v389-safe-mobile-card-refresh",
-  "note": "Mobil Aktife Al rengi #083f1f yapıldı, pull-to-refresh eklendi, görev kartları köşeli ve kontursuz hale getirildi.",
-  "commitBefore": "4ed4e0c",
-  "createdAt": "2026-06-11T17:51:32.524991+00:00"
+  "build": "v390b-safe-mobile-selected-project-native-scroll",
+  "note": "Mobilde seçili proje zemini kaldırıldı, proje oku alt ortaya alındı, zorla refresh kaldırıldı.",
+  "commitBefore": "fbc88e8",
+  "createdAt": "2026-06-11T17:58:40.208Z"
 }

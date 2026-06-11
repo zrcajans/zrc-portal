@@ -1692,3 +1692,87 @@
     border: 0 !important;
   }
 }
+
+/* ZRC Mobile Selected Project + Native Scroll v390b */
+@media (max-width: 768px) {
+  html,
+  body,
+  #root,
+  .zrc-main-shell,
+  .zrc-mobile-simple-workspace {
+    overscroll-behavior-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .zrc-main-shell {
+    overflow-y: auto !important;
+  }
+
+  .zrc-mobile-simple-workspace {
+    overflow: visible !important;
+  }
+
+  /* Seçili proje beyaz kutusu kalksın, görev kartları beyaz kalsın */
+  .zrc-mobile-task-section {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    outline: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .zrc-mobile-task-section-head {
+    padding: 0 !important;
+    margin-bottom: 14px !important;
+  }
+
+  .zrc-mobile-task-list {
+    margin-top: 14px !important;
+  }
+
+  .zrc-mobile-task-card {
+    background: #ffffff !important;
+  }
+
+  /* Proje seçimi oku alt ortaya gelsin */
+  .zrc-mobile-project-picker {
+    position: relative !important;
+    overflow: visible !important;
+    margin-bottom: 34px !important;
+  }
+
+  .zrc-mobile-project-picker-btn {
+    position: relative !important;
+    overflow: visible !important;
+    padding-right: 18px !important;
+    padding-bottom: 24px !important;
+  }
+
+  .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > span {
+    position: absolute !important;
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: -23px !important;
+    transform: translateX(-50%) !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    border-radius: 999px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    background: #263247 !important;
+    color: #ffffff !important;
+    border: 2px solid rgba(255,255,255,0.14) !important;
+    box-shadow: 0 12px 26px rgba(8,15,35,0.28) !important;
+    z-index: 30 !important;
+    font-size: 24px !important;
+    font-weight: 950 !important;
+  }
+}
