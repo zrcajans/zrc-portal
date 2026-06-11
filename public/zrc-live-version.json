@@ -1,6 +1,6 @@
 {
-  "build": "v391-safe-mobile-picker-active-hide",
-  "note": "Mobil proje seçimi ortalandı, panel butona bağlandı, Aktif görevler gizlendi, mobil içerik daraltıldı.",
-  "commitBefore": "26823ac",
-  "createdAt": "2026-06-11T18:04:17.428619+00:00"
+  "build": "v392-safe-mobile-project-picker-design",
+  "note": "Mobil proje seçim butonu kısaltıldı ve açılır panel tasarımı sadeleştirildi.",
+  "commitBefore": "d91a14b",
+  "createdAt": "2026-06-11T18:07:50.693Z"
 }
