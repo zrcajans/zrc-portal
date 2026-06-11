@@ -1,6 +1,6 @@
 {
-  "build": "v374-safe-mobile-button-card-fix",
-  "note": "Mobil görev oluşturma butonu, tarih etiketleri, proje oku ve küçük görev kartları düzeltildi.",
-  "commitBefore": "5054971",
-  "createdAt": "2026-06-11T16:18:41.016764+00:00"
+  "build": "v375-safe-mobile-wizard-kesin-fix",
+  "note": "Mobil Görev Oluştur penceresinin CSS tarafından gizlenmesi düzeltildi.",
+  "commitBefore": "992cf8b",
+  "createdAt": "2026-06-11T16:20:43.531860+00:00"
 }
