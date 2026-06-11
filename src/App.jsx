@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v387-safe-mobile-activate-task';
+const ZRC_APP_BUILD_LABEL = 'v388-safe-mobile-active-button-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -7076,6 +7076,14 @@ function App() {
     }
 
     const targetStatus = activeColumn.title || 'Aktif';
+    const rawTaskId = String(taskToMove.id || '').trim();
+    const taskSupabaseId = String(
+      taskToMove.supabaseId ||
+      taskToMove.supabase_id ||
+      (rawTaskId.startsWith('supabase-') ? rawTaskId.replace('supabase-', '') : '') ||
+      (isSupabaseUuid(rawTaskId) ? rawTaskId : '') ||
+      ''
+    ).trim();
 
     const movedTask = {
       ...taskToMove,
@@ -7129,7 +7137,31 @@ function App() {
     });
 
     try {
-      await saveTaskToSupabaseForProject(activeProjectName, movedTask, targetStatus);
+      const workspaceId = getCurrentSupabaseWorkspaceId();
+
+      if (taskSupabaseId && workspaceId) {
+        const projectId = await ensureSupabaseProject(activeProjectName);
+        const targetColumnIndex = Math.max(
+          0,
+          (boardColumns || []).findIndex((column) => normalizeColumnTitleForDisplay(column.title) === 'Aktif')
+        );
+        const activeColumnId = await ensureSupabaseColumn(projectId, activeColumn, targetColumnIndex);
+
+        const { error } = await supabase
+          .from('tasks')
+          .update({
+            column_id: activeColumnId,
+            status: targetStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', taskSupabaseId)
+          .eq('workspace_id', workspaceId);
+
+        if (error) throw error;
+      } else {
+        await saveTaskToSupabaseForProject(activeProjectName, movedTask, targetStatus);
+      }
+
       setSupabaseWriteInfo('saved', 'Görev Aktif kolonuna taşındı');
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
     } catch (error) {
@@ -13464,6 +13496,9 @@ function App() {
                         <button
                           type="button"
                           className="zrc-mobile-task-active-btn"
+                          style={{
+                            backgroundColor: ((boardColumns || []).find((column) => normalizeColumnTitleForDisplay(column.title) === 'Aktif')?.color || '#0f5132')
+                          }}
                           onClick={(event) => {
                             event.stopPropagation();
                             moveMobileTaskToActiveColumn(task);
