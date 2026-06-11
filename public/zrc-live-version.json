@@ -1,6 +1,6 @@
 {
-  "build": "v370b-safe-mobile-simple-workspace",
-  "note": "Mobilde sadece proje listesi, görev listesi ve görev oluşturma ekranı.",
-  "commitBefore": "5008b74",
-  "createdAt": "2026-06-11T15:46:31.030799+00:00"
+  "build": "v371-safe-mobile-minimal-flow",
+  "note": "Mobil minimal proje akışı: proje picker, sade görev kartları, 3 adımlı görev oluşturma wizard.",
+  "commitBefore": "5e3b949",
+  "createdAt": "2026-06-11T16:08:13.521514+00:00"
 }

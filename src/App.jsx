@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v370b-safe-mobile-simple-workspace';
+const ZRC_APP_BUILD_LABEL = 'v371-safe-mobile-minimal-flow';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1737,6 +1737,18 @@ function App() {
   );
 
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
+
+  const [isMobileProjectPickerOpen, setIsMobileProjectPickerOpen] = useState(false);
+  const [isMobileTaskWizardOpen, setIsMobileTaskWizardOpen] = useState(false);
+  const [mobileTaskWizardStep, setMobileTaskWizardStep] = useState(1);
+  const [mobileTaskWizardData, setMobileTaskWizardData] = useState({
+    projectName: '',
+    startDate: '',
+    endDate: '',
+    assigneeId: '',
+    assigneeName: ''
+  });
+
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [globalSearchFilter, setGlobalSearchFilter] = useState('Tümü');
 
@@ -13207,10 +13219,11 @@ function App() {
 
 
         
+        
         <div className="zrc-mobile-simple-workspace">
-          <div className="zrc-mobile-simple-head">
+          <div className="zrc-mobile-premium-head">
             <div>
-              <div className="zrc-mobile-simple-kicker">ZRC Mobil</div>
+              <div className="zrc-mobile-premium-kicker">ZRC Mobil</div>
               <h1>Projeler</h1>
             </div>
 
@@ -13234,35 +13247,52 @@ function App() {
             </button>
           </div>
 
-          <div className="zrc-mobile-project-list">
-            {(visibleProjectNames.length ? visibleProjectNames : projects).map((project) => {
-              const isActiveProject = project === selectedProject;
+          <div className="zrc-mobile-project-picker">
+            <button
+              type="button"
+              className="zrc-mobile-project-picker-btn"
+              onClick={() => setIsMobileProjectPickerOpen((prev) => !prev)}
+            >
+              <div>
+                <small>Proje seçimi</small>
+                <strong>{selectedProject || 'Proje seç'}</strong>
+              </div>
+              <span>{isMobileProjectPickerOpen ? '−' : '+'}</span>
+            </button>
 
-              return (
-                <button
-                  key={project}
-                  type="button"
-                  className={`zrc-mobile-project-card ${isActiveProject ? 'is-active' : ''}`}
-                  onClick={() => {
-                    setSelectedProject(project);
-                    setActiveMenu('Projeler');
-                    setActiveContentMenu('Projeler');
-                    setActiveTab('Görevler');
-                    setIsPanelOpen(false);
-                    setIsMessagesOpen(false);
-                    setIsNotificationsOpen(false);
-                    setIsGlobalSearchOpen(false);
-                  }}
-                >
-                  <span>{project}</span>
-                  <small>{isActiveProject ? 'Açık proje' : 'Projeyi aç'}</small>
-                </button>
-              );
-            })}
+            {isMobileProjectPickerOpen && (
+              <div className="zrc-mobile-project-picker-panel">
+                {(visibleProjectNames?.length ? visibleProjectNames : projects).map((project) => {
+                  const isActiveProject = project === selectedProject;
+
+                  return (
+                    <button
+                      key={project}
+                      type="button"
+                      className={`zrc-mobile-project-option ${isActiveProject ? 'is-active' : ''}`}
+                      onClick={() => {
+                        setSelectedProject(project);
+                        setActiveMenu('Projeler');
+                        setActiveContentMenu('Projeler');
+                        setActiveTab('Görevler');
+                        setIsMobileProjectPickerOpen(false);
+                        setIsPanelOpen(false);
+                        setIsMessagesOpen(false);
+                        setIsNotificationsOpen(false);
+                        setIsGlobalSearchOpen(false);
+                      }}
+                    >
+                      <strong>{project}</strong>
+                      <small>{isActiveProject ? 'Açık proje' : 'Projeyi aç'}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="zrc-mobile-task-section">
-            <div className="zrc-mobile-task-titlebar">
+            <div className="zrc-mobile-task-section-head">
               <div>
                 <small>Seçili proje</small>
                 <h2>{selectedProject || 'Proje seç'}</h2>
@@ -13272,18 +13302,18 @@ function App() {
                 type="button"
                 className="zrc-mobile-create-task-btn"
                 onClick={() => {
-                  setEditingTask(null);
-                  setCalendarNewTaskDate(null);
-                  setCalendarTaskModalContext({
-                    isOpen: false,
-                    pendingOpen: false,
-                    projectName: '',
-                    date: ''
+                  setIsMobileTaskWizardOpen(true);
+                  setMobileTaskWizardStep(1);
+                  setMobileTaskWizardData({
+                    projectName: selectedProject || '',
+                    startDate: '',
+                    endDate: '',
+                    assigneeId: '',
+                    assigneeName: ''
                   });
-                  setIsTaskModalOpen(true);
                 }}
               >
-                + Görev
+                Görev Oluştur
               </button>
             </div>
 
@@ -13307,17 +13337,20 @@ function App() {
                   }))
                 ).map((task) => (
                   <div key={task.id || task.title} className="zrc-mobile-task-card">
-                    <div className="zrc-mobile-task-topline">
-                      <span style={{ backgroundColor: task.columnColor || '#ff3600' }} />
-                      <small>{task.columnTitle || task.status || 'Görev'}</small>
+                    <div className="zrc-mobile-task-card-top">
+                      <div className="zrc-mobile-task-status">
+                        <span style={{ backgroundColor: task.columnColor || '#ff5b1f' }} />
+                        <small>{task.columnTitle || task.status || 'Görev'}</small>
+                      </div>
                     </div>
 
                     <h3>{task.title || 'Adsız görev'}</h3>
 
-                    {task.description && <p>{task.description}</p>}
+                    {task.description && (
+                      <p>{task.description}</p>
+                    )}
 
-                    <div className="zrc-mobile-task-meta">
-                      <span>{task.priority || 'Normal'}</span>
+                    <div className="zrc-mobile-task-date-row">
                       <span>{task.dueDate || task.due_date || 'Tarih yok'}</span>
                     </div>
                   </div>
@@ -13326,6 +13359,198 @@ function App() {
             </div>
           </div>
         </div>
+
+        {isMobileTaskWizardOpen && (
+          <>
+            <div
+              className="zrc-mobile-wizard-overlay"
+              onClick={() => setIsMobileTaskWizardOpen(false)}
+            />
+
+            <div className="zrc-mobile-wizard-sheet" onClick={(event) => event.stopPropagation()}>
+              <div className="zrc-mobile-wizard-header">
+                <div>
+                  <small>Hızlı Görev Akışı</small>
+                  <h3>Görev Oluştur</h3>
+                </div>
+
+                <button
+                  type="button"
+                  className="zrc-mobile-wizard-close"
+                  onClick={() => setIsMobileTaskWizardOpen(false)}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="zrc-mobile-wizard-steps">
+                <span className={mobileTaskWizardStep === 1 ? 'is-active' : ''}>1</span>
+                <span className={mobileTaskWizardStep === 2 ? 'is-active' : ''}>2</span>
+                <span className={mobileTaskWizardStep === 3 ? 'is-active' : ''}>3</span>
+              </div>
+
+              {mobileTaskWizardStep === 1 && (
+                <div className="zrc-mobile-wizard-body">
+                  <div className="zrc-mobile-wizard-title">1 — Proje Adı</div>
+                  <div className="zrc-mobile-wizard-desc">Görevin ekleneceği projeyi seç.</div>
+
+                  <div className="zrc-mobile-wizard-options">
+                    {(visibleProjectNames?.length ? visibleProjectNames : projects).map((project) => (
+                      <button
+                        key={project}
+                        type="button"
+                        className={`zrc-mobile-wizard-option ${mobileTaskWizardData.projectName === project ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setMobileTaskWizardData((prev) => ({
+                            ...prev,
+                            projectName: project
+                          }));
+                        }}
+                      >
+                        {project}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {mobileTaskWizardStep === 2 && (
+                <div className="zrc-mobile-wizard-body">
+                  <div className="zrc-mobile-wizard-title">2 — Tarihler</div>
+                  <div className="zrc-mobile-wizard-desc">Başlangıç ve bitiş tarihini gir.</div>
+
+                  <label className="zrc-mobile-wizard-field">
+                    <span>Başlangıç Tarihi</span>
+                    <input
+                      type="date"
+                      value={mobileTaskWizardData.startDate}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setMobileTaskWizardData((prev) => ({
+                          ...prev,
+                          startDate: value
+                        }));
+                      }}
+                    />
+                  </label>
+
+                  <label className="zrc-mobile-wizard-field">
+                    <span>Bitiş Tarihi</span>
+                    <input
+                      type="date"
+                      value={mobileTaskWizardData.endDate}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setMobileTaskWizardData((prev) => ({
+                          ...prev,
+                          endDate: value
+                        }));
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {mobileTaskWizardStep === 3 && (
+                <div className="zrc-mobile-wizard-body">
+                  <div className="zrc-mobile-wizard-title">3 — Görevli Seçimi</div>
+                  <div className="zrc-mobile-wizard-desc">Görevi kime atayacağını seç.</div>
+
+                  <div className="zrc-mobile-wizard-options">
+                    {(Array.isArray(activeTeamMembers) ? activeTeamMembers : (Array.isArray(teamMembers) ? teamMembers : []))
+                      .filter((member) => normalizeTeamRole(member?.role) !== 'Müşteri/Misafir')
+                      .map((member) => {
+                        const memberId = member.id || member.user_id || member.username || member.name;
+                        const memberName = member.name || member.username || 'İsimsiz kullanıcı';
+
+                        return (
+                          <button
+                            key={memberId}
+                            type="button"
+                            className={`zrc-mobile-wizard-option ${mobileTaskWizardData.assigneeId === memberId ? 'is-active' : ''}`}
+                            onClick={() => {
+                              setMobileTaskWizardData((prev) => ({
+                                ...prev,
+                                assigneeId: memberId,
+                                assigneeName: memberName
+                              }));
+                            }}
+                          >
+                            {memberName}
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              <div className="zrc-mobile-wizard-footer">
+                <button
+                  type="button"
+                  className="zrc-mobile-wizard-secondary"
+                  onClick={() => {
+                    if (mobileTaskWizardStep === 1) {
+                      setIsMobileTaskWizardOpen(false);
+                    } else {
+                      setMobileTaskWizardStep((prev) => prev - 1);
+                    }
+                  }}
+                >
+                  {mobileTaskWizardStep === 1 ? 'Kapat' : 'Geri'}
+                </button>
+
+                {mobileTaskWizardStep < 3 ? (
+                  <button
+                    type="button"
+                    className="zrc-mobile-wizard-primary"
+                    onClick={() => {
+                      if (mobileTaskWizardStep === 1 && !mobileTaskWizardData.projectName) return;
+                      setMobileTaskWizardStep((prev) => prev + 1);
+                    }}
+                  >
+                    Devam
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="zrc-mobile-wizard-primary"
+                    onClick={() => {
+                      try {
+                        window.localStorage.setItem(
+                          'zrc-mobile-task-wizard-prefill',
+                          JSON.stringify({
+                            projectName: mobileTaskWizardData.projectName,
+                            startDate: mobileTaskWizardData.startDate,
+                            dueDate: mobileTaskWizardData.endDate,
+                            assigneeId: mobileTaskWizardData.assigneeId,
+                            assigneeName: mobileTaskWizardData.assigneeName
+                          })
+                        );
+                      } catch (error) {}
+
+                      if (mobileTaskWizardData.projectName) {
+                        setSelectedProject(mobileTaskWizardData.projectName);
+                      }
+
+                      setIsMobileTaskWizardOpen(false);
+                      setEditingTask(null);
+                      setCalendarNewTaskDate(null);
+                      setCalendarTaskModalContext({
+                        isOpen: false,
+                        pendingOpen: false,
+                        projectName: '',
+                        date: ''
+                      });
+                      setIsTaskModalOpen(true);
+                    }}
+                  >
+                    Formu Aç
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
 
         {isMessagesOpen && (
