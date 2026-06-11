@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v328-safe-profil-scroll-kesin-fix';
+const ZRC_APP_BUILD_LABEL = 'v339c-kesin-gorev-duzeltme';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -5934,7 +5934,27 @@ function App() {
           return item.id === column.id || itemTitle === columnTitle;
         });
 
-        const localOnlyTasks = [];
+        // v339c-kesin-gorev-duzeltme:
+        // Supabase görev listesi eksik dönerse ekrandaki mevcut görevleri silme.
+        const localOnlyTasks = (existingColumn?.tasks || []).filter((existingTask) => {
+          if (!existingTask?.id) return false;
+          if (existingTask.isArchived || existingTask.is_archived) return false;
+
+          const existingId = String(existingTask.id || '').trim();
+          const existingSupabaseId = String(existingTask.supabaseId || '').trim();
+
+          return !(dbTasks || []).some((dbTask) => {
+            const dbId = String(dbTask.id || '').trim();
+
+            if (!dbId) return false;
+
+            return (
+              existingSupabaseId === dbId ||
+              existingId === dbId ||
+              existingId === `supabase-${dbId}`
+            );
+          });
+        });
 
         const dbTasksForColumn = (dbTasks || [])
           .filter((task) => {
@@ -6115,7 +6135,11 @@ function App() {
 
   // --- MODAL KAYIT İŞLEMLERİ ---
   const handleSaveTask = async (taskData, targetStatus) => {
-    const isEditingExistingTask = Boolean(taskData?.id);
+    // v339c-kesin-gorev-duzeltme:
+    // Yeni görevde TaskModal otomatik id üretiyor.
+    // Bu yüzden taskData.id varsa bile bu düzenleme anlamına gelmez.
+    // Gerçek düzenleme sadece editingTask varsa yapılır.
+    const isEditingExistingTask = Boolean(editingTask?.id);
 
     if (!requirePermission(isEditingExistingTask ? 'editTasks' : 'createTasks', 'Bu rol görev oluşturamaz veya düzenleyemez.')) return;
 
@@ -6126,30 +6150,51 @@ function App() {
       return;
     }
 
-    const previousColumn = boardColumns.find((column) =>
-      (column.tasks || []).some((task) =>
-        task.id === taskData.id ||
-        (task.supabaseId && task.supabaseId === taskData.supabaseId) ||
-        (task.supabaseId && task.id === `supabase-${task.supabaseId}`)
-      )
-    );
-    const previousTask = previousColumn?.tasks.find((task) =>
-      task.id === taskData.id ||
-      (task.supabaseId && task.supabaseId === taskData.supabaseId) ||
-      (task.supabaseId && task.id === `supabase-${task.supabaseId}`)
-    ) || null;
-    const existingSupabaseTaskId =
-      taskData.supabaseId ||
-      previousTask?.supabaseId ||
-      getSupabaseTaskIdFromLocalTask(taskData) ||
-      getSupabaseTaskIdFromLocalTask(taskData.id);
+    const previousColumn = isEditingExistingTask
+      ? boardColumns.find((column) =>
+          (column.tasks || []).some((task) =>
+            task.id === editingTask?.id ||
+            task.id === taskData.id ||
+            (editingTask?.supabaseId && task.supabaseId === editingTask.supabaseId) ||
+            (task.supabaseId && task.supabaseId === taskData.supabaseId) ||
+            (task.supabaseId && task.id === `supabase-${task.supabaseId}`)
+          )
+        )
+      : null;
+
+    const previousTask = isEditingExistingTask
+      ? previousColumn?.tasks.find((task) =>
+          task.id === editingTask?.id ||
+          task.id === taskData.id ||
+          (editingTask?.supabaseId && task.supabaseId === editingTask.supabaseId) ||
+          (task.supabaseId && task.supabaseId === taskData.supabaseId) ||
+          (task.supabaseId && task.id === `supabase-${task.supabaseId}`)
+        ) || null
+      : null;
+
+    const existingSupabaseTaskId = isEditingExistingTask
+      ? (
+          editingTask?.supabaseId ||
+          taskData.supabaseId ||
+          previousTask?.supabaseId ||
+          getSupabaseTaskIdFromLocalTask(editingTask) ||
+          getSupabaseTaskIdFromLocalTask(taskData) ||
+          getSupabaseTaskIdFromLocalTask(editingTask?.id || taskData.id)
+        )
+      : '';
 
     const finalTargetStatus = targetStatus || taskData.status || previousColumn?.title || boardColumns[0]?.title || 'Yeni Görev';
+    const generatedTaskId = `task-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
     const cleanedTaskData = {
       ...(previousTask || {}),
       ...taskData,
-      id: previousTask?.id || taskData.id || `task-${Date.now()}`,
-      supabaseId: existingSupabaseTaskId || taskData.supabaseId || previousTask?.supabaseId || '',
+      id: isEditingExistingTask
+        ? (previousTask?.id || editingTask?.id || taskData.id || generatedTaskId)
+        : generatedTaskId,
+      supabaseId: isEditingExistingTask
+        ? (existingSupabaseTaskId || taskData.supabaseId || previousTask?.supabaseId || editingTask?.supabaseId || '')
+        : '',
       status: finalTargetStatus,
       assignees: normalizeAssigneesForCurrentAccountSave(
         taskData.assignees || previousTask?.assignees || [],
@@ -6176,7 +6221,12 @@ function App() {
     setBoardColumns((prev) => {
       const updatedCols = prev.map((col) => ({
         ...col,
-        tasks: col.tasks.filter((t) => t.id !== cleanedTaskData.id)
+        tasks: isEditingExistingTask
+          ? (col.tasks || []).filter((t) =>
+              t.id !== cleanedTaskData.id &&
+              !(cleanedTaskData.supabaseId && t.supabaseId === cleanedTaskData.supabaseId)
+            )
+          : [...(col.tasks || [])]
       }));
 
       const targetColIndex = updatedCols.findIndex((c) => c.title === finalTargetStatus);
@@ -6244,7 +6294,7 @@ function App() {
     const didSaveToSupabase = await saveTaskToSupabase(cleanedTaskData, finalTargetStatus || targetColumn?.title);
 
     if (didSaveToSupabase) {
-      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
+      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 1500);
     } else if (existingSupabaseTaskId) {
       alert('Görev yerelde güncellendi ama Supabase kaydı tamamlanamadı. Sağ alttaki hata mesajını kontrol et.');
       return;

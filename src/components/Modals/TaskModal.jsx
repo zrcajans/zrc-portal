@@ -787,7 +787,7 @@ export default function TaskModal({
 
     const task = {
       ...(initialData || {}),
-      id: initialData?.id || `task-${Date.now()}`,
+      id: initialData?.id || `task-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       title: form.title.trim(),
       status: form.status,
       priority: form.priority,
