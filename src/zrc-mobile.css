@@ -2280,30 +2280,7 @@
   }
 }
 
-/* Masaüstünde de sol menü üstünde logo görünsün */
-@media (min-width: 769px) {
-  aside[class*="sidebar"] {
-    position: relative !important;
-  }
 
-  aside[class*="sidebar"]::before {
-    content: "" !important;
-    position: absolute !important;
-    top: 18px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 44px !important;
-    height: 44px !important;
-    border-radius: 999px !important;
-    background-color: #ffffff !important;
-    background-image: url('/zrc-brand-logo.svg') !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    background-size: 34px auto !important;
-    z-index: 9999 !important;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16) !important;
-  }
-}
 
 /* ZRC Existing Logo Visible v395b */
 @media (max-width: 768px) {
@@ -2368,10 +2345,12 @@
   }
 }
 
+/* ZRC Web Sidebar Logo Rollback v396 */
 @media (min-width: 769px) {
   aside[class*="sidebar"]::before,
   .zrc-sidebar::before {
-    background-image: url('/favicon-zrc.svg') !important;
-    background-size: 38px 38px !important;
+    content: none !important;
+    display: none !important;
+    background-image: none !important;
   }
 }

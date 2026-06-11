@@ -1,6 +1,7 @@
 {
-  "build": "v395b-safe-existing-logo-visible",
-  "note": "Mevcut public/zrc-logo.png mobil başlığa uygulandı, favicon kare yapıldı, seçili proje ortalandı.",
-  "commitBefore": "d968b3e",
-  "createdAt": "2026-06-11T18:33:34.047167+00:00"
+  "build": "v396-safe-web-sidebar-logo-rollback",
+  "note": "Web sol üst/sidebar logo müdahalesi geri alındı. Mobil logo ve mobil görev akışına dokunulmadı.",
+  "removedDesktopLogoBlocks": 2,
+  "commitBefore": "3dc1d82",
+  "createdAt": "2026-06-11T18:35:49.046661+00:00"
 }
