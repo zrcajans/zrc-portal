@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v384-safe-mobile-notification-panel';
+const ZRC_APP_BUILD_LABEL = 'v387-safe-mobile-activate-task';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -7060,6 +7060,83 @@ function App() {
 
   const visibleProjectNames = projects.filter((projectName) => isProjectVisibleForCurrentUser(projectName));
 
+
+  const moveMobileTaskToActiveColumn = async (taskToMove = {}) => {
+    const activeProjectName = selectedProject;
+
+    if (!activeProjectName || !taskToMove?.id) return;
+
+    const activeColumn = (boardColumns || []).find(
+      (column) => normalizeColumnTitleForDisplay(column.title) === 'Aktif'
+    );
+
+    if (!activeColumn) {
+      alert('Aktif kolonu bulunamadı.');
+      return;
+    }
+
+    const targetStatus = activeColumn.title || 'Aktif';
+
+    const movedTask = {
+      ...taskToMove,
+      projectName: activeProjectName,
+      project: activeProjectName,
+      status: targetStatus,
+      columnTitle: targetStatus,
+      updatedAt: new Date().toISOString()
+    };
+
+    const isSameTask = (left = {}, right = {}) => {
+      const leftId = String(left.id || '').trim();
+      const rightId = String(right.id || '').trim();
+      const leftSupabaseId = String(left.supabaseId || left.supabase_id || '').trim();
+      const rightSupabaseId = String(right.supabaseId || right.supabase_id || '').trim();
+
+      return Boolean(
+        (leftId && rightId && leftId === rightId) ||
+        (leftSupabaseId && rightSupabaseId && leftSupabaseId === rightSupabaseId) ||
+        (leftSupabaseId && rightId === `supabase-${leftSupabaseId}`) ||
+        (rightSupabaseId && leftId === `supabase-${rightSupabaseId}`)
+      );
+    };
+
+    setProjectBoards((prevBoards) => {
+      const existingBoard = prevBoards[activeProjectName] || createDefaultProjectBoard();
+
+      const nextColumns = (existingBoard.columns || []).map((column) => ({
+        ...column,
+        tasks: (column.tasks || []).filter((task) => !isSameTask(task, movedTask))
+      }));
+
+      const targetIndex = nextColumns.findIndex(
+        (column) => normalizeColumnTitleForDisplay(column.title) === 'Aktif'
+      );
+
+      if (targetIndex < 0) return prevBoards;
+
+      nextColumns[targetIndex] = {
+        ...nextColumns[targetIndex],
+        tasks: [...(nextColumns[targetIndex].tasks || []), movedTask]
+      };
+
+      return {
+        ...prevBoards,
+        [activeProjectName]: {
+          ...existingBoard,
+          columns: nextColumns
+        }
+      };
+    });
+
+    try {
+      await saveTaskToSupabaseForProject(activeProjectName, movedTask, targetStatus);
+      setSupabaseWriteInfo('saved', 'Görev Aktif kolonuna taşındı');
+      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
+    } catch (error) {
+      setSupabaseWriteInfo('error', `Görev Aktif kolonuna taşınamadı: ${error?.message || 'bilinmeyen hata'}`);
+    }
+  };
+
   const visibleBoardColumns = boardColumns.map((column) => ({
     ...column,
     tasks: (column.tasks || []).filter((task) => isTaskVisibleForProject(task, selectedProject))
@@ -13381,6 +13458,21 @@ function App() {
                       )}
                       <span>Bitiş: {task.dueDate || task.due_date || task.endDate || task.end_date || 'Tarih yok'}</span>
                     </div>
+
+                    {normalizeColumnTitleForDisplay(task.columnTitle || task.status || '') !== 'Aktif' && (
+                      <div className="zrc-mobile-task-action-row">
+                        <button
+                          type="button"
+                          className="zrc-mobile-task-active-btn"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            moveMobileTaskToActiveColumn(task);
+                          }}
+                        >
+                          Aktife Al
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))
               )}

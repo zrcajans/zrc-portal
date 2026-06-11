@@ -1580,3 +1580,28 @@
   }
 }
 
+/* ZRC Mobile Activate Task v387 */
+@media (max-width: 768px) {
+  .zrc-mobile-task-action-row {
+    display: flex !important;
+    margin-top: 12px !important;
+  }
+
+  .zrc-mobile-task-active-btn {
+    width: 100% !important;
+    height: 42px !important;
+    border: 0 !important;
+    border-radius: 15px !important;
+    background: #111827 !important;
+    color: #ffffff !important;
+    font-size: 13px !important;
+    font-weight: 950 !important;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.14) !important;
+    touch-action: manipulation !important;
+  }
+
+  .zrc-mobile-task-active-btn:active {
+    transform: scale(0.98) !important;
+    background: #1f2937 !important;
+  }
+}

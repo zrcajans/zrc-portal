@@ -1,6 +1,6 @@
 {
-  "build": "v384-safe-mobile-notification-panel",
-  "note": "Mobil bildirim panelinin sağa taşması düzeltildi. Bildirim sayısı cihazlar arası okundu senkronu ayrıca ele alınacak.",
-  "commitBefore": "535fa66",
-  "createdAt": "2026-06-11T17:04:30.662Z"
+  "build": "v387-safe-mobile-activate-task",
+  "note": "Mobil görev kartlarına Aktife Al butonu eklendi; görev Aktif kolonuna taşınır.",
+  "commitBefore": "62a39fa",
+  "createdAt": "2026-06-11T17:43:33.070687+00:00"
 }
