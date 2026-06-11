@@ -1,0 +1,12 @@
+{
+  "app": "ZRC Portal",
+  "build": "v340-safe-gorev-sistemi-sabitleme",
+  "based_on": "v339c-kesin-gorev-duzeltme",
+  "created_at": "2026-06-11T13:18:08.733Z",
+  "rule": "Bundan sonra görev oluşturma, board yükleme ve localOnlyTasks alanlarına açık onay olmadan dokunulmayacak.",
+  "checks": [
+    "v339c marker App.jsx içinde var",
+    "TaskModal benzersiz yeni görev ID üretimi var",
+    "npm run build başarılı"
+  ]
+}
