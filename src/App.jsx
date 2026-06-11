@@ -13256,14 +13256,14 @@ function App() {
             >
               <div>
                 <small>Proje seçimi</small>
-                <strong>{selectedProject || 'Proje seç'}</strong>
+                <strong>{['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(selectedProject || '').trim()) ? 'Proje seç' : (selectedProject || 'Proje seç')}</strong>
               </div>
               <span>{isMobileProjectPickerOpen ? '⌃' : '⌄'}</span>
             </button>
 
             {isMobileProjectPickerOpen && (
               <div className="zrc-mobile-project-picker-panel">
-                {(visibleProjectNames?.length ? visibleProjectNames : projects).map((project) => {
+                {(Array.from(new Set([...(Array.isArray(visibleProjectNames) ? visibleProjectNames : []), ...(Array.isArray(projects) ? projects : [])])).filter((project) => project && !['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(project).trim()))).map((project) => {
                   const isActiveProject = project === selectedProject;
 
                   return (
@@ -13296,7 +13296,7 @@ function App() {
             <div className="zrc-mobile-task-section-head">
               <div>
                 <small>Seçili proje</small>
-                <h2>{selectedProject || 'Proje seç'}</h2>
+                <h2>{['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(selectedProject || '').trim()) ? 'Proje seç' : (selectedProject || 'Proje seç')}</h2>
               </div>
 
               <button
@@ -13306,7 +13306,7 @@ function App() {
                   setIsMobileTaskWizardOpen(true);
                   setMobileTaskWizardStep(1);
                   setMobileTaskWizardData({
-                    projectName: selectedProject || '',
+                    projectName: ['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(selectedProject || '').trim()) ? '' : (selectedProject || ''),
                     taskTitle: '',
                     startDate: '',
                     endDate: '',
@@ -13401,7 +13401,7 @@ function App() {
                   <div className="zrc-mobile-wizard-desc">Görevin ekleneceği projeyi seç.</div>
 
                   <div className="zrc-mobile-wizard-options">
-                    {(visibleProjectNames?.length ? visibleProjectNames : projects).map((project) => (
+                    {(Array.from(new Set([...(Array.isArray(visibleProjectNames) ? visibleProjectNames : []), ...(Array.isArray(projects) ? projects : [])])).filter((project) => project && !['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(project).trim()))).map((project) => (
                       <button
                         key={project}
                         type="button"
@@ -13578,7 +13578,7 @@ function App() {
                     type="button"
                     className="zrc-mobile-wizard-primary"
                     onClick={() => {
-                      const targetProjectName = mobileTaskWizardData.projectName || selectedProject;
+                      const targetProjectName = mobileTaskWizardData.projectName || (['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(selectedProject || '').trim()) ? '' : selectedProject);
                       const targetColumn = boardColumns?.[0] || {};
                       const targetStatus = targetColumn?.title || 'Yeni Görev';
                       const selectedAssignees = Array.isArray(mobileTaskWizardData.assignees)
