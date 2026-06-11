@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v364-safe-mobile-panels';
+const ZRC_APP_BUILD_LABEL = 'v365-safe-mobile-forms-lists';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {

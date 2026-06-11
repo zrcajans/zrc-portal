@@ -226,3 +226,36 @@
     max-width: calc(100vw - 16px) !important;
   }
 }
+
+/* ZRC Mobile Forms Lists v365 */
+@media (max-width: 768px) {
+  .zrc-team-center-page input, .zrc-team-center-page textarea, .zrc-customer-center-page input, .zrc-customer-center-page textarea {
+    width: 100% !important;
+    min-height: 42px !important;
+  }
+  .zrc-team-center-page button, .zrc-customer-center-page button {
+    min-height: 42px !important;
+  }
+  .zrc-team-center-page [class*="grid-cols-2"], .zrc-team-center-page [class*="grid-cols-3"], .zrc-customer-center-page [class*="grid-cols-2"], .zrc-customer-center-page [class*="grid-cols-3"] {
+    grid-template-columns: 1fr !important;
+  }
+  .zrc-team-center-page [class*="gap-6"], .zrc-customer-center-page [class*="gap-6"] {
+    gap: 12px !important;
+  }
+  .zrc-team-center-page [class*="p-5"], .zrc-customer-center-page [class*="p-5"] {
+    padding: 14px !important;
+  }
+  .zrc-team-center-page [class*="text-[25px]"], .zrc-customer-center-page [class*="text-[25px]"] {
+    font-size: 21px !important;
+  }
+  .zrc-team-center-page [class*="w-[86px]"], .zrc-customer-center-page [class*="w-[86px]"] {
+    width: 72px !important;
+    min-width: 72px !important;
+  }
+  .zrc-team-center-page [class*="justify-between"], .zrc-customer-center-page [class*="justify-between"] {
+    flex-wrap: wrap !important;
+  }
+  .zrc-team-center-page [class*="truncate"], .zrc-customer-center-page [class*="truncate"] {
+    max-width: 100% !important;
+  }
+}
