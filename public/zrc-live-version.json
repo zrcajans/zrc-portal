@@ -1,6 +1,6 @@
 {
-  "build": "v363-live-version-marker",
-  "note": "Canlı site bu dosyayı gösteriyorsa Vercel deploy çalışıyor.",
-  "commit": "2932a0f",
-  "createdAt": "2026-06-11T14:56:15.450Z"
+  "build": "v367-mobile-final-lock",
+  "note": "Mobil paketleri sonrası güvenli sürüm.",
+  "commit": "56db158",
+  "createdAt": "2026-06-11T15:13:45.577Z"
 }
