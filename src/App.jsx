@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v375-safe-mobile-wizard-kesin-fix';
+const ZRC_APP_BUILD_LABEL = 'v376-safe-mobile-4-step-task';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1743,6 +1743,7 @@ function App() {
   const [mobileTaskWizardStep, setMobileTaskWizardStep] = useState(1);
   const [mobileTaskWizardData, setMobileTaskWizardData] = useState({
     projectName: '',
+    taskTitle: '',
     startDate: '',
     endDate: '',
     assigneeId: '',
@@ -13306,6 +13307,7 @@ function App() {
                   setMobileTaskWizardStep(1);
                   setMobileTaskWizardData({
                     projectName: selectedProject || '',
+                    taskTitle: '',
                     startDate: '',
                     endDate: '',
                     assigneeId: '',
@@ -13390,11 +13392,12 @@ function App() {
                 <span className={mobileTaskWizardStep === 1 ? 'is-active' : ''}>1</span>
                 <span className={mobileTaskWizardStep === 2 ? 'is-active' : ''}>2</span>
                 <span className={mobileTaskWizardStep === 3 ? 'is-active' : ''}>3</span>
+                <span className={mobileTaskWizardStep === 4 ? 'is-active' : ''}>4</span>
               </div>
 
               {mobileTaskWizardStep === 1 && (
                 <div className="zrc-mobile-wizard-body">
-                  <div className="zrc-mobile-wizard-title">1 — Proje Adı</div>
+                  <div className="zrc-mobile-wizard-title">1 — Proje Seçimi</div>
                   <div className="zrc-mobile-wizard-desc">Görevin ekleneceği projeyi seç.</div>
 
                   <div className="zrc-mobile-wizard-options">
@@ -13419,7 +13422,29 @@ function App() {
 
               {mobileTaskWizardStep === 2 && (
                 <div className="zrc-mobile-wizard-body">
-                  <div className="zrc-mobile-wizard-title">2 — Tarihler</div>
+                  <div className="zrc-mobile-wizard-title">2 — Görev Adı</div>
+                  <div className="zrc-mobile-wizard-desc">Oluşturulacak görevin adını yaz.</div>
+
+                  <label className="zrc-mobile-wizard-field">
+                    <span>Görev adı</span>
+                    <input
+                      type="text"
+                      value={mobileTaskWizardData.taskTitle}
+                      placeholder="Örn: Instagram post tasarımı"
+                      onChange={(event) => {
+                        setMobileTaskWizardData((prev) => ({
+                          ...prev,
+                          taskTitle: event.target.value
+                        }));
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {mobileTaskWizardStep === 4 && (
+                <div className="zrc-mobile-wizard-body">
+                  <div className="zrc-mobile-wizard-title">3 — Tarihler</div>
                   <div className="zrc-mobile-wizard-desc">Başlangıç ve bitiş tarihini gir.</div>
 
                   <label className="zrc-mobile-wizard-field">
@@ -13456,7 +13481,7 @@ function App() {
 
               {mobileTaskWizardStep === 3 && (
                 <div className="zrc-mobile-wizard-body">
-                  <div className="zrc-mobile-wizard-title">3 — Görevli Seçimi</div>
+                  <div className="zrc-mobile-wizard-title">4 — Görevli Seçimi</div>
                   <div className="zrc-mobile-wizard-desc">Görevi kime atayacağını seç.</div>
 
                   <div className="zrc-mobile-wizard-options">
@@ -13502,12 +13527,13 @@ function App() {
                   {mobileTaskWizardStep === 1 ? 'Kapat' : 'Geri'}
                 </button>
 
-                {mobileTaskWizardStep < 3 ? (
+                {mobileTaskWizardStep < 4 ? (
                   <button
                     type="button"
                     className="zrc-mobile-wizard-primary"
                     onClick={() => {
                       if (mobileTaskWizardStep === 1 && !mobileTaskWizardData.projectName) return;
+                      if (mobileTaskWizardStep === 2 && !String(mobileTaskWizardData.taskTitle || '').trim()) return;
                       setMobileTaskWizardStep((prev) => prev + 1);
                     }}
                   >
@@ -13523,6 +13549,7 @@ function App() {
                           'zrc-mobile-task-wizard-prefill',
                           JSON.stringify({
                             projectName: mobileTaskWizardData.projectName,
+                            title: mobileTaskWizardData.taskTitle,
                             startDate: mobileTaskWizardData.startDate,
                             dueDate: mobileTaskWizardData.endDate,
                             assigneeId: mobileTaskWizardData.assigneeId,
@@ -13536,7 +13563,21 @@ function App() {
                       }
 
                       setIsMobileTaskWizardOpen(false);
-                      setEditingTask(null);
+                      setEditingTask({
+                        title: mobileTaskWizardData.taskTitle || '',
+                        project: mobileTaskWizardData.projectName || selectedProject,
+                        projectName: mobileTaskWizardData.projectName || selectedProject,
+                        startDate: mobileTaskWizardData.startDate || '',
+                        dueDate: mobileTaskWizardData.endDate || '',
+                        endDate: mobileTaskWizardData.endDate || '',
+                        assignees: mobileTaskWizardData.assigneeId
+                          ? [{
+                              id: mobileTaskWizardData.assigneeId,
+                              name: mobileTaskWizardData.assigneeName,
+                              role: 'Ekip Üyesi'
+                            }]
+                          : []
+                      });
                       setCalendarNewTaskDate(null);
                       setCalendarTaskModalContext({
                         isOpen: false,

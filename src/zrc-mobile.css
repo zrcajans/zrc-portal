@@ -1298,3 +1298,47 @@
     background: #ffffff !important;
   }
 }
+
+/* ZRC Mobile 4 Step Task v376 */
+@media (max-width: 768px) {
+  .zrc-mobile-wizard-steps {
+    gap: 9px !important;
+  }
+
+  .zrc-mobile-wizard-steps span {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 14px !important;
+  }
+
+  .zrc-mobile-wizard-footer {
+    gap: 12px !important;
+    padding-top: 14px !important;
+  }
+
+  .zrc-mobile-wizard-secondary,
+  .zrc-mobile-wizard-primary {
+    height: 56px !important;
+    min-height: 56px !important;
+    border-radius: 18px !important;
+    font-size: 16px !important;
+    font-weight: 950 !important;
+  }
+
+  .zrc-mobile-wizard-secondary {
+    background: #eef0f4 !important;
+    color: #6b7280 !important;
+  }
+
+  .zrc-mobile-wizard-primary {
+    background: #ff5b1f !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(255, 91, 31, 0.25) !important;
+  }
+
+  .zrc-mobile-wizard-field input[type="text"] {
+    height: 58px !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+  }
+}
