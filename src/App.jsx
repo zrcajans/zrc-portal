@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v382-safe-selected-project-refresh-fix';
+const ZRC_APP_BUILD_LABEL = 'v383b-safe-stale-task-clean';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -5961,25 +5961,37 @@ function App() {
           return item.id === column.id || itemTitle === columnTitle;
         });
 
-        // v339c-kesin-gorev-duzeltme:
-        // Supabase görev listesi eksik dönerse ekrandaki mevcut görevleri silme.
+        // v383b:
+        // Supabase'e kaydedilmiş bir görev DB'den dönmüyorsa,
+        // başka cihazdan/webden silinmiş kabul edilir ve localde korunmaz.
+        // Sadece henüz Supabase kimliği almamış geçici local görevler korunur.
         const localOnlyTasks = (existingColumn?.tasks || []).filter((existingTask) => {
           if (!existingTask?.id) return false;
           if (existingTask.isArchived || existingTask.is_archived) return false;
 
           const existingId = String(existingTask.id || '').trim();
-          const existingSupabaseId = String(existingTask.supabaseId || '').trim();
+          const existingSupabaseId = String(
+            existingTask.supabaseId ||
+            existingTask.supabase_id ||
+            existingTask.dbId ||
+            existingTask.databaseId ||
+            ''
+          ).trim();
+
+          const hasSupabaseIdentity = Boolean(
+            existingSupabaseId ||
+            existingId.startsWith('supabase-') ||
+            isSupabaseUuid(existingId)
+          );
+
+          if (hasSupabaseIdentity) return false;
 
           return !(dbTasks || []).some((dbTask) => {
             const dbId = String(dbTask.id || '').trim();
 
             if (!dbId) return false;
 
-            return (
-              existingSupabaseId === dbId ||
-              existingId === dbId ||
-              existingId === `supabase-${dbId}`
-            );
+            return existingId === dbId || existingId === `supabase-${dbId}`;
           });
         });
 

@@ -1,6 +1,6 @@
 {
-  "build": "v382-safe-selected-project-refresh-fix",
-  "note": "Sayfa yenilenince selectedProject artık localStorage’dan okunur; Çalışma/demo projeye geri dönmez.",
-  "commitBefore": "9719dc9",
-  "createdAt": "2026-06-11T16:53:21.573053+00:00"
+  "build": "v383b-safe-stale-task-clean",
+  "note": "Webden/Supabase'ten silinen görevler mobil local cache tarafından geri korunmaz.",
+  "commitBefore": "a47f181",
+  "createdAt": "2026-06-11T16:58:38.268142+00:00"
 }
