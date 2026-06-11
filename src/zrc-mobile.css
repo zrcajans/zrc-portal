@@ -1,0 +1,15 @@
+/* ZRC Mobile Basic v360 */
+@media (max-width: 768px) {
+  html, body, #root { width: 100%; max-width: 100%; overflow-x: hidden; }
+  body { background: #fff; -webkit-tap-highlight-color: transparent; }
+  .zrc-main-shell { width: 100% !important; min-width: 0 !important; padding-left: 0 !important; padding-bottom: 84px !important; overflow-x: hidden !important; }
+  .zrc-main-shell > div:not([class*="fixed"]) { padding-left: 0 !important; padding-right: 0 !important; }
+  .zrc-project-board-page, .zrc-team-center-page, .zrc-customer-center-page { width: 100% !important; max-width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; overflow-x: hidden !important; }
+  .zrc-project-board-page > div:not([class*="fixed"]) { padding-left: 0 !important; padding-right: 0 !important; }
+  .zrc-center-card { width: 100% !important; max-width: 100% !important; padding-left: 12px !important; padding-right: 12px !important; }
+  .zrc-team-center-page .grid, .zrc-customer-center-page .grid { grid-template-columns: 1fr !important; }
+  div[class*="max-w-[1180px]"], div[class*="max-w-[1280px]"], div[class*="w-[390px]"], div[class*="w-[420px]"], div[class*="w-[520px]"], div[class*="w-[640px]"] { max-width: calc(100vw - 20px) !important; }
+  input, textarea, select, button { font-size: 16px; }
+  input, textarea, select { max-width: 100% !important; }
+  [class*="overflow-x-auto"] { -webkit-overflow-scrolling: touch; }
+}

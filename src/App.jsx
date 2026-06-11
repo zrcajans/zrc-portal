@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
+import './zrc-mobile.css';
 import TopNavbar from './components/Layout/TopNavbar';
 import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v354-safe-demo-yazi-temizlik';
+const ZRC_APP_BUILD_LABEL = 'v360-safe-mobile-basic';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
