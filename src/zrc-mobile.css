@@ -1480,3 +1480,103 @@
     border-radius: 22px !important;
   }
 }
+
+
+/* v386-safe-mobile-project-arrow */
+.zrc-mobile-project-select-trigger,
+.zrc-mobile-project-picker-trigger,
+.zrc-mobile-project-select-button,
+.zrc-mobile-project-picker-button,
+.zrc-mobile-project-toggle,
+.zrc-mobile-project-select-card,
+.zrc-mobile-project-picker-card {
+  position: relative !important;
+}
+
+.zrc-mobile-project-select-trigger .zrc-mobile-project-select-icon,
+.zrc-mobile-project-picker-trigger .zrc-mobile-project-picker-icon,
+.zrc-mobile-project-select-button .zrc-mobile-project-select-icon,
+.zrc-mobile-project-picker-button .zrc-mobile-project-picker-icon,
+.zrc-mobile-project-toggle .zrc-mobile-project-arrow,
+.zrc-mobile-project-select-card .zrc-mobile-project-arrow,
+.zrc-mobile-project-picker-card .zrc-mobile-project-arrow,
+.zrc-mobile-project-select-trigger .zrc-mobile-chevron,
+.zrc-mobile-project-picker-trigger .zrc-mobile-chevron,
+.zrc-mobile-project-select-button .zrc-mobile-chevron,
+.zrc-mobile-project-picker-button .zrc-mobile-chevron {
+  width: 60px !important;
+  height: 60px !important;
+  min-width: 60px !important;
+  min-height: 60px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  align-self: center !important;
+  border-radius: 999px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 10px 26px rgba(7, 16, 35, 0.22) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  color: #f8fafc !important;
+}
+
+.zrc-mobile-project-select-trigger .zrc-mobile-project-select-icon svg,
+.zrc-mobile-project-picker-trigger .zrc-mobile-project-picker-icon svg,
+.zrc-mobile-project-select-button .zrc-mobile-project-select-icon svg,
+.zrc-mobile-project-picker-button .zrc-mobile-project-picker-icon svg,
+.zrc-mobile-project-toggle .zrc-mobile-project-arrow svg,
+.zrc-mobile-project-select-card .zrc-mobile-project-arrow svg,
+.zrc-mobile-project-picker-card .zrc-mobile-project-arrow svg,
+.zrc-mobile-project-select-trigger .zrc-mobile-chevron svg,
+.zrc-mobile-project-picker-trigger .zrc-mobile-chevron svg,
+.zrc-mobile-project-select-button .zrc-mobile-chevron svg,
+.zrc-mobile-project-picker-button .zrc-mobile-chevron svg {
+  width: 22px !important;
+  height: 22px !important;
+  display: block !important;
+  margin: 0 auto !important;
+  transform: translateY(1px) !important;
+  stroke-width: 2.6 !important;
+}
+
+.zrc-mobile-project-select-trigger .zrc-mobile-project-select-icon,
+.zrc-mobile-project-picker-trigger .zrc-mobile-project-picker-icon,
+.zrc-mobile-project-select-button .zrc-mobile-project-select-icon,
+.zrc-mobile-project-picker-button .zrc-mobile-project-picker-icon,
+.zrc-mobile-project-toggle .zrc-mobile-project-arrow,
+.zrc-mobile-project-select-card .zrc-mobile-project-arrow,
+.zrc-mobile-project-picker-card .zrc-mobile-project-arrow,
+.zrc-mobile-project-select-trigger .zrc-mobile-chevron,
+.zrc-mobile-project-picker-trigger .zrc-mobile-chevron,
+.zrc-mobile-project-select-button .zrc-mobile-chevron,
+.zrc-mobile-project-picker-button .zrc-mobile-chevron {
+  font-size: 28px !important;
+  font-weight: 900 !important;
+}
+
+@media (max-width: 768px) {
+  .zrc-mobile-project-select-trigger .zrc-mobile-project-select-icon,
+  .zrc-mobile-project-picker-trigger .zrc-mobile-project-picker-icon,
+  .zrc-mobile-project-select-button .zrc-mobile-project-select-icon,
+  .zrc-mobile-project-picker-button .zrc-mobile-project-picker-icon,
+  .zrc-mobile-project-toggle .zrc-mobile-project-arrow,
+  .zrc-mobile-project-select-card .zrc-mobile-project-arrow,
+  .zrc-mobile-project-picker-card .zrc-mobile-project-arrow,
+  .zrc-mobile-project-select-trigger .zrc-mobile-chevron,
+  .zrc-mobile-project-picker-trigger .zrc-mobile-chevron,
+  .zrc-mobile-project-select-button .zrc-mobile-chevron,
+  .zrc-mobile-project-picker-button .zrc-mobile-chevron {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+  }
+}
+
