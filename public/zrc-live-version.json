@@ -1,6 +1,6 @@
 {
-  "build": "v373-safe-mobile-task-fix",
-  "note": "Mobil görev oluşturma penceresi, proje seçici görünümü ve tarih etiketleri düzeltildi.",
-  "commitBefore": "f31e18a",
-  "createdAt": "2026-06-11T16:15:19.235938+00:00"
+  "build": "v374-safe-mobile-button-card-fix",
+  "note": "Mobil görev oluşturma butonu, tarih etiketleri, proje oku ve küçük görev kartları düzeltildi.",
+  "commitBefore": "5054971",
+  "createdAt": "2026-06-11T16:18:41.016764+00:00"
 }
