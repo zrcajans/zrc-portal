@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v369-safe-mobile-simple-3-menu';
+const ZRC_APP_BUILD_LABEL = 'v370b-safe-mobile-simple-workspace';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -13206,61 +13206,125 @@ function App() {
         />
 
 
-        <div className="zrc-mobile-core-nav" aria-label="Mobil hızlı menü">
-          <button
-            type="button"
-            className="zrc-mobile-core-nav-btn"
-            onClick={() => {
-              setActiveMenu('Projeler');
-              setActiveContentMenu('Projeler');
-              setActiveTab('Görevler');
-              setIsPanelOpen(false);
-              setIsMessagesOpen(false);
-              setIsNotificationsOpen(false);
-              setIsGlobalSearchOpen(false);
-            }}
-          >
-            Projeler
-          </button>
+        
+        <div className="zrc-mobile-simple-workspace">
+          <div className="zrc-mobile-simple-head">
+            <div>
+              <div className="zrc-mobile-simple-kicker">ZRC Mobil</div>
+              <h1>Projeler</h1>
+            </div>
 
-          <button
-            type="button"
-            className="zrc-mobile-core-nav-btn"
-            onClick={() => {
-              setActiveMenu('Takvimim');
-              setActiveContentMenu('Takvimim');
-              setActiveTab('Görevler');
-              setIsPanelOpen(false);
-              setIsMessagesOpen(false);
-              setIsNotificationsOpen(false);
-              setIsGlobalSearchOpen(false);
-            }}
-          >
-            Takvim
-          </button>
+            <button
+              type="button"
+              className="zrc-mobile-notification-btn"
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsPanelOpen(false);
+                setIsMessagesOpen(false);
+                setIsGlobalSearchOpen(false);
+                setIsNotificationsOpen((prev) => {
+                  const nextState = !prev;
+                  if (nextState) loadActivityLogsFromSupabase();
+                  return nextState;
+                });
+              }}
+            >
+              Bildirim
+              {unreadNotificationCount > 0 && <b>{unreadNotificationCount}</b>}
+            </button>
+          </div>
 
-          <button
-            type="button"
-            className="zrc-mobile-core-nav-btn"
-            onClick={(event) => {
-              event.stopPropagation();
-              setIsPanelOpen(false);
-              setIsMessagesOpen(false);
-              setIsGlobalSearchOpen(false);
-              setIsNotificationsOpen((prev) => {
-                const nextState = !prev;
-                if (nextState) {
-                  loadActivityLogsFromSupabase();
-                }
-                return nextState;
-              });
-            }}
-          >
-            Bildirim
-            {unreadNotificationCount > 0 && (
-              <b className="zrc-mobile-core-nav-badge">{unreadNotificationCount}</b>
-            )}
-          </button>
+          <div className="zrc-mobile-project-list">
+            {(visibleProjectNames.length ? visibleProjectNames : projects).map((project) => {
+              const isActiveProject = project === selectedProject;
+
+              return (
+                <button
+                  key={project}
+                  type="button"
+                  className={`zrc-mobile-project-card ${isActiveProject ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setSelectedProject(project);
+                    setActiveMenu('Projeler');
+                    setActiveContentMenu('Projeler');
+                    setActiveTab('Görevler');
+                    setIsPanelOpen(false);
+                    setIsMessagesOpen(false);
+                    setIsNotificationsOpen(false);
+                    setIsGlobalSearchOpen(false);
+                  }}
+                >
+                  <span>{project}</span>
+                  <small>{isActiveProject ? 'Açık proje' : 'Projeyi aç'}</small>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="zrc-mobile-task-section">
+            <div className="zrc-mobile-task-titlebar">
+              <div>
+                <small>Seçili proje</small>
+                <h2>{selectedProject || 'Proje seç'}</h2>
+              </div>
+
+              <button
+                type="button"
+                className="zrc-mobile-create-task-btn"
+                onClick={() => {
+                  setEditingTask(null);
+                  setCalendarNewTaskDate(null);
+                  setCalendarTaskModalContext({
+                    isOpen: false,
+                    pendingOpen: false,
+                    projectName: '',
+                    date: ''
+                  });
+                  setIsTaskModalOpen(true);
+                }}
+              >
+                + Görev
+              </button>
+            </div>
+
+            <div className="zrc-mobile-task-list">
+              {boardColumns.flatMap((column) =>
+                (column.tasks || []).map((task) => ({
+                  ...task,
+                  columnTitle: column.title,
+                  columnColor: column.color
+                }))
+              ).length === 0 ? (
+                <div className="zrc-mobile-empty-task">
+                  Bu projede henüz görev yok.
+                </div>
+              ) : (
+                boardColumns.flatMap((column) =>
+                  (column.tasks || []).map((task) => ({
+                    ...task,
+                    columnTitle: column.title,
+                    columnColor: column.color
+                  }))
+                ).map((task) => (
+                  <div key={task.id || task.title} className="zrc-mobile-task-card">
+                    <div className="zrc-mobile-task-topline">
+                      <span style={{ backgroundColor: task.columnColor || '#ff3600' }} />
+                      <small>{task.columnTitle || task.status || 'Görev'}</small>
+                    </div>
+
+                    <h3>{task.title || 'Adsız görev'}</h3>
+
+                    {task.description && <p>{task.description}</p>}
+
+                    <div className="zrc-mobile-task-meta">
+                      <span>{task.priority || 'Normal'}</span>
+                      <span>{task.dueDate || task.due_date || 'Tarih yok'}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
 
 

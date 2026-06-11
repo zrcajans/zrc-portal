@@ -415,3 +415,246 @@
     font-size: 12px;
   }
 }
+
+/* ZRC Mobile Simple Workspace v370b */
+.zrc-mobile-simple-workspace {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  aside.group\/sidebar,
+  .zrc-mobile-core-nav {
+    display: none !important;
+  }
+
+  .zrc-main-shell {
+    padding-left: 0 !important;
+    padding-bottom: 20px !important;
+    background: #f5f6f8 !important;
+  }
+
+  .zrc-main-shell > div:not(.zrc-mobile-simple-workspace):not([class*="fixed"]) {
+    display: none !important;
+  }
+
+  .zrc-mobile-simple-workspace {
+    display: block;
+    min-height: calc(100vh - 84px);
+    padding: 18px 14px 24px;
+    background: #f5f6f8;
+  }
+
+  .zrc-mobile-simple-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .zrc-mobile-simple-kicker {
+    font-size: 10px;
+    font-weight: 900;
+    color: #ff3600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .zrc-mobile-simple-head h1 {
+    margin: 2px 0 0;
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 950;
+    color: #1f2937;
+  }
+
+  .zrc-mobile-notification-btn {
+    position: relative;
+    height: 42px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 16px;
+    background: white;
+    color: #1f2937;
+    font-size: 12px;
+    font-weight: 900;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  }
+
+  .zrc-mobile-notification-btn b {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: #ff3600;
+    color: white;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .zrc-mobile-project-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .zrc-mobile-project-card {
+    width: 100%;
+    min-height: 68px;
+    border: 1px solid #eceef2;
+    border-radius: 20px;
+    padding: 14px 16px;
+    background: white;
+    text-align: left;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  }
+
+  .zrc-mobile-project-card span {
+    display: block;
+    font-size: 15px;
+    font-weight: 950;
+    color: #1f2937;
+  }
+
+  .zrc-mobile-project-card small {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #9ca3af;
+  }
+
+  .zrc-mobile-project-card.is-active {
+    border-color: #ff3600;
+    background: #fff4ef;
+  }
+
+  .zrc-mobile-project-card.is-active small {
+    color: #ff3600;
+  }
+
+  .zrc-mobile-task-section {
+    background: white;
+    border: 1px solid #eceef2;
+    border-radius: 24px;
+    padding: 14px;
+    box-shadow: 0 14px 38px rgba(15, 23, 42, 0.07);
+  }
+
+  .zrc-mobile-task-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .zrc-mobile-task-titlebar small {
+    display: block;
+    font-size: 10px;
+    font-weight: 900;
+    color: #9ca3af;
+  }
+
+  .zrc-mobile-task-titlebar h2 {
+    margin: 2px 0 0;
+    font-size: 19px;
+    line-height: 1.1;
+    font-weight: 950;
+    color: #1f2937;
+  }
+
+  .zrc-mobile-create-task-btn {
+    height: 42px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 16px;
+    background: #ff3600;
+    color: white;
+    font-size: 13px;
+    font-weight: 950;
+    white-space: nowrap;
+  }
+
+  .zrc-mobile-task-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .zrc-mobile-task-card {
+    border: 1px solid #eef0f4;
+    border-radius: 18px;
+    padding: 13px;
+    background: #fafafa;
+  }
+
+  .zrc-mobile-task-topline {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
+  .zrc-mobile-task-topline span {
+    width: 9px;
+    height: 9px;
+    border-radius: 99px;
+  }
+
+  .zrc-mobile-task-topline small {
+    font-size: 10px;
+    font-weight: 900;
+    color: #9ca3af;
+  }
+
+  .zrc-mobile-task-card h3 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.25;
+    font-weight: 950;
+    color: #1f2937;
+  }
+
+  .zrc-mobile-task-card p {
+    margin: 7px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 700;
+    color: #6b7280;
+  }
+
+  .zrc-mobile-task-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .zrc-mobile-task-meta span {
+    min-height: 24px;
+    padding: 5px 9px;
+    border-radius: 99px;
+    background: white;
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 900;
+  }
+
+  .zrc-mobile-empty-task {
+    border: 1px dashed #d9dde5;
+    border-radius: 18px;
+    padding: 28px 14px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+    font-weight: 900;
+    background: #fafafa;
+  }
+}
