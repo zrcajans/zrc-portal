@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="88" fill="#111827"/>
+  <text x="256" y="312"
+        text-anchor="middle"
+        font-family="Arial Black, Arial, Helvetica, sans-serif"
+        font-size="190"
+        font-weight="900"
+        letter-spacing="-20"
+        fill="#ff3600">ZRC</text>
+</svg>

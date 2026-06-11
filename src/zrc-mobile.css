@@ -2304,3 +2304,74 @@
     box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16) !important;
   }
 }
+
+/* ZRC Existing Logo Visible v395b */
+@media (max-width: 768px) {
+  .zrc-mobile-premium-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 86px !important;
+    margin-bottom: 16px !important;
+    position: relative !important;
+  }
+
+  .zrc-mobile-premium-head::before,
+  .zrc-mobile-premium-head::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .zrc-mobile-premium-head > .zrc-mobile-brand-wrap {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 198px !important;
+    height: 76px !important;
+    flex: 0 0 auto !important;
+    position: relative !important;
+    z-index: 999 !important;
+  }
+
+  .zrc-mobile-brand-logo {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 198px !important;
+    height: auto !important;
+    max-height: 76px !important;
+    object-fit: contain !important;
+  }
+
+  .zrc-mobile-notification-btn {
+    margin-left: auto !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* Seçili proje yazısı ve proje adı ortalı */
+  .zrc-mobile-task-section-head {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  .zrc-mobile-task-section-head > div,
+  .zrc-mobile-task-section-head small,
+  .zrc-mobile-task-section-head h2 {
+    width: 100% !important;
+    text-align: center !important;
+  }
+}
+
+@media (min-width: 769px) {
+  aside[class*="sidebar"]::before,
+  .zrc-sidebar::before {
+    background-image: url('/favicon-zrc.svg') !important;
+    background-size: 38px 38px !important;
+  }
+}

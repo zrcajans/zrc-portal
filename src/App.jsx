@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v394-safe-logo-visible-selected-center';
+const ZRC_APP_BUILD_LABEL = 'v395b-safe-existing-logo-visible';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -13356,9 +13356,9 @@ function App() {
         <div className="zrc-mobile-simple-workspace">
           <div className="zrc-mobile-premium-head">
             <div className="zrc-mobile-brand-wrap">
-              <img className="zrc-mobile-brand-logo" src="/zrc-brand-logo.png" alt="ZRC" />
+              <img className="zrc-mobile-brand-logo" src="/zrc-logo.png" alt="ZRC" />
             </div>
-            <div>
+<div>
               <div className="zrc-mobile-premium-kicker">ZRC Mobil</div>
               <h1>Projeler</h1>
             </div>
