@@ -1,0 +1,6 @@
+{
+  "build": "v363-live-version-marker",
+  "note": "Canlı site bu dosyayı gösteriyorsa Vercel deploy çalışıyor.",
+  "commit": "2932a0f",
+  "createdAt": "2026-06-11T14:56:15.450Z"
+}
