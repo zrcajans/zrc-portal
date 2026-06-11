@@ -1776,3 +1776,178 @@
     font-weight: 950 !important;
   }
 }
+
+/* ZRC Mobile Picker Active Hide v391 */
+@media (max-width: 768px) {
+  .zrc-mobile-simple-workspace {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .zrc-mobile-premium-head,
+  .zrc-mobile-project-picker,
+  .zrc-mobile-task-section,
+  .zrc-mobile-task-list,
+  .zrc-mobile-task-card,
+  .zrc-mobile-empty-task,
+  .zrc-mobile-project-picker-btn,
+  .zrc-mobile-project-picker-panel,
+  .zrc-mobile-project-option {
+    max-width: calc(100vw - 48px) !important;
+    box-sizing: border-box !important;
+  }
+
+  .zrc-mobile-premium-head {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .zrc-mobile-project-picker {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 28px !important;
+  }
+
+  .zrc-mobile-project-picker-btn {
+    text-align: center !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 124px !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    padding-bottom: 34px !important;
+    border-radius: 22px !important;
+  }
+
+  .zrc-mobile-project-picker-btn > div {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .zrc-mobile-project-picker-btn small,
+  .zrc-mobile-project-picker-btn strong {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .zrc-mobile-project-picker-btn small {
+    font-size: 12px !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .zrc-mobile-project-picker-btn strong {
+    font-size: 22px !important;
+    line-height: 1.1 !important;
+  }
+
+  .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > span {
+    left: 50% !important;
+    right: auto !important;
+    bottom: -22px !important;
+    transform: translateX(-50%) !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    z-index: 40 !important;
+  }
+
+  .zrc-mobile-project-picker-panel {
+    margin-top: 0 !important;
+    padding: 34px 10px 12px !important;
+    border-top: 0 !important;
+    border-left: 4px solid #111827 !important;
+    border-right: 4px solid #111827 !important;
+    border-bottom: 4px solid #111827 !important;
+    border-radius: 0 0 22px 22px !important;
+    background: #ffffff !important;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.10) !important;
+  }
+
+  .zrc-mobile-project-option {
+    border-radius: 14px !important;
+    padding: 13px 14px !important;
+    background: #f7f8fa !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .zrc-mobile-project-option strong {
+    color: #111827 !important;
+    font-size: 17px !important;
+  }
+
+  .zrc-mobile-project-option small {
+    color: #9ca3af !important;
+    font-size: 11px !important;
+  }
+
+  .zrc-mobile-project-option.is-active {
+    background: #fff4ef !important;
+    box-shadow: inset 0 0 0 2px #ff5b1f !important;
+  }
+
+  .zrc-mobile-task-section-head {
+    max-width: calc(100vw - 48px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .zrc-mobile-create-task-btn {
+    max-width: 100% !important;
+    height: 48px !important;
+    border-radius: 14px !important;
+  }
+
+  .zrc-mobile-task-list {
+    gap: 10px !important;
+  }
+
+  .zrc-mobile-task-card {
+    width: 100% !important;
+    padding: 12px 82px 12px 12px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 7px 18px rgba(15, 23, 42, 0.045) !important;
+  }
+
+  .zrc-mobile-task-card h3 {
+    font-size: 15.5px !important;
+  }
+
+  .zrc-mobile-task-card p {
+    font-size: 11.5px !important;
+  }
+
+  .zrc-mobile-task-date-row span {
+    font-size: 10px !important;
+    padding: 6px 9px !important;
+  }
+
+  .zrc-mobile-task-active-btn {
+    min-width: 66px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    font-size: 10px !important;
+    padding: 0 9px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .zrc-mobile-simple-workspace {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  .zrc-mobile-premium-head,
+  .zrc-mobile-project-picker,
+  .zrc-mobile-task-section,
+  .zrc-mobile-task-list,
+  .zrc-mobile-task-card,
+  .zrc-mobile-empty-task,
+  .zrc-mobile-project-picker-btn,
+  .zrc-mobile-project-picker-panel,
+  .zrc-mobile-project-option,
+  .zrc-mobile-task-section-head {
+    max-width: calc(100vw - 40px) !important;
+  }
+}

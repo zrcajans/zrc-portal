@@ -1,6 +1,6 @@
 {
-  "build": "v390b-safe-mobile-selected-project-native-scroll",
-  "note": "Mobilde seçili proje zemini kaldırıldı, proje oku alt ortaya alındı, zorla refresh kaldırıldı.",
-  "commitBefore": "fbc88e8",
-  "createdAt": "2026-06-11T17:58:40.208Z"
+  "build": "v391-safe-mobile-picker-active-hide",
+  "note": "Mobil proje seçimi ortalandı, panel butona bağlandı, Aktif görevler gizlendi, mobil içerik daraltıldı.",
+  "commitBefore": "26823ac",
+  "createdAt": "2026-06-11T18:04:17.428619+00:00"
 }

@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v390b-safe-mobile-selected-project-native-scroll';
+const ZRC_APP_BUILD_LABEL = 'v391-safe-mobile-picker-active-hide';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -13452,7 +13452,7 @@ function App() {
             </div>
 
             <div className="zrc-mobile-task-list">
-              {boardColumns.flatMap((column) =>
+              {boardColumns.filter((column) => normalizeColumnTitleForDisplay(column.title) !== 'Aktif').flatMap((column) =>
                 (column.tasks || []).map((task) => ({
                   ...task,
                   columnTitle: column.title,
@@ -13463,7 +13463,7 @@ function App() {
                   Bu projede henüz görev yok.
                 </div>
               ) : (
-                boardColumns.flatMap((column) =>
+                boardColumns.filter((column) => normalizeColumnTitleForDisplay(column.title) !== 'Aktif').flatMap((column) =>
                   (column.tasks || []).map((task) => ({
                     ...task,
                     columnTitle: column.title,
