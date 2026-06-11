@@ -6,7 +6,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v351-safe-favicon-branding';
+const ZRC_APP_BUILD_LABEL = 'v354-safe-demo-yazi-temizlik';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -12548,7 +12548,7 @@ function App() {
   const resetLocalApplicationData = () => {
     if (!ensureCanManageLocalData()) return;
 
-    const confirmed = window.confirm('Tüm yerel demo verileri sıfırlansın mı? Bu işlem geri alınamaz.');
+    const confirmed = window.confirm('Tüm yerel veriler sıfırlansın mı? Bu işlem geri alınamaz.');
 
     if (!confirmed) return;
 
@@ -15920,7 +15920,7 @@ function App() {
                         <div>
                           <div className="text-[12px] font-black text-red-600">Tehlikeli Bölge</div>
                           <div className="mt-1 text-[10px] font-semibold text-red-500/80">
-                            Yerel veriyi sıfırlamak tarayıcıdaki demo proje, görev, müşteri, ekip ve mesajları temizler.
+                            Yerel veriyi sıfırlamak tarayıcıdaki proje, görev, müşteri, ekip ve mesajları temizler.
                           </div>
                         </div>
 

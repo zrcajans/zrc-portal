@@ -14,7 +14,7 @@ const priorityOptions = [
   { label: 'Acil', color: '#ef4444' }
 ];
 
-const defaultCustomerOptions = ['Müşteri Seçin...', 'Örnek Şirket', 'A Firması', 'B Holding'];
+const defaultCustomerOptions = ['Müşteri Seçin...'];
 
 const createAvatarFromName = (name) => {
   const cleanName = String(name || '').trim();
