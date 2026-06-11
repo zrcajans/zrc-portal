@@ -13394,37 +13394,16 @@ function App() {
                 <span className={mobileTaskWizardStep === 3 ? 'is-active' : ''}>3</span>
                 <span className={mobileTaskWizardStep === 4 ? 'is-active' : ''}>4</span>
               </div>
-
               {mobileTaskWizardStep === 1 && (
                 <div className="zrc-mobile-wizard-body">
-                  <div className="zrc-mobile-wizard-title">1 — Proje Seçimi</div>
-                  <div className="zrc-mobile-wizard-desc">Görevin ekleneceği projeyi seç.</div>
+                  <div className="zrc-mobile-wizard-title">1 — Proje</div>
+                  <div className="zrc-mobile-wizard-desc">
+                    Görev, şu an açık olan projeye oluşturulacak. Projeyi değiştirmek için önce üstteki proje seçimini kullan.
+                  </div>
 
-                  <div className="zrc-mobile-wizard-options">
-                    {(Array.from(new Set([...(Array.isArray(visibleProjectNames) ? visibleProjectNames : []), ...(Array.isArray(projects) ? projects : [])])).filter((project) => project && !['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(project).trim()))).map((project) => (
-                      <button
-                        key={project}
-                        type="button"
-                        className={`zrc-mobile-wizard-option ${mobileTaskWizardData.projectName === project ? 'is-active' : ''}`}
-                        onClick={() => {
-                          setSelectedProject(project);
-                          setActiveMenu('Projeler');
-                          setActiveContentMenu('Projeler');
-                          setActiveTab('Görevler');
-                          setIsPanelOpen(false);
-                          setIsMessagesOpen(false);
-                          setIsNotificationsOpen(false);
-                          setIsGlobalSearchOpen(false);
-
-                          setMobileTaskWizardData((prev) => ({
-                            ...prev,
-                            projectName: project
-                          }));
-                        }}
-                      >
-                        {project}
-                      </button>
-                    ))}
+                  <div className="zrc-mobile-wizard-current-project">
+                    <small>Seçili proje</small>
+                    <strong>{selectedProject || 'Proje seçilmedi'}</strong>
                   </div>
                 </div>
               )}
@@ -13566,7 +13545,7 @@ function App() {
                     type="button"
                     className="zrc-mobile-wizard-primary"
                     onClick={() => {
-                      if (mobileTaskWizardStep === 1 && !mobileTaskWizardData.projectName) return;
+                      if (mobileTaskWizardStep === 1 && !selectedProject) return;
                       if (mobileTaskWizardStep === 2 && !String(mobileTaskWizardData.taskTitle || '').trim()) return;
                       setMobileTaskWizardStep((prev) => prev + 1);
                     }}
@@ -13578,7 +13557,7 @@ function App() {
                     type="button"
                     className="zrc-mobile-wizard-primary"
                     onClick={() => {
-                      const targetProjectName = mobileTaskWizardData.projectName || (['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(selectedProject || '').trim()) ? '' : selectedProject);
+                      const targetProjectName = selectedProject || mobileTaskWizardData.projectName;
                       const targetColumn = boardColumns?.[0] || {};
                       const targetStatus = targetColumn?.title || 'Yeni Görev';
                       const selectedAssignees = Array.isArray(mobileTaskWizardData.assignees)

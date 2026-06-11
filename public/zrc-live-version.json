@@ -1,6 +1,6 @@
 {
-  "build": "v380-safe-hide-mobile-on-desktop",
-  "note": "Mobil özel ekran masaüstünde gizlendi. Mobil akışa dokunulmadı.",
-  "commitBefore": "40475a8",
-  "createdAt": "2026-06-11T16:46:44.125Z"
+  "build": "v381-safe-mobile-project-lock",
+  "note": "Mobil görev oluşturma artık sadece açık projeye kayıt yapar; wizard içinden proje değiştirme kapatıldı.",
+  "commitBefore": "e29ff12",
+  "createdAt": "2026-06-11T16:49:41.588930+00:00"
 }
