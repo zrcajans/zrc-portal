@@ -259,3 +259,40 @@
     max-width: 100% !important;
   }
 }
+
+/* ZRC Mobile Safe Area v366 */
+@media (max-width: 768px) {
+  :root {
+    --zrc-mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --zrc-mobile-menu-height: 66px;
+  }
+  .zrc-main-shell {
+    padding-bottom: calc(94px + var(--zrc-mobile-safe-bottom)) !important;
+  }
+  aside.group\/sidebar {
+    bottom: calc(10px + var(--zrc-mobile-safe-bottom)) !important;
+  }
+  .zbc-sidebar-panel {
+    bottom: calc(86px + var(--zrc-mobile-safe-bottom)) !important;
+    max-height: calc(100vh - 130px - var(--zrc-mobile-safe-bottom)) !important;
+  }
+  .fixed.left-1\/2 {
+    max-height: calc(100vh - 96px - var(--zrc-mobile-safe-bottom)) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  div[class*="fixed"][class*="z-["] {
+    max-height: calc(100vh - 96px - var(--zrc-mobile-safe-bottom)) !important;
+  }
+}
+@media (max-width: 480px) {
+  .zrc-main-shell {
+    padding-bottom: calc(88px + var(--zrc-mobile-safe-bottom)) !important;
+  }
+  aside.group\/sidebar {
+    bottom: calc(8px + var(--zrc-mobile-safe-bottom)) !important;
+  }
+  .zbc-sidebar-panel {
+    bottom: calc(78px + var(--zrc-mobile-safe-bottom)) !important;
+  }
+}
