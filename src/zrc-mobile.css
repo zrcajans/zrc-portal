@@ -2354,3 +2354,77 @@
     background-image: none !important;
   }
 }
+
+/* ZRC Mobile Logo Final v397 */
+@media (max-width: 768px) {
+  .zrc-mobile-premium-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 82px !important;
+    margin-bottom: 16px !important;
+    position: relative !important;
+  }
+
+  .zrc-mobile-premium-head::before,
+  .zrc-mobile-premium-head::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .zrc-mobile-premium-head > div:not(.zrc-mobile-brand-wrap) {
+    display: none !important;
+  }
+
+  .zrc-mobile-premium-head > .zrc-mobile-brand-wrap {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 188px !important;
+    height: 70px !important;
+    flex: 0 0 auto !important;
+    position: relative !important;
+    z-index: 50 !important;
+  }
+
+  .zrc-mobile-brand-logo {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 188px !important;
+    height: auto !important;
+    max-height: 70px !important;
+    object-fit: contain !important;
+  }
+
+  .zrc-mobile-notification-btn {
+    margin-left: auto !important;
+    flex: 0 0 auto !important;
+  }
+
+  .zrc-mobile-task-section-head {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  .zrc-mobile-task-section-head > div,
+  .zrc-mobile-task-section-head small,
+  .zrc-mobile-task-section-head h2 {
+    width: 100% !important;
+    text-align: center !important;
+  }
+}
+
+/* Web tarafına özellikle dokunma */
+@media (min-width: 769px) {
+  .zrc-mobile-brand-wrap,
+  .zrc-mobile-brand-logo {
+    display: none !important;
+  }
+}
