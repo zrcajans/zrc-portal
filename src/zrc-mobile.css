@@ -187,3 +187,42 @@
     max-width: calc(100vw - 16px) !important;
   }
 }
+
+/* ZRC Mobile Topbar Panels v364 */
+@media (max-width: 768px) {
+  .zrc-main-shell header, .zrc-main-shell [class*="top-0"] {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  .zrc-main-shell header {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  .zrc-main-shell header button {
+    min-width: 38px !important;
+    min-height: 38px !important;
+  }
+  .fixed.left-1\/2 {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+  }
+  div[class*="fixed"][class*="z-["] {
+    max-width: calc(100vw - 20px) !important;
+  }
+  div[class*="w-[390px]"], div[class*="w-[420px]"], div[class*="w-[460px]"], div[class*="w-[520px]"], div[class*="w-[560px]"], div[class*="w-[640px]"] {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+  }
+  div[class*="max-h-[82vh]"], div[class*="max-h-[88vh]"], div[class*="max-h-[90vh]"] {
+    max-height: calc(100vh - 110px) !important;
+  }
+  .zrc-customer-center-page, .zrc-team-center-page {
+    padding-bottom: 92px !important;
+  }
+}
+@media (max-width: 480px) {
+  .fixed.left-1\/2 {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+}
