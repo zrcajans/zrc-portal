@@ -1,6 +1,6 @@
 {
-  "build": "v371-safe-mobile-minimal-flow",
-  "note": "Mobil minimal proje akışı: proje picker, sade görev kartları, 3 adımlı görev oluşturma wizard.",
-  "commitBefore": "5e3b949",
-  "createdAt": "2026-06-11T16:08:13.521514+00:00"
+  "build": "v372-safe-mobile-overflow-fix",
+  "note": "Mobil yatay taşma düzeltildi. Kartlar ve bloklar ekran içine alındı.",
+  "commitBefore": "15d6008",
+  "createdAt": "2026-06-11T16:11:05.951776+00:00"
 }
