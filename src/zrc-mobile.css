@@ -2112,250 +2112,7 @@
   }
 }
 
-/* ZRC Logo Solid Branding v393b */
-@media (max-width: 768px) {
-  .zrc-mobile-premium-head::before {
-    content: none !important;
-    display: none !important;
-  }
-
-  .zrc-mobile-premium-head > div:not(.zrc-mobile-brand-wrap) {
-    display: none !important;
-  }
-
-  .zrc-mobile-brand-wrap {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    width: 174px !important;
-    height: 70px !important;
-    flex: 0 0 auto !important;
-  }
-
-  .zrc-mobile-brand-logo {
-    display: block !important;
-    width: 174px !important;
-    height: auto !important;
-    max-height: 64px !important;
-    object-fit: contain !important;
-  }
-
-  .zrc-mobile-premium-head {
-    align-items: center !important;
-  }
-
-  .zrc-mobile-notification-btn {
-    background: #ffffff !important;
-  }
-
-  .zrc-mobile-project-picker-panel {
-    background: #ffffff !important;
-    border-left: 1px solid #d9e0e7 !important;
-    border-right: 1px solid #d9e0e7 !important;
-    border-bottom: 3px solid #111827 !important;
-  }
-
-  .zrc-mobile-project-option {
-    background: #f3f5f7 !important;
-    border: 0 !important;
-  }
-
-  .zrc-mobile-project-option.is-active {
-    background: #e8f1ec !important;
-    border: 2px solid #9bb6a5 !important;
-    box-shadow: none !important;
-  }
-
-  .zrc-mobile-project-option.is-active strong {
-    color: #10281b !important;
-  }
-
-  .zrc-mobile-project-option.is-active small {
-    color: #557064 !important;
-  }
-
-  .zrc-mobile-project-option.is-active small::before {
-    content: "● ";
-    color: #6f9b83 !important;
-  }
-
-  .zrc-mobile-empty-task {
-    background: #ffffff !important;
-  }
-
-  .zrc-mobile-wizard-sheet,
-  .zrc-mobile-wizard-option,
-  .zrc-mobile-wizard-field input {
-    background: #ffffff !important;
-  }
-}
-
-/* ZRC Logo Visible Selected Center v394 */
-@media (max-width: 768px) {
-  /* Önceki başlık yazılarını gizle */
-  .zrc-mobile-premium-head > div:not(.zrc-mobile-brand-wrap) {
-    display: none !important;
-  }
-
-  /* Daha önceki 'head > div display none' kuralını kesin ez */
-  .zrc-mobile-premium-head > .zrc-mobile-brand-wrap {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    width: 156px !important;
-    height: 64px !important;
-    flex: 0 0 auto !important;
-    position: relative !important;
-    z-index: 20 !important;
-  }
-
-  .zrc-mobile-brand-logo {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    width: 156px !important;
-    height: auto !important;
-    max-height: 58px !important;
-    object-fit: contain !important;
-  }
-
-  .zrc-mobile-premium-head::before {
-    content: none !important;
-    display: none !important;
-  }
-
-  /* Ek güvenlik: img yine görünmezse pseudo logo göster */
-  .zrc-mobile-premium-head {
-    position: relative !important;
-    align-items: center !important;
-  }
-
-  .zrc-mobile-premium-head::after {
-    content: "" !important;
-    display: none !important;
-  }
-
-  .zrc-mobile-notification-btn {
-    margin-left: auto !important;
-  }
-
-  /* Seçili proje bölümünü ortala */
-  .zrc-mobile-task-section-head {
-    text-align: center !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  .zrc-mobile-task-section-head > div {
-    width: 100% !important;
-    text-align: center !important;
-  }
-
-  .zrc-mobile-task-section-head small,
-  .zrc-mobile-task-section-head h2 {
-    width: 100% !important;
-    text-align: center !important;
-  }
-
-  /* Şeffaf / açık turuncu aktif proje dili kaldırıldı */
-  .zrc-mobile-project-option.is-active {
-    background: #e8f0ec !important;
-    border: 2px solid #8ea99a !important;
-    box-shadow: none !important;
-  }
-
-  .zrc-mobile-project-option.is-active strong {
-    color: #10281b !important;
-  }
-
-  .zrc-mobile-project-option.is-active small {
-    color: #526d60 !important;
-  }
-
-  .zrc-mobile-project-option.is-active small::before {
-    content: "● ";
-    color: #4f8064 !important;
-  }
-}
-
-
-
-/* ZRC Existing Logo Visible v395b */
-@media (max-width: 768px) {
-  .zrc-mobile-premium-head {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    min-height: 86px !important;
-    margin-bottom: 16px !important;
-    position: relative !important;
-  }
-
-  .zrc-mobile-premium-head::before,
-  .zrc-mobile-premium-head::after {
-    content: none !important;
-    display: none !important;
-  }
-
-  .zrc-mobile-premium-head > .zrc-mobile-brand-wrap {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    width: 198px !important;
-    height: 76px !important;
-    flex: 0 0 auto !important;
-    position: relative !important;
-    z-index: 999 !important;
-  }
-
-  .zrc-mobile-brand-logo {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    width: 198px !important;
-    height: auto !important;
-    max-height: 76px !important;
-    object-fit: contain !important;
-  }
-
-  .zrc-mobile-notification-btn {
-    margin-left: auto !important;
-    flex: 0 0 auto !important;
-  }
-
-  /* Seçili proje yazısı ve proje adı ortalı */
-  .zrc-mobile-task-section-head {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    width: 100% !important;
-  }
-
-  .zrc-mobile-task-section-head > div,
-  .zrc-mobile-task-section-head small,
-  .zrc-mobile-task-section-head h2 {
-    width: 100% !important;
-    text-align: center !important;
-  }
-}
-
-/* ZRC Web Sidebar Logo Rollback v396 */
-@media (min-width: 769px) {
-  aside[class*="sidebar"]::before,
-  .zrc-sidebar::before {
-    content: none !important;
-    display: none !important;
-    background-image: none !important;
-  }
-}
-
-/* ZRC Mobile Logo Final v397 */
+/* ZRC Mobile Final Clean v401 */
 @media (max-width: 768px) {
   .zrc-mobile-premium-head {
     display: flex !important;
@@ -2419,12 +2176,38 @@
     width: 100% !important;
     text-align: center !important;
   }
+
+  .zrc-mobile-project-option.is-active {
+    background: #e8f0ec !important;
+    border: 2px solid #8ea99a !important;
+    box-shadow: none !important;
+  }
+
+  .zrc-mobile-project-option.is-active strong {
+    color: #10281b !important;
+  }
+
+  .zrc-mobile-project-option.is-active small {
+    color: #526d60 !important;
+  }
+
+  .zrc-mobile-project-option.is-active small::before {
+    content: "● ";
+    color: #4f8064 !important;
+  }
 }
 
-/* Web tarafına özellikle dokunma */
+/* ZRC Web Sidebar Guard v401 */
 @media (min-width: 769px) {
   .zrc-mobile-brand-wrap,
   .zrc-mobile-brand-logo {
     display: none !important;
+  }
+
+  aside[class*="sidebar"]::before,
+  .zrc-sidebar::before {
+    content: none !important;
+    display: none !important;
+    background-image: none !important;
   }
 }

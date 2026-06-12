@@ -1,6 +1,6 @@
 {
-  "build": "v399-safe-notification-read-sync",
-  "note": "Bildirim okundu listesi loadActivityLogsFromSupabase içinde user_preferences üzerinden senkronlanır; web/mobil bildirim sayısı eşitlenir.",
-  "commitBefore": "d5aeb52",
-  "createdAt": "2026-06-12T08:39:17.649545+00:00"
+  "build": "v401-safe-mobile-css-cleanup",
+  "note": "Üst üste biriken mobil logo CSS patchleri temizlendi; tek final mobil logo kuralı bırakıldı; web sidebar koruması korundu.",
+  "commitBefore": "3f7b4ae",
+  "createdAt": "2026-06-12T08:42:31.915751+00:00"
 }
