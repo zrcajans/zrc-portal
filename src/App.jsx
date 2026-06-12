@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v403-safe-admin-role-equality';
+const ZRC_APP_BUILD_LABEL = 'v404c-safe-save-team-member-edit-persist';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -11062,7 +11062,7 @@ function App() {
         : user
     );
 
-  const saveTeamMemberEdit = (event) => {
+  const saveTeamMemberEdit = async (event) => {
     event.preventDefault();
 
     if (!requirePermission('manageTeam', 'Ekip üyelerini sadece Yönetici düzenleyebilir.')) return;
@@ -11160,6 +11160,46 @@ function App() {
       customerId,
       avatar: editingTeamMember.avatar?.startsWith?.('data:image') ? editingTeamMember.avatar : createAvatarFromName(name)
     };
+    // zrc-v404c-team-role-persist
+    const zrcEditedMemberId = String(editingTeamMember?.id || '').trim();
+    const zrcWorkspaceIdForMemberUpdate = getCurrentSupabaseWorkspaceId();
+
+    if (isSupabaseUuid(zrcEditedMemberId) && isSupabaseUuid(zrcWorkspaceIdForMemberUpdate)) {
+      try {
+        setSupabaseWriteInfo('saving', 'Ekip rolü Supabase kaydediliyor');
+
+        const response = await fetch('/api/update-team-member', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            workspaceId: zrcWorkspaceIdForMemberUpdate,
+            userId: zrcEditedMemberId,
+            name,
+            username,
+            role,
+            status: editingTeamMember?.status || 'Aktif',
+            customerId
+          })
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || result?.error) {
+          throw new Error(result?.error || 'Ekip rolü güncellenemedi.');
+        }
+
+        setSupabaseWriteInfo('saved', 'Ekip rolü Supabase kaydedildi');
+      } catch (error) {
+        const message = error?.message || 'Ekip rolü güncellenemedi.';
+        setSupabaseWriteInfo('error', message);
+        alert(message);
+        return;
+      }
+    }
+
+
 
     setTeamMembers((prevMembers) =>
       prevMembers.map((member) => (member.id === editingTeamMember.id ? nextMember : member))
