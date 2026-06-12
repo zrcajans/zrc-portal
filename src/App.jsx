@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v401-safe-mobile-css-cleanup';
+const ZRC_APP_BUILD_LABEL = 'v403-safe-admin-role-equality';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1864,13 +1864,16 @@ function App() {
       )
   );
   const currentUserRole =
-    normalizedCurrentRawRole === 'Müşteri/Misafir'
-      ? 'Müşteri/Misafir'
-      : isZrcOwnerAccount
-        ? 'Yönetici'
+    normalizedCurrentRawRole === 'Yönetici'
+      ? 'Yönetici'
+      : normalizedCurrentRawRole === 'Müşteri/Misafir'
+        ? 'Müşteri/Misafir'
         : 'Ekip Üyesi';
+
+  // ZRC içinde eski bazı kontroller "Patron" permission bucket'ını kullanıyor.
+  // Bundan sonra bu bucket sadece ZRC AJANS'a özel değil; rolü Yönetici olan herkes için geçerli.
   const currentAccountType =
-    isZrcOwnerAccount
+    currentUserRole === 'Yönetici'
       ? 'Patron'
       : currentUserRole === 'Müşteri/Misafir'
         ? 'Müşteri'
@@ -7020,7 +7023,7 @@ function App() {
   };
 
   const isTaskVisibleInCalendarForCurrentUser = (task = {}, projectName = '') => {
-    if (isZrcOwnerAccount) return true;
+    if (currentUserRole === 'Yönetici') return true;
 
     if (currentAccountType === 'Müşteri') {
       return isCurrentCustomerProject(projectName);
@@ -7034,7 +7037,7 @@ function App() {
 
   const canCurrentUserModifyTask = (task = {}, projectName = '') => {
     if (!task) return false;
-    if (isZrcOwnerAccount) return true;
+    if (currentUserRole === 'Yönetici') return true;
 
     if (currentAccountType === 'Ekip Üyesi') {
       const taskProjectName = projectName || task.projectName || task.project || task.projectTitle || selectedProject;

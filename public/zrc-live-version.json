@@ -1,6 +1,6 @@
 {
-  "build": "v401-safe-mobile-css-cleanup",
-  "note": "Üst üste biriken mobil logo CSS patchleri temizlendi; tek final mobil logo kuralı bırakıldı; web sidebar koruması korundu.",
-  "commitBefore": "3f7b4ae",
-  "createdAt": "2026-06-12T08:42:31.915751+00:00"
+  "build": "v403-safe-admin-role-equality",
+  "note": "Yönetici rolü ZRC AJANS'a özel olmaktan çıkarıldı. Rolü Yönetici olan tüm hesaplar aynı yönetici yetki bucket'ını kullanır.",
+  "commitBefore": "af5fb16",
+  "createdAt": "2026-06-12T09:17:05.867730+00:00"
 }
