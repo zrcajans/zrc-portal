@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v397-safe-mobile-logo-final';
+const ZRC_APP_BUILD_LABEL = 'v399-safe-notification-read-sync';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -4679,12 +4679,34 @@ function App() {
           mergeUniqueByKey(prevNotifications, mappedNotifications, (notification) => notification.supabaseId || notification.id).slice(0, 80)
         );
 
-        const readIds = (notificationsData || [])
+        const supabaseReadIds = (notificationsData || [])
           .filter((notification) => notification.is_read)
           .map((notification) => `supabase-notification-${notification.id}`);
 
-        if (readIds.length > 0) {
-          setReadNotificationIds((prevIds) => Array.from(new Set([...prevIds, ...readIds])));
+        let preferenceReadIds = [];
+
+        try {
+          const { data: preferencesRecord, error: preferencesReadError } = await supabase
+            .from('user_preferences')
+            .select('preferences')
+            .eq('user_id', currentUserId)
+            .maybeSingle();
+
+          if (!preferencesReadError) {
+            const preferences = preferencesRecord?.preferences || {};
+            preferenceReadIds = normalizeStorageArray(preferences.readNotificationIds || [], []);
+          }
+        } catch (error) {
+          preferenceReadIds = [];
+        }
+
+        const syncedReadIds = Array.from(new Set([
+          ...supabaseReadIds,
+          ...preferenceReadIds
+        ]));
+
+        if (syncedReadIds.length > 0) {
+          setReadNotificationIds((prevIds) => Array.from(new Set([...prevIds, ...syncedReadIds])));
         }
       }
     } catch (error) {
