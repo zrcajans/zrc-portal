@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v448-safe-desktop-notification-sound';
+const ZRC_APP_BUILD_LABEL = 'v449-safe-desktop-sound-once';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1499,6 +1499,17 @@ const zrcV448InstallDesktopSoundUnlock = () => {
 
 const zrcV448PlayDesktopNotificationSound = () => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+
+  // zrc-v449-desktop-sound-debounce
+  const now = Date.now();
+  const lastSoundAt = Number(window.__zrcV449LastDesktopSoundAt || 0);
+
+  if (now - lastSoundAt < 2500) {
+    console.info('[ZRC Ses v449] Çift masaüstü ses engellendi.');
+    return false;
+  }
+
+  window.__zrcV449LastDesktopSoundAt = now;
 
   try {
     zrcV448InstallDesktopSoundUnlock();
