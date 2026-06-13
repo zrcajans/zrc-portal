@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v408-safe-customer-edit-persistence';
+const ZRC_APP_BUILD_LABEL = 'v409-safe-project-persistence-hardening';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -8495,7 +8495,8 @@ function App() {
     );
 
     if (!projectSettingsSupabaseSaved) {
-      alert('Proje ekibi yerelde seçildi ama Supabase kaydı tamamlanamadı. Sağ alttaki hata mesajını kontrol et.');
+      await loadWorkspaceStructureFromSupabase();
+      alert('Proje ayarları veritabanına kaydedilemedi. Ekran veritabanındaki son sağlam hale geri senkronlandı.');
       return;
     }
 
@@ -8508,10 +8509,19 @@ function App() {
     );
   };
 
-  const handleArchiveProject = () => {
+  const handleArchiveProject = async () => {
     if (!requirePermission('manageProjectSettings', 'Projeyi sadece Yönetici arşivleyebilir.')) return;
 
     if (!selectedProject) return;
+
+    const projectNameToArchive = selectedProject;
+
+    const didArchiveProject = await updateProjectStatusInSupabase(projectNameToArchive, 'Arşiv');
+
+    if (!didArchiveProject) {
+      alert('Proje arşivlenemedi. Veritabanı kaydı tamamlanmadığı için ekranda değişiklik yapılmadı.');
+      return;
+    }
 
     setProjectSettingsDraft((prevDraft) => ({
       ...prevDraft,
@@ -8520,45 +8530,50 @@ function App() {
 
     setProjectSettings((prevSettings) => ({
       ...prevSettings,
-      [selectedProject]: {
-        ...createDefaultProjectSettings(selectedProject),
-        ...(prevSettings[selectedProject] || {}),
+      [projectNameToArchive]: {
+        ...createDefaultProjectSettings(projectNameToArchive),
+        ...(prevSettings[projectNameToArchive] || {}),
         status: 'Arşiv'
       }
     }));
-
-    updateProjectStatusInSupabase(selectedProject, 'Arşiv');
   };
 
-  const handleDeleteProject = () => {
+  const handleDeleteProject = async () => {
     if (!requirePermission('manageProjects', 'Projeyi sadece Yönetici silebilir.')) return;
 
     if (!selectedProject) return;
 
-    const confirmed = window.confirm(`"${selectedProject}" projesi silinsin mi? Bu işlem projedeki görevleri de kaldırır.`);
+    const projectNameToDelete = selectedProject;
+
+    const confirmed = window.confirm(`"${projectNameToDelete}" projesi silinsin mi? Bu işlem projedeki görevleri de kaldırır.`);
     if (!confirmed) return;
 
-    deleteProjectFromSupabase(selectedProject);
+    const didDeleteProject = await deleteProjectFromSupabase(projectNameToDelete);
 
-    const remainingProjects = projects.filter((project) => project !== selectedProject);
+    if (!didDeleteProject) {
+      alert('Proje veritabanından silinemedi. Ekranda değişiklik yapılmadı.');
+      return;
+    }
+
+    const remainingProjects = projects.filter((project) => project !== projectNameToDelete);
     const nextSelectedProject = remainingProjects[0] || '';
 
     setProjects(remainingProjects);
 
     setProjectBoards((prevBoards) => {
       const nextBoards = { ...prevBoards };
-      delete nextBoards[selectedProject];
+      delete nextBoards[projectNameToDelete];
       return nextBoards;
     });
 
     setProjectSettings((prevSettings) => {
       const nextSettings = { ...prevSettings };
-      delete nextSettings[selectedProject];
+      delete nextSettings[projectNameToDelete];
       return nextSettings;
     });
 
     setActivityNotifications((prevNotifications) =>
-      prevNotifications.filter((notification) => notification.projectName !== selectedProject)
+      prevNotifications.filter((notification) => notification.projectName !== projectNameToDelete)
     );
 
     setSelectedProject(nextSelectedProject);
