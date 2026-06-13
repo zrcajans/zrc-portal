@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v411-safe-notes-messages-await';
+const ZRC_APP_BUILD_LABEL = 'v412-safe-user-preferences-merge';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -4259,36 +4259,95 @@ function App() {
   };
 
   const saveUserPreferencesToSupabase = async (preferencesPatch = {}) => {
-    const workspaceId = getCurrentSupabaseWorkspaceId();
+    if (!isSupabaseConfigured) return false;
 
-    if (!workspaceId || !isSupabaseUuid(currentUserId)) return false;
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+    const cleanUserId = String(currentUserId || '').trim();
+
+    if (!isSupabaseUuid(workspaceId) || !isSupabaseUuid(cleanUserId)) {
+      return false;
+    }
 
     try {
+      const nowIso = new Date().toISOString();
+
+      const { data: existingRecord, error: existingError } = await supabase
+        .from('user_preferences')
+        .select('preferences')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', cleanUserId)
+        .maybeSingle();
+
+      if (existingError) throw existingError;
+
+      const existingPreferences = normalizeStorageObject(existingRecord?.preferences, {});
+
+      const safeProfileDraft = {
+        ...(existingPreferences.profileDraft || {}),
+        ...(profileDraft || {}),
+        ...(normalizeStorageObject(preferencesPatch.profileDraft || {}, {})),
+        currentPassword: '',
+        newPassword: '',
+        repeatPassword: ''
+      };
+
+      const nextProfilePreferences = {
+        ...(existingPreferences.profilePreferences || {}),
+        ...(profilePreferences || {}),
+        ...(normalizeStorageObject(preferencesPatch.profilePreferences || {}, {}))
+      };
+
+      const nextReadNotificationIds = Array.from(
+        new Set([
+          ...normalizeStorageArray(existingPreferences.readNotificationIds || [], []),
+          ...normalizeStorageArray(readNotificationIds || [], []),
+          ...normalizeStorageArray(preferencesPatch.readNotificationIds || [], [])
+        ])
+      );
+
+      const nextReadMessageIds = Array.from(
+        new Set([
+          ...normalizeStorageArray(existingPreferences.readMessageIds || [], []),
+          ...normalizeStorageArray(readMessageIds || [], []),
+          ...normalizeStorageArray(preferencesPatch.readMessageIds || [], [])
+        ])
+      );
+
       const nextPreferences = {
-        profileDraft,
-        profilePreferences,
-        readNotificationIds,
-        readMessageIds,
-        navigation: {
-          activeMenu,
-          activeContentMenu,
-          activeTab,
-          selectedProject
-        },
+        ...existingPreferences,
         ...preferencesPatch,
-        updatedAt: new Date().toISOString()
+        profileDraft: safeProfileDraft,
+        profilePreferences: nextProfilePreferences,
+        readNotificationIds: nextReadNotificationIds,
+        readMessageIds: nextReadMessageIds,
+        updatedAt: nowIso
       };
 
       const { error } = await supabase
         .from('user_preferences')
-        .upsert({
-          user_id: currentUserId,
-          workspace_id: workspaceId,
-          preferences: nextPreferences,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+        .upsert(
+          {
+            workspace_id: workspaceId,
+            user_id: cleanUserId,
+            preferences: nextPreferences,
+            updated_at: nowIso
+          },
+          {
+            onConflict: 'workspace_id,user_id'
+          }
+        );
 
       if (error) throw error;
+
+      // zrc-v412-user-preferences-merge
+      const shouldAnnouncePreferenceSave = Boolean(
+        preferencesPatch.profileDraft ||
+        preferencesPatch.profilePreferences
+      );
+
+      if (shouldAnnouncePreferenceSave) {
+        zrcSetSupabaseWriteInfo('saved', 'Supabase tercih kaydedildi');
+      }
 
       return true;
     } catch (error) {
