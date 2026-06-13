@@ -1,6 +1,7 @@
 {
-  "build": "v447-safe-auto-mobile-push-register",
-  "note": "Yeni eklenen mobil PWA ikonundan sonra kaybolan push aboneliği, izin zaten verildiyse portal açılışında arka planda otomatik yenilenir. Görünür test paneli eklenmedi.",
-  "commitBefore": "3f17f54",
-  "createdAt": "2026-06-13T16:40:26.927009+00:00"
+  "build": "v448-safe-desktop-notification-sound",
+  "note": "Sadece masaüstü web portal açıkken bildirim.wav çalar. Mobil PWA push aboneliği ve kilit ekranı bildirimleri değiştirilmedi.",
+  "sound": "/sounds/bildirim.wav",
+  "commitBefore": "5f5e4ea",
+  "createdAt": "2026-06-13T16:49:25.876467+00:00"
 }

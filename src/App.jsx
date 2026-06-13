@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v447-safe-auto-mobile-push-register';
+const ZRC_APP_BUILD_LABEL = 'v448-safe-desktop-notification-sound';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1456,6 +1456,78 @@ const zrcV447InstallAutoMobilePushRegister = () => {
 };
 
 zrcV447InstallAutoMobilePushRegister();
+
+
+
+// zrc-v448-desktop-notification-sound
+const zrcV448DesktopNotificationSoundUrl = '/sounds/bildirim.wav?v=448';
+
+const zrcV448IsDesktopPortal = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+  return window.innerWidth > 900 && document.visibilityState === 'visible';
+};
+
+const zrcV448UnlockDesktopNotificationSound = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window.__zrcV448DesktopSoundUnlocked) return;
+
+  window.__zrcV448DesktopSoundUnlocked = true;
+
+  try {
+    const audio = new Audio(zrcV448DesktopNotificationSoundUrl);
+    audio.preload = 'auto';
+    audio.volume = 1;
+    window.__zrcV448DesktopNotificationAudio = audio;
+  } catch (error) {
+    console.warn('[ZRC Ses v448] Masaüstü bildirim sesi hazırlanamadı.', error);
+  }
+};
+
+const zrcV448InstallDesktopSoundUnlock = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window.__zrcV448DesktopSoundUnlockInstalled) return;
+
+  window.__zrcV448DesktopSoundUnlockInstalled = true;
+
+  ['click', 'keydown', 'pointerdown'].forEach((eventName) => {
+    document.addEventListener(eventName, zrcV448UnlockDesktopNotificationSound, {
+      once: true,
+      passive: true
+    });
+  });
+};
+
+const zrcV448PlayDesktopNotificationSound = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+
+  try {
+    zrcV448InstallDesktopSoundUnlock();
+
+    if (!zrcV448IsDesktopPortal()) return false;
+
+    const audio = window.__zrcV448DesktopNotificationAudio || new Audio(zrcV448DesktopNotificationSoundUrl);
+    audio.src = zrcV448DesktopNotificationSoundUrl;
+    audio.muted = false;
+    audio.volume = 1;
+    audio.currentTime = 0;
+    window.__zrcV448DesktopNotificationAudio = audio;
+
+    const playPromise = audio.play();
+
+    if (playPromise?.catch) {
+      playPromise.catch((error) => {
+        console.warn('[ZRC Ses v448] Masaüstü bildirim sesi çalınamadı. Sayfada bir kez tıklamak gerekebilir.', error);
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.warn('[ZRC Ses v448] Masaüstü bildirim sesi hata verdi.', error);
+    return false;
+  }
+};
+
+zrcV448InstallDesktopSoundUnlock();
 
 
 function App() {
@@ -7381,6 +7453,7 @@ function App() {
 
     // zrc-v442-single-task-push-trigger
     if (didSaveToSupabase) {
+      zrcV448PlayDesktopNotificationSound();
       zrcV442SendTaskSavePush({
         type: previousTask ? 'task_update' : 'task_create',
         title: 'ZRC Portal',
@@ -8573,6 +8646,7 @@ function App() {
     };
 
     setActivityNotifications((prevNotifications) => [nextNotification, ...prevNotifications].slice(0, 80));
+    zrcV448PlayDesktopNotificationSound();
     saveActivityNotificationToSupabase(nextNotification);
 
     return nextNotification;
