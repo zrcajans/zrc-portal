@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v424-safe-self-notification-dup-fix';
+const ZRC_APP_BUILD_LABEL = 'v425-safe-instant-task-cache';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -2259,6 +2259,48 @@ function App() {
 
     return {};
   });
+
+  // zrc-v425-instant-task-cache
+  // Sayfa yenilenince görev kartları Supabase beklemeden son yerel cache'ten anında gösterilir.
+  // Supabase arkada güncel veriyi getirince mevcut akış zaten panoyu tazeler.
+  useEffect(() => {
+    const cachedBoards = normalizeStorageObject(readStorageValue('projectBoards', null), null);
+
+    if (!cachedBoards || typeof cachedBoards !== 'object' || Array.isArray(cachedBoards)) {
+      return;
+    }
+
+    const cachedProjectNames = Object.keys(cachedBoards);
+
+    if (cachedProjectNames.length === 0) {
+      return;
+    }
+
+    const cachedHasTasks = Object.values(cachedBoards).some((board) =>
+      Array.isArray(board?.columns) &&
+      board.columns.some((column) => Array.isArray(column?.tasks) && column.tasks.length > 0)
+    );
+
+    if (!cachedHasTasks) {
+      return;
+    }
+
+    setProjectBoards((prevBoards) => {
+      const currentHasTasks = Object.values(prevBoards || {}).some((board) =>
+        Array.isArray(board?.columns) &&
+        board.columns.some((column) => Array.isArray(column?.tasks) && column.tasks.length > 0)
+      );
+
+      return currentHasTasks ? prevBoards : cachedBoards;
+    });
+
+    const cachedSelectedProject = String(readStorageValue('selectedProject', '') || '').trim();
+
+    if (cachedSelectedProject) {
+      setSelectedProject((prevProject) => prevProject || cachedSelectedProject);
+    }
+  }, []);
+
 
   const currentBoard = projectBoards[selectedProject] || createDefaultProjectBoard();
   const boardColumns = currentBoard.columns;
