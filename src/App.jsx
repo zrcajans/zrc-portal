@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v445-safe-push-panel-removed';
+const ZRC_APP_BUILD_LABEL = 'v447-safe-auto-mobile-push-register';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1286,6 +1286,176 @@ const zrcV442SendTaskSavePush = async ({ title = 'ZRC Portal', body = 'Görevler
     return false;
   }
 };
+
+
+
+// zrc-v447-auto-mobile-push-register
+const zrcV447UrlBase64ToUint8Array = (base64String = '') => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let index = 0; index < rawData.length; index += 1) {
+    outputArray[index] = rawData.charCodeAt(index);
+  }
+
+  return outputArray;
+};
+
+const zrcV447ReadSupabaseAccessToken = () => {
+  if (typeof window === 'undefined') return '';
+
+  try {
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index) || '';
+
+      if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
+
+      const rawValue = window.localStorage.getItem(key) || '';
+      const parsed = JSON.parse(rawValue);
+
+      const token =
+        parsed?.access_token ||
+        parsed?.currentSession?.access_token ||
+        parsed?.session?.access_token ||
+        parsed?.data?.session?.access_token ||
+        '';
+
+      if (token) return token;
+    }
+  } catch (error) {
+    console.warn('[ZRC Push v447] Supabase token okunamadı.', error);
+  }
+
+  return '';
+};
+
+const zrcV447ShouldAutoRegisterPush = () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+
+  const isStandalone =
+    window.matchMedia?.('(display-mode: standalone)')?.matches ||
+    window.navigator?.standalone === true;
+  const isMobileWidth = window.innerWidth <= 900;
+  const isPortalHost =
+    window.location.hostname.includes('portal.zrcajans.com') ||
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname === 'localhost';
+
+  return isPortalHost && (isStandalone || isMobileWidth);
+};
+
+const zrcV447AutoRegisterMobilePush = async () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  if (!zrcV447ShouldAutoRegisterPush()) return false;
+  if (!('Notification' in window)) return false;
+  if (Notification.permission !== 'granted') return false;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+
+  const now = Date.now();
+  const lastTryAt = Number(window.localStorage.getItem('zrc-v447-last-auto-register-try-at') || '0');
+
+  if (now - lastTryAt < 45000) return false;
+
+  window.localStorage.setItem('zrc-v447-last-auto-register-try-at', String(now));
+
+  const accessToken = zrcV447ReadSupabaseAccessToken();
+
+  if (!accessToken) {
+    console.warn('[ZRC Push v447] Oturum token yok, mobil push kaydı ertelendi.');
+    return false;
+  }
+
+  try {
+    let registration = null;
+
+    try {
+      registration = await navigator.serviceWorker.ready;
+    } catch {
+      registration = null;
+    }
+
+    if (!registration) {
+      registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
+      registration = await navigator.serviceWorker.ready;
+    }
+
+    const keyResponse = await fetch('/api/push-public-key', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store'
+    });
+
+    const keyResult = await keyResponse.json().catch(() => ({}));
+
+    if (!keyResponse.ok || !keyResult.publicKey) {
+      console.warn('[ZRC Push v447] VAPID public key okunamadı.', keyResult);
+      return false;
+    }
+
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: zrcV447UrlBase64ToUint8Array(keyResult.publicKey)
+      });
+    }
+
+    const registerResponse = await fetch('/api/register-push-subscription', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      cache: 'no-store',
+      body: JSON.stringify({
+        subscription,
+        userAgent: navigator.userAgent || '',
+        source: 'v447-auto-mobile'
+      })
+    });
+
+    const registerResult = await registerResponse.json().catch(() => ({}));
+
+    if (!registerResponse.ok || registerResult.error) {
+      console.warn('[ZRC Push v447] Mobil push kaydı başarısız.', registerResult.error || registerResult);
+      return false;
+    }
+
+    window.localStorage.setItem('zrc-v447-last-auto-register-success-at', new Date().toISOString());
+    console.info('[ZRC Push v447] Mobil push otomatik kaydedildi.', registerResult);
+    return true;
+  } catch (error) {
+    console.warn('[ZRC Push v447] Mobil push otomatik kayıt hatası.', error);
+    return false;
+  }
+};
+
+const zrcV447InstallAutoMobilePushRegister = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window.__zrcV447AutoMobilePushRegisterInstalled) return;
+
+  window.__zrcV447AutoMobilePushRegisterInstalled = true;
+
+  const run = () => {
+    window.setTimeout(() => {
+      zrcV447AutoRegisterMobilePush();
+    }, 1200);
+  };
+
+  window.addEventListener('load', run);
+  window.addEventListener('focus', run);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) run();
+  });
+
+  window.setTimeout(run, 2500);
+  window.setTimeout(run, 8000);
+};
+
+zrcV447InstallAutoMobilePushRegister();
 
 
 function App() {

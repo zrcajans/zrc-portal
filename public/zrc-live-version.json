@@ -1,7 +1,6 @@
 {
-  "build": "v445-safe-push-panel-removed",
-  "note": "Mobilde görünen Telefonu Bildirime Bağla/Test paneli kaldırıldı. Web Push API, VAPID ayarları, push_subscription kayıtları ve görev bildirimi altyapısı korundu.",
-  "removed": [],
-  "commitBefore": "c0bfe05",
-  "createdAt": "2026-06-13T16:30:15.765542+00:00"
+  "build": "v447-safe-auto-mobile-push-register",
+  "note": "Yeni eklenen mobil PWA ikonundan sonra kaybolan push aboneliği, izin zaten verildiyse portal açılışında arka planda otomatik yenilenir. Görünür test paneli eklenmedi.",
+  "commitBefore": "3f17f54",
+  "createdAt": "2026-06-13T16:40:26.927009+00:00"
 }

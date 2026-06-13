@@ -119,6 +119,7 @@ export default async function handler(req, res) {
           subscription,
           endpoint,
           userAgent: String(body.userAgent || ''),
+          source: String(body.source || 'register-api'),
           savedAt: new Date().toISOString()
         }),
         is_read: true
