@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v438-safe-controlled-real-push';
+const ZRC_APP_BUILD_LABEL = 'v439-safe-fetch-task-push-bridge';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1444,6 +1444,137 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.
     if (!document.hidden) setTimeout(zrcV438MountPushPanel, 500);
   });
 }
+
+
+
+// zrc-v439-fetch-task-push-bridge
+const zrcV439ReadSupabaseAccessToken = () => {
+  if (typeof window === 'undefined') return '';
+
+  try {
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index) || '';
+
+      if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
+
+      const rawValue = window.localStorage.getItem(key) || '';
+      const parsed = JSON.parse(rawValue);
+
+      const token =
+        parsed?.access_token ||
+        parsed?.currentSession?.access_token ||
+        parsed?.session?.access_token ||
+        parsed?.data?.session?.access_token ||
+        '';
+
+      if (token) return token;
+    }
+  } catch (error) {
+    console.warn('[ZRC Push Bridge] Supabase token okunamadı.', error);
+  }
+
+  return '';
+};
+
+const zrcV439SendTaskPushFromBridge = async (reason = 'task_write') => {
+  if (typeof window === 'undefined') return false;
+
+  const accessToken = zrcV439ReadSupabaseAccessToken();
+
+  if (!accessToken) {
+    console.warn('[ZRC Push Bridge] Oturum token yok, push atlanıyor.');
+    return false;
+  }
+
+  try {
+    const response = await window.fetch('/api/send-task-push', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      cache: 'no-store',
+      body: JSON.stringify({
+        type: reason,
+        title: 'ZRC Portal',
+        body: 'Görevlerde yeni bir işlem yapıldı.',
+        url: '/'
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || result.error) {
+      console.warn('[ZRC Push Bridge] Push gönderilemedi.', result.error || result);
+      return false;
+    }
+
+    console.info('[ZRC Push Bridge] Push sonucu:', result);
+    return true;
+  } catch (error) {
+    console.warn('[ZRC Push Bridge] Push isteği hata verdi.', error);
+    return false;
+  }
+};
+
+const zrcV439InstallTaskPushBridge = () => {
+  if (typeof window === 'undefined') return;
+  if (window.__zrcV439TaskPushBridgeInstalled) return;
+  if (typeof window.fetch !== 'function') return;
+
+  window.__zrcV439TaskPushBridgeInstalled = true;
+
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = async (...args) => {
+    const response = await originalFetch(...args);
+
+    try {
+      const requestInput = args[0];
+      const requestInit = args[1] || {};
+      const url =
+        typeof requestInput === 'string'
+          ? requestInput
+          : requestInput?.url || '';
+
+      const method = String(
+        requestInit.method ||
+          requestInput?.method ||
+          'GET'
+      ).toUpperCase();
+
+      const isSupabaseRest = url.includes('/rest/v1/');
+      const isTaskWrite =
+        isSupabaseRest &&
+        url.includes('/tasks') &&
+        ['POST', 'PATCH', 'PUT'].includes(method);
+
+      const isNotificationWrite =
+        isSupabaseRest &&
+        url.includes('/notifications') &&
+        ['POST', 'PATCH', 'PUT'].includes(method);
+
+      if (response?.ok && (isTaskWrite || isNotificationWrite)) {
+        const now = Date.now();
+        const lastPushAt = Number(window.localStorage.getItem('zrc-v439-last-task-push-at') || '0');
+
+        if (now - lastPushAt > 1800) {
+          window.localStorage.setItem('zrc-v439-last-task-push-at', String(now));
+
+          window.setTimeout(() => {
+            zrcV439SendTaskPushFromBridge(isTaskWrite ? 'task_write' : 'notification_write');
+          }, 500);
+        }
+      }
+    } catch (error) {
+      console.warn('[ZRC Push Bridge] Fetch gözlemleme hatası.', error);
+    }
+
+    return response;
+  };
+};
+
+zrcV439InstallTaskPushBridge();
 
 
 function App() {

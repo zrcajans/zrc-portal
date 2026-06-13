@@ -1,6 +1,6 @@
 {
-  "build": "v438-safe-controlled-real-push",
-  "note": "Çalışan test mantığı korundu. Telefon Supabase Auth token ile aktif workspace'e kaydedilir; görev/aktivite bildirimleri aynı kayıtlı aboneliklere gönderilir.",
-  "commitBefore": "18e2a48",
-  "createdAt": "2026-06-13T11:12:23.697050+00:00"
+  "build": "v439-safe-fetch-task-push-bridge",
+  "note": "Görev/notification Supabase yazmaları fetch köprüsüyle yakalanır ve send-task-push API tetiklenir. Workspace auth token'dan otomatik bulunur.",
+  "commitBefore": "3ee3ba5",
+  "createdAt": "2026-06-13T11:17:23.992555+00:00"
 }

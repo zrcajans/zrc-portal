@@ -19,10 +19,15 @@ const parseBody = (req) => {
 
 const getSupabaseConfig = () => {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey =
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   return {
     supabaseUrl,
+    supabaseAnonKey,
     serviceRoleKey
   };
 };
@@ -39,12 +44,34 @@ const getVapidConfig = () => {
   };
 };
 
+const getUserFromAuth = async ({ supabaseUrl, supabaseAnonKey, authorizationHeader }) => {
+  if (!authorizationHeader?.startsWith('Bearer ') || !supabaseAnonKey) return null;
+
+  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        Authorization: authorizationHeader
+      }
+    },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    }
+  });
+
+  const { data, error } = await userClient.auth.getUser();
+
+  if (error || !data?.user?.id) return null;
+
+  return data.user;
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { error: 'Sadece POST desteklenir.' });
   }
 
-  const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
+  const { supabaseUrl, supabaseAnonKey, serviceRoleKey } = getSupabaseConfig();
   const { publicKey, privateKey, subject } = getVapidConfig();
 
   if (!supabaseUrl || !serviceRoleKey) {
@@ -56,11 +83,9 @@ export default async function handler(req, res) {
   }
 
   const body = parseBody(req);
-  const workspaceId = String(body.workspaceId || '').trim();
+  const authorizationHeader = req.headers.authorization || '';
 
-  if (!workspaceId) {
-    return sendJson(res, 400, { error: 'Workspace bilgisi eksik.' });
-  }
+  let workspaceId = String(body.workspaceId || '').trim();
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
@@ -68,6 +93,31 @@ export default async function handler(req, res) {
       autoRefreshToken: false
     }
   });
+
+  const authUser = await getUserFromAuth({
+    supabaseUrl,
+    supabaseAnonKey,
+    authorizationHeader
+  });
+
+  if (!workspaceId && authUser?.id) {
+    const { data: membershipRows, error: membershipError } = await admin
+      .from('workspace_members')
+      .select('workspace_id, status')
+      .eq('user_id', authUser.id)
+      .eq('status', 'Aktif')
+      .limit(1);
+
+    if (membershipError) {
+      return sendJson(res, 500, { error: `Workspace üyeliği okunamadı: ${membershipError.message}` });
+    }
+
+    workspaceId = String(membershipRows?.[0]?.workspace_id || '').trim();
+  }
+
+  if (!workspaceId) {
+    return sendJson(res, 400, { error: 'Workspace bilgisi bulunamadı.' });
+  }
 
   try {
     const { data: subscriptionRows, error: subscriptionError } = await admin
@@ -140,6 +190,7 @@ export default async function handler(req, res) {
 
     return sendJson(res, 200, {
       ok: true,
+      workspaceId,
       subscriptionCount: subscriptionRows.length,
       sent,
       failed,

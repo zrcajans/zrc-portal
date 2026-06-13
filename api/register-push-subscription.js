@@ -39,9 +39,7 @@ export default async function handler(req, res) {
   const { supabaseUrl, supabaseAnonKey, serviceRoleKey } = getSupabaseConfig();
 
   if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
-    return sendJson(res, 500, {
-      error: 'Supabase env eksik.'
-    });
+    return sendJson(res, 500, { error: 'Supabase env eksik.' });
   }
 
   const authorizationHeader = req.headers.authorization || '';
