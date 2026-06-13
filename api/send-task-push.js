@@ -66,6 +66,24 @@ const getAuthUser = async ({ supabaseUrl, supabaseAnonKey, authorizationHeader }
   return data.user;
 };
 
+const shouldSendPush = ({ type, title, body }) => {
+  const normalizedType = String(type || '').trim();
+  const normalizedTitle = String(title || '').trim();
+  const normalizedBody = String(body || '').trim();
+
+  // Telefon bağlantı/test bildirimi çalışmaya devam etsin.
+  if (normalizedType === 'push_connection_test') return true;
+
+  // Fazla bildirimleri kes: sadece v440/v442 direkt görev kaydı bildirimi geçsin.
+  // İstenen tek bildirim formatı:
+  // ZRC Portal — Yeni görev oluşturuldu: görev adı
+  // ZRC Portal — Görev güncellendi: görev adı
+  if (normalizedTitle === 'ZRC Portal' && normalizedBody.startsWith('Yeni görev oluşturuldu:')) return true;
+  if (normalizedTitle === 'ZRC Portal' && normalizedBody.startsWith('Görev güncellendi:')) return true;
+
+  return false;
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { error: 'Sadece POST desteklenir.' });
@@ -82,10 +100,29 @@ export default async function handler(req, res) {
     return sendJson(res, 500, { error: 'VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY eksik.' });
   }
 
-  const body = parseBody(req);
+  const bodyPayload = parseBody(req);
   const authorizationHeader = req.headers.authorization || '';
 
-  let workspaceId = String(body.workspaceId || '').trim();
+  const notificationTitle = String(bodyPayload.title || 'ZRC Portal').trim().slice(0, 80);
+  const notificationBody = String(bodyPayload.body || 'Yeni bildirimin var.').trim().slice(0, 220);
+  const notificationType = String(bodyPayload.type || 'activity').trim();
+
+  if (!shouldSendPush({
+    type: notificationType,
+    title: notificationTitle,
+    body: notificationBody
+  })) {
+    return sendJson(res, 200, {
+      ok: true,
+      blocked: true,
+      sent: 0,
+      reason: 'Fazla/ikincil push engellendi.',
+      type: notificationType,
+      title: notificationTitle
+    });
+  }
+
+  let workspaceId = String(bodyPayload.workspaceId || '').trim();
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
@@ -140,9 +177,7 @@ export default async function handler(req, res) {
 
     webPush.setVapidDetails(subject, publicKey, privateKey);
 
-    const notificationTitle = String(body.title || 'ZRC Portal').slice(0, 80);
-    const notificationBody = String(body.body || 'Yeni bildirimin var.').slice(0, 220);
-    const tag = `zrc-${String(body.type || 'activity')}-${Date.now()}`;
+    const tag = 'zrc-task-direct';
 
     let sent = 0;
     let failed = 0;
@@ -167,7 +202,7 @@ export default async function handler(req, res) {
               icon: '/zrc-logo.png',
               badge: '/zrc-logo.png',
               tag,
-              url: body.url || '/'
+              url: bodyPayload.url || '/'
             })
           );
 
@@ -195,7 +230,8 @@ export default async function handler(req, res) {
       subscriptionCount: subscriptionRows.length,
       sent,
       failed,
-      staleRemoved: staleIds.length
+      staleRemoved: staleIds.length,
+      filtered: true
     });
   } catch (error) {
     return sendJson(res, 500, {
