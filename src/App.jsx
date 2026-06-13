@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v410b-safe-task-detail-safe-refresh';
+const ZRC_APP_BUILD_LABEL = 'v411-safe-notes-messages-await';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -10586,7 +10586,7 @@ function App() {
     }
   };
 
-  const handleSendProjectMessage = (event) => {
+  const handleSendProjectMessage = async (event) => {
     event.preventDefault();
 
     if (!currentPermissions.message) {
@@ -10621,7 +10621,7 @@ function App() {
 
     setProjectMessages((prevMessages) => [nextMessage, ...prevMessages]);
     setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, id])));
-    saveProjectMessageToSupabase(nextMessage);
+    await saveProjectMessageToSupabase(nextMessage);
 
     createActivityNotification({
       type: 'message',
@@ -12112,7 +12112,7 @@ function App() {
     setIsQuickNoteComposerOpen(true);
   };
 
-  const createQuickNoteFromHome = (event) => {
+  const createQuickNoteFromHome = async (event) => {
     event.preventDefault();
 
     const title = quickNoteTitleDraft.trim();
@@ -12138,7 +12138,7 @@ function App() {
         prevNotes.map((note) => (note.id === editingQuickNoteId ? updatedNote : note))
       );
 
-      updateQuickNoteInSupabase(updatedNote);
+      await updateQuickNoteInSupabase(updatedNote);
 
       resetQuickNoteComposer();
       setIsQuickNoteComposerOpen(false);
@@ -12158,7 +12158,7 @@ function App() {
       ...prevNotes
     ]);
 
-    saveQuickNoteToSupabase(nextNote);
+    await saveQuickNoteToSupabase(nextNote);
     resetQuickNoteComposer();
     setIsQuickNoteComposerOpen(false);
   };
@@ -12413,7 +12413,7 @@ function App() {
       isChatGroupVisibleForCurrentUser(selectedChatGroup)
   );
 
-  const createChatGroupFromPage = (event) => {
+  const createChatGroupFromPage = async (event) => {
     event.preventDefault();
 
     if (!canCreateChatGroups) {
@@ -12445,14 +12445,14 @@ function App() {
     };
 
     setChatGroups((prevGroups) => [nextGroup, ...prevGroups]);
-    saveChatGroupToSupabase(nextGroup);
+    await saveChatGroupToSupabase(nextGroup);
     setSelectedChatGroupId(nextGroup.id);
     setChatGroupDraft('');
     setIsChatGroupModalOpen(false);
     setIsChatActionMenuOpen(false);
   };
 
-  const handleSendChatPageMessage = (event) => {
+  const handleSendChatPageMessage = async (event) => {
     event.preventDefault();
 
     if (!currentPermissions.message) {
@@ -12488,7 +12488,7 @@ function App() {
 
     setProjectMessages((prevMessages) => [...prevMessages, nextMessage]);
     setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, id])));
-    saveProjectMessageToSupabase(nextMessage);
+    await saveProjectMessageToSupabase(nextMessage);
 
     createActivityNotification({
       type: 'message',
@@ -21412,3 +21412,4 @@ function ZRCAppShell() {
 }
 
 export default ZRCAppShell;
+// zrc-v411-notes-messages-await-marker
