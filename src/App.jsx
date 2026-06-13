@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v409-safe-project-persistence-hardening';
+const ZRC_APP_BUILD_LABEL = 'v410b-safe-task-detail-safe-refresh';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -3373,6 +3373,11 @@ function App() {
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev detayı kaydedildi');
+
+      // zrc-v410b-task-detail-safe-refresh
+      window.setTimeout(() => {
+        loadSelectedProjectBoardFromSupabase();
+      }, 900);
       return true;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase detay hatası: ${error?.message || 'bilinmeyen hata'}`);

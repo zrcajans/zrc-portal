@@ -1,6 +1,6 @@
 {
-  "build": "v409-safe-project-persistence-hardening",
-  "note": "Proje arşivleme/silme işlemleri Supabase sonucu beklenerek yapılır. Proje ayarı kaydı başarısızsa ekran DB ile geri senkronlanır.",
-  "commitBefore": "74f7e3f",
-  "createdAt": "2026-06-13T08:00:00.516486+00:00"
+  "build": "v410b-safe-task-detail-safe-refresh",
+  "note": "Görev detayları Supabase'e başarıyla kaydedildikten sonra seçili proje panosu güvenli şekilde tekrar doğrulanır.",
+  "commitBefore": "89c1f2d",
+  "createdAt": "2026-06-13T08:03:00.438609+00:00"
 }
