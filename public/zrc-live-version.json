@@ -1,12 +1,6 @@
 {
-  "build": "v452-experimental-ios-from-line-hidden-name",
-  "note": "iOS PWA bildirimlerindeki 'from ...' satırı sistem tarafından zorunlu basılır. Bu denemede PWA kaynak adı görünmez karaktere indirildi; üst bildirim başlığı ZRC kalır. Sonucun görünmesi için ana ekran uygulaması silinip tekrar eklenmelidir.",
-  "changed": [
-    "public/manifest.webmanifest",
-    "public/manifest.json",
-    "index.html",
-    "src/App.jsx"
-  ],
-  "commitBefore": "e2d78bc",
-  "createdAt": "2026-06-13T17:02:45.711651+00:00"
+  "build": "v453-safe-clean-push-text",
+  "note": "Mobil push metni sadeleştirildi. Başlık ZRC kalır; gövde 'Yeni görev: ...' formatına çevrilir. iOS'un zorunlu 'from ZRC' kaynak satırı değiştirilemez.",
+  "commitBefore": "eaa7c10",
+  "createdAt": "2026-06-13T17:08:02.104718+00:00"
 }

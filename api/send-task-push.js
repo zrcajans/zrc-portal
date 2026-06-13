@@ -66,21 +66,37 @@ const getAuthUser = async ({ supabaseUrl, supabaseAnonKey, authorizationHeader }
   return data.user;
 };
 
-const shouldSendPush = ({ type, title, body }) => {
+const cleanNotificationBody = (value = '') => {
+  const body = String(value || 'Yeni bildirimin var.').trim();
+
+  if (body.startsWith('Yeni görev oluşturuldu:')) {
+    return body.replace('Yeni görev oluşturuldu:', 'Yeni görev:').trim();
+  }
+
+  if (body.startsWith('Sana yeni görev atandı')) {
+    return body.replace('Sana yeni görev atandı', 'Yeni görev').trim();
+  }
+
+  if (body.startsWith('Görevlerde yeni bir işlem yapıldı')) {
+    return 'Yeni görev işlemi yapıldı.';
+  }
+
+  return body;
+};
+
+const shouldSendPush = ({ type, body }) => {
   const normalizedType = String(type || '').trim();
-  const normalizedTitle = String(title || '').trim();
   const normalizedBody = String(body || '').trim();
 
   // Telefon bağlantı/test bildirimi çalışmaya devam etsin.
   if (normalizedType === 'push_connection_test') return true;
 
-  // Fazla bildirimleri kes: sadece v440/v442 direkt görev kaydı bildirimi geçsin.
-  // İstenen tek bildirim formatı:
-  // ZRC Portal — Yeni görev oluşturuldu: görev adı
-  // ZRC Portal — Görev güncellendi: görev adı
-  if (((normalizedTitle === 'ZRC Portal' || (normalizedTitle === 'ZRC AJANS' || normalizedTitle === 'ZRC') || normalizedTitle === 'ZRC') || (normalizedTitle === 'ZRC AJANS' || normalizedTitle === 'ZRC')) && normalizedBody.startsWith('Yeni görev oluşturuldu:')) return true;
-  if (((normalizedTitle === 'ZRC Portal' || (normalizedTitle === 'ZRC AJANS' || normalizedTitle === 'ZRC') || normalizedTitle === 'ZRC') || (normalizedTitle === 'ZRC AJANS' || normalizedTitle === 'ZRC')) && normalizedBody.startsWith('Görev güncellendi:')) return true;
+  // Görev bildirimleri sade metinle geçsin.
+  if (normalizedBody.startsWith('Yeni görev:')) return true;
+  if (normalizedBody.startsWith('Görev güncellendi:')) return true;
+  if (normalizedBody.startsWith('Yeni görev işlemi yapıldı.')) return false;
 
+  // Eski fazla kaynakları sessizce kes.
   return false;
 };
 
@@ -103,13 +119,13 @@ export default async function handler(req, res) {
   const bodyPayload = parseBody(req);
   const authorizationHeader = req.headers.authorization || '';
 
-  const notificationTitle = 'ZRC'; // zrc-v451-force-notification-title
-  const notificationBody = String(bodyPayload.body || 'Yeni bildirimin var.').trim().slice(0, 220);
+  const notificationTitle = 'ZRC';
   const notificationType = String(bodyPayload.type || 'activity').trim();
+  const rawBody = String(bodyPayload.body || 'Yeni bildirimin var.').trim().slice(0, 240);
+  const notificationBody = cleanNotificationBody(rawBody).slice(0, 220);
 
   if (!shouldSendPush({
     type: notificationType,
-    title: notificationTitle,
     body: notificationBody
   })) {
     return sendJson(res, 200, {
@@ -118,7 +134,7 @@ export default async function handler(req, res) {
       sent: 0,
       reason: 'Fazla/ikincil push engellendi.',
       type: notificationType,
-      title: notificationTitle
+      body: notificationBody
     });
   }
 
@@ -231,7 +247,8 @@ export default async function handler(req, res) {
       sent,
       failed,
       staleRemoved: staleIds.length,
-      filtered: true
+      title: notificationTitle,
+      body: notificationBody
     });
   } catch (error) {
     return sendJson(res, 500, {
