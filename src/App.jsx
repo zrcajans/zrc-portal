@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v434-safe-assignment-push-target-fix';
+const ZRC_APP_BUILD_LABEL = 'v435-safe-force-workspace-push';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -8404,7 +8404,7 @@ function App() {
       )
     );
 
-    if (targetUserIds.length === 0) return false;
+    // v435: Hedef kullanıcı eşleşmesi boş kalsa bile workspace push API'sine git.
 
     try {
       const sessionResponse = await supabase.auth.getSession();
@@ -8426,6 +8426,7 @@ function App() {
         body: JSON.stringify({
           workspaceId,
           targetUserIds,
+          broadcastToWorkspace: true,
           type: notification.type || 'activity',
           title: notification.title || 'ZRC Portal',
           body: plainBody,

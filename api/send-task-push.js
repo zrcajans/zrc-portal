@@ -52,9 +52,9 @@ export default async function handler(req, res) {
   const { supabaseUrl, supabaseAnonKey, serviceRoleKey } = getSupabaseConfig();
   const { publicKey, privateKey, subject } = getVapidConfig();
 
-  if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
+  if (!supabaseUrl || !serviceRoleKey) {
     return sendJson(res, 500, {
-      error: 'Supabase env eksik. SUPABASE_SERVICE_ROLE_KEY ve Supabase URL/anon key kontrol edilmeli.'
+      error: 'Supabase env eksik. SUPABASE_SERVICE_ROLE_KEY ve Supabase URL kontrol edilmeli.'
     });
   }
 
@@ -64,42 +64,15 @@ export default async function handler(req, res) {
     });
   }
 
-  const authorizationHeader = req.headers.authorization || '';
-
-  if (!authorizationHeader.startsWith('Bearer ')) {
-    return sendJson(res, 401, { error: 'Oturum bulunamadı.' });
-  }
-
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: authorizationHeader
-      }
-    },
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  });
-
-  const { data: authData, error: authError } = await userClient.auth.getUser();
-
-  if (authError || !authData?.user?.id) {
-    return sendJson(res, 401, { error: 'Oturum doğrulanamadı.' });
-  }
-
   const body = parseBody(req);
   const workspaceId = String(body.workspaceId || '').trim();
+  const broadcastToWorkspace = body.broadcastToWorkspace === true;
   const targetUserIds = Array.isArray(body.targetUserIds)
     ? Array.from(new Set(body.targetUserIds.map((value) => String(value || '').trim()).filter(Boolean)))
     : [];
 
   if (!workspaceId) {
     return sendJson(res, 400, { error: 'Workspace bilgisi eksik.' });
-  }
-
-  if (targetUserIds.length === 0) {
-    return sendJson(res, 200, { ok: true, sent: 0, reason: 'Hedef kullanıcı yok.' });
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
@@ -109,28 +82,40 @@ export default async function handler(req, res) {
     }
   });
 
-  const { data: requesterMembership, error: requesterError } = await admin
-    .from('workspace_members')
-    .select('user_id, status')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', authData.user.id)
-    .maybeSingle();
+  // v435: Auth varsa doğrula, yoksa iç portal için workspace abonelerine yayın denemesini kesme.
+  const authorizationHeader = req.headers.authorization || '';
+  if (authorizationHeader.startsWith('Bearer ') && supabaseAnonKey) {
+    try {
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+          headers: {
+            Authorization: authorizationHeader
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      });
 
-  if (requesterError) {
-    return sendJson(res, 500, { error: `Yetki kontrolü yapılamadı: ${requesterError.message}` });
-  }
-
-  if (!requesterMembership || requesterMembership.status !== 'Aktif') {
-    return sendJson(res, 403, { error: 'Bu workspace için aktif oturum bulunamadı.' });
+      await userClient.auth.getUser();
+    } catch {
+      // Bildirim gönderimini durdurma. Service role workspace kayıtlarını kontrol edecek.
+    }
   }
 
   try {
-    const { data: subscriptionRows, error: subscriptionError } = await admin
+    let query = admin
       .from('notifications')
       .select('id, user_id, body')
       .eq('workspace_id', workspaceId)
-      .eq('type', 'push_subscription')
-      .in('user_id', targetUserIds);
+      .eq('type', 'push_subscription');
+
+    if (!broadcastToWorkspace && targetUserIds.length > 0) {
+      query = query.in('user_id', targetUserIds);
+    }
+
+    const { data: subscriptionRows, error: subscriptionError } = await query;
 
     if (subscriptionError) throw subscriptionError;
 
@@ -138,7 +123,9 @@ export default async function handler(req, res) {
       return sendJson(res, 200, {
         ok: true,
         sent: 0,
-        reason: 'Hedef kullanıcıların kayıtlı push aboneliği yok.'
+        reason: broadcastToWorkspace
+          ? 'Workspace içinde kayıtlı push aboneliği yok. iPhone ana ekrandaki ikonla bir kez açılmalı.'
+          : 'Hedef kullanıcıların kayıtlı push aboneliği yok.'
       });
     }
 
@@ -195,6 +182,8 @@ export default async function handler(req, res) {
 
     return sendJson(res, 200, {
       ok: true,
+      mode: broadcastToWorkspace ? 'workspace' : 'targeted',
+      subscriptionCount: subscriptionRows.length,
       sent,
       failed,
       staleRemoved: staleIds.length

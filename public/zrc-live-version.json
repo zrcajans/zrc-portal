@@ -1,6 +1,6 @@
 {
-  "build": "v434-safe-assignment-push-target-fix",
-  "note": "Görev atama bildirimi çağrısında kalan kendi-kullanıcı filtresi kaldırıldı. ZRC AJANS hesabı kendisine görev atadığında da hedef kullanıcı listesi boşalmayacak.",
-  "commitBefore": "af9c4e9",
-  "createdAt": "2026-06-13T10:24:29.861876+00:00"
+  "build": "v435-safe-force-workspace-push",
+  "note": "Push abonelik kaydı auth takılmasına karşı userId ile garantiye alındı. Görev bildirimleri hedef eşleşmesine takılmadan workspace içindeki kayıtlı PWA aboneliklerine gönderilir.",
+  "commitBefore": "4691e6d",
+  "createdAt": "2026-06-13T10:27:57.509596+00:00"
 }
