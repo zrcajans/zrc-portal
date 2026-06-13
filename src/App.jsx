@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v425-safe-instant-task-cache';
+const ZRC_APP_BUILD_LABEL = 'v426-safe-task-end-date-color';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -641,6 +641,131 @@ if (typeof document !== 'undefined' && !document.getElementById('zrc-v423-popup-
   style.textContent = '#zrc-global-update-toast{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';
   document.head.appendChild(style);
 }
+
+
+// zrc-v426-task-end-date-color
+const getZrcTaskEndDateValue = (task = {}) =>
+  task?.dueDate ||
+  task?.endDate ||
+  task?.due_date ||
+  task?.end_date ||
+  task?.deadline ||
+  task?.finishDate ||
+  '';
+
+const parseZrcDueDateForColor = (value = '') => {
+  const raw = String(value || '').trim();
+
+  if (!raw || /tarih yok/i.test(raw)) return null;
+
+  const isoMatch = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+  }
+
+  const trMonths = {
+    ocak: 0,
+    şubat: 1,
+    subat: 1,
+    mart: 2,
+    nisan: 3,
+    mayıs: 4,
+    mayis: 4,
+    haziran: 5,
+    temmuz: 6,
+    ağustos: 7,
+    agustos: 7,
+    eylül: 8,
+    eylul: 8,
+    ekim: 9,
+    kasım: 10,
+    kasim: 10,
+    aralık: 11,
+    aralik: 11
+  };
+
+  const clean = raw
+    .toLocaleLowerCase('tr-TR')
+    .replace(/[.,]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const trMatch = clean.match(/(\d{1,2})\s+([a-zçğıöşü]+)\s+(\d{4})/i);
+  if (trMatch) {
+    const monthIndex = trMonths[trMatch[2]];
+
+    if (monthIndex !== undefined) {
+      return new Date(Number(trMatch[3]), monthIndex, Number(trMatch[1]));
+    }
+  }
+
+  return null;
+};
+
+const getZrcDueDateColorState = (value = '') => {
+  const date = parseZrcDueDateForColor(value);
+
+  if (!date) return 'default';
+
+  const today = new Date();
+  const cleanToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const cleanDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (cleanDate.getTime() < cleanToday.getTime()) return 'overdue';
+  if (cleanDate.getTime() === cleanToday.getTime()) return 'today';
+
+  return 'default';
+};
+
+const applyZrcDueDateColoring = () => {
+  if (typeof document === 'undefined') return;
+
+  const nodes = document.querySelectorAll('span, div, p, button');
+
+  nodes.forEach((node) => {
+    if (!node || node.children?.length > 0) return;
+
+    const text = String(node.textContent || '').trim();
+
+    if (!/^(Bit|Bitiş)\s*:/i.test(text)) return;
+
+    const datePart = text.replace(/^(Bit|Bitiş)\s*:/i, '').trim();
+    const state = getZrcDueDateColorState(datePart);
+
+    node.style.fontWeight = '900';
+
+    if (state === 'overdue') {
+      node.style.color = '#dc2626';
+    } else if (state === 'today') {
+      node.style.color = '#d97706';
+    } else {
+      node.style.color = '';
+    }
+  });
+};
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.__zrcDueDateColoringInstalled) {
+  window.__zrcDueDateColoringInstalled = true;
+
+  const scheduleZrcDueDateColoring = () => {
+    window.clearTimeout(window.__zrcDueDateColoringTimer);
+    window.__zrcDueDateColoringTimer = window.setTimeout(applyZrcDueDateColoring, 80);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleZrcDueDateColoring, { once: true });
+  } else {
+    scheduleZrcDueDateColoring();
+  }
+
+  const observer = new MutationObserver(scheduleZrcDueDateColoring);
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+}
+
 
 function App() {
 

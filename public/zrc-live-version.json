@@ -1,6 +1,7 @@
 {
-  "build": "v425-safe-instant-task-cache",
-  "note": "Sayfa yenilenince görev kartları Supabase beklemeden son local projectBoards cache'inden anında gösterilir; Supabase arkada güncel veriyi tazeler.",
-  "commitBefore": "4cd48c2",
-  "createdAt": "2026-06-13T08:43:06.534347+00:00"
+  "build": "v426-safe-task-end-date-color",
+  "note": "Mobil görev kartlarında bitiş tarihi dueDate/endDate birlikte okunur. Bitiş tarihi geçmişse kırmızı, bugün son günse sarı renklendirilir.",
+  "commitBefore": "9e4423f",
+  "patchedDatePatterns": 0,
+  "createdAt": "2026-06-13T08:46:53.335549+00:00"
 }
