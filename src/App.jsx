@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v450-safe-notification-title-zrc-ajans';
+const ZRC_APP_BUILD_LABEL = 'v451-safe-notification-title-zrc';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1160,7 +1160,7 @@ const zrcV429RegisterAndSendTestPush = async (hint) => {
     },
     body: JSON.stringify({
       subscription,
-      title: 'ZRC AJANS',
+      title: 'ZRC',
       body: 'Test bildirimi başarılı. Telefon bildirimleri aktif.'
     })
   });
@@ -7467,7 +7467,7 @@ function App() {
       zrcV448PlayDesktopNotificationSound();
       zrcV442SendTaskSavePush({
         type: previousTask ? 'task_update' : 'task_create',
-        title: 'ZRC AJANS',
+        title: 'ZRC',
         body: previousTask
           ? `Görev güncellendi: ${cleanedTaskData.title || 'Adsız görev'}`
           : `Yeni görev oluşturuldu: ${cleanedTaskData.title || 'Adsız görev'}`
