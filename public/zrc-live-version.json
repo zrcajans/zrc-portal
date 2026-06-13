@@ -1,6 +1,12 @@
 {
-  "build": "v443-safe-filter-extra-pushes",
-  "note": "App tarafına dokunmadan send-task-push API filtrelendi. Sadece Telefonu Bildirime Bağla testi ve direkt görev kaydı bildirimi geçer; diğer eski push kaynakları server tarafında engellenir.",
-  "commitBefore": "ce98cbd",
-  "createdAt": "2026-06-13T11:34:45.188810+00:00"
+  "build": "v444-safe-mobile-home-icon",
+  "note": "Sadece mobil ana ekran/PWA ikonu değiştirildi. Uygulama içindeki diğer logolara dokunulmadı.",
+  "source": "~/Downloads/zrc ana ekran.png",
+  "icons": [
+    "/pwa-icons/zrc-mobile-home-icon-180.png",
+    "/pwa-icons/zrc-mobile-home-icon-192.png",
+    "/pwa-icons/zrc-mobile-home-icon-512.png"
+  ],
+  "commitBefore": "c16af3f",
+  "createdAt": "2026-06-13T11:38:34.439846+00:00"
 }
