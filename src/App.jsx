@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v429-safe-web-push-test';
+const ZRC_APP_BUILD_LABEL = 'v430-safe-pwa-push-test-button';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1201,6 +1201,186 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.
     },
     true
   );
+}
+
+
+
+// zrc-v430-pwa-push-test-button
+const zrcV430UrlBase64ToUint8Array = (base64String = '') => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let index = 0; index < rawData.length; index += 1) {
+    outputArray[index] = rawData.charCodeAt(index);
+  }
+
+  return outputArray;
+};
+
+const zrcV430SetPushPanelText = (text) => {
+  if (typeof document === 'undefined') return;
+  const status = document.querySelector('#zrc-pwa-push-test-status');
+  if (status) status.textContent = text;
+};
+
+const zrcV430RegisterAndSendTestPush = async () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+
+  if (!('Notification' in window)) {
+    zrcV430SetPushPanelText('Bu cihaz bildirim desteklemiyor.');
+    return;
+  }
+
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    zrcV430SetPushPanelText('Web Push yok. iPhone’da ana ekrandaki ikonla aç.');
+    return;
+  }
+
+  let permission = Notification.permission;
+
+  if (permission !== 'granted') {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== 'granted') {
+    zrcV430SetPushPanelText('Bildirim izni verilmedi.');
+    return;
+  }
+
+  zrcV430SetPushPanelText('Hazırlanıyor...');
+
+  let registration = null;
+
+  try {
+    registration = await navigator.serviceWorker.ready;
+  } catch (error) {
+    registration = null;
+  }
+
+  if (!registration) {
+    registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
+    registration = await navigator.serviceWorker.ready;
+  }
+
+  const keyResponse = await fetch('/api/push-public-key', {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    cache: 'no-store'
+  });
+
+  const keyResult = await keyResponse.json().catch(() => ({}));
+
+  if (!keyResponse.ok || !keyResult.publicKey) {
+    zrcV430SetPushPanelText(keyResult.error || 'VAPID public key okunamadı.');
+    return;
+  }
+
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: zrcV430UrlBase64ToUint8Array(keyResult.publicKey)
+    });
+  }
+
+  zrcV430SetPushPanelText('Test gönderiliyor...');
+
+  const pushResponse = await fetch('/api/send-test-push', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    cache: 'no-store',
+    body: JSON.stringify({
+      subscription,
+      title: 'ZRC Portal',
+      body: 'Test bildirimi başarılı. Telefon bildirimleri aktif.'
+    })
+  });
+
+  const pushResult = await pushResponse.json().catch(() => ({}));
+
+  if (!pushResponse.ok || pushResult.error) {
+    zrcV430SetPushPanelText(pushResult.error || 'Test bildirimi gönderilemedi.');
+    return;
+  }
+
+  zrcV430SetPushPanelText('Gönderildi. Bildirim merkezini kontrol et.');
+};
+
+const zrcV430ShouldShowPushTestPanel = () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  const isStandalone =
+    window.matchMedia?.('(display-mode: standalone)')?.matches ||
+    window.navigator?.standalone === true;
+  const isMobileWidth = window.innerWidth <= 900;
+  const isPortalHost =
+    window.location.hostname.includes('portal.zrcajans.com') ||
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname === 'localhost';
+
+  return isPortalHost && (isStandalone || isMobileWidth);
+};
+
+const zrcV430MountPushTestPanel = () => {
+  if (typeof document === 'undefined' || !zrcV430ShouldShowPushTestPanel()) return;
+  if (document.querySelector('#zrc-pwa-push-test-panel')) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'zrc-pwa-push-test-panel';
+  panel.style.position = 'fixed';
+  panel.style.right = '12px';
+  panel.style.bottom = '96px';
+  panel.style.zIndex = '2147483647';
+  panel.style.width = 'min(330px, calc(100vw - 24px))';
+  panel.style.padding = '12px';
+  panel.style.borderRadius = '18px';
+  panel.style.background = 'rgba(17, 24, 39, 0.96)';
+  panel.style.color = '#fff';
+  panel.style.boxShadow = '0 18px 45px rgba(0,0,0,0.30)';
+  panel.style.fontFamily = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  panel.style.backdropFilter = 'blur(10px)';
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
+      <div style="font-size:14px;font-weight:800;">Bildirim testi</div>
+      <button type="button" id="zrc-pwa-push-test-close" aria-label="Kapat" style="border:0;background:rgba(255,255,255,0.12);color:#fff;border-radius:999px;width:28px;height:28px;font-size:18px;line-height:1;cursor:pointer;">×</button>
+    </div>
+    <div id="zrc-pwa-push-test-status" style="font-size:12px;line-height:1.35;color:rgba(255,255,255,0.78);margin-bottom:10px;">
+      Test için butona bas.
+    </div>
+    <button type="button" id="zrc-pwa-push-test-button" style="width:100%;border:0;border-radius:14px;padding:12px 14px;font-size:14px;font-weight:900;background:#f97316;color:#fff;cursor:pointer;">
+      Test Bildirimi Gönder
+    </button>
+  `;
+
+  document.body.appendChild(panel);
+
+  panel.querySelector('#zrc-pwa-push-test-close')?.addEventListener('click', () => {
+    panel.remove();
+  });
+
+  panel.querySelector('#zrc-pwa-push-test-button')?.addEventListener('click', async () => {
+    try {
+      await zrcV430RegisterAndSendTestPush();
+    } catch (error) {
+      zrcV430SetPushPanelText(error?.message || 'Test bildirimi gönderilemedi.');
+    }
+  });
+};
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.__zrcV430PushTestPanelInstalled) {
+  window.__zrcV430PushTestPanelInstalled = true;
+  window.addEventListener('load', () => {
+    setTimeout(zrcV430MountPushTestPanel, 700);
+    setTimeout(zrcV430MountPushTestPanel, 2200);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) setTimeout(zrcV430MountPushTestPanel, 500);
+  });
 }
 
 

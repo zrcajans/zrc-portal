@@ -1,6 +1,6 @@
 {
-  "build": "v429-safe-web-push-test",
-  "note": "Gerçek Web Push test altyapısı eklendi. Bildirimleri Aç butonu Push subscription oluşturur ve /api/send-test-push üzerinden gerçek test bildirimi gönderir. Vercel VAPID env gerektirir.",
-  "commitBefore": "fd78f19",
-  "createdAt": "2026-06-13T09:15:16.512626+00:00"
-}\n
+  "build": "v430-safe-pwa-push-test-button",
+  "note": "PWA/mobilde sabit Test Bildirimi Gönder paneli eklendi. İzin daha önce verilmiş olsa bile gerçek push testi manuel tetiklenebilir.",
+  "commitBefore": "63c9625",
+  "createdAt": "2026-06-13T09:59:56.292578+00:00"
+}
