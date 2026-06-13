@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v406-safe-profile-persistence-fix';
+const ZRC_APP_BUILD_LABEL = 'v407-safe-global-toast-profile-propagation';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -608,7 +608,156 @@ const createDataSnapshot = ({
   }
 });
 
+
+const getZrcToastMessage = (message = '', tone = 'saved') => {
+  const cleanMessage = String(message || '').trim();
+
+  if (tone === 'error') {
+    return cleanMessage || 'İşlem tamamlanamadı.';
+  }
+
+  if (/profil|tercih/i.test(cleanMessage)) return 'Profil güncellendi ve kaydedildi.';
+  if (/ekip|rol/i.test(cleanMessage)) return 'Ekip bilgileri güncellendi ve kaydedildi.';
+  if (/müşteri|musteri/i.test(cleanMessage)) return 'Müşteri bilgileri güncellendi ve kaydedildi.';
+  if (/proje/i.test(cleanMessage)) return 'Proje bilgileri güncellendi ve kaydedildi.';
+  if (/görev|gorev|durum/i.test(cleanMessage)) return 'Görev güncellendi ve kaydedildi.';
+  if (/not/i.test(cleanMessage)) return 'Not güncellendi ve kaydedildi.';
+  if (/mesaj|yazışma|yazisma/i.test(cleanMessage)) return 'Yazışma güncellendi ve kaydedildi.';
+  if (/dosya/i.test(cleanMessage)) return 'Dosya işlemi tamamlandı.';
+  if (/yedek/i.test(cleanMessage)) return 'Yedekleme işlemi tamamlandı.';
+
+  return cleanMessage || 'Güncellendi ve kaydedildi.';
+};
+
+const showZrcUpdateToast = (message = '', tone = 'saved') => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  const finalMessage = getZrcToastMessage(message, tone);
+  const toastKey = `${tone}-${finalMessage}`;
+  const now = Date.now();
+
+  if (window.__zrcLastUpdateToastKey === toastKey && now - Number(window.__zrcLastUpdateToastAt || 0) < 1600) {
+    return;
+  }
+
+  window.__zrcLastUpdateToastKey = toastKey;
+  window.__zrcLastUpdateToastAt = now;
+
+  const oldToast = document.getElementById('zrc-global-update-toast');
+  if (oldToast) oldToast.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'zrc-global-update-toast';
+
+  const isError = tone === 'error';
+
+  toast.innerHTML = `
+    <div class="zrc-toast-icon">${isError ? '!' : '✓'}</div>
+    <div class="zrc-toast-copy">
+      <strong>${isError ? 'İşlem tamamlanamadı' : 'Güncellendi'}</strong>
+      <span>${finalMessage}</span>
+    </div>
+  `;
+
+  toast.style.cssText = [
+    'position:fixed',
+    'right:max(18px, env(safe-area-inset-right))',
+    'top:calc(max(18px, env(safe-area-inset-top)) + 10px)',
+    'z-index:2147483647',
+    'display:flex',
+    'align-items:center',
+    'gap:10px',
+    'max-width:min(360px, calc(100vw - 28px))',
+    'padding:12px 14px',
+    'border-radius:18px',
+    'background:#ffffff',
+    `border:1px solid ${isError ? '#fecaca' : '#bbf7d0'}`,
+    `box-shadow:0 20px 60px ${isError ? 'rgba(185,28,28,.16)' : 'rgba(22,101,52,.16)'}`,
+    'font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+    'color:#111827',
+    'transform:translateY(-8px)',
+    'opacity:0',
+    'transition:opacity .22s ease, transform .22s ease',
+    'pointer-events:none'
+  ].join(';');
+
+  const styleId = 'zrc-global-update-toast-style';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      #zrc-global-update-toast .zrc-toast-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        font-weight: 900;
+        font-size: 14px;
+        color: #fff;
+        background: ${isError ? '#dc2626' : '#16a34a'};
+      }
+      #zrc-global-update-toast .zrc-toast-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      #zrc-global-update-toast .zrc-toast-copy strong {
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+      #zrc-global-update-toast .zrc-toast-copy span {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        line-height: 1.35;
+      }
+      @media (max-width: 768px) {
+        #zrc-global-update-toast {
+          top: calc(max(12px, env(safe-area-inset-top)) + 8px) !important;
+          right: 14px !important;
+          left: 14px !important;
+          max-width: none !important;
+          border-radius: 18px !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  document.body.appendChild(toast);
+
+  window.requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+  });
+
+  window.setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-8px)';
+    window.setTimeout(() => toast.remove(), 260);
+  }, isError ? 3600 : 2400);
+};
+
+
 function App() {
+
+  const zrcSetSupabaseWriteInfo = (status, message) => {
+    setSupabaseWriteInfo(status, message);
+
+    const cleanStatus = String(status || '').trim();
+
+    if (cleanStatus === 'saved' || cleanStatus === 'error') {
+      window.setTimeout(() => {
+        showZrcUpdateToast(message, cleanStatus);
+      }, 0);
+    }
+  };
+
   // --- TEMEL STATE'LER ---
   // zrc-safe-shortcuts-v319
   useEffect(() => {
@@ -2614,7 +2763,7 @@ function App() {
 
     if (!workspaceId || !selectedProject || !taskData?.title) return;
 
-    setSupabaseWriteInfo('saving', 'Supabase görev kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase görev kaydediliyor');
 
     try {
       const projectId = await ensureSupabaseProject(selectedProject);
@@ -2733,10 +2882,10 @@ function App() {
         }
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase görev hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase görev hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -2747,7 +2896,7 @@ function App() {
 
     if (!workspaceId || !projectName || !taskData?.title) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase görev kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase görev kaydediliyor');
 
     try {
       const projectId = await ensureSupabaseProject(projectName);
@@ -2860,10 +3009,10 @@ function App() {
         }
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase görev hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase görev hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -2873,7 +3022,7 @@ function App() {
 
     if (!workspaceId || !selectedProject || !columnData?.title) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase kolon kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase kolon kaydediliyor');
 
     try {
       const projectId = await ensureSupabaseProject(selectedProject);
@@ -2902,7 +3051,7 @@ function App() {
 
         if (updateError) throw updateError;
 
-        setSupabaseWriteInfo('saved', 'Supabase kolon güncellendi');
+        zrcSetSupabaseWriteInfo('saved', 'Supabase kolon güncellendi');
         return true;
       }
 
@@ -2918,10 +3067,10 @@ function App() {
         );
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase kolon kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase kolon kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase kolon hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase kolon hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -2930,7 +3079,7 @@ function App() {
   const updateSupabaseTaskColumn = async (task, targetColumn) => {
     if (!task?.supabaseId || !targetColumn?.title) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase görev durumu güncelleniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase görev durumu güncelleniyor');
 
     try {
       const projectId = await ensureSupabaseProject(selectedProject);
@@ -2949,10 +3098,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase görev durumu kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase görev durumu kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase durum hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase durum hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -2960,7 +3109,7 @@ function App() {
   const archiveSupabaseTask = async (task) => {
     if (!task?.supabaseId) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase görev arşivleniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase görev arşivleniyor');
 
     try {
       const { error } = await supabase
@@ -2974,10 +3123,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase görev arşivlendi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase görev arşivlendi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase arşiv hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase arşiv hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -2985,7 +3134,7 @@ function App() {
   const restoreSupabaseTask = async (task, targetColumn) => {
     if (!task?.supabaseId) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase görev geri getiriliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase görev geri getiriliyor');
 
     try {
       const projectId = await ensureSupabaseProject(selectedProject);
@@ -3005,10 +3154,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase görev geri getirildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase görev geri getirildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase geri getirme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase geri getirme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3016,7 +3165,7 @@ function App() {
   const deleteSupabaseTask = async (task) => {
     if (!task?.supabaseId) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase görev siliniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase görev siliniyor');
 
     try {
       const { error } = await supabase
@@ -3026,10 +3175,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase görev silindi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase görev silindi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase silme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3132,7 +3281,7 @@ function App() {
 
     if (!shouldSyncDescription && !shouldSyncComments && !shouldSyncSteps && !shouldSyncFiles) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase görev detayı kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase görev detayı kaydediliyor');
 
     try {
       const workspaceId = getCurrentSupabaseWorkspaceId();
@@ -3223,10 +3372,10 @@ function App() {
         }
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase görev detayı kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase görev detayı kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase detay hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase detay hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3270,11 +3419,11 @@ function App() {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (!workspaceId || !taskSupabaseId || !selectedFiles.length) {
-      setSupabaseWriteInfo('error', 'Supabase dosya için önce görev kaydı gerekli');
+      zrcSetSupabaseWriteInfo('error', 'Supabase dosya için önce görev kaydı gerekli');
       return [];
     }
 
-    setSupabaseWriteInfo('saving', 'Supabase dosya yükleniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase dosya yükleniyor');
 
     const now = new Date();
     const uploadedFiles = [];
@@ -3309,10 +3458,10 @@ function App() {
         });
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase dosya yüklendi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase dosya yüklendi');
       return uploadedFiles;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase dosya yükleme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase dosya yükleme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return [];
     }
   };
@@ -3323,7 +3472,7 @@ function App() {
       return;
     }
 
-    setSupabaseWriteInfo('saving', 'Supabase dosya indiriliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase dosya indiriliyor');
 
     try {
       const { data, error } = await supabase.storage
@@ -3342,9 +3491,9 @@ function App() {
       link.remove();
 
       window.URL.revokeObjectURL(objectUrl);
-      setSupabaseWriteInfo('saved', 'Supabase dosya indirildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase dosya indirildi');
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase dosya indirme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase dosya indirme hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -3360,7 +3509,7 @@ function App() {
 
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase dosya silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase dosya silme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3459,7 +3608,7 @@ function App() {
 
     if (!workspaceId || !cleanName) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase müşteri kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase müşteri kaydediliyor');
 
     try {
       const payload = {
@@ -3502,10 +3651,10 @@ function App() {
         replaceLocalCustomerIdWithSupabaseId(customer.id, savedCustomer.id);
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase müşteri kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase müşteri kaydedildi');
       return savedCustomer || true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase müşteri hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase müşteri hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3515,7 +3664,7 @@ function App() {
 
     if (!customerId) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase müşteri durumu kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase müşteri durumu kaydediliyor');
 
     try {
       const { error } = await supabase
@@ -3525,10 +3674,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase müşteri durumu kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase müşteri durumu kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase müşteri durum hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase müşteri durum hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3538,7 +3687,7 @@ function App() {
 
     if (!customerId) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase müşteri siliniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase müşteri siliniyor');
 
     try {
       const { error } = await supabase
@@ -3548,10 +3697,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase müşteri silindi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase müşteri silindi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase müşteri silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase müşteri silme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3595,7 +3744,7 @@ function App() {
 
     if (!workspaceId || !cleanProjectName) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase proje ayarları kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase proje ayarları kaydediliyor');
 
     try {
       const customerId = getSupabaseCustomerId(settings.customerId || settings.customer);
@@ -3719,10 +3868,10 @@ function App() {
         }
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase proje ayarları kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase proje ayarları kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase proje ayar hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase proje ayar hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3740,10 +3889,10 @@ function App() {
         .eq('name', projectName);
 
       if (error) throw error;
-      setSupabaseWriteInfo('saved', 'Supabase proje durumu kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase proje durumu kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase proje durum hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase proje durum hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3754,7 +3903,7 @@ function App() {
 
     if (!workspaceId || !cleanProjectName) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase proje siliniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase proje siliniyor');
 
     try {
       const { data: projectsToDelete, error: projectSelectError } = await supabase
@@ -3768,7 +3917,7 @@ function App() {
       const projectIds = (projectsToDelete || []).map((project) => project.id).filter(isSupabaseUuid);
 
       if (projectIds.length === 0) {
-        setSupabaseWriteInfo('saved', 'Supabase proje zaten yok');
+        zrcSetSupabaseWriteInfo('saved', 'Supabase proje zaten yok');
         return true;
       }
 
@@ -3801,10 +3950,10 @@ function App() {
 
       if (projectDeleteError) throw projectDeleteError;
 
-      setSupabaseWriteInfo('saved', 'Supabase proje silindi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase proje silindi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase proje silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase proje silme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -3823,7 +3972,7 @@ function App() {
 
     if (!cleanProjectName || !getCurrentSupabaseWorkspaceId()) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase proje oluşturuluyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase proje oluşturuluyor');
 
     try {
       await saveProjectSettingsToSupabase(
@@ -3840,10 +3989,10 @@ function App() {
         }
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase proje oluşturuldu');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase proje oluşturuldu');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase proje oluşturma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase proje oluşturma hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -4057,9 +4206,9 @@ function App() {
         mergeSupabaseWorkspaceMembersIntoLocalState(dbMembers || []);
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase çalışma alanı yüklendi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase çalışma alanı yüklendi');
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase çalışma alanı okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase çalışma alanı okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -4138,7 +4287,7 @@ function App() {
 
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase tercih hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase tercih hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -4218,9 +4367,9 @@ function App() {
         setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, ...preferences.readMessageIds])));
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase profil/tercih yüklendi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase profil/tercih yüklendi');
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase profil okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase profil okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -4344,17 +4493,17 @@ function App() {
     });
 
     if (safeApiResult?.ok) {
-      setSupabaseWriteInfo('saved', 'Profil güvenli API ile kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Profil güvenli API ile kaydedildi');
       return true;
     }
 
     if (safeApiResult?.blocked) {
-      setSupabaseWriteInfo('error', safeApiResult.message || 'Bu profil ayarı için yetkin yok');
+      zrcSetSupabaseWriteInfo('error', safeApiResult.message || 'Bu profil ayarı için yetkin yok');
       alert(safeApiResult.message || 'Bu profil ayarı için yetkin yok.');
       return false;
     }
 
-    setSupabaseWriteInfo('saving', 'Supabase profil kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase profil kaydediliyor');
 
     try {
       const displayName = `${nextProfileDraft.firstName || ''} ${nextProfileDraft.lastName || ''}`.trim() || currentProfileName || 'Kullanıcı';
@@ -4377,10 +4526,10 @@ function App() {
         profilePreferences: nextPreferences
       });
 
-      setSupabaseWriteInfo('saved', 'Supabase profil kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase profil kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase profil hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase profil hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -4397,7 +4546,7 @@ function App() {
 
     if (!workspaceId || !isSupabaseUuid(currentUserId) || !String(note.text || '').trim()) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase not kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase not kaydediliyor');
 
     try {
       const { data, error } = await supabase
@@ -4420,10 +4569,10 @@ function App() {
         );
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase not kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase not kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase not hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase not hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -4443,10 +4592,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase not güncellendi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase not güncellendi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase not güncelleme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase not güncelleme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -4464,10 +4613,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase not silindi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase not silindi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase not silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase not silme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -4493,7 +4642,7 @@ function App() {
         mergeUniqueByKey(prevNotes, mappedNotes, (note) => note.supabaseId || note.id)
       );
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase not okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase not okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -4568,7 +4717,7 @@ function App() {
 
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase aktivite hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase aktivite hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -4720,7 +4869,7 @@ function App() {
         }
       }
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase aktivite okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase aktivite okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -4793,7 +4942,7 @@ function App() {
 
     if (!workspaceId || !String(group.name || group.title || '').trim()) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase yazışma grubu kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase yazışma grubu kaydediliyor');
 
     try {
       const supabaseChatGroupId = await ensureSupabaseChatGroup(group);
@@ -4806,10 +4955,10 @@ function App() {
         );
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase yazışma grubu kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase yazışma grubu kaydedildi');
       return supabaseChatGroupId;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase yazışma grubu hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase yazışma grubu hatası: ${error?.message || 'bilinmeyen hata'}`);
       return null;
     }
   };
@@ -4819,7 +4968,7 @@ function App() {
 
     if (!workspaceId || !isSupabaseUuid(currentUserId) || !String(message.text || '').trim()) return false;
 
-    setSupabaseWriteInfo('saving', 'Supabase mesaj kaydediliyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase mesaj kaydediliyor');
 
     try {
       const projectId = message.projectName
@@ -4866,10 +5015,10 @@ function App() {
         );
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase mesaj kaydedildi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase mesaj kaydedildi');
       return true;
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase mesaj hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase mesaj hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
     }
   };
@@ -4945,9 +5094,9 @@ function App() {
         mergeUniqueByKey(prevMessages, mappedMessages, (message) => message.supabaseId || message.id)
       );
 
-      setSupabaseWriteInfo('saved', 'Supabase yazışmalar yüklendi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase yazışmalar yüklendi');
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase yazışma okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase yazışma okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -4992,7 +5141,7 @@ function App() {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     setSupabaseHealthLoading(true);
-    setSupabaseWriteInfo('saving', 'Supabase sağlık kontrolü yapılıyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase sağlık kontrolü yapılıyor');
 
     const rows = [];
 
@@ -5000,7 +5149,7 @@ function App() {
       if (!workspaceId) {
         rows.push(createSupabaseHealthRow('workspace', 'Workspace bağlantısı', 'error', 'Aktif workspace bulunamadı.'));
         setSupabaseHealthReport(rows);
-        setSupabaseWriteInfo('error', 'Supabase sağlık kontrolü: workspace yok');
+        zrcSetSupabaseWriteInfo('error', 'Supabase sağlık kontrolü: workspace yok');
         return;
       }
 
@@ -5065,7 +5214,7 @@ function App() {
       const hasWarning = rows.some((row) => row.state === 'warning');
 
       setSupabaseHealthReport(rows);
-      setSupabaseWriteInfo(
+      zrcSetSupabaseWriteInfo(
         hasError ? 'error' : hasWarning ? 'saved' : 'saved',
         hasError ? 'Supabase sağlık kontrolünde hata var' : 'Supabase sağlık kontrolü tamamlandı'
       );
@@ -5076,7 +5225,7 @@ function App() {
 
   const runFullSupabaseRefresh = async () => {
     setSupabaseHealthLoading(true);
-    setSupabaseWriteInfo('saving', 'Supabase toplu yenileme yapılıyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase toplu yenileme yapılıyor');
 
     try {
       await loadWorkspaceStructureFromSupabase();
@@ -5088,9 +5237,9 @@ function App() {
 
       const refreshedAt = new Date().toISOString();
       setSupabaseLastFullRefreshAt(refreshedAt);
-      setSupabaseWriteInfo('saved', 'Supabase toplu yenileme tamamlandı');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase toplu yenileme tamamlandı');
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase toplu yenileme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase toplu yenileme hatası: ${error?.message || 'bilinmeyen hata'}`);
     } finally {
       setSupabaseHealthLoading(false);
     }
@@ -5259,7 +5408,7 @@ function App() {
     if (!ensureCanManageLocalData()) return;
 
     setSupabaseBackupLoading(true);
-    setSupabaseWriteInfo('saving', 'Supabase yedeği hazırlanıyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase yedeği hazırlanıyor');
 
     try {
       const snapshot = await buildSupabaseBackupSnapshot();
@@ -5273,14 +5422,14 @@ function App() {
         lastSavedAt: new Date().toISOString()
       }));
 
-      setSupabaseWriteInfo(
+      zrcSetSupabaseWriteInfo(
         snapshot.errors?.length ? 'error' : 'saved',
         snapshot.errors?.length
           ? `Supabase yedeği alındı ama ${snapshot.errors.length} tablo uyarı verdi`
           : 'Supabase yedeği indirildi'
       );
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase yedek hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase yedek hatası: ${error?.message || 'bilinmeyen hata'}`);
     } finally {
       setSupabaseBackupLoading(false);
     }
@@ -5290,7 +5439,7 @@ function App() {
     if (!ensureCanManageLocalData()) return;
 
     setSupabaseBackupLoading(true);
-    setSupabaseWriteInfo('saving', 'Supabase yedeği kopyalanıyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase yedeği kopyalanıyor');
 
     try {
       const snapshot = await buildSupabaseBackupSnapshot();
@@ -5310,9 +5459,9 @@ function App() {
         lastSavedAt: new Date().toISOString()
       }));
 
-      setSupabaseWriteInfo('saved', 'Supabase yedeği kopyalandı');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase yedeği kopyalandı');
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase yedek kopyalama hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase yedek kopyalama hatası: ${error?.message || 'bilinmeyen hata'}`);
     } finally {
       setSupabaseBackupLoading(false);
     }
@@ -5462,7 +5611,7 @@ function App() {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (!workspaceId) {
-      setSupabaseWriteInfo('error', 'Supabase aktarımı için workspace bulunamadı');
+      zrcSetSupabaseWriteInfo('error', 'Supabase aktarımı için workspace bulunamadı');
       return;
     }
 
@@ -5473,7 +5622,7 @@ function App() {
     if (!confirmed) return;
 
     setSupabaseBackupLoading(true);
-    setSupabaseWriteInfo('saving', 'Yerel veri Supabase’e aktarılıyor');
+    zrcSetSupabaseWriteInfo('saving', 'Yerel veri Supabase’e aktarılıyor');
 
     const report = {
       customers: 0,
@@ -5562,14 +5711,14 @@ function App() {
 
       await copyTextToClipboard(reportText, 'Aktarım raporu panoya kopyalandı.');
 
-      setSupabaseWriteInfo(
+      zrcSetSupabaseWriteInfo(
         report.errors.length ? 'error' : 'saved',
         report.errors.length
           ? `Aktarım tamamlandı, ${report.errors.length} uyarı var`
           : 'Yerel veri Supabase’e aktarıldı'
       );
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase aktarım hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase aktarım hatası: ${error?.message || 'bilinmeyen hata'}`);
     } finally {
       setSupabaseBackupLoading(false);
     }
@@ -6077,7 +6226,7 @@ function App() {
 
     if (!workspaceId || !selectedProject || authSessionLoading) return;
 
-    setSupabaseWriteInfo('saving', 'Supabase görevler okunuyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase görevler okunuyor');
 
     try {
       const { data: projectRecord, error: projectError } = await supabase
@@ -6090,7 +6239,7 @@ function App() {
       if (projectError) throw projectError;
 
       if (!projectRecord?.id) {
-        setSupabaseWriteInfo('saved', 'Supabase proje henüz boş');
+        zrcSetSupabaseWriteInfo('saved', 'Supabase proje henüz boş');
         return;
       }
 
@@ -6193,9 +6342,9 @@ function App() {
       }
 
       mergeSupabaseBoardIntoLocalState(selectedProject, dbColumns || [], enrichedTasks);
-      setSupabaseWriteInfo('saved', 'Supabase görev ve detaylar yüklendi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase görev ve detaylar yüklendi');
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -6478,11 +6627,11 @@ function App() {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (!workspaceId || !selectedProject || !columnToDelete) {
-      setSupabaseWriteInfo('saved', 'Kolon yerelden silindi');
+      zrcSetSupabaseWriteInfo('saved', 'Kolon yerelden silindi');
       return;
     }
 
-    setSupabaseWriteInfo('saving', 'Supabase kolon siliniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase kolon siliniyor');
 
     try {
       const projectId = await ensureSupabaseProject(selectedProject);
@@ -6555,10 +6704,10 @@ function App() {
         if (titleDeleteError) throw titleDeleteError;
       }
 
-      setSupabaseWriteInfo('saved', 'Supabase kolon silindi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase kolon silindi');
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase kolon silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase kolon silme hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -6672,7 +6821,7 @@ function App() {
 
     if (!isSupabaseUuid(column.id)) return;
 
-    setSupabaseWriteInfo('saving', 'Supabase kolon arşivleniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Supabase kolon arşivleniyor');
 
     try {
       const { error } = await supabase
@@ -6682,10 +6831,10 @@ function App() {
 
       if (error) throw error;
 
-      setSupabaseWriteInfo('saved', 'Supabase kolon arşivlendi');
+      zrcSetSupabaseWriteInfo('saved', 'Supabase kolon arşivlendi');
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
     } catch (error) {
-      setSupabaseWriteInfo('error', `Supabase kolon arşiv hatası: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Supabase kolon arşiv hatası: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -7194,10 +7343,10 @@ function App() {
         await saveTaskToSupabaseForProject(activeProjectName, movedTask, targetStatus);
       }
 
-      setSupabaseWriteInfo('saved', 'Görev Aktif kolonuna taşındı');
+      zrcSetSupabaseWriteInfo('saved', 'Görev Aktif kolonuna taşındı');
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
     } catch (error) {
-      setSupabaseWriteInfo('error', `Görev Aktif kolonuna taşınamadı: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Görev Aktif kolonuna taşınamadı: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
 
@@ -8557,7 +8706,7 @@ function App() {
       return;
     }
 
-    setSupabaseWriteInfo('saving', 'Dosya siliniyor');
+    zrcSetSupabaseWriteInfo('saving', 'Dosya siliniyor');
 
     if (file.storagePath) {
       const storageDeleted = await deleteTaskStoredFileFromSupabase(file);
@@ -8595,7 +8744,7 @@ function App() {
 
     setSelectedProjectFileKey(null);
     setPendingFileDeleteKey(null);
-    setSupabaseWriteInfo('saved', 'Dosya silindi');
+    zrcSetSupabaseWriteInfo('saved', 'Dosya silindi');
   };
 
   const parseTaskDateValue = (value) => {
@@ -10906,14 +11055,14 @@ function App() {
     }
 
     try {
-      setSupabaseWriteInfo('saving', 'Merkezi ekip hesabı oluşturuluyor');
+      zrcSetSupabaseWriteInfo('saving', 'Merkezi ekip hesabı oluşturuluyor');
 
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token || '';
 
       if (!accessToken) {
         alert('Yönetici oturumu bulunamadı. Çıkış yapıp ZRC AJANS hesabıyla tekrar giriş yap.');
-        setSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
+        zrcSetSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
         return;
       }
 
@@ -10961,11 +11110,11 @@ function App() {
       setTeamMemberDraft({ name: '', email: '', username: '', password: '', role: 'Ekip Üyesi', customerId: '' });
       setSelectedTeamMemberId(nextMember.id);
       setPendingTeamDeleteId(null);
-      setSupabaseWriteInfo('saved', 'Merkezi ekip hesabı oluşturuldu');
+      zrcSetSupabaseWriteInfo('saved', 'Merkezi ekip hesabı oluşturuldu');
     } catch (error) {
       const errorMessage = error?.message || 'Merkezi ekip hesabı oluşturulamadı.';
       alert(errorMessage);
-      setSupabaseWriteInfo('error', errorMessage);
+      zrcSetSupabaseWriteInfo('error', errorMessage);
     }
   };
 
@@ -11173,7 +11322,7 @@ function App() {
 
     if (isSupabaseUuid(zrcEditedMemberId) && isSupabaseUuid(zrcWorkspaceIdForMemberUpdate)) {
       try {
-        setSupabaseWriteInfo('saving', 'Ekip rolü Supabase kaydediliyor');
+        zrcSetSupabaseWriteInfo('saving', 'Ekip rolü Supabase kaydediliyor');
 
         const response = await fetch('/api/update-team-member', {
           method: 'POST',
@@ -11197,10 +11346,10 @@ function App() {
           throw new Error(result?.error || 'Ekip rolü güncellenemedi.');
         }
 
-        setSupabaseWriteInfo('saved', 'Ekip rolü Supabase kaydedildi');
+        zrcSetSupabaseWriteInfo('saved', 'Ekip rolü Supabase kaydedildi');
       } catch (error) {
         const message = error?.message || 'Ekip rolü güncellenemedi.';
-        setSupabaseWriteInfo('error', message);
+        zrcSetSupabaseWriteInfo('error', message);
         alert(message);
         return;
       }
@@ -11372,14 +11521,14 @@ function App() {
       }
 
       try {
-        setSupabaseWriteInfo('saving', 'Müşteri giriş hesabı oluşturuluyor');
+        zrcSetSupabaseWriteInfo('saving', 'Müşteri giriş hesabı oluşturuluyor');
 
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData?.session?.access_token || '';
 
         if (!accessToken) {
           alert('Müşteri oluşturuldu ama yönetici oturumu bulunamadığı için giriş hesabı açılamadı.');
-          setSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
+          zrcSetSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
           return;
         }
 
@@ -11431,11 +11580,11 @@ function App() {
         });
 
         setSelectedTeamMemberId(nextMember.id);
-        setSupabaseWriteInfo('saved', 'Müşteri ve giriş hesabı oluşturuldu');
+        zrcSetSupabaseWriteInfo('saved', 'Müşteri ve giriş hesabı oluşturuldu');
       } catch (error) {
         const errorMessage = error?.message || 'Müşteri giriş hesabı oluşturulamadı.';
         alert(`Müşteri oluşturuldu ama giriş hesabı açılamadı: ${errorMessage}`);
-        setSupabaseWriteInfo('error', errorMessage);
+        zrcSetSupabaseWriteInfo('error', errorMessage);
       }
     }
 
@@ -12344,6 +12493,8 @@ function App() {
       .filter(Boolean);
 
     const nextProfileName = nextProfileNameParts.join(' ') || currentProfileName || 'ZRC AJANS';
+    const nextProfileAvatar = nextProfileDraft.avatarDataUrl || createAvatarFromName(nextProfileName);
+    const nextProfileEmail = nextProfileDraft.email || profileDraft.email || '';
 
     const safeProfileDraftForState = {
       ...nextProfileDraft,
@@ -12358,6 +12509,47 @@ function App() {
       lastSavedAt: new Date().toISOString()
     };
 
+    const isCurrentProfileRecord = (record = {}) => {
+      const recordId = String(record.id || record.userId || record.actorId || record.senderId || '').trim();
+      const recordName = String(record.name || record.sender || record.actor || record.title || record.actorName || '').trim();
+      const recordEmail = normalizeCredentialText(record.email || '');
+
+      return (
+        (recordId && String(currentUserId || '') && recordId === String(currentUserId || '')) ||
+        (recordName && currentProfileName && recordName === currentProfileName) ||
+        (recordEmail && normalizeCredentialText(profileDraft.email || '') && recordEmail === normalizeCredentialText(profileDraft.email || ''))
+      );
+    };
+
+    const applyCurrentProfileToPerson = (person = {}) =>
+      isCurrentProfileRecord(person)
+        ? {
+            ...person,
+            id: person.id || currentUserId,
+            userId: person.userId || currentUserId,
+            name: nextProfileName,
+            sender: person.sender ? nextProfileName : person.sender,
+            actor: person.actor ? nextProfileName : person.actor,
+            actorName: person.actorName ? nextProfileName : person.actorName,
+            title: person.title && person.sender ? nextProfileName : person.title,
+            email: nextProfileEmail || person.email,
+            avatar: nextProfileAvatar,
+            role: person.role || currentUserRole
+          }
+        : person;
+
+    const applyCurrentProfileToTask = (task = {}) => ({
+      ...task,
+      assignees: Array.isArray(task.assignees) ? task.assignees.map(applyCurrentProfileToPerson) : task.assignees,
+      followers: Array.isArray(task.followers) ? task.followers.map(applyCurrentProfileToPerson) : task.followers,
+      comments: Array.isArray(task.comments)
+        ? task.comments.map((comment) => applyCurrentProfileToPerson(comment))
+        : task.comments,
+      history: Array.isArray(task.history)
+        ? task.history.map((entry) => applyCurrentProfileToPerson(entry))
+        : task.history
+    });
+
     setProfileDraft(safeProfileDraftForState);
 
     setTeamMembers((prevMembers) =>
@@ -12366,10 +12558,52 @@ function App() {
           ? {
               ...member,
               name: nextProfileName,
-              email: nextProfileDraft.email || member.email,
-              avatar: nextProfileDraft.avatarDataUrl || createAvatarFromName(nextProfileName)
+              email: nextProfileEmail || member.email,
+              avatar: nextProfileAvatar
             }
           : member
+      )
+    );
+
+    setProjectBoards((prevBoards) =>
+      Object.fromEntries(
+        Object.entries(prevBoards || {}).map(([projectName, board]) => [
+          projectName,
+          {
+            ...board,
+            columns: (board.columns || []).map((column) => ({
+              ...column,
+              tasks: (column.tasks || []).map(applyCurrentProfileToTask)
+            })),
+            archivedTasks: (board.archivedTasks || []).map(applyCurrentProfileToTask)
+          }
+        ])
+      )
+    );
+
+    setActivityNotifications((prevNotifications) =>
+      (prevNotifications || []).map((notification) =>
+        isCurrentProfileRecord(notification)
+          ? {
+              ...notification,
+              actor: nextProfileName,
+              avatar: nextProfileAvatar,
+              userId: notification.userId || currentUserId
+            }
+          : notification
+      )
+    );
+
+    setProjectMessages((prevMessages) =>
+      (prevMessages || []).map((message) =>
+        isCurrentProfileRecord(message)
+          ? {
+              ...message,
+              sender: nextProfileName,
+              avatar: nextProfileAvatar,
+              senderId: message.senderId || currentUserId
+            }
+          : message
       )
     );
 
