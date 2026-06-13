@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v433-safe-allow-self-assignment-push';
+const ZRC_APP_BUILD_LABEL = 'v434-safe-assignment-push-target-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -7203,7 +7203,7 @@ function App() {
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
         columnTitle: finalTargetStatus || targetColumn?.title,
-        targetUserIds: addedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
+        targetUserIds: addedAssigneeUserIds,
         sortWeight: 740
       });
     }
@@ -7216,7 +7216,7 @@ function App() {
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
         columnTitle: finalTargetStatus || targetColumn?.title,
-        targetUserIds: addedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
+        targetUserIds: addedAssigneeUserIds,
         sortWeight: 940
       });
     }
@@ -7229,7 +7229,7 @@ function App() {
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
         columnTitle: finalTargetStatus || targetColumn?.title,
-        targetUserIds: removedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
+        targetUserIds: removedAssigneeUserIds,
         sortWeight: 930
       });
     }
