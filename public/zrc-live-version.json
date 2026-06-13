@@ -1,6 +1,14 @@
 {
-  "build": "v440-safe-direct-task-save-push",
-  "note": "Görev Supabase'e başarıyla kaydedildikten hemen sonra çalışan send-task-push API doğrudan tetiklenir. Görev atama filtrelerine veya fetch köprüsüne bağlı değildir.",
-  "commitBefore": "9b9c339",
-  "createdAt": "2026-06-13T11:20:53.985751+00:00"
+  "build": "v442-safe-single-direct-task-push",
+  "note": "Eski fetch köprüsü ve activity push yolları temizlendi. Tek push yolu: görev Supabase'e kaydedildikten sonra v442 direkt push. 3 saniye çift gönderim koruması eklendi.",
+  "removed": [
+    "Top-level blok kaldırıldı: // zrc-v440-direct-task-save-push",
+    "Top-level blok kaldırıldı: // zrc-v439-fetch-task-push-bridge",
+    "Top-level blok kaldırıldı: // zrc-v438-push-bind-panel",
+    "Activity push bloğu kaldırıldı: // zrc-v438-send-real-push-to-workspace",
+    "1 adet sendPushNotificationToUsers çağrısı kaldırıldı",
+    "1 adet eski v440 direkt trigger kaldırıldı"
+  ],
+  "commitBefore": "a8be30b",
+  "createdAt": "2026-06-13T11:27:22.299872+00:00"
 }

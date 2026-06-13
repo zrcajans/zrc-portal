@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v440-safe-direct-task-save-push';
+const ZRC_APP_BUILD_LABEL = 'v442-safe-single-direct-task-push';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1206,27 +1206,9 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.
 
 
 
-// zrc-v438-push-bind-panel
-const zrcV438UrlBase64ToUint8Array = (base64String = '') => {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
 
-  for (let index = 0; index < rawData.length; index += 1) {
-    outputArray[index] = rawData.charCodeAt(index);
-  }
-
-  return outputArray;
-};
-
-const zrcV438SetPanelText = (text) => {
-  if (typeof document === 'undefined') return;
-  const status = document.querySelector('#zrc-v438-push-status');
-  if (status) status.textContent = text;
-};
-
-const zrcV438ReadSupabaseAccessToken = () => {
+// zrc-v442-single-direct-task-push
+const zrcV442ReadSupabaseAccessToken = () => {
   if (typeof window === 'undefined') return '';
 
   try {
@@ -1248,372 +1230,29 @@ const zrcV438ReadSupabaseAccessToken = () => {
       if (token) return token;
     }
   } catch (error) {
-    console.warn('[ZRC Push] Supabase token okunamadı.', error);
+    console.warn('[ZRC Push v442] Supabase token okunamadı.', error);
   }
 
   return '';
 };
 
-const zrcV438RegisterAndTestPush = async () => {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
-
-  if (!('Notification' in window)) {
-    zrcV438SetPanelText('Bu cihaz bildirim desteklemiyor.');
-    return;
-  }
-
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    zrcV438SetPanelText('Web Push yok. iPhone’da ana ekrandaki ikonla aç.');
-    return;
-  }
-
-  let permission = Notification.permission;
-
-  if (permission !== 'granted') {
-    permission = await Notification.requestPermission();
-  }
-
-  if (permission !== 'granted') {
-    zrcV438SetPanelText('Bildirim izni verilmedi.');
-    return;
-  }
-
-  zrcV438SetPanelText('Telefon hazırlanıyor...');
-
-  let registration = null;
-
-  try {
-    registration = await navigator.serviceWorker.ready;
-  } catch {
-    registration = null;
-  }
-
-  if (!registration) {
-    registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
-    registration = await navigator.serviceWorker.ready;
-  }
-
-  const keyResponse = await fetch('/api/push-public-key', {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-    cache: 'no-store'
-  });
-
-  const keyResult = await keyResponse.json().catch(() => ({}));
-
-  if (!keyResponse.ok || !keyResult.publicKey) {
-    zrcV438SetPanelText(keyResult.error || 'VAPID public key okunamadı.');
-    return;
-  }
-
-  let subscription = await registration.pushManager.getSubscription();
-
-  if (!subscription) {
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: zrcV438UrlBase64ToUint8Array(keyResult.publicKey)
-    });
-  }
-
-  const accessToken = zrcV438ReadSupabaseAccessToken();
-
-  if (!accessToken) {
-    zrcV438SetPanelText('Oturum bulunamadı. Portaldan çıkış-giriş yapıp tekrar bas.');
-    return;
-  }
-
-  zrcV438SetPanelText('Telefon veritabanına kaydediliyor...');
-
-  const registerResponse = await fetch('/api/register-push-subscription', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    },
-    cache: 'no-store',
-    body: JSON.stringify({
-      subscription,
-      userAgent: navigator.userAgent || ''
-    })
-  });
-
-  const registerResult = await registerResponse.json().catch(() => ({}));
-
-  if (!registerResponse.ok || registerResult.error) {
-    zrcV438SetPanelText(`Telefon kaydı olmadı: ${registerResult.error || registerResponse.status}`);
-    return;
-  }
-
-  zrcV438SetPanelText('Kayıt tamam. Görev bildirimi yolu test ediliyor...');
-
-  const pushResponse = await fetch('/api/send-task-push', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    },
-    cache: 'no-store',
-    body: JSON.stringify({
-      workspaceId: registerResult.workspaceId,
-      type: 'push_connection_test',
-      title: 'ZRC Portal',
-      body: 'Telefon görev bildirimlerine bağlandı. Bundan sonra görev bildirimleri gelebilir.',
-      url: '/'
-    })
-  });
-
-  const pushResult = await pushResponse.json().catch(() => ({}));
-
-  if (!pushResponse.ok || pushResult.error) {
-    zrcV438SetPanelText(`Test gönderilemedi: ${pushResult.error || pushResponse.status}`);
-    return;
-  }
-
-  zrcV438SetPanelText(`Bağlandı. Gönderilen: ${pushResult.sent || 0}, kayıt: ${pushResult.subscriptionCount || 0}`);
-};
-
-const zrcV438ShouldShowPushPanel = () => {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
-
-  const isStandalone =
-    window.matchMedia?.('(display-mode: standalone)')?.matches ||
-    window.navigator?.standalone === true;
-  const isMobileWidth = window.innerWidth <= 900;
-  const isPortalHost =
-    window.location.hostname.includes('portal.zrcajans.com') ||
-    window.location.hostname.includes('vercel.app') ||
-    window.location.hostname === 'localhost';
-
-  return isPortalHost && (isStandalone || isMobileWidth);
-};
-
-const zrcV438MountPushPanel = () => {
-  if (typeof document === 'undefined' || !zrcV438ShouldShowPushPanel()) return;
-  if (document.querySelector('#zrc-v438-push-panel')) return;
-
-  const panel = document.createElement('div');
-  panel.id = 'zrc-v438-push-panel';
-  panel.style.position = 'fixed';
-  panel.style.right = '12px';
-  panel.style.bottom = '96px';
-  panel.style.zIndex = '2147483647';
-  panel.style.width = 'min(340px, calc(100vw - 24px))';
-  panel.style.padding = '12px';
-  panel.style.borderRadius = '18px';
-  panel.style.background = 'rgba(17, 24, 39, 0.96)';
-  panel.style.color = '#fff';
-  panel.style.boxShadow = '0 18px 45px rgba(0,0,0,0.30)';
-  panel.style.fontFamily = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-  panel.style.backdropFilter = 'blur(10px)';
-
-  panel.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
-      <div style="font-size:14px;font-weight:800;">Telefon bildirim bağlantısı</div>
-      <button type="button" id="zrc-v438-push-close" aria-label="Kapat" style="border:0;background:rgba(255,255,255,0.12);color:#fff;border-radius:999px;width:28px;height:28px;font-size:18px;line-height:1;cursor:pointer;">×</button>
-    </div>
-    <div id="zrc-v438-push-status" style="font-size:12px;line-height:1.35;color:rgba(255,255,255,0.78);margin-bottom:10px;">
-      Bir kez basınca bu telefonu görev bildirimlerine bağlar.
-    </div>
-    <button type="button" id="zrc-v438-push-button" style="width:100%;border:0;border-radius:14px;padding:12px 14px;font-size:14px;font-weight:900;background:#f97316;color:#fff;cursor:pointer;">
-      Telefonu Bildirime Bağla
-    </button>
-  `;
-
-  document.body.appendChild(panel);
-
-  panel.querySelector('#zrc-v438-push-close')?.addEventListener('click', () => {
-    panel.remove();
-  });
-
-  panel.querySelector('#zrc-v438-push-button')?.addEventListener('click', async () => {
-    try {
-      await zrcV438RegisterAndTestPush();
-    } catch (error) {
-      zrcV438SetPanelText(error?.message || 'Telefon bağlanamadı.');
-    }
-  });
-};
-
-if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.__zrcV438PushPanelInstalled) {
-  window.__zrcV438PushPanelInstalled = true;
-  window.addEventListener('load', () => {
-    setTimeout(zrcV438MountPushPanel, 700);
-    setTimeout(zrcV438MountPushPanel, 2200);
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) setTimeout(zrcV438MountPushPanel, 500);
-  });
-}
-
-
-
-// zrc-v439-fetch-task-push-bridge
-const zrcV439ReadSupabaseAccessToken = () => {
-  if (typeof window === 'undefined') return '';
-
-  try {
-    for (let index = 0; index < window.localStorage.length; index += 1) {
-      const key = window.localStorage.key(index) || '';
-
-      if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
-
-      const rawValue = window.localStorage.getItem(key) || '';
-      const parsed = JSON.parse(rawValue);
-
-      const token =
-        parsed?.access_token ||
-        parsed?.currentSession?.access_token ||
-        parsed?.session?.access_token ||
-        parsed?.data?.session?.access_token ||
-        '';
-
-      if (token) return token;
-    }
-  } catch (error) {
-    console.warn('[ZRC Push Bridge] Supabase token okunamadı.', error);
-  }
-
-  return '';
-};
-
-const zrcV439SendTaskPushFromBridge = async (reason = 'task_write') => {
+const zrcV442SendTaskSavePush = async ({ title = 'ZRC Portal', body = 'Görevlerde yeni bir işlem yapıldı.', type = 'task_save' } = {}) => {
   if (typeof window === 'undefined') return false;
 
-  const accessToken = zrcV439ReadSupabaseAccessToken();
+  const now = Date.now();
+  const lastPushAt = Number(window.localStorage.getItem('zrc-v442-last-task-push-at') || '0');
 
-  if (!accessToken) {
-    console.warn('[ZRC Push Bridge] Oturum token yok, push atlanıyor.');
+  if (now - lastPushAt < 3000) {
+    console.info('[ZRC Push v442] Çift push engellendi.');
     return false;
   }
 
-  try {
-    const response = await window.fetch('/api/send-task-push', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      cache: 'no-store',
-      body: JSON.stringify({
-        type: reason,
-        title: 'ZRC Portal',
-        body: 'Görevlerde yeni bir işlem yapıldı.',
-        url: '/'
-      })
-    });
+  window.localStorage.setItem('zrc-v442-last-task-push-at', String(now));
 
-    const result = await response.json().catch(() => ({}));
-
-    if (!response.ok || result.error) {
-      console.warn('[ZRC Push Bridge] Push gönderilemedi.', result.error || result);
-      return false;
-    }
-
-    console.info('[ZRC Push Bridge] Push sonucu:', result);
-    return true;
-  } catch (error) {
-    console.warn('[ZRC Push Bridge] Push isteği hata verdi.', error);
-    return false;
-  }
-};
-
-const zrcV439InstallTaskPushBridge = () => {
-  if (typeof window === 'undefined') return;
-  if (window.__zrcV439TaskPushBridgeInstalled) return;
-  if (typeof window.fetch !== 'function') return;
-
-  window.__zrcV439TaskPushBridgeInstalled = true;
-
-  const originalFetch = window.fetch.bind(window);
-
-  window.fetch = async (...args) => {
-    const response = await originalFetch(...args);
-
-    try {
-      const requestInput = args[0];
-      const requestInit = args[1] || {};
-      const url =
-        typeof requestInput === 'string'
-          ? requestInput
-          : requestInput?.url || '';
-
-      const method = String(
-        requestInit.method ||
-          requestInput?.method ||
-          'GET'
-      ).toUpperCase();
-
-      const isSupabaseRest = url.includes('/rest/v1/');
-      const isTaskWrite =
-        isSupabaseRest &&
-        url.includes('/tasks') &&
-        ['POST', 'PATCH', 'PUT'].includes(method);
-
-      const isNotificationWrite =
-        isSupabaseRest &&
-        url.includes('/notifications') &&
-        ['POST', 'PATCH', 'PUT'].includes(method);
-
-      if (response?.ok && (isTaskWrite || isNotificationWrite)) {
-        const now = Date.now();
-        const lastPushAt = Number(window.localStorage.getItem('zrc-v439-last-task-push-at') || '0');
-
-        if (now - lastPushAt > 1800) {
-          window.localStorage.setItem('zrc-v439-last-task-push-at', String(now));
-
-          window.setTimeout(() => {
-            zrcV439SendTaskPushFromBridge(isTaskWrite ? 'task_write' : 'notification_write');
-          }, 500);
-        }
-      }
-    } catch (error) {
-      console.warn('[ZRC Push Bridge] Fetch gözlemleme hatası.', error);
-    }
-
-    return response;
-  };
-};
-
-zrcV439InstallTaskPushBridge();
-
-
-
-// zrc-v440-direct-task-save-push
-const zrcV440ReadSupabaseAccessToken = () => {
-  if (typeof window === 'undefined') return '';
-
-  try {
-    for (let index = 0; index < window.localStorage.length; index += 1) {
-      const key = window.localStorage.key(index) || '';
-
-      if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
-
-      const rawValue = window.localStorage.getItem(key) || '';
-      const parsed = JSON.parse(rawValue);
-
-      const token =
-        parsed?.access_token ||
-        parsed?.currentSession?.access_token ||
-        parsed?.session?.access_token ||
-        parsed?.data?.session?.access_token ||
-        '';
-
-      if (token) return token;
-    }
-  } catch (error) {
-    console.warn('[ZRC Push v440] Supabase token okunamadı.', error);
-  }
-
-  return '';
-};
-
-const zrcV440SendTaskSavePush = async ({ title = 'ZRC Portal', body = 'Görevlerde yeni bir işlem yapıldı.', type = 'task_save' } = {}) => {
-  if (typeof window === 'undefined') return false;
-
-  const accessToken = zrcV440ReadSupabaseAccessToken();
+  const accessToken = zrcV442ReadSupabaseAccessToken();
 
   if (!accessToken) {
-    console.warn('[ZRC Push v440] Oturum token yok, push atlanıyor.');
+    console.warn('[ZRC Push v442] Oturum token yok, push atlanıyor.');
     return false;
   }
 
@@ -1636,14 +1275,14 @@ const zrcV440SendTaskSavePush = async ({ title = 'ZRC Portal', body = 'Görevler
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok || result.error) {
-      console.warn('[ZRC Push v440] Push gönderilemedi.', result.error || result);
+      console.warn('[ZRC Push v442] Push gönderilemedi.', result.error || result);
       return false;
     }
 
-    console.info('[ZRC Push v440] Push sonucu:', result);
+    console.info('[ZRC Push v442] Push sonucu:', result);
     return true;
   } catch (error) {
-    console.warn('[ZRC Push v440] Push isteği hata verdi.', error);
+    console.warn('[ZRC Push v442] Push isteği hata verdi.', error);
     return false;
   }
 };
@@ -7570,9 +7209,9 @@ function App() {
 
     const didSaveToSupabase = await saveTaskToSupabase(cleanedTaskData, finalTargetStatus || targetColumn?.title);
 
-    // zrc-v440-task-save-push-trigger
+    // zrc-v442-single-task-push-trigger
     if (didSaveToSupabase) {
-      zrcV440SendTaskSavePush({
+      zrcV442SendTaskSavePush({
         type: previousTask ? 'task_update' : 'task_create',
         title: 'ZRC Portal',
         body: previousTask
@@ -7580,6 +7219,7 @@ function App() {
           : `Yeni görev oluşturuldu: ${cleanedTaskData.title || 'Adsız görev'}`
       });
     }
+
 
     if (didSaveToSupabase) {
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 1500);
@@ -8720,53 +8360,7 @@ function App() {
   };
 
 
-  // zrc-v438-send-real-push-to-workspace
-  const sendPushNotificationToUsers = async (notification = {}) => {
-    const workspaceId = getCurrentSupabaseWorkspaceId();
-
-    if (!workspaceId || !isSupabaseUuid(workspaceId)) return false;
-
-    try {
-      const sessionResponse = await supabase.auth.getSession();
-      const accessToken = sessionResponse?.data?.session?.access_token;
-
-      if (!accessToken) return false;
-
-      const plainBody = notification.meta
-        ? `${notification.text || 'Yeni bildirim'} — ${notification.meta}`
-        : (notification.text || notification.meta || 'Yeni bildirimin var.');
-
-      const response = await fetch('/api/send-task-push', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        cache: 'no-store',
-        body: JSON.stringify({
-          workspaceId,
-          type: notification.type || 'activity',
-          title: notification.title || 'ZRC Portal',
-          body: plainBody,
-          url: '/'
-        })
-      });
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok || result.error) {
-        console.warn('[ZRC Push] Bildirim gönderilemedi.', result.error || result);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.warn('[ZRC Push] Bildirim gönderimi hatası.', error);
-      return false;
-    }
-  };
-
-  const createActivityNotification = ({
+    const createActivityNotification = ({
     type = 'activity',
     title = 'Yeni aktivite',
     text = '',
@@ -8810,7 +8404,6 @@ function App() {
 
     setActivityNotifications((prevNotifications) => [nextNotification, ...prevNotifications].slice(0, 80));
     saveActivityNotificationToSupabase(nextNotification);
-    sendPushNotificationToUsers(nextNotification);
 
     return nextNotification;
   };
