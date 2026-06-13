@@ -1,6 +1,6 @@
 {
-  "build": "v435-safe-force-workspace-push",
-  "note": "Push abonelik kaydı auth takılmasına karşı userId ile garantiye alındı. Görev bildirimleri hedef eşleşmesine takılmadan workspace içindeki kayıtlı PWA aboneliklerine gönderilir.",
-  "commitBefore": "4691e6d",
-  "createdAt": "2026-06-13T10:27:57.509596+00:00"
+  "build": "v436b-safe-push-register-panel",
+  "note": "Telefonu Bildirime Bağla paneli sıfırdan eklendi. Panel telefonu push_subscription olarak kaydeder ve aynı send-task-push yolu üzerinden test gönderir.",
+  "commitBefore": "9d039b3",
+  "createdAt": "2026-06-13T10:40:51.469524+00:00"
 }
