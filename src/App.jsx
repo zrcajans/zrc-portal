@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v412-safe-user-preferences-merge';
+const ZRC_APP_BUILD_LABEL = 'v413-safe-customer-account-link-await';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -11652,7 +11652,7 @@ function App() {
           )
         );
 
-        saveCustomerToSupabase({
+        await saveCustomerToSupabase({
           ...nextCustomer,
           id: savedCustomerId,
           accountUserId: nextMember.id
@@ -21472,3 +21472,5 @@ function ZRCAppShell() {
 
 export default ZRCAppShell;
 // zrc-v411-notes-messages-await-marker
+
+// zrc-v413-customer-account-link-await
