@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v436b-safe-push-register-panel';
+const ZRC_APP_BUILD_LABEL = 'v431-safe-push-test-panel-removed';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1203,246 +1203,6 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.
   );
 }
 
-
-
-
-// zrc-v436b-push-register-panel
-const zrcV436bUrlBase64ToUint8Array = (base64String = '') => {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let index = 0; index < rawData.length; index += 1) {
-    outputArray[index] = rawData.charCodeAt(index);
-  }
-
-  return outputArray;
-};
-
-const zrcV436bSetPanelText = (text) => {
-  if (typeof document === 'undefined') return;
-  const status = document.querySelector('#zrc-v436b-push-status');
-  if (status) status.textContent = text;
-};
-
-const zrcV436bWaitForContext = async () => {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    const context = window.__zrcV436bPushContext || window.__zrcV436PushContext || {};
-
-    if (context.workspaceId && context.userId) {
-      return context;
-    }
-
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
-  }
-
-  return window.__zrcV436bPushContext || window.__zrcV436PushContext || {};
-};
-
-const zrcV436bRegisterAndTest = async () => {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
-
-  if (!('Notification' in window)) {
-    zrcV436bSetPanelText('Bu cihaz bildirim desteklemiyor.');
-    return;
-  }
-
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    zrcV436bSetPanelText('Web Push yok. iPhone’da ana ekrandaki ikonla aç.');
-    return;
-  }
-
-  let permission = Notification.permission;
-
-  if (permission !== 'granted') {
-    permission = await Notification.requestPermission();
-  }
-
-  if (permission !== 'granted') {
-    zrcV436bSetPanelText('Bildirim izni verilmedi.');
-    return;
-  }
-
-  zrcV436bSetPanelText('Telefon hazırlanıyor...');
-
-  let registration = null;
-
-  try {
-    registration = await navigator.serviceWorker.ready;
-  } catch {
-    registration = null;
-  }
-
-  if (!registration) {
-    registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
-    registration = await navigator.serviceWorker.ready;
-  }
-
-  const keyResponse = await fetch('/api/push-public-key', {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-    cache: 'no-store'
-  });
-
-  const keyResult = await keyResponse.json().catch(() => ({}));
-
-  if (!keyResponse.ok || !keyResult.publicKey) {
-    zrcV436bSetPanelText(keyResult.error || 'VAPID public key okunamadı.');
-    return;
-  }
-
-  let subscription = await registration.pushManager.getSubscription();
-
-  if (!subscription) {
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: zrcV436bUrlBase64ToUint8Array(keyResult.publicKey)
-    });
-  }
-
-  zrcV436bSetPanelText('Hesap bilgisi alınıyor...');
-
-  const context = await zrcV436bWaitForContext();
-  const workspaceId = String(context.workspaceId || '').trim();
-  const userId = String(context.userId || '').trim();
-  const accessToken = String(context.accessToken || '').trim();
-
-  if (!workspaceId || !userId) {
-    zrcV436bSetPanelText('Workspace/kullanıcı bulunamadı. Çıkış-giriş yapıp tekrar bas.');
-    return;
-  }
-
-  zrcV436bSetPanelText('Telefon veritabanına kaydediliyor...');
-
-  const registerHeaders = {
-    'Content-Type': 'application/json'
-  };
-
-  if (accessToken) {
-    registerHeaders.Authorization = `Bearer ${accessToken}`;
-  }
-
-  const registerResponse = await fetch('/api/register-push-subscription', {
-    method: 'POST',
-    headers: registerHeaders,
-    cache: 'no-store',
-    body: JSON.stringify({
-      workspaceId,
-      userId,
-      subscription,
-      userAgent: navigator.userAgent || ''
-    })
-  });
-
-  const registerResult = await registerResponse.json().catch(() => ({}));
-
-  if (!registerResponse.ok || registerResult.error) {
-    zrcV436bSetPanelText(`Telefon kaydı olmadı: ${registerResult.error || registerResponse.status}`);
-    return;
-  }
-
-  zrcV436bSetPanelText('Kayıt tamam. Görev bildirimi yolu test ediliyor...');
-
-  const pushResponse = await fetch('/api/send-task-push', {
-    method: 'POST',
-    headers: {
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      'Content-Type': 'application/json'
-    },
-    cache: 'no-store',
-    body: JSON.stringify({
-      workspaceId,
-      targetUserIds: [userId],
-      broadcastToWorkspace: true,
-      type: 'push_connection_test',
-      title: 'ZRC Portal',
-      body: 'Telefon görev bildirimlerine bağlandı. Bundan sonra görev bildirimleri gelebilir.',
-      url: '/'
-    })
-  });
-
-  const pushResult = await pushResponse.json().catch(() => ({}));
-
-  if (!pushResponse.ok || pushResult.error) {
-    zrcV436bSetPanelText(`Test gönderilemedi: ${pushResult.error || pushResponse.status}`);
-    return;
-  }
-
-  zrcV436bSetPanelText(`Bağlandı. Gönderilen: ${pushResult.sent || 0}, kayıt: ${pushResult.subscriptionCount || 0}`);
-};
-
-const zrcV436bShouldShowPanel = () => {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
-  const isStandalone =
-    window.matchMedia?.('(display-mode: standalone)')?.matches ||
-    window.navigator?.standalone === true;
-  const isMobileWidth = window.innerWidth <= 900;
-  const isPortalHost =
-    window.location.hostname.includes('portal.zrcajans.com') ||
-    window.location.hostname.includes('vercel.app') ||
-    window.location.hostname === 'localhost';
-
-  return isPortalHost && (isStandalone || isMobileWidth);
-};
-
-const zrcV436bMountPanel = () => {
-  if (typeof document === 'undefined' || !zrcV436bShouldShowPanel()) return;
-  if (document.querySelector('#zrc-v436b-push-panel')) return;
-
-  const panel = document.createElement('div');
-  panel.id = 'zrc-v436b-push-panel';
-  panel.style.position = 'fixed';
-  panel.style.right = '12px';
-  panel.style.bottom = '96px';
-  panel.style.zIndex = '2147483647';
-  panel.style.width = 'min(340px, calc(100vw - 24px))';
-  panel.style.padding = '12px';
-  panel.style.borderRadius = '18px';
-  panel.style.background = 'rgba(17, 24, 39, 0.96)';
-  panel.style.color = '#fff';
-  panel.style.boxShadow = '0 18px 45px rgba(0,0,0,0.30)';
-  panel.style.fontFamily = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-  panel.style.backdropFilter = 'blur(10px)';
-
-  panel.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
-      <div style="font-size:14px;font-weight:800;">Telefon bildirim bağlantısı</div>
-      <button type="button" id="zrc-v436b-push-close" aria-label="Kapat" style="border:0;background:rgba(255,255,255,0.12);color:#fff;border-radius:999px;width:28px;height:28px;font-size:18px;line-height:1;cursor:pointer;">×</button>
-    </div>
-    <div id="zrc-v436b-push-status" style="font-size:12px;line-height:1.35;color:rgba(255,255,255,0.78);margin-bottom:10px;">
-      Bir kez basınca bu telefonu görev bildirimlerine bağlar.
-    </div>
-    <button type="button" id="zrc-v436b-push-button" style="width:100%;border:0;border-radius:14px;padding:12px 14px;font-size:14px;font-weight:900;background:#f97316;color:#fff;cursor:pointer;">
-      Telefonu Bildirime Bağla
-    </button>
-  `;
-
-  document.body.appendChild(panel);
-
-  panel.querySelector('#zrc-v436b-push-close')?.addEventListener('click', () => {
-    panel.remove();
-  });
-
-  panel.querySelector('#zrc-v436b-push-button')?.addEventListener('click', async () => {
-    try {
-      await zrcV436bRegisterAndTest();
-    } catch (error) {
-      zrcV436bSetPanelText(error?.message || 'Telefon bağlanamadı.');
-    }
-  });
-};
-
-if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.__zrcV436bPushPanelInstalled) {
-  window.__zrcV436bPushPanelInstalled = true;
-  window.addEventListener('load', () => {
-    setTimeout(zrcV436bMountPanel, 700);
-    setTimeout(zrcV436bMountPanel, 2200);
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) setTimeout(zrcV436bMountPanel, 500);
-  });
-}
 
 
 function App() {
@@ -3344,168 +3104,6 @@ function App() {
   const setSupabaseWriteInfo = (state, label) => {
     setSupabaseWriteStatus({ state, label });
   };
-
-
-  // zrc-v436b-current-push-context
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-
-    let cancelled = false;
-
-    const updatePushContext = async () => {
-      try {
-        const sessionResponse = await supabase.auth.getSession();
-
-        if (cancelled) return;
-
-        window.__zrcV436bPushContext = {
-          workspaceId: getCurrentSupabaseWorkspaceId(),
-          userId: currentUserId,
-          accessToken: sessionResponse?.data?.session?.access_token || '',
-          profileName: currentProfileName || currentUser?.name || 'ZRC'
-        };
-      } catch {
-        if (!cancelled) {
-          window.__zrcV436bPushContext = {
-            workspaceId: getCurrentSupabaseWorkspaceId(),
-            userId: currentUserId,
-            accessToken: '',
-            profileName: currentProfileName || currentUser?.name || 'ZRC'
-          };
-        }
-      }
-    };
-
-    updatePushContext();
-    const timer = window.setInterval(updatePushContext, 5000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, [currentUserId, supabaseWorkspaceId, currentRoleMember?.workspaceId, currentProfileName, currentUser?.name]);
-
-
-
-  // zrc-v432-register-current-device-push
-  const zrcV432UrlBase64ToUint8Array = (base64String = '') => {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let index = 0; index < rawData.length; index += 1) {
-      outputArray[index] = rawData.charCodeAt(index);
-    }
-
-    return outputArray;
-  };
-
-  const registerCurrentDeviceForPushNotifications = async () => {
-    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
-    if (!isSupabaseUuid(currentUserId) || authSessionLoading) return false;
-
-    const workspaceId = getCurrentSupabaseWorkspaceId();
-
-    if (!workspaceId || !isSupabaseUuid(workspaceId)) return false;
-    if (!('Notification' in window)) return false;
-    if (Notification.permission !== 'granted') return false;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-
-    try {
-      const sessionResponse = await supabase.auth.getSession();
-      const accessToken = sessionResponse?.data?.session?.access_token;
-
-      if (!accessToken) return false;
-
-      let registration = null;
-
-      try {
-        registration = await navigator.serviceWorker.ready;
-      } catch (readyError) {
-        registration = null;
-      }
-
-      if (!registration) {
-        registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
-        registration = await navigator.serviceWorker.ready;
-      }
-
-      const keyResponse = await fetch('/api/push-public-key', {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-        cache: 'no-store'
-      });
-
-      const keyResult = await keyResponse.json().catch(() => ({}));
-
-      if (!keyResponse.ok || !keyResult.publicKey) return false;
-
-      let subscription = await registration.pushManager.getSubscription();
-
-      if (!subscription) {
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: zrcV432UrlBase64ToUint8Array(keyResult.publicKey)
-        });
-      }
-
-      const registerResponse = await fetch('/api/register-push-subscription', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        cache: 'no-store',
-        body: JSON.stringify({
-          workspaceId,
-          subscription,
-          userAgent: navigator.userAgent || ''
-        })
-      });
-
-      const registerResult = await registerResponse.json().catch(() => ({}));
-
-      if (!registerResponse.ok || registerResult.error) {
-        console.warn('[ZRC Push] Abonelik kaydedilemedi.', registerResult.error || registerResult);
-        return false;
-      }
-
-      window.localStorage.setItem('zrc-push-subscription-registered-at', new Date().toISOString());
-      return true;
-    } catch (error) {
-      console.warn('[ZRC Push] Cihaz aboneliği hazırlanamadı.', error);
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-
-    let cancelled = false;
-
-    const run = () => {
-      if (cancelled) return;
-      registerCurrentDeviceForPushNotifications();
-    };
-
-    const timer = window.setTimeout(run, 1200);
-
-    const onFocus = () => {
-      window.setTimeout(run, 500);
-    };
-
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onFocus);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onFocus);
-    };
-  }, [currentUserId, supabaseWorkspaceId, currentRoleMember?.workspaceId, authSessionLoading]);
-
 
   const getSafeSupabasePriority = (priority = '') => {
     const cleanPriority = String(priority || '').trim();
@@ -5642,7 +5240,6 @@ function App() {
         .select('id, text, created_at')
         .eq('workspace_id', workspaceId)
         .eq('user_id', currentUserId)
-        .neq('type', 'push_subscription')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -5843,7 +5440,6 @@ function App() {
         .select('id, type, title, body, is_read, project_id, task_id, created_at')
         .eq('workspace_id', workspaceId)
         .eq('user_id', currentUserId)
-        .neq('type', 'push_subscription')
         .order('created_at', { ascending: false })
         .limit(80);
 
@@ -7484,7 +7080,7 @@ function App() {
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
         columnTitle: finalTargetStatus || targetColumn?.title,
-        targetUserIds: addedAssigneeUserIds,
+        targetUserIds: addedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 740
       });
     }
@@ -7497,7 +7093,7 @@ function App() {
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
         columnTitle: finalTargetStatus || targetColumn?.title,
-        targetUserIds: addedAssigneeUserIds,
+        targetUserIds: addedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 940
       });
     }
@@ -7510,7 +7106,7 @@ function App() {
         meta: `${selectedProject} · ${finalTargetStatus || targetColumn?.title || 'Görev'}`,
         task: { ...cleanedTaskData, columnTitle: finalTargetStatus || targetColumn?.title },
         columnTitle: finalTargetStatus || targetColumn?.title,
-        targetUserIds: removedAssigneeUserIds,
+        targetUserIds: removedAssigneeUserIds.filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 930
       });
     }
@@ -8667,71 +8263,6 @@ function App() {
     }).format(date);
   };
 
-
-  // zrc-v432-send-real-push-to-target-users
-  const sendPushNotificationToUsers = async (notification = {}) => {
-    const workspaceId = getCurrentSupabaseWorkspaceId();
-
-    if (!workspaceId || !isSupabaseUuid(workspaceId)) return false;
-
-    const targetUserIds = Array.from(
-      new Set(
-        [
-          ...(Array.isArray(notification.targetUserIds) ? notification.targetUserIds : []),
-          ...(Array.isArray(notification.recipientUserIds) ? notification.recipientUserIds : [])
-        ]
-          .map((value) => String(value || '').trim())
-          .filter((userId) => isSupabaseUuid(userId))
-      )
-    );
-
-    // v435: Hedef kullanıcı eşleşmesi boş kalsa bile workspace push API'sine git.
-
-    try {
-      const sessionResponse = await supabase.auth.getSession();
-      const accessToken = sessionResponse?.data?.session?.access_token;
-
-      if (!accessToken) return false;
-
-      const plainBody = notification.meta
-        ? `${notification.text || 'Yeni bildirim'} — ${notification.meta}`
-        : (notification.text || notification.meta || 'Yeni bildirimin var.');
-
-      const response = await fetch('/api/send-task-push', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        cache: 'no-store',
-        body: JSON.stringify({
-          workspaceId,
-          targetUserIds,
-          broadcastToWorkspace: true,
-          type: notification.type || 'activity',
-          title: notification.title || 'ZRC Portal',
-          body: plainBody,
-          taskTitle: notification.taskTitle || notification.task?.title || notification.text || '',
-          projectName: notification.projectName || selectedProject || '',
-          columnTitle: notification.columnTitle || '',
-          url: '/'
-        })
-      });
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok || result.error) {
-        console.warn('[ZRC Push] Bildirim gönderilemedi.', result.error || result);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.warn('[ZRC Push] Bildirim gönderimi hatası.', error);
-      return false;
-    }
-  };
-
   const createActivityNotification = ({
     type = 'activity',
     title = 'Yeni aktivite',
@@ -8776,7 +8307,6 @@ function App() {
 
     setActivityNotifications((prevNotifications) => [nextNotification, ...prevNotifications].slice(0, 80));
     saveActivityNotificationToSupabase(nextNotification);
-    sendPushNotificationToUsers(nextNotification);
 
     return nextNotification;
   };
