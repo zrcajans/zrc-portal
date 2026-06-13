@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v423-safe-popup-kokten-kapat';
+const ZRC_APP_BUILD_LABEL = 'v424-safe-self-notification-dup-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -4646,9 +4646,12 @@ function App() {
         )
       );
 
-      const finalUserIds = targetUserIds.length > 0
-        ? targetUserIds
-        : [currentUserId].filter(isSupabaseUuid);
+      // zrc-v424-self-notification-dup-fix
+      // Kendi yaptığın işlem için ayrıca Supabase notifications satırı oluşturma.
+      // Aktivite kaydı activity_logs tarafında zaten tutuluyor; aksi halde bildirim sayısı +2 artıyor.
+      const finalUserIds = targetUserIds.filter(
+        (userId) => String(userId || '').trim() !== String(currentUserId || '').trim()
+      );
 
       if (finalUserIds.length > 0) {
         const notificationRows = finalUserIds.map((userId) => ({
@@ -4736,8 +4739,9 @@ function App() {
     const payload = log.payload || {};
 
     return {
-      id: `supabase-activity-${log.id}`,
-      supabaseId: log.id,
+      id: payload.localId || `supabase-activity-${log.id}`,
+      supabaseId: payload.localId || log.id,
+      activityLogId: log.id,
       source: 'activity',
       type: log.type || 'activity',
       title: log.title || 'Aktivite',
@@ -21364,3 +21368,5 @@ export default ZRCAppShell;
 // zrc-v411-notes-messages-await-marker
 
 // zrc-v413-customer-account-link-await
+
+// zrc-v424-self-notification-dup-fix-marker
