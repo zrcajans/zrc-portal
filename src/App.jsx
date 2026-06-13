@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v427c-safe-pwa-import-fix';
+const ZRC_APP_BUILD_LABEL = 'v428-safe-pwa-notification-button';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -928,8 +928,19 @@ const zrcIsIosDevice = () => {
 const zrcShowMobileSetupPanel = () => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   if (!zrcIsMobileDevice()) return;
-  if (zrcIsStandalonePwa()) return;
-  if (window.localStorage.getItem('zrc-mobile-setup-dismissed') === '1') return;
+  const isStandalone = zrcIsStandalonePwa();
+  const notificationPermission =
+    typeof window !== 'undefined' && 'Notification' in window
+      ? Notification.permission
+      : 'unsupported';
+
+  // zrc-v428-pwa-notification-button
+  // Ana ekrana eklenmiş PWA içinde de bildirim açma kartı görünsün.
+  if (isStandalone && notificationPermission === 'granted') return;
+  const wasDismissed = window.localStorage.getItem('zrc-mobile-setup-dismissed') === '1';
+
+  // PWA içindeyken bildirim izni hâlâ açılmamışsa, daha önce kapatılmış olsa bile kartı tekrar göster.
+  if (wasDismissed && !(isStandalone && notificationPermission !== 'granted')) return;
   if (document.getElementById('zrc-mobile-setup-panel')) return;
 
   const panel = document.createElement('div');
@@ -938,10 +949,10 @@ const zrcShowMobileSetupPanel = () => {
     <div class="zrc-mobile-setup-card">
       <button class="zrc-mobile-setup-close" type="button" aria-label="Kapat">×</button>
       <div class="zrc-mobile-setup-eyebrow">Mobil Kurulum</div>
-      <div class="zrc-mobile-setup-title">ZRC Portalı telefona kur</div>
+      <div class="zrc-mobile-setup-title">${zrcIsStandalonePwa() ? 'Bildirimleri aç' : 'ZRC Portalı telefona kur'}</div>
       <div class="zrc-mobile-setup-text">Ana ekrana ekle, bildirimleri aç, portalı uygulama gibi kullan.</div>
       <div class="zrc-mobile-setup-actions">
-        <button class="zrc-mobile-setup-install" type="button">Ana Ekrana Ekle</button>
+        ${zrcIsStandalonePwa() ? '' : '<button class="zrc-mobile-setup-install" type="button">Ana Ekrana Ekle</button>'}
         <button class="zrc-mobile-setup-notify" type="button">Bildirimleri Aç</button>
       </div>
       <div class="zrc-mobile-setup-hint"></div>
@@ -1041,13 +1052,29 @@ if (typeof window !== 'undefined') {
   });
 
   window.addEventListener('appinstalled', () => {
-    window.localStorage.setItem('zrc-mobile-setup-dismissed', '1');
+    // zrc-v428-pwa-notification-button
+    // Kurulumdan sonra bildirim izni kartının PWA içinde çıkabilmesi için dismissed kilidini kaldır.
+    window.localStorage.removeItem('zrc-mobile-setup-dismissed');
     document.getElementById('zrc-mobile-setup-panel')?.remove();
   });
 
   window.setTimeout(zrcShowMobileSetupPanel, 1200);
 }
 
+
+
+// zrc-v428-clear-dismissed-once
+if (typeof window !== 'undefined' && typeof Notification !== 'undefined') {
+  const shouldReopenMobileSetup =
+    (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) &&
+    Notification.permission !== 'granted' &&
+    window.localStorage.getItem('zrc-v428-notification-panel-reopened') !== '1';
+
+  if (shouldReopenMobileSetup) {
+    window.localStorage.removeItem('zrc-mobile-setup-dismissed');
+    window.localStorage.setItem('zrc-v428-notification-panel-reopened', '1');
+  }
+}
 
 function App() {
 
