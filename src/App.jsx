@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v422b-safe-mobile-final-css';
+const ZRC_APP_BUILD_LABEL = 'v423-safe-popup-kokten-kapat';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -629,133 +629,23 @@ const getZrcToastMessage = (message = '', tone = 'saved') => {
   return cleanMessage || 'Güncellendi ve kaydedildi.';
 };
 
-const showZrcUpdateToast = (message = '', tone = 'saved') => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-
-  const finalMessage = getZrcToastMessage(message, tone);
-  const toastKey = `${tone}-${finalMessage}`;
-  const now = Date.now();
-
-  if (window.__zrcLastUpdateToastKey === toastKey && now - Number(window.__zrcLastUpdateToastAt || 0) < 1600) {
-    return;
-  }
-
-  window.__zrcLastUpdateToastKey = toastKey;
-  window.__zrcLastUpdateToastAt = now;
-
-  const oldToast = document.getElementById('zrc-global-update-toast');
-  if (oldToast) oldToast.remove();
-
-  const toast = document.createElement('div');
-  toast.id = 'zrc-global-update-toast';
-
-  const isError = tone === 'error';
-
-  toast.innerHTML = `
-    <div class="zrc-toast-icon">${isError ? '!' : '✓'}</div>
-    <div class="zrc-toast-copy">
-      <strong>${isError ? 'İşlem tamamlanamadı' : 'Güncellendi'}</strong>
-      <span>${finalMessage}</span>
-    </div>
-  `;
-
-  toast.style.cssText = [
-    'position:fixed',
-    'right:max(18px, env(safe-area-inset-right))',
-    'top:calc(max(18px, env(safe-area-inset-top)) + 10px)',
-    'z-index:2147483647',
-    'display:flex',
-    'align-items:center',
-    'gap:10px',
-    'max-width:min(360px, calc(100vw - 28px))',
-    'padding:12px 14px',
-    'border-radius:18px',
-    'background:#ffffff',
-    `border:1px solid ${isError ? '#fecaca' : '#bbf7d0'}`,
-    `box-shadow:0 20px 60px ${isError ? 'rgba(185,28,28,.16)' : 'rgba(22,101,52,.16)'}`,
-    'font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-    'color:#111827',
-    'transform:translateY(-8px)',
-    'opacity:0',
-    'transition:opacity .22s ease, transform .22s ease',
-    'pointer-events:none'
-  ].join(';');
-
-  const styleId = 'zrc-global-update-toast-style';
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = `
-      #zrc-global-update-toast .zrc-toast-icon {
-        width: 30px;
-        height: 30px;
-        border-radius: 999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-        font-weight: 900;
-        font-size: 14px;
-        color: #fff;
-        background: ${isError ? '#dc2626' : '#16a34a'};
-      }
-      #zrc-global-update-toast .zrc-toast-copy {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-      }
-      #zrc-global-update-toast .zrc-toast-copy strong {
-        font-size: 12px;
-        font-weight: 900;
-        line-height: 1.2;
-      }
-      #zrc-global-update-toast .zrc-toast-copy span {
-        font-size: 11px;
-        font-weight: 700;
-        color: #64748b;
-        line-height: 1.35;
-      }
-      @media (max-width: 768px) {
-        #zrc-global-update-toast {
-          top: calc(max(12px, env(safe-area-inset-top)) + 8px) !important;
-          right: 14px !important;
-          left: 14px !important;
-          max-width: none !important;
-          border-radius: 18px !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  document.body.appendChild(toast);
-
-  window.requestAnimationFrame(() => {
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateY(0)';
-  });
-
-  window.setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(-8px)';
-    window.setTimeout(() => toast.remove(), 260);
-  }, isError ? 3600 : 2400);
+const showZrcUpdateToast = () => {
+  return;
 };
 
+
+
+if (typeof document !== 'undefined' && !document.getElementById('zrc-v423-popup-force-hide')) {
+  const style = document.createElement('style');
+  style.id = 'zrc-v423-popup-force-hide';
+  style.textContent = '#zrc-global-update-toast{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';
+  document.head.appendChild(style);
+}
 
 function App() {
 
   const zrcSetSupabaseWriteInfo = (status, message) => {
     setSupabaseWriteInfo(status, message);
-
-    const cleanStatus = String(status || '').trim();
-
-    if (cleanStatus === 'saved' || cleanStatus === 'error') {
-      window.setTimeout(() => {
-        showZrcUpdateToast(message, cleanStatus);
-      }, 0);
-    }
   };
 
   // --- TEMEL STATE'LER ---

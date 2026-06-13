@@ -1,6 +1,8 @@
 {
-  "build": "v422b-safe-mobile-final-css",
-  "note": "Mobil final CSS paketi: taşma, safe-area, dokunma alanı, modal ve görev kartı düzeni.",
-  "commitBefore": "259830f",
-  "createdAt": "2026-06-13T08:36:56.939337+00:00"
+  "build": "v423-safe-popup-kokten-kapat",
+  "note": "Sağ üstte çıkan güncellendi/kaydedildi popup bildirimi kökten kapatıldı. Diğer sistemlere dokunulmadı.",
+  "commitBefore": "d42b027",
+  "toastFunctionDisabled": true,
+  "writeInfoWrapperDisabled": true,
+  "createdAt": "2026-06-13T08:38:52.312282+00:00"
 }
