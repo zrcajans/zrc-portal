@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v407-safe-global-toast-profile-propagation';
+const ZRC_APP_BUILD_LABEL = 'v408-safe-customer-edit-persistence';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -11600,12 +11600,12 @@ function App() {
     });
   };
 
-  const toggleCustomerStatus = (customerId) => {
+  const toggleCustomerStatus = async (customerId) => {
     const targetCustomer = customers.find((customer) => customer.id === customerId);
     const nextStatus = targetCustomer?.status === 'Pasif' ? 'Aktif' : 'Pasif';
 
     if (targetCustomer) {
-      updateCustomerStatusInSupabase(targetCustomer, nextStatus);
+      await updateCustomerStatusInSupabase(targetCustomer, nextStatus);
     }
 
     setCustomers((prevCustomers) =>
@@ -11650,7 +11650,7 @@ function App() {
     });
   };
 
-  const saveCustomerEdit = (event) => {
+  const saveCustomerEdit = async (event) => {
     event.preventDefault();
 
     if (!requirePermission('manageCustomers', 'Müşterileri sadece Yönetici düzenleyebilir.')) return;
@@ -11709,7 +11709,12 @@ function App() {
       accountUserId
     };
 
-    saveCustomerToSupabase(nextCustomer);
+    const savedCustomerResult = await saveCustomerToSupabase(nextCustomer);
+
+    if (!savedCustomerResult) {
+      alert('Müşteri bilgileri veritabanına kaydedilemedi. Lütfen tekrar dene.');
+      return;
+    }
 
     setCustomers((prevCustomers) =>
       prevCustomers.map((customer) =>

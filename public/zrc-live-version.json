@@ -1,6 +1,6 @@
 {
-  "build": "v407-safe-global-toast-profile-propagation",
-  "note": "Genel güncelleme bildirimi eklendi. Profil adı/avatar/e-posta değişince ekip, görev, mesaj ve bildirim kayıtlarına yayılır; Supabase profiles/user_preferences tarafına kalıcı yazılır.",
-  "commitBefore": "113785a",
-  "createdAt": "2026-06-13T07:57:48.109699+00:00"
+  "build": "v408-safe-customer-edit-persistence",
+  "note": "Müşteri düzenleme ve durum değişikliği Supabase kaydı beklenerek yapılır; veritabanı kaydı başarısızsa kullanıcı uyarılır.",
+  "commitBefore": "6d00a0d",
+  "createdAt": "2026-06-13T07:58:47.388543+00:00"
 }
