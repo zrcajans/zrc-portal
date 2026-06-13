@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v426b-safe-mobile-end-date-hard-fix';
+const ZRC_APP_BUILD_LABEL = 'v427c-safe-pwa-import-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -905,6 +905,147 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.
     subtree: true,
     characterData: true
   });
+}
+
+
+
+// zrc-v427c-pwa-install-panel
+const zrcIsMobileDevice = () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  return window.matchMedia('(max-width: 768px)').matches || /iphone|ipad|ipod|android/i.test(navigator.userAgent || '');
+};
+
+const zrcIsStandalonePwa = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+};
+
+const zrcIsIosDevice = () => {
+  if (typeof navigator === 'undefined') return false;
+  return /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+};
+
+const zrcShowMobileSetupPanel = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (!zrcIsMobileDevice()) return;
+  if (zrcIsStandalonePwa()) return;
+  if (window.localStorage.getItem('zrc-mobile-setup-dismissed') === '1') return;
+  if (document.getElementById('zrc-mobile-setup-panel')) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'zrc-mobile-setup-panel';
+  panel.innerHTML = `
+    <div class="zrc-mobile-setup-card">
+      <button class="zrc-mobile-setup-close" type="button" aria-label="Kapat">×</button>
+      <div class="zrc-mobile-setup-eyebrow">Mobil Kurulum</div>
+      <div class="zrc-mobile-setup-title">ZRC Portalı telefona kur</div>
+      <div class="zrc-mobile-setup-text">Ana ekrana ekle, bildirimleri aç, portalı uygulama gibi kullan.</div>
+      <div class="zrc-mobile-setup-actions">
+        <button class="zrc-mobile-setup-install" type="button">Ana Ekrana Ekle</button>
+        <button class="zrc-mobile-setup-notify" type="button">Bildirimleri Aç</button>
+      </div>
+      <div class="zrc-mobile-setup-hint"></div>
+    </div>
+  `;
+
+  if (!document.getElementById('zrc-mobile-setup-style')) {
+    const style = document.createElement('style');
+    style.id = 'zrc-mobile-setup-style';
+    style.textContent = `
+      #zrc-mobile-setup-panel{position:fixed;left:14px;right:14px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:2147483646;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,sans-serif}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-card{position:relative;border-radius:26px;background:#111827;color:#fff;padding:18px;box-shadow:0 28px 80px rgba(15,23,42,.28);border:1px solid rgba(255,255,255,.08)}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-close{position:absolute;right:12px;top:10px;width:34px;height:34px;border:0;border-radius:999px;background:rgba(255,255,255,.10);color:#fff;font-size:24px;font-weight:900}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-eyebrow{color:#ff6a3d;font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-title{margin-top:5px;font-size:20px;line-height:1.1;font-weight:950}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-text{margin-top:7px;color:rgba(255,255,255,.72);font-size:12px;line-height:1.4;font-weight:700;max-width:88%}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-actions{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:9px}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-actions button{min-height:46px;border:0;border-radius:999px;font-size:12px;font-weight:950}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-install{background:#ff3600;color:#fff}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-notify{background:#fff;color:#111827}
+      #zrc-mobile-setup-panel .zrc-mobile-setup-hint{margin-top:10px;color:rgba(255,255,255,.68);font-size:11px;font-weight:800;line-height:1.35}
+    `;
+    document.head.appendChild(style);
+  }
+
+  document.body.appendChild(panel);
+
+  const closeButton = panel.querySelector('.zrc-mobile-setup-close');
+  const installButton = panel.querySelector('.zrc-mobile-setup-install');
+  const notifyButton = panel.querySelector('.zrc-mobile-setup-notify');
+  const hint = panel.querySelector('.zrc-mobile-setup-hint');
+
+  closeButton?.addEventListener('click', () => {
+    window.localStorage.setItem('zrc-mobile-setup-dismissed', '1');
+    panel.remove();
+  });
+
+  installButton?.addEventListener('click', async () => {
+    const deferredPrompt = window.__zrcDeferredInstallPrompt;
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch {}
+      window.__zrcDeferredInstallPrompt = null;
+      hint.textContent = 'Kurulum penceresi açıldı. Onaylarsan portal ana ekrana eklenecek.';
+      return;
+    }
+
+    if (zrcIsIosDevice()) {
+      hint.textContent = 'iPhone için: Safari alt menüden Paylaş simgesine bas → Ana Ekrana Ekle seç.';
+      return;
+    }
+
+    hint.textContent = 'Tarayıcı menüsünden “Uygulamayı yükle” veya “Ana ekrana ekle” seçeneğini kullan.';
+  });
+
+  notifyButton?.addEventListener('click', async () => {
+    if (!('Notification' in window)) {
+      hint.textContent = 'Bu tarayıcı bildirimleri desteklemiyor.';
+      return;
+    }
+
+    let permission = Notification.permission;
+    if (permission !== 'granted') permission = await Notification.requestPermission();
+
+    if (permission !== 'granted') {
+      hint.textContent = 'Bildirim izni verilmedi. Telefon ayarlarından izin verebilirsin.';
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker?.ready;
+      if (registration?.showNotification) {
+        registration.showNotification('ZRC Portal bildirimleri açık', {
+          body: 'Artık portal bildirimlerini bu cihazda alabilirsin.',
+          icon: '/zrc-logo.png',
+          badge: '/zrc-logo.png',
+          tag: 'zrc-notification-test'
+        });
+      } else {
+        new Notification('ZRC Portal bildirimleri açık', {
+          body: 'Artık portal bildirimlerini bu cihazda alabilirsin.',
+          icon: '/zrc-logo.png'
+        });
+      }
+      hint.textContent = 'Bildirim izni açıldı. Test bildirimi gönderildi.';
+    } catch {
+      hint.textContent = 'Bildirim izni açıldı.';
+    }
+  });
+};
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    window.__zrcDeferredInstallPrompt = event;
+    window.setTimeout(zrcShowMobileSetupPanel, 350);
+  });
+
+  window.addEventListener('appinstalled', () => {
+    window.localStorage.setItem('zrc-mobile-setup-dismissed', '1');
+    document.getElementById('zrc-mobile-setup-panel')?.remove();
+  });
+
+  window.setTimeout(zrcShowMobileSetupPanel, 1200);
 }
 
 
