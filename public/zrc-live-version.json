@@ -1,6 +1,6 @@
 {
-  "build": "v431-safe-push-test-panel-removed",
-  "note": "v430 test paneli yayından kaldırıldı. Web Push API dosyaları ve VAPID altyapısı korunuyor.",
-  "commitBefore": "10e7b23",
-  "createdAt": "2026-06-13T10:11:49.292714+00:00"
+  "build": "v432-safe-real-task-assignment-push",
+  "note": "Görev/aktivite bildirimleri hedef kullanıcının iPhone PWA Web Push aboneliğine gönderilmeye başladı. Abonelikler mevcut notifications tablosunda push_subscription tipiyle saklanır ve listeden gizlenir.",
+  "commitBefore": "76e4576",
+  "createdAt": "2026-06-13T10:18:17.480862+00:00"
 }
