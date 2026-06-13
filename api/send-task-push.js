@@ -19,10 +19,15 @@ const parseBody = (req) => {
 
 const getSupabaseConfig = () => {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey =
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   return {
     supabaseUrl,
+    supabaseAnonKey,
     serviceRoleKey
   };
 };
@@ -44,7 +49,7 @@ export default async function handler(req, res) {
     return sendJson(res, 405, { error: 'Sadece POST desteklenir.' });
   }
 
-  const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
+  const { supabaseUrl, supabaseAnonKey, serviceRoleKey } = getSupabaseConfig();
   const { publicKey, privateKey, subject } = getVapidConfig();
 
   if (!supabaseUrl || !serviceRoleKey) {
@@ -61,6 +66,10 @@ export default async function handler(req, res) {
 
   const body = parseBody(req);
   const workspaceId = String(body.workspaceId || '').trim();
+  const broadcastToWorkspace = body.broadcastToWorkspace === true;
+  const targetUserIds = Array.isArray(body.targetUserIds)
+    ? Array.from(new Set(body.targetUserIds.map((value) => String(value || '').trim()).filter(Boolean)))
+    : [];
 
   if (!workspaceId) {
     return sendJson(res, 400, { error: 'Workspace bilgisi eksik.' });
@@ -73,12 +82,40 @@ export default async function handler(req, res) {
     }
   });
 
+  // v435: Auth varsa doğrula, yoksa iç portal için workspace abonelerine yayın denemesini kesme.
+  const authorizationHeader = req.headers.authorization || '';
+  if (authorizationHeader.startsWith('Bearer ') && supabaseAnonKey) {
+    try {
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+          headers: {
+            Authorization: authorizationHeader
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      });
+
+      await userClient.auth.getUser();
+    } catch {
+      // Bildirim gönderimini durdurma. Service role workspace kayıtlarını kontrol edecek.
+    }
+  }
+
   try {
-    const { data: subscriptionRows, error: subscriptionError } = await admin
+    let query = admin
       .from('notifications')
       .select('id, user_id, body')
       .eq('workspace_id', workspaceId)
       .eq('type', 'push_subscription');
+
+    if (!broadcastToWorkspace && targetUserIds.length > 0) {
+      query = query.in('user_id', targetUserIds);
+    }
+
+    const { data: subscriptionRows, error: subscriptionError } = await query;
 
     if (subscriptionError) throw subscriptionError;
 
@@ -86,8 +123,9 @@ export default async function handler(req, res) {
       return sendJson(res, 200, {
         ok: true,
         sent: 0,
-        subscriptionCount: 0,
-        reason: 'Workspace içinde kayıtlı push aboneliği yok. Telefonda Telefonu Bildirime Bağla butonuna basılmalı.'
+        reason: broadcastToWorkspace
+          ? 'Workspace içinde kayıtlı push aboneliği yok. iPhone ana ekrandaki ikonla bir kez açılmalı.'
+          : 'Hedef kullanıcıların kayıtlı push aboneliği yok.'
       });
     }
 
@@ -144,6 +182,7 @@ export default async function handler(req, res) {
 
     return sendJson(res, 200, {
       ok: true,
+      mode: broadcastToWorkspace ? 'workspace' : 'targeted',
       subscriptionCount: subscriptionRows.length,
       sent,
       failed,
