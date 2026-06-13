@@ -48,15 +48,11 @@ export default async function handler(req, res) {
   const { publicKey, privateKey, subject } = getVapidConfig();
 
   if (!supabaseUrl || !serviceRoleKey) {
-    return sendJson(res, 500, {
-      error: 'Supabase env eksik. SUPABASE_SERVICE_ROLE_KEY ve Supabase URL kontrol edilmeli.'
-    });
+    return sendJson(res, 500, { error: 'Supabase env eksik.' });
   }
 
   if (!publicKey || !privateKey) {
-    return sendJson(res, 500, {
-      error: 'VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY eksik.'
-    });
+    return sendJson(res, 500, { error: 'VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY eksik.' });
   }
 
   const body = parseBody(req);
@@ -87,14 +83,14 @@ export default async function handler(req, res) {
         ok: true,
         sent: 0,
         subscriptionCount: 0,
-        reason: 'Workspace içinde kayıtlı push aboneliği yok. Telefonda Telefonu Bildirime Bağla butonuna basılmalı.'
+        reason: 'Workspace içinde kayıtlı push aboneliği yok.'
       });
     }
 
     webPush.setVapidDetails(subject, publicKey, privateKey);
 
     const notificationTitle = String(body.title || 'ZRC Portal').slice(0, 80);
-    const notificationBody = String(body.body || body.taskTitle || 'Yeni bildirimin var.').slice(0, 220);
+    const notificationBody = String(body.body || 'Yeni bildirimin var.').slice(0, 220);
     const tag = `zrc-${String(body.type || 'activity')}-${Date.now()}`;
 
     let sent = 0;

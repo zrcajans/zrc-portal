@@ -1,6 +1,6 @@
 {
-  "build": "v437b-acil-stable-restore",
-  "note": "Siyah ekran sonrası portal v431 sağlam sürüm dosyalarına döndürüldü. v432-v436 push denemeleri kaldırıldı.",
-  "restoredFrom": "76e4576",
-  "createdAt": "2026-06-13T11:08:00Z"
+  "build": "v438-safe-controlled-real-push",
+  "note": "Çalışan test mantığı korundu. Telefon Supabase Auth token ile aktif workspace'e kaydedilir; görev/aktivite bildirimleri aynı kayıtlı aboneliklere gönderilir.",
+  "commitBefore": "18e2a48",
+  "createdAt": "2026-06-13T11:12:23.697050+00:00"
 }

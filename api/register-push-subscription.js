@@ -16,9 +16,6 @@ const parseBody = (req) => {
   return typeof req.body === 'object' && req.body !== null ? req.body : {};
 };
 
-const isUuid = (value = '') =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value));
-
 const getSupabaseConfig = () => {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseAnonKey =
@@ -41,55 +38,42 @@ export default async function handler(req, res) {
 
   const { supabaseUrl, supabaseAnonKey, serviceRoleKey } = getSupabaseConfig();
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     return sendJson(res, 500, {
-      error: 'Supabase env eksik. SUPABASE_SERVICE_ROLE_KEY ve Supabase URL kontrol edilmeli.'
+      error: 'Supabase env eksik.'
     });
   }
 
+  const authorizationHeader = req.headers.authorization || '';
+
+  if (!authorizationHeader.startsWith('Bearer ')) {
+    return sendJson(res, 401, { error: 'Oturum bulunamadı.' });
+  }
+
+  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        Authorization: authorizationHeader
+      }
+    },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    }
+  });
+
+  const { data: authData, error: authError } = await userClient.auth.getUser();
+
+  if (authError || !authData?.user?.id) {
+    return sendJson(res, 401, { error: 'Oturum doğrulanamadı.' });
+  }
+
   const body = parseBody(req);
-  const workspaceId = String(body.workspaceId || '').trim();
   const subscription = body.subscription;
   const endpoint = String(subscription?.endpoint || '').trim();
 
-  if (!isUuid(workspaceId)) {
-    return sendJson(res, 400, { error: 'Workspace bilgisi eksik/geçersiz.' });
-  }
-
   if (!endpoint) {
     return sendJson(res, 400, { error: 'Push subscription endpoint eksik.' });
-  }
-
-  let userId = '';
-  const authorizationHeader = req.headers.authorization || '';
-
-  if (authorizationHeader.startsWith('Bearer ') && supabaseAnonKey) {
-    try {
-      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-        global: {
-          headers: {
-            Authorization: authorizationHeader
-          }
-        },
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false
-        }
-      });
-
-      const { data: authData } = await userClient.auth.getUser();
-      userId = authData?.user?.id || '';
-    } catch {
-      userId = '';
-    }
-  }
-
-  if (!isUuid(userId) && isUuid(body.userId)) {
-    userId = String(body.userId).trim();
-  }
-
-  if (!isUuid(userId)) {
-    return sendJson(res, 400, { error: 'Kullanıcı id bulunamadı.' });
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
@@ -98,6 +82,25 @@ export default async function handler(req, res) {
       autoRefreshToken: false
     }
   });
+
+  const userId = authData.user.id;
+
+  const { data: membershipRows, error: membershipError } = await admin
+    .from('workspace_members')
+    .select('workspace_id, status')
+    .eq('user_id', userId)
+    .eq('status', 'Aktif')
+    .limit(1);
+
+  if (membershipError) {
+    return sendJson(res, 500, { error: `Workspace üyeliği okunamadı: ${membershipError.message}` });
+  }
+
+  const workspaceId = membershipRows?.[0]?.workspace_id;
+
+  if (!workspaceId) {
+    return sendJson(res, 400, { error: 'Aktif workspace bulunamadı.' });
+  }
 
   try {
     await admin
@@ -112,8 +115,6 @@ export default async function handler(req, res) {
       .insert({
         workspace_id: workspaceId,
         user_id: userId,
-        project_id: null,
-        task_id: null,
         type: 'push_subscription',
         title: 'Push Subscription',
         body: JSON.stringify({
@@ -130,6 +131,7 @@ export default async function handler(req, res) {
     return sendJson(res, 200, {
       ok: true,
       userId,
+      workspaceId,
       endpointTail: endpoint.slice(-18)
     });
   } catch (error) {
