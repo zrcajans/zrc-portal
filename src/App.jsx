@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v439-safe-fetch-task-push-bridge';
+const ZRC_APP_BUILD_LABEL = 'v440-safe-direct-task-save-push';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1575,6 +1575,78 @@ const zrcV439InstallTaskPushBridge = () => {
 };
 
 zrcV439InstallTaskPushBridge();
+
+
+
+// zrc-v440-direct-task-save-push
+const zrcV440ReadSupabaseAccessToken = () => {
+  if (typeof window === 'undefined') return '';
+
+  try {
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index) || '';
+
+      if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
+
+      const rawValue = window.localStorage.getItem(key) || '';
+      const parsed = JSON.parse(rawValue);
+
+      const token =
+        parsed?.access_token ||
+        parsed?.currentSession?.access_token ||
+        parsed?.session?.access_token ||
+        parsed?.data?.session?.access_token ||
+        '';
+
+      if (token) return token;
+    }
+  } catch (error) {
+    console.warn('[ZRC Push v440] Supabase token okunamadı.', error);
+  }
+
+  return '';
+};
+
+const zrcV440SendTaskSavePush = async ({ title = 'ZRC Portal', body = 'Görevlerde yeni bir işlem yapıldı.', type = 'task_save' } = {}) => {
+  if (typeof window === 'undefined') return false;
+
+  const accessToken = zrcV440ReadSupabaseAccessToken();
+
+  if (!accessToken) {
+    console.warn('[ZRC Push v440] Oturum token yok, push atlanıyor.');
+    return false;
+  }
+
+  try {
+    const response = await window.fetch('/api/send-task-push', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      cache: 'no-store',
+      body: JSON.stringify({
+        type,
+        title,
+        body,
+        url: '/'
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || result.error) {
+      console.warn('[ZRC Push v440] Push gönderilemedi.', result.error || result);
+      return false;
+    }
+
+    console.info('[ZRC Push v440] Push sonucu:', result);
+    return true;
+  } catch (error) {
+    console.warn('[ZRC Push v440] Push isteği hata verdi.', error);
+    return false;
+  }
+};
 
 
 function App() {
@@ -7497,6 +7569,17 @@ function App() {
     }
 
     const didSaveToSupabase = await saveTaskToSupabase(cleanedTaskData, finalTargetStatus || targetColumn?.title);
+
+    // zrc-v440-task-save-push-trigger
+    if (didSaveToSupabase) {
+      zrcV440SendTaskSavePush({
+        type: previousTask ? 'task_update' : 'task_create',
+        title: 'ZRC Portal',
+        body: previousTask
+          ? `Görev güncellendi: ${cleanedTaskData.title || 'Adsız görev'}`
+          : `Yeni görev oluşturuldu: ${cleanedTaskData.title || 'Adsız görev'}`
+      });
+    }
 
     if (didSaveToSupabase) {
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 1500);

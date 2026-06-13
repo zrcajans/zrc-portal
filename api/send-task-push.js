@@ -44,7 +44,7 @@ const getVapidConfig = () => {
   };
 };
 
-const getUserFromAuth = async ({ supabaseUrl, supabaseAnonKey, authorizationHeader }) => {
+const getAuthUser = async ({ supabaseUrl, supabaseAnonKey, authorizationHeader }) => {
   if (!authorizationHeader?.startsWith('Bearer ') || !supabaseAnonKey) return null;
 
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
   const { supabaseUrl, supabaseAnonKey, serviceRoleKey } = getSupabaseConfig();
   const { publicKey, privateKey, subject } = getVapidConfig();
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     return sendJson(res, 500, { error: 'Supabase env eksik.' });
   }
 
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
     }
   });
 
-  const authUser = await getUserFromAuth({
+  const authUser = await getAuthUser({
     supabaseUrl,
     supabaseAnonKey,
     authorizationHeader
@@ -131,6 +131,7 @@ export default async function handler(req, res) {
     if (!subscriptionRows || subscriptionRows.length === 0) {
       return sendJson(res, 200, {
         ok: true,
+        workspaceId,
         sent: 0,
         subscriptionCount: 0,
         reason: 'Workspace içinde kayıtlı push aboneliği yok.'

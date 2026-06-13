@@ -1,6 +1,6 @@
 {
-  "build": "v439-safe-fetch-task-push-bridge",
-  "note": "Görev/notification Supabase yazmaları fetch köprüsüyle yakalanır ve send-task-push API tetiklenir. Workspace auth token'dan otomatik bulunur.",
-  "commitBefore": "3ee3ba5",
-  "createdAt": "2026-06-13T11:17:23.992555+00:00"
+  "build": "v440-safe-direct-task-save-push",
+  "note": "Görev Supabase'e başarıyla kaydedildikten hemen sonra çalışan send-task-push API doğrudan tetiklenir. Görev atama filtrelerine veya fetch köprüsüne bağlı değildir.",
+  "commitBefore": "9b9c339",
+  "createdAt": "2026-06-13T11:20:53.985751+00:00"
 }
