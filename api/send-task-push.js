@@ -78,8 +78,8 @@ const shouldSendPush = ({ type, title, body }) => {
   // İstenen tek bildirim formatı:
   // ZRC Portal — Yeni görev oluşturuldu: görev adı
   // ZRC Portal — Görev güncellendi: görev adı
-  if (normalizedTitle === 'ZRC Portal' && normalizedBody.startsWith('Yeni görev oluşturuldu:')) return true;
-  if (normalizedTitle === 'ZRC Portal' && normalizedBody.startsWith('Görev güncellendi:')) return true;
+  if ((normalizedTitle === 'ZRC Portal' || normalizedTitle === 'ZRC AJANS') && normalizedBody.startsWith('Yeni görev oluşturuldu:')) return true;
+  if ((normalizedTitle === 'ZRC Portal' || normalizedTitle === 'ZRC AJANS') && normalizedBody.startsWith('Görev güncellendi:')) return true;
 
   return false;
 };
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
   const bodyPayload = parseBody(req);
   const authorizationHeader = req.headers.authorization || '';
 
-  const notificationTitle = String(bodyPayload.title || 'ZRC Portal').trim().slice(0, 80);
+  const notificationTitle = 'ZRC AJANS'; // zrc-v450-force-notification-title
   const notificationBody = String(bodyPayload.body || 'Yeni bildirimin var.').trim().slice(0, 220);
   const notificationType = String(bodyPayload.type || 'activity').trim();
 

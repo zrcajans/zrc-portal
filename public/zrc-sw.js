@@ -20,10 +20,10 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let payload = { title: 'ZRC Portal', body: 'Yeni bildirimin var.' };
+  let payload = { title: 'ZRC AJANS', body: 'Yeni bildirimin var.' };
   try { payload = event.data ? event.data.json() : payload; } catch {}
   event.waitUntil(
-    self.registration.showNotification(payload.title || 'ZRC Portal', {
+    self.registration.showNotification(payload.title || 'ZRC AJANS', {
       body: payload.body || 'Yeni bildirimin var.',
       icon: '/zrc-logo.png',
       badge: '/zrc-logo.png',

@@ -1,7 +1,7 @@
 {
-  "name": "ZRC Portal",
-  "short_name": "ZRC",
-  "description": "ZRC AJANS iş takip paneli",
+  "name": "ZRC AJANS",
+  "short_name": "ZRC AJANS",
+  "description": "ZRC AJANS Portal",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

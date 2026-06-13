@@ -1,6 +1,14 @@
 {
-  "build": "v449-safe-desktop-sound-once",
-  "note": "Masaüstü web portalda aynı bildirim olayı iki farklı yerden ses tetiklerse 2.5 saniye içinde ikinci ses engellenir. Mobil PWA push tarafına dokunulmadı.",
-  "commitBefore": "119547a",
-  "createdAt": "2026-06-13T16:51:33.208549+00:00"
+  "build": "v450-safe-notification-title-zrc-ajans",
+  "note": "Mobil push bildirimi başlığı ZRC AJANS yapıldı. iOS'un otomatik gösterdiği kaynak satırı tamamen kaldırılamaz; PWA kaynak adı ZRC yerine ZRC AJANS olarak güncellendi.",
+  "changed": [
+    "src/App.jsx",
+    "api/send-task-push.js",
+    "public/zrc-sw.js",
+    "public/manifest.webmanifest",
+    "public/manifest.json",
+    "index.html"
+  ],
+  "commitBefore": "24eb072",
+  "createdAt": "2026-06-13T16:55:40.896573+00:00"
 }
