@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v428-safe-pwa-notification-button';
+const ZRC_APP_BUILD_LABEL = 'v429-safe-web-push-test';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1075,6 +1075,134 @@ if (typeof window !== 'undefined' && typeof Notification !== 'undefined') {
     window.localStorage.setItem('zrc-v428-notification-panel-reopened', '1');
   }
 }
+
+
+// zrc-v429-web-push-test
+const zrcV429UrlBase64ToUint8Array = (base64String = '') => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let index = 0; index < rawData.length; index += 1) {
+    outputArray[index] = rawData.charCodeAt(index);
+  }
+
+  return outputArray;
+};
+
+const zrcV429SetHintText = (hint, text) => {
+  if (hint) hint.textContent = text;
+};
+
+const zrcV429RegisterAndSendTestPush = async (hint) => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+
+  if (!('Notification' in window)) {
+    zrcV429SetHintText(hint, 'Bu cihaz/tarayıcı bildirimleri desteklemiyor.');
+    return;
+  }
+
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    zrcV429SetHintText(hint, 'Bu cihazda Web Push desteği yok. iPhone’da ana ekrandaki uygulamadan açtığından emin ol.');
+    return;
+  }
+
+  let permission = Notification.permission;
+
+  if (permission !== 'granted') {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== 'granted') {
+    zrcV429SetHintText(hint, 'Bildirim izni verilmedi.');
+    return;
+  }
+
+  zrcV429SetHintText(hint, 'Bildirim izni açık. Push aboneliği hazırlanıyor...');
+
+  let registration = await navigator.serviceWorker.ready;
+
+  if (!registration) {
+    registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
+  }
+
+  const keyResponse = await fetch('/api/push-public-key', {
+    method: 'GET',
+    headers: { Accept: 'application/json' }
+  });
+
+  const keyResult = await keyResponse.json().catch(() => ({}));
+
+  if (!keyResponse.ok || !keyResult.publicKey) {
+    zrcV429SetHintText(
+      hint,
+      keyResult.error || 'VAPID_PUBLIC_KEY eksik. Vercel Environment Variables ayarı gerekiyor.'
+    );
+    return;
+  }
+
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: zrcV429UrlBase64ToUint8Array(keyResult.publicKey)
+    });
+  }
+
+  zrcV429SetHintText(hint, 'Push aboneliği hazır. Test bildirimi gönderiliyor...');
+
+  const pushResponse = await fetch('/api/send-test-push', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      subscription,
+      title: 'ZRC Portal',
+      body: 'Test bildirimi başarılı. Telefon bildirimleri aktif.'
+    })
+  });
+
+  const pushResult = await pushResponse.json().catch(() => ({}));
+
+  if (!pushResponse.ok || pushResult.error) {
+    zrcV429SetHintText(hint, pushResult.error || 'Test bildirimi gönderilemedi.');
+    return;
+  }
+
+  zrcV429SetHintText(hint, 'Test bildirimi gönderildi. iPhone kilit ekranını/bildirim merkezini kontrol et.');
+};
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.__zrcV429PushClickInstalled) {
+  window.__zrcV429PushClickInstalled = true;
+
+  document.addEventListener(
+    'click',
+    async (event) => {
+      const button = event.target?.closest?.('.zrc-mobile-setup-notify');
+
+      if (!button) return;
+
+      const panel = button.closest('#zrc-mobile-setup-panel');
+      if (!panel) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const hint = panel.querySelector('.zrc-mobile-setup-hint');
+
+      try {
+        await zrcV429RegisterAndSendTestPush(hint);
+      } catch (error) {
+        zrcV429SetHintText(hint, error?.message || 'Bildirim kurulumu tamamlanamadı.');
+      }
+    },
+    true
+  );
+}
+
 
 function App() {
 

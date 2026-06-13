@@ -1,6 +1,6 @@
 {
-  "build": "v428-safe-pwa-notification-button",
-  "note": "Ana ekrana eklenmiş PWA içinde Bildirimleri Aç kartı görünür hale getirildi. Önceden kapatılmış kurulum paneli, bildirim izni yoksa bir kez yeniden gösterilir.",
-  "commitBefore": "489d7f3",
-  "createdAt": "2026-06-13T09:10:26.565261+00:00"
-}
+  "build": "v429-safe-web-push-test",
+  "note": "Gerçek Web Push test altyapısı eklendi. Bildirimleri Aç butonu Push subscription oluşturur ve /api/send-test-push üzerinden gerçek test bildirimi gönderir. Vercel VAPID env gerektirir.",
+  "commitBefore": "fd78f19",
+  "createdAt": "2026-06-13T09:15:16.512626+00:00"
+}\n
