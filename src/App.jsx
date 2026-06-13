@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v435-safe-force-workspace-push';
+const ZRC_APP_BUILD_LABEL = 'v436b-safe-push-register-panel';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1203,6 +1203,246 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.
   );
 }
 
+
+
+
+// zrc-v436b-push-register-panel
+const zrcV436bUrlBase64ToUint8Array = (base64String = '') => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let index = 0; index < rawData.length; index += 1) {
+    outputArray[index] = rawData.charCodeAt(index);
+  }
+
+  return outputArray;
+};
+
+const zrcV436bSetPanelText = (text) => {
+  if (typeof document === 'undefined') return;
+  const status = document.querySelector('#zrc-v436b-push-status');
+  if (status) status.textContent = text;
+};
+
+const zrcV436bWaitForContext = async () => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const context = window.__zrcV436bPushContext || window.__zrcV436PushContext || {};
+
+    if (context.workspaceId && context.userId) {
+      return context;
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 500));
+  }
+
+  return window.__zrcV436bPushContext || window.__zrcV436PushContext || {};
+};
+
+const zrcV436bRegisterAndTest = async () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+
+  if (!('Notification' in window)) {
+    zrcV436bSetPanelText('Bu cihaz bildirim desteklemiyor.');
+    return;
+  }
+
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    zrcV436bSetPanelText('Web Push yok. iPhone’da ana ekrandaki ikonla aç.');
+    return;
+  }
+
+  let permission = Notification.permission;
+
+  if (permission !== 'granted') {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== 'granted') {
+    zrcV436bSetPanelText('Bildirim izni verilmedi.');
+    return;
+  }
+
+  zrcV436bSetPanelText('Telefon hazırlanıyor...');
+
+  let registration = null;
+
+  try {
+    registration = await navigator.serviceWorker.ready;
+  } catch {
+    registration = null;
+  }
+
+  if (!registration) {
+    registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
+    registration = await navigator.serviceWorker.ready;
+  }
+
+  const keyResponse = await fetch('/api/push-public-key', {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    cache: 'no-store'
+  });
+
+  const keyResult = await keyResponse.json().catch(() => ({}));
+
+  if (!keyResponse.ok || !keyResult.publicKey) {
+    zrcV436bSetPanelText(keyResult.error || 'VAPID public key okunamadı.');
+    return;
+  }
+
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: zrcV436bUrlBase64ToUint8Array(keyResult.publicKey)
+    });
+  }
+
+  zrcV436bSetPanelText('Hesap bilgisi alınıyor...');
+
+  const context = await zrcV436bWaitForContext();
+  const workspaceId = String(context.workspaceId || '').trim();
+  const userId = String(context.userId || '').trim();
+  const accessToken = String(context.accessToken || '').trim();
+
+  if (!workspaceId || !userId) {
+    zrcV436bSetPanelText('Workspace/kullanıcı bulunamadı. Çıkış-giriş yapıp tekrar bas.');
+    return;
+  }
+
+  zrcV436bSetPanelText('Telefon veritabanına kaydediliyor...');
+
+  const registerHeaders = {
+    'Content-Type': 'application/json'
+  };
+
+  if (accessToken) {
+    registerHeaders.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const registerResponse = await fetch('/api/register-push-subscription', {
+    method: 'POST',
+    headers: registerHeaders,
+    cache: 'no-store',
+    body: JSON.stringify({
+      workspaceId,
+      userId,
+      subscription,
+      userAgent: navigator.userAgent || ''
+    })
+  });
+
+  const registerResult = await registerResponse.json().catch(() => ({}));
+
+  if (!registerResponse.ok || registerResult.error) {
+    zrcV436bSetPanelText(`Telefon kaydı olmadı: ${registerResult.error || registerResponse.status}`);
+    return;
+  }
+
+  zrcV436bSetPanelText('Kayıt tamam. Görev bildirimi yolu test ediliyor...');
+
+  const pushResponse = await fetch('/api/send-task-push', {
+    method: 'POST',
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      'Content-Type': 'application/json'
+    },
+    cache: 'no-store',
+    body: JSON.stringify({
+      workspaceId,
+      targetUserIds: [userId],
+      broadcastToWorkspace: true,
+      type: 'push_connection_test',
+      title: 'ZRC Portal',
+      body: 'Telefon görev bildirimlerine bağlandı. Bundan sonra görev bildirimleri gelebilir.',
+      url: '/'
+    })
+  });
+
+  const pushResult = await pushResponse.json().catch(() => ({}));
+
+  if (!pushResponse.ok || pushResult.error) {
+    zrcV436bSetPanelText(`Test gönderilemedi: ${pushResult.error || pushResponse.status}`);
+    return;
+  }
+
+  zrcV436bSetPanelText(`Bağlandı. Gönderilen: ${pushResult.sent || 0}, kayıt: ${pushResult.subscriptionCount || 0}`);
+};
+
+const zrcV436bShouldShowPanel = () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  const isStandalone =
+    window.matchMedia?.('(display-mode: standalone)')?.matches ||
+    window.navigator?.standalone === true;
+  const isMobileWidth = window.innerWidth <= 900;
+  const isPortalHost =
+    window.location.hostname.includes('portal.zrcajans.com') ||
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname === 'localhost';
+
+  return isPortalHost && (isStandalone || isMobileWidth);
+};
+
+const zrcV436bMountPanel = () => {
+  if (typeof document === 'undefined' || !zrcV436bShouldShowPanel()) return;
+  if (document.querySelector('#zrc-v436b-push-panel')) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'zrc-v436b-push-panel';
+  panel.style.position = 'fixed';
+  panel.style.right = '12px';
+  panel.style.bottom = '96px';
+  panel.style.zIndex = '2147483647';
+  panel.style.width = 'min(340px, calc(100vw - 24px))';
+  panel.style.padding = '12px';
+  panel.style.borderRadius = '18px';
+  panel.style.background = 'rgba(17, 24, 39, 0.96)';
+  panel.style.color = '#fff';
+  panel.style.boxShadow = '0 18px 45px rgba(0,0,0,0.30)';
+  panel.style.fontFamily = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  panel.style.backdropFilter = 'blur(10px)';
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
+      <div style="font-size:14px;font-weight:800;">Telefon bildirim bağlantısı</div>
+      <button type="button" id="zrc-v436b-push-close" aria-label="Kapat" style="border:0;background:rgba(255,255,255,0.12);color:#fff;border-radius:999px;width:28px;height:28px;font-size:18px;line-height:1;cursor:pointer;">×</button>
+    </div>
+    <div id="zrc-v436b-push-status" style="font-size:12px;line-height:1.35;color:rgba(255,255,255,0.78);margin-bottom:10px;">
+      Bir kez basınca bu telefonu görev bildirimlerine bağlar.
+    </div>
+    <button type="button" id="zrc-v436b-push-button" style="width:100%;border:0;border-radius:14px;padding:12px 14px;font-size:14px;font-weight:900;background:#f97316;color:#fff;cursor:pointer;">
+      Telefonu Bildirime Bağla
+    </button>
+  `;
+
+  document.body.appendChild(panel);
+
+  panel.querySelector('#zrc-v436b-push-close')?.addEventListener('click', () => {
+    panel.remove();
+  });
+
+  panel.querySelector('#zrc-v436b-push-button')?.addEventListener('click', async () => {
+    try {
+      await zrcV436bRegisterAndTest();
+    } catch (error) {
+      zrcV436bSetPanelText(error?.message || 'Telefon bağlanamadı.');
+    }
+  });
+};
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.__zrcV436bPushPanelInstalled) {
+  window.__zrcV436bPushPanelInstalled = true;
+  window.addEventListener('load', () => {
+    setTimeout(zrcV436bMountPanel, 700);
+    setTimeout(zrcV436bMountPanel, 2200);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) setTimeout(zrcV436bMountPanel, 500);
+  });
+}
 
 
 function App() {
@@ -3104,6 +3344,47 @@ function App() {
   const setSupabaseWriteInfo = (state, label) => {
     setSupabaseWriteStatus({ state, label });
   };
+
+
+  // zrc-v436b-current-push-context
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    let cancelled = false;
+
+    const updatePushContext = async () => {
+      try {
+        const sessionResponse = await supabase.auth.getSession();
+
+        if (cancelled) return;
+
+        window.__zrcV436bPushContext = {
+          workspaceId: getCurrentSupabaseWorkspaceId(),
+          userId: currentUserId,
+          accessToken: sessionResponse?.data?.session?.access_token || '',
+          profileName: currentProfileName || currentUser?.name || 'ZRC'
+        };
+      } catch {
+        if (!cancelled) {
+          window.__zrcV436bPushContext = {
+            workspaceId: getCurrentSupabaseWorkspaceId(),
+            userId: currentUserId,
+            accessToken: '',
+            profileName: currentProfileName || currentUser?.name || 'ZRC'
+          };
+        }
+      }
+    };
+
+    updatePushContext();
+    const timer = window.setInterval(updatePushContext, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [currentUserId, supabaseWorkspaceId, currentRoleMember?.workspaceId, currentProfileName, currentUser?.name]);
+
 
 
   // zrc-v432-register-current-device-push

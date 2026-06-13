@@ -52,8 +52,8 @@ export default async function handler(req, res) {
   const subscription = body.subscription;
   const endpoint = String(subscription?.endpoint || '').trim();
 
-  if (!workspaceId) {
-    return sendJson(res, 400, { error: 'Workspace bilgisi eksik.' });
+  if (!isUuid(workspaceId)) {
+    return sendJson(res, 400, { error: 'Workspace bilgisi eksik/geçersiz.' });
   }
 
   if (!endpoint) {
@@ -112,6 +112,8 @@ export default async function handler(req, res) {
       .insert({
         workspace_id: workspaceId,
         user_id: userId,
+        project_id: null,
+        task_id: null,
         type: 'push_subscription',
         title: 'Push Subscription',
         body: JSON.stringify({
