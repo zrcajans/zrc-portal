@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v432-safe-real-task-assignment-push';
+const ZRC_APP_BUILD_LABEL = 'v433-safe-allow-self-assignment-push';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -8400,7 +8400,7 @@ function App() {
           ...(Array.isArray(notification.recipientUserIds) ? notification.recipientUserIds : [])
         ]
           .map((value) => String(value || '').trim())
-          .filter((userId) => isSupabaseUuid(userId) && !isCurrentSupabaseUserId(userId))
+          .filter((userId) => isSupabaseUuid(userId))
       )
     );
 
