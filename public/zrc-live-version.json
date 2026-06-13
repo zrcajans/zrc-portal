@@ -1,12 +1,7 @@
 {
-  "build": "v444-safe-mobile-home-icon",
-  "note": "Sadece mobil ana ekran/PWA ikonu değiştirildi. Uygulama içindeki diğer logolara dokunulmadı.",
-  "source": "~/Downloads/zrc ana ekran.png",
-  "icons": [
-    "/pwa-icons/zrc-mobile-home-icon-180.png",
-    "/pwa-icons/zrc-mobile-home-icon-192.png",
-    "/pwa-icons/zrc-mobile-home-icon-512.png"
-  ],
-  "commitBefore": "c16af3f",
-  "createdAt": "2026-06-13T11:38:34.439846+00:00"
+  "build": "v445-safe-push-panel-removed",
+  "note": "Mobilde görünen Telefonu Bildirime Bağla/Test paneli kaldırıldı. Web Push API, VAPID ayarları, push_subscription kayıtları ve görev bildirimi altyapısı korundu.",
+  "removed": [],
+  "commitBefore": "0b71b90",
+  "createdAt": "2026-06-13T11:56:01.122074+00:00"
 }

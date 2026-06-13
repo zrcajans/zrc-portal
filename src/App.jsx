@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v442-safe-single-direct-task-push';
+const ZRC_APP_BUILD_LABEL = 'v445-safe-push-panel-removed';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
