@@ -1,7 +1,6 @@
 {
-  "build": "v413-safe-customer-account-link-await",
-  "note": "Müşteri giriş hesabı oluşturulduktan sonra müşteri bağlantı kaydı Supabase yazımı beklenerek tamamlanır.",
-  "commitBefore": "7e97403",
-  "patchedCustomerSaves": 1,
-  "createdAt": "2026-06-13T08:10:47.213093+00:00"
+  "build": "v422b-safe-mobile-final-css",
+  "note": "Mobil final CSS paketi: taşma, safe-area, dokunma alanı, modal ve görev kartı düzeni.",
+  "commitBefore": "259830f",
+  "createdAt": "2026-06-13T08:36:56.939337+00:00"
 }

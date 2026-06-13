@@ -2211,3 +2211,120 @@
     background-image: none !important;
   }
 }
+
+/* zrc-v422b-mobile-final-css */
+/* Mobil final: taşma, safe-area, dokunma alanı, modal ve kart düzeni */
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden !important;
+  }
+
+  body {
+    background: #f7f4ef;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  * {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  button,
+  [role="button"] {
+    min-height: 42px;
+    touch-action: manipulation;
+  }
+
+  input,
+  textarea,
+  select {
+    max-width: 100%;
+    font-size: 16px !important;
+  }
+
+  textarea {
+    min-height: 96px;
+  }
+
+  .zrc-mobile-shell,
+  .zrc-mobile-workspace,
+  .zrc-mobile-page,
+  .zrc-mobile-content,
+  .zrc-mobile-main {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .zrc-mobile-header,
+  .zrc-mobile-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    padding-top: max(10px, env(safe-area-inset-top));
+    background: rgba(247, 244, 239, 0.96);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .zrc-mobile-brand-wrap img {
+    max-height: 34px !important;
+    width: auto !important;
+    object-fit: contain !important;
+  }
+
+  .zrc-mobile-card,
+  .zrc-mobile-task-card,
+  .zrc-mobile-column-card,
+  .zrc-mobile-panel {
+    border-radius: 20px !important;
+    box-shadow: 0 14px 38px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .zrc-mobile-task-card {
+    margin-bottom: 10px !important;
+    padding: 14px !important;
+  }
+
+  .zrc-mobile-bottom-safe,
+  .zrc-mobile-content,
+  .zrc-mobile-workspace {
+    padding-bottom: max(92px, calc(76px + env(safe-area-inset-bottom))) !important;
+  }
+
+  .zrc-mobile-modal,
+  .zrc-mobile-drawer,
+  .zrc-mobile-sheet,
+  .zrc-mobile-notification-panel,
+  .zrc-mobile-message-panel {
+    max-width: 100vw !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  .zrc-mobile-desktop-only,
+  .zrc-desktop-only {
+    display: none !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .zrc-mobile-card,
+  .zrc-mobile-task-card,
+  .zrc-mobile-panel {
+    border-radius: 18px !important;
+  }
+
+  .zrc-mobile-header,
+  .zrc-mobile-topbar {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
