@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v426-safe-task-end-date-color';
+const ZRC_APP_BUILD_LABEL = 'v426b-safe-mobile-end-date-hard-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -759,6 +759,147 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.
   }
 
   const observer = new MutationObserver(scheduleZrcDueDateColoring);
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+}
+
+
+
+// zrc-v426b-mobile-end-date-hard-fix
+const zrcV426bPickTaskEndDate = (task = {}) =>
+  task?.endDate ||
+  task?.dueDate ||
+  task?.end_date ||
+  task?.due_date ||
+  task?.deadline ||
+  task?.finishDate ||
+  '';
+
+const zrcV426bNormalizeTaskDateFields = (task = {}) => {
+  if (!task || typeof task !== 'object') return task;
+
+  const resolvedEndDate = zrcV426bPickTaskEndDate(task);
+  const resolvedStartDate =
+    task?.startDate ||
+    task?.start_date ||
+    task?.createdAt ||
+    task?.created_at ||
+    '';
+
+  if (!resolvedEndDate) return task;
+
+  const nextTask = {
+    ...task,
+    endDate: task.endDate || resolvedEndDate,
+    dueDate: task.dueDate || resolvedEndDate
+  };
+
+  if (!nextTask.startDate && resolvedStartDate) {
+    nextTask.startDate = resolvedStartDate;
+  }
+
+  return nextTask;
+};
+
+const zrcV426bParseDueDate = (value = '') => {
+  const raw = String(value || '').trim();
+
+  if (!raw || /tarih yok/i.test(raw)) return null;
+
+  const iso = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+
+  const months = {
+    ocak: 0,
+    şubat: 1,
+    subat: 1,
+    mart: 2,
+    nisan: 3,
+    mayıs: 4,
+    mayis: 4,
+    haziran: 5,
+    temmuz: 6,
+    ağustos: 7,
+    agustos: 7,
+    eylül: 8,
+    eylul: 8,
+    ekim: 9,
+    kasım: 10,
+    kasim: 10,
+    aralık: 11,
+    aralik: 11
+  };
+
+  const clean = raw
+    .toLocaleLowerCase('tr-TR')
+    .replace(/[.,]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const tr = clean.match(/(\d{1,2})\s+([a-zçğıöşü]+)\s+(\d{4})/i);
+  if (tr && months[tr[2]] !== undefined) {
+    return new Date(Number(tr[3]), months[tr[2]], Number(tr[1]));
+  }
+
+  return null;
+};
+
+const zrcV426bDueDateState = (value = '') => {
+  const date = zrcV426bParseDueDate(value);
+  if (!date) return 'default';
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (target.getTime() < today.getTime()) return 'overdue';
+  if (target.getTime() === today.getTime()) return 'today';
+
+  return 'default';
+};
+
+const zrcV426bApplyDueDateColors = () => {
+  if (typeof document === 'undefined') return;
+
+  document.querySelectorAll('span, div, p, button').forEach((node) => {
+    const text = String(node.textContent || '').trim();
+
+    if (!text || text.length > 80) return;
+    if (!/^(Bit|Bitiş)\s*:/i.test(text)) return;
+
+    const dateText = text.replace(/^(Bit|Bitiş)\s*:/i, '').trim();
+    const state = zrcV426bDueDateState(dateText);
+
+    node.style.fontWeight = '900';
+
+    if (state === 'overdue') {
+      node.style.setProperty('color', '#dc2626', 'important');
+    } else if (state === 'today') {
+      node.style.setProperty('color', '#d97706', 'important');
+    } else {
+      node.style.removeProperty('color');
+    }
+  });
+};
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.__zrcV426bDueDateObserver) {
+  window.__zrcV426bDueDateObserver = true;
+
+  const run = () => {
+    window.clearTimeout(window.__zrcV426bDueDateTimer);
+    window.__zrcV426bDueDateTimer = window.setTimeout(zrcV426bApplyDueDateColors, 120);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run, { once: true });
+  } else {
+    run();
+  }
+
+  const observer = new MutationObserver(run);
   observer.observe(document.documentElement, {
     childList: true,
     subtree: true,
@@ -2384,6 +2525,55 @@ function App() {
 
     return {};
   });
+
+  // zrc-v426b-mobile-end-date-hard-fix
+  // Mobil kartlar endDate beklediği için dueDate/end_date/due_date alanlarını endDate'e kesin olarak taşır.
+  useEffect(() => {
+    setProjectBoards((prevBoards) => {
+      let changed = false;
+
+      const nextBoards = Object.fromEntries(
+        Object.entries(prevBoards || {}).map(([projectName, board]) => {
+          const nextColumns = (board?.columns || []).map((column) => {
+            const nextTasks = (column?.tasks || []).map((task) => {
+              const normalizedTask = zrcV426bNormalizeTaskDateFields(task);
+
+              if (normalizedTask !== task) changed = true;
+
+              return normalizedTask;
+            });
+
+            return {
+              ...column,
+              tasks: nextTasks
+            };
+          });
+
+          const nextArchivedTasks = (board?.archivedTasks || []).map((task) => {
+            const normalizedTask = zrcV426bNormalizeTaskDateFields(task);
+
+            if (normalizedTask !== task) changed = true;
+
+            return normalizedTask;
+          });
+
+          return [
+            projectName,
+            {
+              ...board,
+              columns: nextColumns,
+              archivedTasks: nextArchivedTasks
+            }
+          ];
+        })
+      );
+
+      return changed ? nextBoards : prevBoards;
+    });
+
+    window.setTimeout(zrcV426bApplyDueDateColors, 180);
+  }, [projectBoards]);
+
 
   // zrc-v425-instant-task-cache
   // Sayfa yenilenince görev kartları Supabase beklemeden son yerel cache'ten anında gösterilir.

@@ -1,7 +1,6 @@
 {
-  "build": "v426-safe-task-end-date-color",
-  "note": "Mobil görev kartlarında bitiş tarihi dueDate/endDate birlikte okunur. Bitiş tarihi geçmişse kırmızı, bugün son günse sarı renklendirilir.",
-  "commitBefore": "9e4423f",
-  "patchedDatePatterns": 0,
-  "createdAt": "2026-06-13T08:46:53.335549+00:00"
+  "build": "v426b-safe-mobile-end-date-hard-fix",
+  "note": "Mobil görev kartları için dueDate/end_date/due_date alanları endDate'e taşınır. Bitiş tarihi geçmişse kırmızı, bugün son günse sarı uygulanır.",
+  "commitBefore": "f7d5a48",
+  "createdAt": "2026-06-13T08:49:09.965502+00:00"
 }
