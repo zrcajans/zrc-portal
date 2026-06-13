@@ -1,14 +1,12 @@
 {
-  "build": "v451-safe-notification-title-zrc",
-  "note": "Push bildirimi üst başlığı ZRC yapıldı. iOS'un zorunlu kaynak satırı tamamen kaldırılamaz; kaynak/app adı ZRC olarak kısaltıldı.",
+  "build": "v452-experimental-ios-from-line-hidden-name",
+  "note": "iOS PWA bildirimlerindeki 'from ...' satırı sistem tarafından zorunlu basılır. Bu denemede PWA kaynak adı görünmez karaktere indirildi; üst bildirim başlığı ZRC kalır. Sonucun görünmesi için ana ekran uygulaması silinip tekrar eklenmelidir.",
   "changed": [
-    "src/App.jsx",
-    "api/send-task-push.js",
-    "public/zrc-sw.js",
     "public/manifest.webmanifest",
     "public/manifest.json",
-    "index.html"
+    "index.html",
+    "src/App.jsx"
   ],
-  "commitBefore": "0dc602f",
-  "createdAt": "2026-06-13T16:59:45.743916+00:00"
+  "commitBefore": "e2d78bc",
+  "createdAt": "2026-06-13T17:02:45.711651+00:00"
 }
