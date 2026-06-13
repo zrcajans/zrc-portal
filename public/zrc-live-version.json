@@ -1,6 +1,6 @@
 {
-  "build": "v404c-safe-save-team-member-edit-persist",
-  "note": "saveTeamMemberEdit içindeki rol değişiklikleri Supabase workspace_members tablosuna kalıcı yazılır. Yönetici rol eşitliği de korunur.",
-  "commitBefore": "0e8fb55",
-  "createdAt": "2026-06-12T09:24:21.477829+00:00"
+  "build": "v406-safe-profile-persistence-fix",
+  "note": "Profil kaydetme async ve güncel state ile çalışır hale getirildi. Tema/renk hızlı kaydetme stale-state riski kaldırıldı. Şifre alanları localStorage'a kalıcı yazılmaz.",
+  "commitBefore": "d021650",
+  "createdAt": "2026-06-13T07:52:23.543781+00:00"
 }

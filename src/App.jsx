@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v404c-safe-save-team-member-edit-persist';
+const ZRC_APP_BUILD_LABEL = 'v406-safe-profile-persistence-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -2129,7 +2129,14 @@ function App() {
   }, [chatGroups]);
 
   useEffect(() => {
-    writeStorageValue('profileDraft', profileDraft);
+    const safeProfileDraftForStorage = {
+      ...profileDraft,
+      currentPassword: '',
+      newPassword: '',
+      repeatPassword: ''
+    };
+
+    writeStorageValue('profileDraft', safeProfileDraftForStorage);
   }, [profileDraft]);
 
   useEffect(() => {
@@ -12323,29 +12330,52 @@ function App() {
     setChatPageDraft('');
   };
 
-  const saveProfileSection = () => {
-    if (currentUserId) {
-      setTeamMembers((prevMembers) =>
-        prevMembers.map((member) =>
-          member.id === currentUserId
-            ? {
-                ...member,
-                name: currentProfileName,
-                email: profileDraft.email || member.email,
-                avatar: profileDraft.avatarDataUrl || createAvatarFromName(currentProfileName)
-              }
-            : member
-        )
-      );
-    }
+  const saveProfileSection = async (overrides = {}) => {
+    const overrideProfileDraft = normalizeStorageObject(overrides?.profileDraft || {}, {});
+    const overrideProfilePreferences = normalizeStorageObject(overrides?.profilePreferences || {}, {});
+
+    const nextProfileDraft = {
+      ...profileDraft,
+      ...overrideProfileDraft
+    };
+
+    const nextProfileNameParts = [nextProfileDraft.firstName, nextProfileDraft.lastName]
+      .map((part) => String(part || '').trim())
+      .filter(Boolean);
+
+    const nextProfileName = nextProfileNameParts.join(' ') || currentProfileName || 'ZRC AJANS';
+
+    const safeProfileDraftForState = {
+      ...nextProfileDraft,
+      currentPassword: '',
+      newPassword: '',
+      repeatPassword: ''
+    };
 
     const nextPreferences = {
       ...profilePreferences,
+      ...overrideProfilePreferences,
       lastSavedAt: new Date().toISOString()
     };
 
+    setProfileDraft(safeProfileDraftForState);
+
+    setTeamMembers((prevMembers) =>
+      prevMembers.map((member) =>
+        String(member.id || '') === String(currentUserId || '')
+          ? {
+              ...member,
+              name: nextProfileName,
+              email: nextProfileDraft.email || member.email,
+              avatar: nextProfileDraft.avatarDataUrl || createAvatarFromName(nextProfileName)
+            }
+          : member
+      )
+    );
+
     setProfilePreferences(nextPreferences);
-    saveProfileToSupabase(profileDraft, nextPreferences);
+
+    await saveProfileToSupabase(safeProfileDraftForState, nextPreferences);
   };
 
   const toggleProfilePreference = (keyName) => {
@@ -16290,8 +16320,9 @@ function App() {
                               key={theme}
                               type="button"
                               onClick={() => {
+                                const nextProfileDraft = { ...profileDraft, theme };
                                 setProfileDraft((prev) => ({ ...prev, theme }));
-                                saveProfileSection();
+                                saveProfileSection({ profileDraft: nextProfileDraft });
                               }}
                               className={`h-8 px-4 rounded-full text-[10px] font-black ${profileDraft.theme === theme ? 'bg-[#45b978] text-white' : 'text-[#6b7280]'}`}
                             >
@@ -16324,8 +16355,9 @@ function App() {
                               key={name}
                               type="button"
                               onClick={() => {
+                                const nextProfileDraft = { ...profileDraft, color: name };
                                 setProfileDraft((prev) => ({ ...prev, color: name }));
-                                saveProfileSection();
+                                saveProfileSection({ profileDraft: nextProfileDraft });
                               }}
                               className={`h-8 rounded-full border px-3 flex items-center gap-2 text-[10px] font-bold ${
                                 profileDraft.color === name ? 'border-[#2f66cf] text-[#2f66cf]' : 'border-[#d7dce5] text-[#394150]'
