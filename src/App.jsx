@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v446-safe-in-app-notification-sound';
+const ZRC_APP_BUILD_LABEL = 'v445-safe-push-panel-removed';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -1286,76 +1286,6 @@ const zrcV442SendTaskSavePush = async ({ title = 'ZRC Portal', body = 'Görevler
     return false;
   }
 };
-
-
-
-// zrc-v446-in-app-notification-sound
-const zrcV446NotificationSoundUrl = '/sounds/bildirim.wav?v=446';
-
-const zrcV446InstallNotificationSoundUnlock = () => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-  if (window.__zrcV446NotificationSoundUnlockInstalled) return;
-
-  window.__zrcV446NotificationSoundUnlockInstalled = true;
-
-  const unlock = () => {
-    if (window.__zrcV446NotificationSoundUnlocked) return;
-    window.__zrcV446NotificationSoundUnlocked = true;
-
-    try {
-      const audio = new Audio(zrcV446NotificationSoundUrl);
-      audio.preload = 'auto';
-      audio.volume = 0.01;
-      window.__zrcV446NotificationAudio = audio;
-    } catch (error) {
-      console.warn('[ZRC Ses] Bildirim sesi hazırlanamadı.', error);
-    }
-  };
-
-  ['touchstart', 'click', 'keydown'].forEach((eventName) => {
-    document.addEventListener(eventName, unlock, {
-      once: true,
-      passive: true
-    });
-  });
-};
-
-const zrcV446PlayInAppNotificationSound = () => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
-
-  try {
-    zrcV446InstallNotificationSoundUnlock();
-
-    const shouldPlay =
-      document.visibilityState === 'visible' ||
-      window.matchMedia?.('(display-mode: standalone)')?.matches ||
-      window.navigator?.standalone === true;
-
-    if (!shouldPlay) return false;
-
-    const audio = window.__zrcV446NotificationAudio || new Audio(zrcV446NotificationSoundUrl);
-    audio.src = zrcV446NotificationSoundUrl;
-    audio.muted = false;
-    audio.volume = 1;
-    audio.currentTime = 0;
-    window.__zrcV446NotificationAudio = audio;
-
-    const playPromise = audio.play();
-
-    if (playPromise?.catch) {
-      playPromise.catch((error) => {
-        console.warn('[ZRC Ses] Bildirim sesi otomatik çalmadı. Kullanıcı etkileşimi gerekebilir.', error);
-      });
-    }
-
-    return true;
-  } catch (error) {
-    console.warn('[ZRC Ses] Bildirim sesi çalınamadı.', error);
-    return false;
-  }
-};
-
-zrcV446InstallNotificationSoundUnlock();
 
 
 function App() {
@@ -7281,7 +7211,6 @@ function App() {
 
     // zrc-v442-single-task-push-trigger
     if (didSaveToSupabase) {
-      zrcV446PlayInAppNotificationSound();
       zrcV442SendTaskSavePush({
         type: previousTask ? 'task_update' : 'task_create',
         title: 'ZRC Portal',
@@ -8474,7 +8403,6 @@ function App() {
     };
 
     setActivityNotifications((prevNotifications) => [nextNotification, ...prevNotifications].slice(0, 80));
-    zrcV446PlayInAppNotificationSound();
     saveActivityNotificationToSupabase(nextNotification);
 
     return nextNotification;

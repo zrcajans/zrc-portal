@@ -1,7 +1,7 @@
 {
-  "build": "v446-safe-in-app-notification-sound",
-  "note": "Finder/İndirilenler içindeki bildirim.wav dosyası public/sounds/bildirim.wav olarak eklendi. Portal açıkken yeni bildirim/görev olayında bu ses çalar. Kilit ekranı iOS sistem sesi değiştirilmez.",
-  "sound": "/sounds/bildirim.wav",
-  "commitBefore": "a565106",
-  "createdAt": "2026-06-13T16:35:17.931267+00:00"
+  "build": "v445-safe-push-panel-removed",
+  "note": "Mobilde görünen Telefonu Bildirime Bağla/Test paneli kaldırıldı. Web Push API, VAPID ayarları, push_subscription kayıtları ve görev bildirimi altyapısı korundu.",
+  "removed": [],
+  "commitBefore": "c0bfe05",
+  "createdAt": "2026-06-13T16:30:15.765542+00:00"
 }
