@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
+import MobileProjectPicker from './components/mobile/MobileProjectPicker';
 import MobileTaskList from './components/mobile/MobileTaskList';
 import './zrc-mobile.css';
 import TopNavbar from './components/Layout/TopNavbar';
@@ -8,7 +9,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v469b-safe-extract-mobile-task-list';
+const ZRC_APP_BUILD_LABEL = 'v470-safe-extract-mobile-project-picker';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15098,49 +15099,24 @@ return (
             </button>
           </div>
 
-          <div className="zrc-mobile-project-picker">
-            <button
-              type="button"
-              className="zrc-mobile-project-picker-btn"
-              onClick={() => setIsMobileProjectPickerOpen((prev) => !prev)}
-            >
-              <div>
-                <small>Proje seçimi</small>
-                <strong>{['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(selectedProject || '').trim()) ? 'Proje seç' : (selectedProject || 'Proje seç')}</strong>
-              </div>
-              <span>{isMobileProjectPickerOpen ? '⌃' : '⌄'}</span>
-            </button>
-
-            {isMobileProjectPickerOpen && (
-              <div className="zrc-mobile-project-picker-panel">
-                {(Array.from(new Set([...(Array.isArray(visibleProjectNames) ? visibleProjectNames : []), ...(Array.isArray(projects) ? projects : [])])).filter((project) => project && !['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(project).trim()))).map((project) => {
-                  const isActiveProject = project === selectedProject;
-
-                  return (
-                    <button
-                      key={project}
-                      type="button"
-                      className={`zrc-mobile-project-option ${isActiveProject ? 'is-active' : ''}`}
-                      onClick={() => {
-                        setSelectedProject(project);
-                        setActiveMenu('Projeler');
-                        setActiveContentMenu('Projeler');
-                        setActiveTab('Görevler');
-                        setIsMobileProjectPickerOpen(false);
-                        setIsPanelOpen(false);
-                        setIsMessagesOpen(false);
-                        setIsNotificationsOpen(false);
-                        setIsGlobalSearchOpen(false);
-                      }}
-                    >
-                      <strong>{project}</strong>
-                      <small>{isActiveProject ? 'Açık proje' : 'Projeyi aç'}</small>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <MobileProjectPicker
+            selectedProject={selectedProject}
+            visibleProjectNames={visibleProjectNames}
+            projects={projects}
+            isOpen={isMobileProjectPickerOpen}
+            setIsOpen={setIsMobileProjectPickerOpen}
+            onSelectProject={(project) => {
+              setSelectedProject(project);
+              setActiveMenu('Projeler');
+              setActiveContentMenu('Projeler');
+              setActiveTab('Görevler');
+              setIsMobileProjectPickerOpen(false);
+              setIsPanelOpen(false);
+              setIsMessagesOpen(false);
+              setIsNotificationsOpen(false);
+              setIsGlobalSearchOpen(false);
+            }}
+          />
 
           <div className="zrc-mobile-task-section">
             <div className="zrc-mobile-task-section-head">

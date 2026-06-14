@@ -1,12 +1,11 @@
 {
-  "build": "v469b-safe-extract-mobile-task-list",
-  "note": "v469 güvenlik kontrolü getMobileTaskCardAssignees isminde yanlış pozitif verdi. v469b sadece gerçek JSX tag kontrolü yapar ve mobil görev listesini MobileTaskList.jsx dosyasına taşır.",
+  "build": "v470-safe-extract-mobile-project-picker",
+  "note": "App.jsx parçalama üçüncü adım: mobil proje seçici src/components/mobile/MobileProjectPicker.jsx dosyasına taşındı. Davranış aynı kalır; kod ayrıştırıldı.",
   "changed": [
-    "src/components/mobile/MobileTaskList.jsx oluşturuldu/güncellendi",
-    "App.jsx içinden MobileTaskCard importu kaldırıldı",
-    "App.jsx'e MobileTaskList importu eklendi",
-    "App.jsx içindeki mobil görev listesi JSX bloğu MobileTaskList çağrısına dönüştürüldü"
+    "src/components/mobile/MobileProjectPicker.jsx oluşturuldu/güncellendi",
+    "App.jsx'e MobileProjectPicker importu eklendi",
+    "App.jsx içindeki mobil proje seçici JSX bloğu MobileProjectPicker çağrısına dönüştürüldü"
   ],
-  "commitBefore": "80c08de",
-  "createdAt": "2026-06-14T14:44:20.844450+00:00"
+  "commitBefore": "5f38d45",
+  "createdAt": "2026-06-14T14:46:57.839855+00:00"
 }
