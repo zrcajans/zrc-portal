@@ -1,13 +1,11 @@
 {
-  "build": "v466-cleanup-appjsx-mobile-dom",
-  "note": "App.jsx içindeki sonradan eklenen hatalı mobil DOM paneli, çift realtime kanalları ve DOM ile avatar basan yamalar temizlendi. Amaç: çift görev kartı, tekrar eden avatar ve rozet titremesi gibi yan etkileri durdurmak. App.jsx parçalama işleminden önce stabil zemin.",
+  "build": "v467-safe-mobile-real-assignee-avatar",
+  "note": "DOM müdahalesi yapmadan, mobildeki gerçek görev kartının JSX yapısına görevli avatarları eklendi. Masaüstü kartındaki renderProfileAvatar mantığı kullanılır; fotoğraf varsa fotoğraf, yoksa inisial görünür.",
   "changed": [
-    "v456 DOM tabanlı mobil kolon/görev paneli kaldırıldı",
-    "v459 ekstra proje bazlı realtime ve kolon sıra persist bloğu kaldırıldı",
-    "v460 DOM avatar helperları kaldırıldı",
-    "v460 ekstra tam canlı mirror kanalı kaldırıldı",
-    "v465 DOM ile avatar basan efekt kaldırıldı (1 adet)"
+    "mobil görev kartı için gerçek görevli/avatar helper eklendi",
+    "mobil görev kartına masaüstüyle aynı avatar render satırı eklendi",
+    "mobil avatar CSS eklendi"
   ],
-  "commitBefore": "75938c1",
-  "createdAt": "2026-06-14T14:32:34.362000+00:00"
+  "commitBefore": "50499c5",
+  "createdAt": "2026-06-14T14:36:58.046485+00:00"
 }

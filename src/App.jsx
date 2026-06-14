@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v466-cleanup-appjsx-mobile-dom';
+const ZRC_APP_BUILD_LABEL = 'v467-safe-mobile-real-assignee-avatar';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -14853,6 +14853,94 @@ function App() {
 
   
 
+  // zrc-v467-mobile-real-assignee-avatar
+  const getMobileTaskCardAssignees = (task = {}) => {
+    const directAssignees = Array.isArray(task.assignees) ? task.assignees : [];
+    const directIds = [
+      ...(Array.isArray(task.assigneeIds) ? task.assigneeIds : []),
+      ...(Array.isArray(task.assignedUserIds) ? task.assignedUserIds : []),
+      ...(Array.isArray(task.teamMemberIds) ? task.teamMemberIds : [])
+    ];
+
+    const findTeamMemberByKey = (key = '') => {
+      const cleanKey = String(key || '').trim();
+
+      if (!cleanKey) return null;
+
+      return teamMembers.find((member) =>
+        [
+          member.id,
+          member.supabaseId,
+          member.userId,
+          member.authUserId,
+          member.profileId,
+          member.email,
+          member.name,
+          member.username
+        ]
+          .map((value) => String(value || '').trim())
+          .filter(Boolean)
+          .includes(cleanKey)
+      ) || null;
+    };
+
+    const resolvedFromIds = directIds.map(findTeamMemberByKey).filter(Boolean);
+
+    const people = [...directAssignees, ...resolvedFromIds]
+      .map((person) => {
+        if (!person) return null;
+
+        if (typeof person === 'string') {
+          return findTeamMemberByKey(person);
+        }
+
+        const matchedMember =
+          findTeamMemberByKey(person.id) ||
+          findTeamMemberByKey(person.userId) ||
+          findTeamMemberByKey(person.authUserId) ||
+          findTeamMemberByKey(person.supabaseId) ||
+          findTeamMemberByKey(person.profileId) ||
+          findTeamMemberByKey(person.email) ||
+          findTeamMemberByKey(person.name);
+
+        return matchedMember || person;
+      })
+      .filter(Boolean);
+
+    const uniquePeople = [];
+    const seen = new Set();
+
+    people.forEach((person) => {
+      const key = String(person.id || person.supabaseId || person.userId || person.authUserId || person.email || person.name || '').trim();
+
+      if (!key || seen.has(key)) return;
+
+      seen.add(key);
+
+      uniquePeople.push({
+        ...person,
+        name: person.name || person.fullName || person.displayName || person.email || 'Görevli',
+        avatar:
+          person.avatar ||
+          person.photoUrl ||
+          person.avatarUrl ||
+          person.imageUrl ||
+          person.profileImageUrl ||
+          person.profilePhotoUrl ||
+          person.photo_url ||
+          person.avatar_url ||
+          person.image_url ||
+          person.profile_image_url ||
+          person.profile_photo_url ||
+          person.picture ||
+          createAvatarFromName(person.name || person.fullName || person.displayName || person.email || 'Görevli')
+      });
+    });
+
+    return uniquePeople;
+  };
+
+
 return (
     <div className="min-h-screen flex bg-[#f5f6f8] antialiased selection:bg-[#ff3600] overflow-x-hidden relative font-[Inter]">
       {customStyles}
@@ -15119,6 +15207,26 @@ return (
                       )}
                       <span>Bitiş: {task.dueDate || task.due_date || task.endDate || task.end_date || 'Tarih yok'}</span>
                     </div>
+
+                    {getMobileTaskCardAssignees(task).length > 0 && (
+                      <div className="zrc-mobile-task-assignees" aria-label="Görevli kişiler">
+                        {getMobileTaskCardAssignees(task).slice(0, 4).map((person) => (
+                          <div
+                            key={person.id || person.email || person.name}
+                            className="zrc-mobile-task-assignee-avatar"
+                            title={person.name}
+                          >
+                            {renderProfileAvatar(person.avatar, createAvatarFromName(person.name))}
+                          </div>
+                        ))}
+
+                        {getMobileTaskCardAssignees(task).length > 4 && (
+                          <div className="zrc-mobile-task-assignee-avatar zrc-mobile-task-assignee-more">
+                            +{getMobileTaskCardAssignees(task).length - 4}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {normalizeColumnTitleForDisplay(task.columnTitle || task.status || '') !== 'Aktif' && (
                       <div className="zrc-mobile-task-action-row">

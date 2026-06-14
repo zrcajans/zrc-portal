@@ -2328,3 +2328,53 @@
   }
 }
 
+/* ZRC v467 - Mobil görev kartı gerçek görevli avatarları */
+@media (max-width: 768px) {
+  .zrc-mobile-task-assignees {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(226, 232, 240, 0.78);
+    min-height: 34px;
+  }
+
+  .zrc-mobile-task-assignee-avatar {
+    width: 31px;
+    height: 31px;
+    border-radius: 999px;
+    border: 2px solid #ffffff;
+    background: #101827;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-right: -7px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    font-size: 9px;
+    font-weight: 950;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .zrc-mobile-task-assignee-avatar img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  .zrc-mobile-task-assignee-avatar span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .zrc-mobile-task-assignee-more {
+    background: #ff3600;
+  }
+}
