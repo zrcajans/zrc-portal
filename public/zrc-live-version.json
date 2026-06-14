@@ -1,9 +1,10 @@
 {
-  "build": "v464-safe-mobile-remove-duplicate-add-avatar",
-  "note": "Mobilde alt tarafta oluşan ikinci görev listesi gizlendi; Instagram tarzı alt kolon kapsülü korunur. Var olan üst mobil görev kartlarına görevli kişi avatarları eklenir.",
+  "build": "v465-safe-mobile-real-profile-avatar-fix",
+  "note": "v464'teki hatalı çoklu avatar ekleme efekti kaldırıldı. Mobilde alt görev listesi gizli kalır; sadece üst mevcut görev kartına, görevli kişilerin gerçek profil fotoğrafı tek satır olarak eklenir.",
   "changed": [
-    "mobilde alt çift görev paneli gizlendi ve üst karta avatar eklendi"
+    "v464 hatalı çoklu avatar efekti kaldırıldı (1 adet)",
+    "üst mobil görev kartına tek profil fotoğrafı efekti eklendi"
   ],
-  "commitBefore": "f0b4eb3",
-  "createdAt": "2026-06-14T14:09:12.151826+00:00"
+  "commitBefore": "e04b668",
+  "createdAt": "2026-06-14T14:17:22.466230+00:00"
 }

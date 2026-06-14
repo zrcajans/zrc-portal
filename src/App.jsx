@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v464-safe-mobile-remove-duplicate-add-avatar';
+const ZRC_APP_BUILD_LABEL = 'v465-safe-mobile-real-profile-avatar-fix';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15735,11 +15735,13 @@ function App() {
   }, []);
 
 
-  // zrc-v464-mobile-remove-duplicate-add-avatar
+  
+
+  // zrc-v465-mobile-real-profile-avatar-fix
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
 
-    const styleId = 'zrc-v464-mobile-duplicate-fix-style';
+    const styleId = 'zrc-v465-mobile-real-profile-avatar-style';
 
     if (!document.getElementById(styleId)) {
       const style = document.createElement('style');
@@ -15760,17 +15762,24 @@ function App() {
             display: none !important;
           }
 
-          .zrc-v464-existing-card-avatar-row {
+          .zrc-v464-existing-card-avatar-row,
+          .zrc-v460-avatar-row {
+            display: none !important;
+          }
+
+          .zrc-v465-existing-card-avatar-row {
             margin-top: 10px;
             display: flex;
             align-items: center;
             gap: 0;
-            min-height: 27px;
+            min-height: 30px;
+            width: fit-content;
           }
 
-          .zrc-v464-existing-card-avatar {
-            width: 27px;
-            height: 27px;
+          .zrc-v465-avatar-img,
+          .zrc-v465-avatar-fallback {
+            width: 30px;
+            height: 30px;
             border-radius: 999px;
             border: 2px solid #fff;
             background: #101827;
@@ -15778,16 +15787,17 @@ function App() {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            object-fit: cover;
             font-size: 9px;
             line-height: 1;
             font-weight: 950;
             letter-spacing: -.02em;
-            margin-right: -7px;
-            box-shadow: 0 8px 16px rgba(15,23,42,.16);
+            margin-right: -8px;
+            box-shadow: 0 8px 16px rgba(15,23,42,.18);
             overflow: hidden;
           }
 
-          .zrc-v464-existing-card-avatar-more {
+          .zrc-v465-avatar-more {
             background: #ff3600;
           }
         }
@@ -15798,124 +15808,291 @@ function App() {
     const normalizeText = (value = '') =>
       String(value || '').replace(/\s+/g, ' ').trim();
 
-    const renderAvatarHtml = (task = {}) => {
-      if (typeof zrcV460GetTaskAssignees === 'function') {
-        const assignees = zrcV460GetTaskAssignees(task);
+    const escapeHtml = (value = '') =>
+      String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 
-        if (!assignees.length) return '';
+    const pickPhotoUrl = (member = {}) => {
+      const possibleValues = [
+        member.photoUrl,
+        member.avatarUrl,
+        member.imageUrl,
+        member.profileImageUrl,
+        member.profilePhotoUrl,
+        member.photo_url,
+        member.avatar_url,
+        member.image_url,
+        member.profile_image_url,
+        member.profile_photo_url,
+        member.picture,
+        member.logo,
+        member.logoUrl,
+        member.user_metadata?.avatar_url,
+        member.raw_user_meta_data?.avatar_url
+      ];
 
-        const visibleAssignees = assignees.slice(0, 3);
-        const moreCount = Math.max(0, assignees.length - visibleAssignees.length);
+      return String(possibleValues.find((value) => typeof value === 'string' && value.trim()) || '').trim();
+    };
 
-        return `
-          <div class="zrc-v464-existing-card-avatar-row" data-zrc-v464-avatar-row="true">
-            ${visibleAssignees.map((member) => `<span class="zrc-v464-existing-card-avatar" title="${zrcV456EscapeHtml(member.name || '')}">${zrcV456EscapeHtml(member.avatar || createAvatarFromName(member.name || ''))}</span>`).join('')}
-            ${moreCount > 0 ? `<span class="zrc-v464-existing-card-avatar zrc-v464-existing-card-avatar-more">+${moreCount}</span>` : ''}
-          </div>
-        `;
+    const getMemberName = (member = {}) =>
+      String(member.name || member.fullName || member.displayName || member.email || member.username || '').trim();
+
+    const getMemberInitials = (member = {}) => {
+      if (member.avatar && !String(member.avatar).startsWith('http')) return String(member.avatar).slice(0, 4);
+
+      const name = getMemberName(member);
+
+      return createAvatarFromName(name || 'ZRC');
+    };
+
+    const matchMemberByKey = (key = '') => {
+      const cleanKey = String(key || '').trim();
+
+      if (!cleanKey) return null;
+
+      return teamMembers.find((member) =>
+        [
+          member.id,
+          member.supabaseId,
+          member.userId,
+          member.authUserId,
+          member.profileId,
+          member.email,
+          member.name,
+          member.fullName,
+          member.username
+        ]
+          .map((value) => String(value || '').trim())
+          .filter(Boolean)
+          .includes(cleanKey)
+      ) || null;
+    };
+
+    const getTaskAssigneesForAvatar = (task = {}) => {
+      const candidates = [];
+
+      if (typeof getTaskAssigneeUserIdsForNotification === 'function') {
+        try {
+          candidates.push(...getTaskAssigneeUserIdsForNotification(task));
+        } catch {}
       }
 
-      const name = task.assignee?.name || task.assignedTo?.name || task.owner?.name || '';
-      const avatar = createAvatarFromName(name || 'ZRC');
+      [
+        task.assignee,
+        task.assignedTo,
+        task.owner,
+        task.user,
+        task.member,
+        task.assigneeId,
+        task.assignedToId,
+        task.ownerId,
+        task.userId,
+        task.assignedUserId,
+        task.assigned_user_id,
+        ...(Array.isArray(task.assignees) ? task.assignees : []),
+        ...(Array.isArray(task.assigneeIds) ? task.assigneeIds : []),
+        ...(Array.isArray(task.assignedUserIds) ? task.assignedUserIds : []),
+        ...(Array.isArray(task.teamMemberIds) ? task.teamMemberIds : [])
+      ]
+        .filter(Boolean)
+        .forEach((value) => candidates.push(value));
+
+      const resolved = [];
+
+      candidates.forEach((candidate) => {
+        if (!candidate) return;
+
+        if (typeof candidate === 'object') {
+          const directMember =
+            matchMemberByKey(candidate.id) ||
+            matchMemberByKey(candidate.userId) ||
+            matchMemberByKey(candidate.authUserId) ||
+            matchMemberByKey(candidate.supabaseId) ||
+            matchMemberByKey(candidate.profileId) ||
+            matchMemberByKey(candidate.email) ||
+            matchMemberByKey(candidate.name);
+
+          resolved.push(directMember || candidate);
+          return;
+        }
+
+        const matched = matchMemberByKey(candidate);
+
+        if (matched) resolved.push(matched);
+      });
+
+      const unique = [];
+      const seen = new Set();
+
+      resolved.forEach((member) => {
+        const key = String(member.id || member.supabaseId || member.userId || member.authUserId || member.email || member.name || '').trim();
+
+        if (!key || seen.has(key)) return;
+
+        seen.add(key);
+        unique.push(member);
+      });
+
+      return unique.slice(0, 6);
+    };
+
+    const renderRealProfileAvatarHtml = (task = {}) => {
+      const assignees = getTaskAssigneesForAvatar(task);
+
+      if (!assignees.length) return '';
+
+      const visibleAssignees = assignees.slice(0, 3);
+      const moreCount = Math.max(0, assignees.length - visibleAssignees.length);
 
       return `
-        <div class="zrc-v464-existing-card-avatar-row" data-zrc-v464-avatar-row="true">
-          <span class="zrc-v464-existing-card-avatar" title="${zrcV456EscapeHtml(name)}">${zrcV456EscapeHtml(avatar)}</span>
+        <div class="zrc-v465-existing-card-avatar-row" data-zrc-v465-avatar-row="true" data-zrc-v465-task-id="${escapeHtml(task.id || task.supabaseId || task.title || '')}">
+          ${visibleAssignees.map((member) => {
+            const photoUrl = pickPhotoUrl(member);
+            const title = escapeHtml(getMemberName(member));
+
+            if (photoUrl) {
+              return `<img class="zrc-v465-avatar-img" src="${escapeHtml(photoUrl)}" alt="${title}" title="${title}" loading="lazy" />`;
+            }
+
+            return `<span class="zrc-v465-avatar-fallback" title="${title}">${escapeHtml(getMemberInitials(member))}</span>`;
+          }).join('')}
+          ${moreCount > 0 ? `<span class="zrc-v465-avatar-fallback zrc-v465-avatar-more">+${moreCount}</span>` : ''}
         </div>
       `;
     };
 
-    const addAvatarsToExistingMobileCards = () => {
-      if (window.innerWidth > 768) return;
+    let isApplyingAvatars = false;
+    let scheduledApply = 0;
 
-      const allTasks = boardColumns.flatMap((column) => column.tasks || []);
+    const cleanupOldAvatarRows = () => {
+      document
+        .querySelectorAll('.zrc-v464-existing-card-avatar-row, .zrc-v465-existing-card-avatar-row')
+        .forEach((row) => row.remove());
+    };
 
-      if (!allTasks.length) return;
+    const findExistingTopMobileTaskCard = (task = {}) => {
+      const title = normalizeText(task.title || task.name || '');
+
+      if (!title) return null;
 
       const root = document.getElementById('zrc-v456-mobile-column-board-root');
 
-      // Mevcut üst mobil görev kartlarını bul; yeni DOM panelin içindekilere dokunma.
-      const candidateCards = Array.from(document.querySelectorAll('div')).filter((element) => {
-        if (root && root.contains(element)) return false;
-        if (element.querySelector('[data-zrc-v464-avatar-row="true"]')) return false;
+      const candidates = Array.from(document.querySelectorAll('div'))
+        .filter((element) => {
+          if (root && root.contains(element)) return false;
 
-        const text = normalizeText(element.textContent || '');
+          const rect = element.getBoundingClientRect();
 
-        if (!text) return false;
-        if (!text.includes('Başlangıç:') && !text.includes('Bitiş:')) return false;
+          if (rect.width < 260 || rect.height < 90) return false;
+          if (rect.left < -8 || rect.right > window.innerWidth + 8) return false;
 
-        return allTasks.some((task) => {
-          const title = normalizeText(task.title || task.name || '');
+          const text = normalizeText(element.textContent || '');
 
-          return title && text.includes(title);
+          if (!text.includes(title)) return false;
+          if (!text.includes('Başlangıç:') && !text.includes('Bitiş:')) return false;
+          if (text.includes('KOLON')) return false;
+
+          return true;
+        })
+        .sort((a, b) => {
+          const rectA = a.getBoundingClientRect();
+          const rectB = b.getBoundingClientRect();
+
+          return rectA.width * rectA.height - rectB.width * rectB.height;
         });
-      });
 
-      candidateCards.forEach((card) => {
-        const cardText = normalizeText(card.textContent || '');
-        const matchedTask = allTasks.find((task) => {
-          const title = normalizeText(task.title || task.name || '');
+      return candidates[0] || null;
+    };
 
-          return title && cardText.includes(title);
-        });
+    const addRealProfileAvatarsToTopCards = () => {
+      if (window.innerWidth > 768) return;
 
-        if (!matchedTask) return;
+      if (isApplyingAvatars) return;
 
-        const avatarHtml = renderAvatarHtml(matchedTask);
+      isApplyingAvatars = true;
 
-        if (!avatarHtml) return;
+      try {
+        const root = document.getElementById('zrc-v456-mobile-column-board-root');
 
-        const datePill =
-          Array.from(card.querySelectorAll('div, span')).reverse().find((node) => {
+        if (root) {
+          root.querySelectorAll('.zrc-v456-head, .zrc-v456-list').forEach((element) => {
+            element.style.display = 'none';
+          });
+        }
+
+        cleanupOldAvatarRows();
+
+        const allTasks = boardColumns.flatMap((column) => column.tasks || []);
+        const processedCards = new Set();
+
+        allTasks.forEach((task) => {
+          const card = findExistingTopMobileTaskCard(task);
+
+          if (!card || processedCards.has(card)) return;
+
+          const avatarHtml = renderRealProfileAvatarHtml(task);
+
+          if (!avatarHtml) return;
+
+          const holder = document.createElement('div');
+          holder.innerHTML = avatarHtml;
+
+          const row = holder.firstElementChild;
+
+          if (!row) return;
+
+          const datePill = Array.from(card.querySelectorAll('div, span')).reverse().find((node) => {
             const text = normalizeText(node.textContent || '');
 
             return text.includes('Bitiş:') || text.includes('Başlangıç:');
-          }) || card;
+          });
 
-        const avatarHolder = document.createElement('div');
-        avatarHolder.innerHTML = avatarHtml;
+          if (datePill?.parentElement && datePill.parentElement !== card) {
+            datePill.parentElement.insertAdjacentElement('afterend', row);
+          } else {
+            card.appendChild(row);
+          }
 
-        const avatarRow = avatarHolder.firstElementChild;
-
-        if (!avatarRow) return;
-
-        if (datePill && datePill.parentElement && datePill.parentElement !== card) {
-          datePill.parentElement.insertAdjacentElement('afterend', avatarRow);
-        } else {
-          card.appendChild(avatarRow);
-        }
-      });
+          processedCards.add(card);
+        });
+      } finally {
+        isApplyingAvatars = false;
+      }
     };
 
-    const refreshMobileTaskCards = () => {
-      const root = document.getElementById('zrc-v456-mobile-column-board-root');
-
-      if (root) {
-        root.querySelectorAll('.zrc-v456-head, .zrc-v456-list').forEach((element) => {
-          element.style.display = 'none';
-        });
+    const scheduleAvatarApply = () => {
+      if (scheduledApply) {
+        window.clearTimeout(scheduledApply);
       }
 
-      window.requestAnimationFrame(addAvatarsToExistingMobileCards);
+      scheduledApply = window.setTimeout(() => {
+        window.requestAnimationFrame(addRealProfileAvatarsToTopCards);
+      }, 120);
     };
 
-    refreshMobileTaskCards();
+    scheduleAvatarApply();
 
     const observer = new MutationObserver(() => {
-      refreshMobileTaskCards();
+      if (isApplyingAvatars) return;
+
+      scheduleAvatarApply();
     });
 
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
-      characterData: true
+      subtree: true
     });
-
-    const timer = window.setInterval(refreshMobileTaskCards, 1800);
 
     return () => {
       observer.disconnect();
-      window.clearInterval(timer);
+
+      if (scheduledApply) {
+        window.clearTimeout(scheduledApply);
+      }
     };
   }, [boardColumns, selectedProject, teamMembers]);
 
