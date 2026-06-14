@@ -2,13 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
 import MobileWorkspace from './components/mobile/MobileWorkspace';
+import { resolveMobileTaskCardAssignees } from './utils/mobileTaskAssignees';
 import './zrc-mobile.css';
 import TopNavbar from './components/Layout/TopNavbar';
 import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v474c-safe-extract-mobile-workspace';
+const ZRC_APP_BUILD_LABEL = 'v475-safe-extract-mobile-assignee-utils';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -14854,93 +14855,8 @@ function App() {
 
   
 
-  // zrc-v467-mobile-real-assignee-avatar
-  const getMobileTaskCardAssignees = (task = {}) => {
-    const directAssignees = Array.isArray(task.assignees) ? task.assignees : [];
-    const directIds = [
-      ...(Array.isArray(task.assigneeIds) ? task.assigneeIds : []),
-      ...(Array.isArray(task.assignedUserIds) ? task.assignedUserIds : []),
-      ...(Array.isArray(task.teamMemberIds) ? task.teamMemberIds : [])
-    ];
-
-    const findTeamMemberByKey = (key = '') => {
-      const cleanKey = String(key || '').trim();
-
-      if (!cleanKey) return null;
-
-      return teamMembers.find((member) =>
-        [
-          member.id,
-          member.supabaseId,
-          member.userId,
-          member.authUserId,
-          member.profileId,
-          member.email,
-          member.name,
-          member.username
-        ]
-          .map((value) => String(value || '').trim())
-          .filter(Boolean)
-          .includes(cleanKey)
-      ) || null;
-    };
-
-    const resolvedFromIds = directIds.map(findTeamMemberByKey).filter(Boolean);
-
-    const people = [...directAssignees, ...resolvedFromIds]
-      .map((person) => {
-        if (!person) return null;
-
-        if (typeof person === 'string') {
-          return findTeamMemberByKey(person);
-        }
-
-        const matchedMember =
-          findTeamMemberByKey(person.id) ||
-          findTeamMemberByKey(person.userId) ||
-          findTeamMemberByKey(person.authUserId) ||
-          findTeamMemberByKey(person.supabaseId) ||
-          findTeamMemberByKey(person.profileId) ||
-          findTeamMemberByKey(person.email) ||
-          findTeamMemberByKey(person.name);
-
-        return matchedMember || person;
-      })
-      .filter(Boolean);
-
-    const uniquePeople = [];
-    const seen = new Set();
-
-    people.forEach((person) => {
-      const key = String(person.id || person.supabaseId || person.userId || person.authUserId || person.email || person.name || '').trim();
-
-      if (!key || seen.has(key)) return;
-
-      seen.add(key);
-
-      uniquePeople.push({
-        ...person,
-        name: person.name || person.fullName || person.displayName || person.email || 'Görevli',
-        avatar:
-          person.avatar ||
-          person.photoUrl ||
-          person.avatarUrl ||
-          person.imageUrl ||
-          person.profileImageUrl ||
-          person.profilePhotoUrl ||
-          person.photo_url ||
-          person.avatar_url ||
-          person.image_url ||
-          person.profile_image_url ||
-          person.profile_photo_url ||
-          person.picture ||
-          createAvatarFromName(person.name || person.fullName || person.displayName || person.email || 'Görevli')
-      });
-    });
-
-    return uniquePeople;
-  };
-
+  const getMobileTaskCardAssignees = (task = {}) =>
+    resolveMobileTaskCardAssignees(task, teamMembers, createAvatarFromName);
 
 return (
     <div className="min-h-screen flex bg-[#f5f6f8] antialiased selection:bg-[#ff3600] overflow-x-hidden relative font-[Inter]">

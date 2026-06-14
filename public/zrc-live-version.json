@@ -1,17 +1,11 @@
 {
-  "build": "v474c-safe-extract-mobile-workspace",
-  "note": "Mobil ana çalışma alanı MobileWorkspace.jsx dosyasına taşındı. local_reports/ artık .gitignore içinde.",
+  "build": "v475-safe-extract-mobile-assignee-utils",
+  "note": "Mobil görev kartı görevli/avatar çözümleme helperı App.jsx içinden src/utils/mobileTaskAssignees.js dosyasına taşındı. App.jsx içinde sadece kısa wrapper kaldı.",
   "changed": [
-    ".gitignore içine local_reports/ ve gizli local VAPID dosyası eklendi",
-    "MobileTaskSection netleştirildi",
-    "src/components/mobile/MobileWorkspace.jsx oluşturuldu/güncellendi",
-    "App import kaldırıldı: import MobilePremiumHeader from './components/mobile/MobilePremiumHeader';",
-    "App import kaldırıldı: import MobileProjectPicker from './components/mobile/MobileProjectPicker';",
-    "App import kaldırıldı: import MobileTaskSection from './components/mobile/MobileTaskSection';",
-    "App import kaldırıldı: import MobileTaskWizard from './components/mobile/MobileTaskWizard';",
-    "App.jsx'e MobileWorkspace importu eklendi",
-    "App.jsx içindeki mobil çalışma alanı MobileWorkspace çağrısına dönüştürüldü"
+    "src/utils/mobileTaskAssignees.js oluşturuldu/güncellendi",
+    "App.jsx'e mobileTaskAssignees importu eklendi",
+    "App.jsx içindeki uzun getMobileTaskCardAssignees helperı kısa wrapper'a dönüştürüldü"
   ],
-  "commitBefore": "ee1ee3d",
-  "createdAt": "2026-06-14T15:22:58.879220+00:00"
+  "commitBefore": "f1af7f7",
+  "createdAt": "2026-06-14T15:24:53.828845+00:00"
 }
