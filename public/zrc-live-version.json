@@ -1,9 +1,10 @@
 {
-  "build": "v461-safe-auto-notifications-no-buttons",
-  "note": "Web ve mobil bildirim sekmesindeki Yenile ve Tümü okundu yap butonları gizlendi. Bildirimler sayfa görünürken her saniye otomatik yenilenir; mobilde de aynı şekilde çalışır.",
+  "build": "v462-safe-comfort-notification-refresh",
+  "note": "Bildirimlerdeki 1 saniyelik otomatik yenileme kaldırıldı. Butonlar gizli kalır. Realtime ana kaynak olur; ekran aktif olunca ve 12 saniyelik yedek kontrolle konforlu yenilenir. Kullanıcı dokunurken/kaydırırken liste zıplamaz.",
   "changed": [
-    "yenile/tümü okundu butonları gizlendi ve bildirimler her saniye otomatik yenilendi"
+    "v461'in 1 saniyelik hareketli yenileme bloğu kaldırıldı",
+    "konforlu bildirim yenileme eklendi: realtime + focus + 12 sn yedek kontrol"
   ],
-  "commitBefore": "60578c7",
-  "createdAt": "2026-06-14T13:56:54.500969+00:00"
+  "commitBefore": "ad55ae2",
+  "createdAt": "2026-06-14T13:59:51.857084+00:00"
 }

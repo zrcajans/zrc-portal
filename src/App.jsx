@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v461-safe-auto-notifications-no-buttons';
+const ZRC_APP_BUILD_LABEL = 'v462-safe-comfort-notification-refresh';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15529,7 +15529,7 @@ function App() {
   }, [supabaseWorkspaceId, selectedProject, currentUserId, supabaseAuthUserId, authSessionLoading]);
 
 
-  // zrc-v461-auto-notification-refresh-no-buttons
+  // zrc-v462-comfort-notification-refresh
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
 
@@ -15574,7 +15574,7 @@ function App() {
 
         button.style.display = 'none';
         button.setAttribute('aria-hidden', 'true');
-        button.setAttribute('data-zrc-v461-hidden-notification-action', 'true');
+        button.setAttribute('data-zrc-v462-hidden-notification-action', 'true');
       });
     };
 
@@ -15586,15 +15586,11 @@ function App() {
 
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
-      characterData: true
+      subtree: true
     });
-
-    const buttonHideTimer = window.setInterval(hideNotificationActionButtons, 1000);
 
     return () => {
       observer.disconnect();
-      window.clearInterval(buttonHideTimer);
     };
   }, []);
 
@@ -15602,35 +15598,60 @@ function App() {
     if (authSessionLoading || !currentUserId) return undefined;
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
 
-    let isRefreshingNotifications = false;
     let isCancelled = false;
+    let isRefreshing = false;
+    let lastInteractionAt = Date.now();
 
-    const refreshNotificationsEverySecond = async () => {
+    const markInteraction = () => {
+      lastInteractionAt = Date.now();
+    };
+
+    const comfortableNotificationRefresh = async (reason = 'konforlu bildirim yenileme') => {
       if (isCancelled) return;
       if (document.visibilityState !== 'visible') return;
-      if (isRefreshingNotifications) return;
+      if (isRefreshing) return;
 
-      isRefreshingNotifications = true;
+      // Kullanıcı bildirim listesindeyken/ekrana dokunurken sürekli zıplatma yapma.
+      if (Date.now() - lastInteractionAt < 1800) return;
+
+      isRefreshing = true;
 
       try {
         await loadActivityLogsFromSupabase();
-
-        // Bildirim sayıları ve mobil kapsül aynı anda yeniden çizilsin.
         setZrcMobileColumnRefreshKey((value) => value + 1);
       } catch (error) {
-        console.warn('[ZRC v461] Bildirimler otomatik yenilenemedi.', error);
+        console.warn(`[ZRC v462] ${reason} başarısız.`, error);
       } finally {
-        isRefreshingNotifications = false;
+        isRefreshing = false;
       }
     };
 
-    refreshNotificationsEverySecond();
+    const handleFocusRefresh = () => {
+      window.setTimeout(() => comfortableNotificationRefresh('ekran aktif oldu'), 700);
+    };
 
-    const notificationAutoRefreshTimer = window.setInterval(refreshNotificationsEverySecond, 1000);
+    document.addEventListener('touchstart', markInteraction, { passive: true });
+    document.addEventListener('pointerdown', markInteraction, { passive: true });
+    document.addEventListener('scroll', markInteraction, { passive: true });
+    document.addEventListener('visibilitychange', handleFocusRefresh);
+    window.addEventListener('focus', handleFocusRefresh);
+
+    // 1 saniye değil: konforlu yedek kontrol. Realtime zaten anlık getiriyor.
+    const comfortTimer = window.setInterval(() => {
+      comfortableNotificationRefresh('yedek bildirim kontrolü');
+    }, 12000);
+
+    handleFocusRefresh();
 
     return () => {
       isCancelled = true;
-      window.clearInterval(notificationAutoRefreshTimer);
+
+      document.removeEventListener('touchstart', markInteraction);
+      document.removeEventListener('pointerdown', markInteraction);
+      document.removeEventListener('scroll', markInteraction);
+      document.removeEventListener('visibilitychange', handleFocusRefresh);
+      window.removeEventListener('focus', handleFocusRefresh);
+      window.clearInterval(comfortTimer);
     };
   }, [authSessionLoading, currentUserId, selectedProject, supabaseWorkspaceId]);
 
