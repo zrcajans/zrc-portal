@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v459-safe-live-desktop-to-mobile-sync';
+const ZRC_APP_BUILD_LABEL = 'v460-safe-full-live-mirror-mobile-safe';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -6680,7 +6680,7 @@ function App() {
       clearTimeout(supabaseRealtimeRefreshTimer.current);
     }
 
-    const refreshDelay = Number.isFinite(options?.delay) ? options.delay : 180;
+    const refreshDelay = Number.isFinite(options?.delay) ? options.delay : 80;
 
     setSupabaseRealtimeStatus({
       state: 'syncing',
@@ -6701,12 +6701,12 @@ function App() {
         setSupabaseLastRealtimeAt(syncedAt);
         setSupabaseRealtimeStatus({
           state: 'connected',
-          label: 'Realtime senkron aktif'
+          label: 'Canlı senkron aktif'
         });
       } catch (error) {
         setSupabaseRealtimeStatus({
           state: 'error',
-          label: `Realtime yenileme hatası: ${error?.message || 'bilinmeyen hata'}`
+          label: `Canlı yenileme hatası: ${error?.message || 'bilinmeyen hata'}`
         });
       }
     }, Math.max(0, refreshDelay));
@@ -14692,9 +14692,12 @@ function App() {
       style.id = styleId;
       style.textContent = `
         #${rootId} {
-          width: 100%;
-          margin-top: 12px;
-          padding-bottom: 104px;
+          width: min(100%, calc(100vw - 24px));
+          max-width: calc(100vw - 24px);
+          margin: 10px auto 0;
+          padding-bottom: 112px;
+          box-sizing: border-box;
+          overflow-x: hidden;
         }
 
         #${rootId} .zrc-v456-head {
@@ -14744,10 +14747,14 @@ function App() {
         }
 
         #${rootId} .zrc-v456-card {
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
           background: #fff;
           border: 1px solid #e6e9ef;
           border-radius: 18px;
-          padding: 14px;
+          padding: 13px;
           box-shadow: 0 14px 36px rgba(15,23,42,.06);
         }
 
@@ -14785,6 +14792,37 @@ function App() {
           color: #9aa3b2;
           text-transform: uppercase;
           letter-spacing: .08em;
+        }
+
+        #${rootId} .zrc-v460-avatar-row {
+          margin-top: 9px;
+          display: flex;
+          align-items: center;
+          gap: 0;
+          min-height: 25px;
+        }
+
+        #${rootId} .zrc-v460-avatar {
+          width: 25px;
+          height: 25px;
+          border-radius: 999px;
+          border: 2px solid #fff;
+          background: #101827;
+          color: #fff;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 8.5px;
+          line-height: 1;
+          font-weight: 950;
+          letter-spacing: -.02em;
+          margin-right: -7px;
+          box-shadow: 0 8px 16px rgba(15,23,42,.16);
+          overflow: hidden;
+        }
+
+        #${rootId} .zrc-v460-avatar-more {
+          background: #ff3600;
         }
 
         #${rootId} .zrc-v456-move-row {
@@ -14949,6 +14987,37 @@ function App() {
       Array.from(document.querySelectorAll(selector)).find((element) => String(element.textContent || '').trim() === text);
 
     const hideOldMobileBlocks = () => {
+      // zrc-v460-compact-mobile-project-selector
+      const projectSelectLabel = findByExactText('div, span, p, strong', 'Proje seçimi');
+
+      if (projectSelectLabel) {
+        projectSelectLabel.style.fontSize = '12px';
+        projectSelectLabel.style.lineHeight = '1';
+        projectSelectLabel.style.opacity = '.72';
+
+        let projectBox = projectSelectLabel.parentElement;
+
+        for (let index = 0; index < 7; index += 1) {
+          if (!projectBox) break;
+
+          const rect = projectBox.getBoundingClientRect();
+
+          if (rect.width > window.innerWidth * 0.58 && rect.height > 72) break;
+
+          projectBox = projectBox.parentElement;
+        }
+
+        if (projectBox) {
+          projectBox.style.minHeight = '88px';
+          projectBox.style.height = '88px';
+          projectBox.style.borderRadius = '26px';
+          projectBox.style.paddingTop = '13px';
+          projectBox.style.paddingBottom = '10px';
+          projectBox.style.marginTop = '-4px';
+          projectBox.style.marginBottom = '8px';
+        }
+      }
+
       const selectedProjectLabel = findByExactText('div, span, p, strong', 'Seçili proje');
 
       if (selectedProjectLabel?.parentElement) {
@@ -15021,6 +15090,7 @@ function App() {
             ? tasks.map((task) => {
                 const title = zrcV456EscapeHtml(task.title || task.name || 'Adsız görev');
                 const canMoveTask = currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject);
+                const avatarHtml = zrcV460RenderTaskAssigneeAvatars(task);
 
                 return `
                   <div class="zrc-v456-card" data-zrc-task-card="${zrcV456EscapeHtml(task.id)}">
@@ -15029,6 +15099,7 @@ function App() {
                       <span>
                         <span class="zrc-v456-task-title">${title}</span>
                         <span class="zrc-v456-task-sub">${zrcV456EscapeHtml(activeColumn.title || '')}</span>
+                        ${avatarHtml}
                       </span>
                     </button>
 
@@ -15252,6 +15323,210 @@ function App() {
 
     return () => window.clearTimeout(persistTimer);
   }, [zrcV459BoardOrderSignature, selectedProject, supabaseWorkspaceId, currentPermissions.manageColumns, authSessionLoading]);
+
+
+  // zrc-v460-task-assignee-avatars
+  const zrcV460NormalizeAssigneeRecord = (record = {}) => {
+    if (!record) return null;
+
+    if (typeof record === 'string') {
+      const clean = record.trim();
+      if (!clean) return null;
+
+      const member =
+        teamMembers.find((item) =>
+          [item.id, item.supabaseId, item.userId, item.authUserId, item.email, item.name]
+            .map((value) => String(value || '').trim())
+            .includes(clean)
+        ) || null;
+
+      return member || {
+        id: clean,
+        name: clean,
+        avatar: createAvatarFromName(clean)
+      };
+    }
+
+    const name = record.name || record.fullName || record.title || record.email || record.username || '';
+    const avatar = record.avatar || record.initials || createAvatarFromName(name);
+
+    return {
+      ...record,
+      id: record.id || record.userId || record.authUserId || record.supabaseId || record.email || name,
+      name,
+      avatar
+    };
+  };
+
+  const zrcV460GetTaskAssignees = (task = {}) => {
+    const rawValues = [
+      task.assignee,
+      task.assignedTo,
+      task.owner,
+      ...(Array.isArray(task.assignees) ? task.assignees : []),
+      ...(Array.isArray(task.assigneeIds) ? task.assigneeIds : []),
+      ...(Array.isArray(task.assignedUserIds) ? task.assignedUserIds : []),
+      ...(Array.isArray(task.teamMemberIds) ? task.teamMemberIds : [])
+    ].filter(Boolean);
+
+    const normalized = rawValues
+      .map(zrcV460NormalizeAssigneeRecord)
+      .filter(Boolean);
+
+    const matchedFromTeam = normalized
+      .map((item) => {
+        const possibleKeys = [
+          item.id,
+          item.userId,
+          item.authUserId,
+          item.supabaseId,
+          item.email,
+          item.name
+        ].map((value) => String(value || '').trim()).filter(Boolean);
+
+        return teamMembers.find((member) =>
+          possibleKeys.some((key) =>
+            [member.id, member.supabaseId, member.userId, member.authUserId, member.email, member.name]
+              .map((value) => String(value || '').trim())
+              .includes(key)
+          )
+        ) || item;
+      });
+
+    const unique = [];
+    const seen = new Set();
+
+    matchedFromTeam.forEach((member) => {
+      const key = String(member.id || member.email || member.name || '').trim();
+
+      if (!key || seen.has(key)) return;
+
+      seen.add(key);
+      unique.push(member);
+    });
+
+    return unique.slice(0, 6);
+  };
+
+  const zrcV460RenderTaskAssigneeAvatars = (task = {}) => {
+    const assignees = zrcV460GetTaskAssignees(task);
+
+    if (!assignees.length) return '';
+
+    const visibleAssignees = assignees.slice(0, 3);
+    const moreCount = Math.max(0, assignees.length - visibleAssignees.length);
+
+    return `
+      <span class="zrc-v460-avatar-row" aria-label="Görevli kişiler">
+        ${visibleAssignees.map((member) => `<span class="zrc-v460-avatar" title="${zrcV456EscapeHtml(member.name || '')}">${zrcV456EscapeHtml(member.avatar || createAvatarFromName(member.name || ''))}</span>`).join('')}
+        ${moreCount > 0 ? `<span class="zrc-v460-avatar zrc-v460-avatar-more">+${moreCount}</span>` : ''}
+      </span>
+    `;
+  };
+
+
+  // zrc-v460-full-live-mirror-sync
+  const zrcV460BoardMirrorSignature = boardColumns
+    .map((column, columnIndex) => `${column.id || column.title || 'column'}:${columnIndex}:${column.title || ''}:${column.color || ''}:${(column.tasks || []).map((task, taskIndex) => `${task.id || task.supabaseId || task.title}:${taskIndex}:${task.title || ''}:${task.status || ''}:${task.columnTitle || ''}`).join(',')}`)
+    .join('|');
+
+  useEffect(() => {
+    setZrcMobileColumnRefreshKey((value) => value + 1);
+  }, [zrcV460BoardMirrorSignature, activityNotifications.length, readNotificationIds.length]);
+
+  useEffect(() => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !currentUserId || authSessionLoading) return undefined;
+
+    let isCancelled = false;
+    let mirrorChannel = null;
+    let fallbackTimer = null;
+
+    const refreshEverywhere = (reason = 'canlı yansıma', delay = 50) => {
+      if (isCancelled) return;
+
+      runRealtimeTriggeredRefresh(reason, { delay });
+      setZrcMobileColumnRefreshKey((value) => value + 1);
+    };
+
+    const realtimeTables = [
+      'projects',
+      'board_columns',
+      'tasks',
+      'task_assignees',
+      'task_followers',
+      'notifications',
+      'activity_logs',
+      'messages',
+      'files',
+      'workspace_members'
+    ];
+
+    try {
+      mirrorChannel = supabase.channel(`zrc-v460-full-mirror-${workspaceId}`);
+
+      realtimeTables.forEach((tableName) => {
+        mirrorChannel.on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: tableName
+          },
+          () => refreshEverywhere(tableName, 40)
+        );
+      });
+
+      mirrorChannel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setSupabaseRealtimeStatus({
+            state: 'connected',
+            label: 'Tam canlı yansıma aktif'
+          });
+        }
+
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setSupabaseRealtimeStatus({
+            state: 'error',
+            label: `Tam canlı yansıma sorunu: ${status}`
+          });
+        }
+      });
+    } catch (error) {
+      console.warn('[ZRC v460] Tam canlı yansıma kanalı kurulamadı.', error);
+    }
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        refreshEverywhere('ekran aktif oldu', 0);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    fallbackTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshEverywhere('canlı yansıma yedek kontrol', 0);
+      }
+    }, 3000);
+
+    return () => {
+      isCancelled = true;
+
+      if (mirrorChannel) {
+        supabase.removeChannel(mirrorChannel);
+      }
+
+      if (fallbackTimer) {
+        window.clearInterval(fallbackTimer);
+      }
+
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+    };
+  }, [supabaseWorkspaceId, selectedProject, currentUserId, supabaseAuthUserId, authSessionLoading]);
 
 
 return (

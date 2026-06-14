@@ -1,10 +1,17 @@
 {
-  "build": "v459-safe-live-desktop-to-mobile-sync",
-  "note": "Masaüstünde yapılan kolon/görev değişiklikleri mobil kapsüle canlı yansısın diye proje bazlı realtime kanal, hızlı refresh, görünürlük/focus refresh, 5 sn mobil fallback ve kolon sıra persist eklendi.",
+  "build": "v460-safe-full-live-mirror-mobile-safe",
+  "note": "Masaüstü ve mobilin birebir canlı yansıması güçlendirildi. Bildirim sayıları activity/notifications realtime ile yenilenir. Mobil görev kartları safe alana alındı, görevli avatarları eklendi, proje seçim alanı küçültüldü.",
   "changed": [
-    "realtime refresh hızlandırıldı ve mobil kapsül refresh eklendi",
-    "proje bazlı canlı kanal, mobil fallback ve kolon sıra persist eklendi"
+    "canlı refresh fonksiyonu tüm kritik veriler için güçlendirildi",
+    "mobil panel safe genişliğe alındı",
+    "mobil görev kartları safe alana daraltıldı",
+    "mobil görevli avatar CSS eklendi",
+    "mobil görevli avatar helper eklendi",
+    "mobil görev kartı avatar değişkeni eklendi",
+    "mobil görev kartına avatar satırı eklendi",
+    "mobil proje seçimi alanı kompakt yapıldı",
+    "tam canlı yansıma realtime/focus/fallback eklendi"
   ],
-  "commitBefore": "28aab8e",
-  "createdAt": "2026-06-14T13:44:25.915313+00:00"
+  "commitBefore": "8c00fc1",
+  "createdAt": "2026-06-14T13:52:54.097695+00:00"
 }
