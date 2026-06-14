@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v462-safe-comfort-notification-refresh';
+const ZRC_APP_BUILD_LABEL = 'v463-safe-stable-mobile-notification-badge';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15268,7 +15268,7 @@ function App() {
       if (document.visibilityState === 'visible' && window.innerWidth <= 768) {
         refreshEverywhere('mobil canlı kontrol', 0);
       }
-    }, 5000);
+    }, 30000);
 
     return () => {
       isCancelled = true;
@@ -15510,7 +15510,7 @@ function App() {
       if (document.visibilityState === 'visible') {
         refreshEverywhere('canlı yansıma yedek kontrol', 0);
       }
-    }, 3000);
+    }, 30000);
 
     return () => {
       isCancelled = true;
@@ -15639,7 +15639,7 @@ function App() {
     // 1 saniye değil: konforlu yedek kontrol. Realtime zaten anlık getiriyor.
     const comfortTimer = window.setInterval(() => {
       comfortableNotificationRefresh('yedek bildirim kontrolü');
-    }, 12000);
+    }, 30000);
 
     handleFocusRefresh();
 
@@ -15654,6 +15654,85 @@ function App() {
       window.clearInterval(comfortTimer);
     };
   }, [authSessionLoading, currentUserId, selectedProject, supabaseWorkspaceId]);
+
+
+  // zrc-v463-stable-mobile-notification-badge
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+
+    const styleId = 'zrc-v463-stable-mobile-notification-badge-style';
+
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @media (max-width: 768px) {
+          [data-zrc-v463-notification-badge="true"],
+          [data-zrc-v463-notification-badge="true"] * {
+            animation: none !important;
+            transition: none !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: none !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const normalizeText = (value = '') =>
+      String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('tr-TR');
+
+    const stabilizeNotificationBadge = () => {
+      if (window.innerWidth > 768) return;
+
+      const notificationButtons = Array.from(document.querySelectorAll('button')).filter((button) => {
+        const text = normalizeText(button.textContent || '');
+
+        return text.includes('bildirim') || text.includes('notifications') || text.includes('notification');
+      });
+
+      notificationButtons.forEach((button) => {
+        button.style.animation = 'none';
+        button.style.transition = 'none';
+
+        const candidates = Array.from(button.querySelectorAll('*')).filter((element) => {
+          const text = normalizeText(element.textContent || '');
+
+          return /^[0-9]+$/.test(text) && Number(text) > 0;
+        });
+
+        candidates.forEach((badge) => {
+          badge.setAttribute('data-zrc-v463-notification-badge', 'true');
+          badge.style.animation = 'none';
+          badge.style.transition = 'none';
+          badge.style.opacity = '1';
+          badge.style.visibility = 'visible';
+          badge.style.transform = 'none';
+          badge.style.willChange = 'auto';
+        });
+      });
+    };
+
+    stabilizeNotificationBadge();
+
+    const observer = new MutationObserver(() => {
+      window.requestAnimationFrame(stabilizeNotificationBadge);
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    const timer = window.setInterval(stabilizeNotificationBadge, 2000);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(timer);
+    };
+  }, []);
 
 
 return (
