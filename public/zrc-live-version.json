@@ -1,11 +1,11 @@
 {
-  "build": "v470-safe-extract-mobile-project-picker",
-  "note": "App.jsx parçalama üçüncü adım: mobil proje seçici src/components/mobile/MobileProjectPicker.jsx dosyasına taşındı. Davranış aynı kalır; kod ayrıştırıldı.",
+  "build": "v471-safe-extract-mobile-task-wizard",
+  "note": "App.jsx parçalama dördüncü adım: mobil görev oluşturma sihirbazı src/components/mobile/MobileTaskWizard.jsx dosyasına taşındı. Davranış korunur; sadece kod ayrıştırıldı.",
   "changed": [
-    "src/components/mobile/MobileProjectPicker.jsx oluşturuldu/güncellendi",
-    "App.jsx'e MobileProjectPicker importu eklendi",
-    "App.jsx içindeki mobil proje seçici JSX bloğu MobileProjectPicker çağrısına dönüştürüldü"
+    "src/components/mobile/MobileTaskWizard.jsx oluşturuldu/güncellendi",
+    "App.jsx'e MobileTaskWizard importu eklendi",
+    "App.jsx içindeki mobil görev sihirbazı JSX bloğu MobileTaskWizard çağrısına dönüştürüldü"
   ],
-  "commitBefore": "5f38d45",
-  "createdAt": "2026-06-14T14:46:57.839855+00:00"
+  "commitBefore": "511834c",
+  "createdAt": "2026-06-14T14:50:11.300739+00:00"
 }
