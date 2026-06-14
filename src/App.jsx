@@ -4,13 +4,14 @@ import Sidebar from './components/Layout/Sidebar';
 import MobileWorkspace from './components/mobile/MobileWorkspace';
 import ZRCErrorBoundary from './components/common/ZRCErrorBoundary';
 import { resolveMobileTaskCardAssignees } from './utils/mobileTaskAssignees';
+import { createAvatarFromName, renderProfileAvatar } from './utils/avatarHelpers';
 import './zrc-mobile.css';
 import TopNavbar from './components/Layout/TopNavbar';
 import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v477-safe-extract-error-boundary';
+const ZRC_APP_BUILD_LABEL = 'v478-safe-extract-avatar-helpers';
 
 const defaultBoardColumns = [
   { id: 'col-1', title: 'Yeni Görev', color: '#ffcb78', desc: 'Yeni oluşturulan görevler bu aşamada bekler.', tasks: [] },
@@ -42,18 +43,6 @@ const createDefaultProjectSettings = (projectName = '') => ({
   status: 'Aktif',
   color: '#ff3600'
 });
-
-const createAvatarFromName = (name) => {
-  const cleanName = String(name || '').trim();
-
-  if (!cleanName) return 'K';
-
-  return cleanName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toLocaleUpperCase('tr-TR'))
-    .join('');
-};
 
 const teamRoleOptions = ['Yönetici', 'Ekip Üyesi', 'Müşteri/Misafir'];
 
@@ -8411,27 +8400,6 @@ function App() {
     isCurrentProfileRecord(record)
       ? currentProfileAvatar
       : record.avatar || fallback;
-
-  const renderProfileAvatar = (avatar, fallback = currentProfileInitials) => {
-    const cleanAvatar = String(avatar || '').trim();
-    const cleanFallback = String(fallback || currentProfileInitials || 'ZRC').trim();
-    const isImageAvatar =
-      cleanAvatar.startsWith('data:image') ||
-      cleanAvatar.startsWith('http://') ||
-      cleanAvatar.startsWith('https://') ||
-      cleanAvatar.startsWith('blob:');
-
-    if (isImageAvatar) {
-      return <img src={cleanAvatar} alt="Profil" className="w-full h-full object-cover" />;
-    }
-
-    const safeTextAvatar =
-      cleanAvatar && cleanAvatar.length <= 4 && !cleanAvatar.includes('/')
-        ? cleanAvatar
-        : cleanFallback;
-
-    return <span>{safeTextAvatar || 'ZRC'}</span>;
-  };
 
   const isCurrentProfileInUsers = (users = []) => isPeopleListLinkedToCurrentUser(users);
 

@@ -1,12 +1,10 @@
 {
-  "build": "v477-safe-extract-error-boundary",
-  "note": "ZRCErrorBoundary bileşeni App.jsx içinden src/components/common/ZRCErrorBoundary.jsx dosyasına taşındı. Build label prop olarak aktarılır.",
+  "build": "v478-safe-extract-avatar-helpers",
+  "note": "createAvatarFromName ve renderProfileAvatar yardımcıları App.jsx içinden src/utils/avatarHelpers.jsx dosyasına taşındı.",
   "changed": [
-    "src/components/common/ZRCErrorBoundary.jsx oluşturuldu/güncellendi",
-    "ZRCErrorBoundary class bloğu App.jsx içinden kaldırıldı",
-    "App.jsx'e ZRCErrorBoundary importu eklendi",
-    "ZRCErrorBoundary kullanımına buildLabel prop'u eklendi"
+    "src/utils/avatarHelpers.jsx oluşturuldu/güncellendi",
+    "App.jsx'e avatarHelpers importu eklendi"
   ],
-  "commitBefore": "41b1cff",
-  "createdAt": "2026-06-14T15:29:27.960831+00:00"
+  "commitBefore": "46fb0ab",
+  "createdAt": "2026-06-14T15:31:24.661592+00:00"
 }
