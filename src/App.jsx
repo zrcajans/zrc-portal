@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
-import MobileTaskCard from './components/mobile/MobileTaskCard';
+import MobileTaskList from './components/mobile/MobileTaskList';
 import './zrc-mobile.css';
 import TopNavbar from './components/Layout/TopNavbar';
 import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v468-safe-extract-mobile-task-card';
+const ZRC_APP_BUILD_LABEL = 'v469b-safe-extract-mobile-task-list';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15169,37 +15169,14 @@ return (
               </button>
             </div>
 
-            <div className="zrc-mobile-task-list">
-              {boardColumns.filter((column) => normalizeColumnTitleForDisplay(column.title) !== 'Aktif').flatMap((column) =>
-                (column.tasks || []).map((task) => ({
-                  ...task,
-                  columnTitle: column.title,
-                  columnColor: column.color
-                }))
-              ).length === 0 ? (
-                <div className="zrc-mobile-empty-task">
-                  Bu projede henüz görev yok.
-                </div>
-              ) : (
-                boardColumns.filter((column) => normalizeColumnTitleForDisplay(column.title) !== 'Aktif').flatMap((column) =>
-                  (column.tasks || []).map((task) => ({
-                    ...task,
-                    columnTitle: column.title,
-                    columnColor: column.color
-                  }))
-                ).map((task) => (
-                  <MobileTaskCard
-                    key={task.id || task.title}
-                    task={task}
-                    normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
-                    renderProfileAvatar={renderProfileAvatar}
-                    createAvatarFromName={createAvatarFromName}
-                    getMobileTaskCardAssignees={getMobileTaskCardAssignees}
-                    moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
-                  />
-                ))
-              )}
-            </div>
+            <MobileTaskList
+              boardColumns={boardColumns}
+              normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
+              renderProfileAvatar={renderProfileAvatar}
+              createAvatarFromName={createAvatarFromName}
+              getMobileTaskCardAssignees={getMobileTaskCardAssignees}
+              moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
+            />
           </div>
         </div>
 

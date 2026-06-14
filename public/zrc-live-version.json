@@ -1,11 +1,12 @@
 {
-  "build": "v468-safe-extract-mobile-task-card",
-  "note": "App.jsx parçalama işleminin ilk güvenli adımı: mobil görev kartı JSX'i src/components/mobile/MobileTaskCard.jsx dosyasına taşındı. Davranış aynı kalır; sadece kod ayrıştırıldı.",
+  "build": "v469b-safe-extract-mobile-task-list",
+  "note": "v469 güvenlik kontrolü getMobileTaskCardAssignees isminde yanlış pozitif verdi. v469b sadece gerçek JSX tag kontrolü yapar ve mobil görev listesini MobileTaskList.jsx dosyasına taşır.",
   "changed": [
-    "src/components/mobile/MobileTaskCard.jsx oluşturuldu",
-    "App.jsx'e MobileTaskCard importu eklendi",
-    "Mobil görev kartı JSX bloğu App.jsx'ten çıkarılıp component çağrısına dönüştürüldü"
+    "src/components/mobile/MobileTaskList.jsx oluşturuldu/güncellendi",
+    "App.jsx içinden MobileTaskCard importu kaldırıldı",
+    "App.jsx'e MobileTaskList importu eklendi",
+    "App.jsx içindeki mobil görev listesi JSX bloğu MobileTaskList çağrısına dönüştürüldü"
   ],
-  "commitBefore": "f7e4371",
-  "createdAt": "2026-06-14T14:39:59.678195+00:00"
+  "commitBefore": "80c08de",
+  "createdAt": "2026-06-14T14:44:20.844450+00:00"
 }
