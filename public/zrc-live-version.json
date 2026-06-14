@@ -1,12 +1,10 @@
 {
-  "build": "v458-safe-mobile-column-live-add",
-  "note": "Yeni kolon kaydedildiği anda mobil Instagram tarzı kolon kapsülüne düşmesi için aktif kolon ve refresh tetikleyicisi eklendi. Yeni kolon otomatik seçili hale gelir.",
+  "build": "v459-safe-live-desktop-to-mobile-sync",
+  "note": "Masaüstünde yapılan kolon/görev değişiklikleri mobil kapsüle canlı yansısın diye proje bazlı realtime kanal, hızlı refresh, görünürlük/focus refresh, 5 sn mobil fallback ve kolon sıra persist eklendi.",
   "changed": [
-    "mobil kapsül refresh state eklendi",
-    "mobil kapsül effect refresh dependency eklendi",
-    "yeni kolon eklenince mobil kapsül anlık refresh eklendi",
-    "Supabase kolon reload sonrası mobil kapsül refresh eklendi"
+    "realtime refresh hızlandırıldı ve mobil kapsül refresh eklendi",
+    "proje bazlı canlı kanal, mobil fallback ve kolon sıra persist eklendi"
   ],
-  "commitBefore": "e395dd4",
-  "createdAt": "2026-06-14T13:37:07.349961+00:00"
+  "commitBefore": "28aab8e",
+  "createdAt": "2026-06-14T13:44:25.915313+00:00"
 }

@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v458-safe-mobile-column-live-add';
+const ZRC_APP_BUILD_LABEL = 'v459-safe-live-desktop-to-mobile-sync';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -6675,10 +6675,12 @@ function App() {
     }
   };
 
-  const runRealtimeTriggeredRefresh = (tableName = '') => {
+  const runRealtimeTriggeredRefresh = (tableName = '', options = {}) => {
     if (supabaseRealtimeRefreshTimer.current) {
       clearTimeout(supabaseRealtimeRefreshTimer.current);
     }
+
+    const refreshDelay = Number.isFinite(options?.delay) ? options.delay : 180;
 
     setSupabaseRealtimeStatus({
       state: 'syncing',
@@ -6693,6 +6695,8 @@ function App() {
         await loadActivityLogsFromSupabase();
         await loadChatsAndMessagesFromSupabase();
 
+        setZrcMobileColumnRefreshKey((value) => value + 1);
+
         const syncedAt = new Date().toISOString();
         setSupabaseLastRealtimeAt(syncedAt);
         setSupabaseRealtimeStatus({
@@ -6705,7 +6709,7 @@ function App() {
           label: `Realtime yenileme hatası: ${error?.message || 'bilinmeyen hata'}`
         });
       }
-    }, 700);
+    }, Math.max(0, refreshDelay));
   };
 
   const getSupabaseRealtimeClass = () => {
@@ -15107,6 +15111,147 @@ function App() {
     zrcMobileColumnRefreshKey,
     currentPermissions.editTasks
   ]);
+
+
+  // zrc-v459-live-desktop-to-mobile-sync
+  const zrcV459BoardOrderSignature = boardColumns
+    .map((column, index) => `${column.id || column.title || 'column'}:${index}`)
+    .join('|');
+
+  const zrcV459BoardContentSignature = boardColumns
+    .map((column) => `${column.id || column.title || 'column'}:${column.title || ''}:${column.color || ''}:${(column.tasks || []).map((task) => `${task.id || task.supabaseId || task.title}:${task.title || ''}:${task.status || ''}:${task.columnTitle || ''}`).join(',')}`)
+    .join('|');
+
+  useEffect(() => {
+    setZrcMobileColumnRefreshKey((value) => value + 1);
+  }, [zrcV459BoardContentSignature]);
+
+  useEffect(() => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !selectedProject || authSessionLoading || !currentUserId) return undefined;
+
+    let isCancelled = false;
+    let projectChannel = null;
+    let fallbackTimer = null;
+
+    const refreshEverywhere = (reason = 'canlı senkron', delay = 120) => {
+      if (isCancelled) return;
+      runRealtimeTriggeredRefresh(reason, { delay });
+      setZrcMobileColumnRefreshKey((value) => value + 1);
+    };
+
+    const startProjectRealtime = async () => {
+      try {
+        const projectId = await getSupabaseProjectIdForName(selectedProject, false);
+
+        if (isCancelled || !projectId) return;
+
+        projectChannel = supabase.channel(`zrc-v459-project-board-${projectId}`);
+
+        ['board_columns', 'tasks'].forEach((tableName) => {
+          projectChannel.on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: tableName,
+              filter: `project_id=eq.${projectId}`
+            },
+            () => refreshEverywhere(tableName, 90)
+          );
+        });
+
+        projectChannel.subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            setSupabaseRealtimeStatus({
+              state: 'connected',
+              label: 'Proje canlı senkron aktif'
+            });
+          }
+
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            setSupabaseRealtimeStatus({
+              state: 'error',
+              label: `Proje canlı senkron sorunu: ${status}`
+            });
+          }
+        });
+      } catch (error) {
+        console.warn('[ZRC v459] Proje canlı senkron kanalı kurulamadı.', error);
+      }
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        refreshEverywhere('ekran aktif oldu', 0);
+      }
+    };
+
+    startProjectRealtime();
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    fallbackTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible' && window.innerWidth <= 768) {
+        refreshEverywhere('mobil canlı kontrol', 0);
+      }
+    }, 5000);
+
+    return () => {
+      isCancelled = true;
+
+      if (projectChannel) {
+        supabase.removeChannel(projectChannel);
+      }
+
+      if (fallbackTimer) {
+        window.clearInterval(fallbackTimer);
+      }
+
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+    };
+  }, [supabaseWorkspaceId, selectedProject, currentUserId, supabaseAuthUserId, authSessionLoading]);
+
+  useEffect(() => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !selectedProject || authSessionLoading || !currentPermissions.manageColumns) return undefined;
+    if (!zrcV459BoardOrderSignature) return undefined;
+
+    const persistTimer = window.setTimeout(async () => {
+      try {
+        const projectId = await getSupabaseProjectIdForName(selectedProject, false);
+
+        if (!projectId) return;
+
+        const updates = boardColumns
+          .map((column, index) => ({
+            id: column.id,
+            position: index
+          }))
+          .filter((column) => isSupabaseUuid(column.id));
+
+        if (updates.length === 0) return;
+
+        await Promise.all(
+          updates.map((column) =>
+            supabase
+              .from('board_columns')
+              .update({ position: column.position })
+              .eq('id', column.id)
+              .eq('project_id', projectId)
+          )
+        );
+      } catch (error) {
+        console.warn('[ZRC v459] Kolon sırası Supabase’e yazılamadı.', error);
+      }
+    }, 650);
+
+    return () => window.clearTimeout(persistTimer);
+  }, [zrcV459BoardOrderSignature, selectedProject, supabaseWorkspaceId, currentPermissions.manageColumns, authSessionLoading]);
 
 
 return (
