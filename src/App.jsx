@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
+import MobileTaskCard from './components/mobile/MobileTaskCard';
 import './zrc-mobile.css';
 import TopNavbar from './components/Layout/TopNavbar';
 import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v467-safe-mobile-real-assignee-avatar';
+const ZRC_APP_BUILD_LABEL = 'v468-safe-extract-mobile-task-card';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15187,62 +15188,15 @@ return (
                     columnColor: column.color
                   }))
                 ).map((task) => (
-                  <div key={task.id || task.title} className="zrc-mobile-task-card">
-                    <div className="zrc-mobile-task-card-top">
-                      <div className="zrc-mobile-task-status">
-                        <span style={{ backgroundColor: task.columnColor || '#ff5b1f' }} />
-                        <small>{task.columnTitle || task.status || 'Görev'}</small>
-                      </div>
-                    </div>
-
-                    <h3>{task.title || 'Adsız görev'}</h3>
-
-                    {task.description && (
-                      <p>{task.description}</p>
-                    )}
-
-                    <div className="zrc-mobile-task-date-row">
-                      {(task.startDate || task.start_date) && (
-                        <span>Başlangıç: {task.startDate || task.start_date}</span>
-                      )}
-                      <span>Bitiş: {task.dueDate || task.due_date || task.endDate || task.end_date || 'Tarih yok'}</span>
-                    </div>
-
-                    {getMobileTaskCardAssignees(task).length > 0 && (
-                      <div className="zrc-mobile-task-assignees" aria-label="Görevli kişiler">
-                        {getMobileTaskCardAssignees(task).slice(0, 4).map((person) => (
-                          <div
-                            key={person.id || person.email || person.name}
-                            className="zrc-mobile-task-assignee-avatar"
-                            title={person.name}
-                          >
-                            {renderProfileAvatar(person.avatar, createAvatarFromName(person.name))}
-                          </div>
-                        ))}
-
-                        {getMobileTaskCardAssignees(task).length > 4 && (
-                          <div className="zrc-mobile-task-assignee-avatar zrc-mobile-task-assignee-more">
-                            +{getMobileTaskCardAssignees(task).length - 4}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {normalizeColumnTitleForDisplay(task.columnTitle || task.status || '') !== 'Aktif' && (
-                      <div className="zrc-mobile-task-action-row">
-                        <button
-                          type="button"
-                          className="zrc-mobile-task-active-btn"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            moveMobileTaskToActiveColumn(task);
-                          }}
-                        >
-                          Aktife Al
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <MobileTaskCard
+                    key={task.id || task.title}
+                    task={task}
+                    normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
+                    renderProfileAvatar={renderProfileAvatar}
+                    createAvatarFromName={createAvatarFromName}
+                    getMobileTaskCardAssignees={getMobileTaskCardAssignees}
+                    moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
+                  />
                 ))
               )}
             </div>

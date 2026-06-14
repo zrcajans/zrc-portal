@@ -1,11 +1,11 @@
 {
-  "build": "v467-safe-mobile-real-assignee-avatar",
-  "note": "DOM müdahalesi yapmadan, mobildeki gerçek görev kartının JSX yapısına görevli avatarları eklendi. Masaüstü kartındaki renderProfileAvatar mantığı kullanılır; fotoğraf varsa fotoğraf, yoksa inisial görünür.",
+  "build": "v468-safe-extract-mobile-task-card",
+  "note": "App.jsx parçalama işleminin ilk güvenli adımı: mobil görev kartı JSX'i src/components/mobile/MobileTaskCard.jsx dosyasına taşındı. Davranış aynı kalır; sadece kod ayrıştırıldı.",
   "changed": [
-    "mobil görev kartı için gerçek görevli/avatar helper eklendi",
-    "mobil görev kartına masaüstüyle aynı avatar render satırı eklendi",
-    "mobil avatar CSS eklendi"
+    "src/components/mobile/MobileTaskCard.jsx oluşturuldu",
+    "App.jsx'e MobileTaskCard importu eklendi",
+    "Mobil görev kartı JSX bloğu App.jsx'ten çıkarılıp component çağrısına dönüştürüldü"
   ],
-  "commitBefore": "50499c5",
-  "createdAt": "2026-06-14T14:36:58.046485+00:00"
+  "commitBefore": "f7e4371",
+  "createdAt": "2026-06-14T14:39:59.678195+00:00"
 }
