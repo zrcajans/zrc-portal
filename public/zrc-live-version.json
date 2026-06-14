@@ -1,6 +1,9 @@
 {
-  "build": "v498-emergency-restore-v480-stable",
-  "note": "Canlı site navigation runtime hataları nedeniyle v480 stabil tabanına döndürüldü. v481+ refactorlar geçici olarak dışarıda bırakıldı.",
-  "restoredBaseCommit": "6f69fc1",
-  "createdAt": "2026-06-14T17:51:36.405151+00:00"
+  "build": "v499-fix-login-return-hook-order",
+  "note": "Minified React error #310 için login erken return bloğu, sonradan çalışan useEffect hooklarının altına taşındı.",
+  "changed": [
+    "if (!isLoggedIn) erken return bloğu useEffect hooklarının altına taşındı"
+  ],
+  "commitBefore": "110cb25",
+  "createdAt": "2026-06-14T18:03:55.872825+00:00"
 }
