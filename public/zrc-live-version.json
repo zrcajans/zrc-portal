@@ -1,10 +1,9 @@
 {
-  "build": "v478-safe-extract-avatar-helpers",
-  "note": "createAvatarFromName ve renderProfileAvatar yardımcıları App.jsx içinden src/utils/avatarHelpers.jsx dosyasına taşındı.",
+  "build": "v479-safe-avatar-helper-self-contained",
+  "note": "Avatar helper utility dosyası App.jsx içindeki currentProfileInitials değişkenine bağlı kalmayacak şekilde güvenli hale getirildi.",
   "changed": [
-    "src/utils/avatarHelpers.jsx oluşturuldu/güncellendi",
-    "App.jsx'e avatarHelpers importu eklendi"
+    "avatarHelpers.jsx App içi currentProfileInitials bağımlılığından temizlendi"
   ],
-  "commitBefore": "46fb0ab",
-  "createdAt": "2026-06-14T15:31:24.661592+00:00"
+  "commitBefore": "8199eb4",
+  "createdAt": "2026-06-14T15:33:27.688872+00:00"
 }

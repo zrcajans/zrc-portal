@@ -12,9 +12,9 @@ export const createAvatarFromName = (name) => {
     .join('');
 };
 
-export const renderProfileAvatar = (avatar, fallback = currentProfileInitials) => {
+export const renderProfileAvatar = (avatar, fallback = 'ZRC') => {
     const cleanAvatar = String(avatar || '').trim();
-    const cleanFallback = String(fallback || currentProfileInitials || 'ZRC').trim();
+    const cleanFallback = String(fallback || 'ZRC').trim();
     const isImageAvatar =
       cleanAvatar.startsWith('data:image') ||
       cleanAvatar.startsWith('http://') ||

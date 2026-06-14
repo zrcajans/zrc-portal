@@ -11,7 +11,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v478-safe-extract-avatar-helpers';
+const ZRC_APP_BUILD_LABEL = 'v479-safe-avatar-helper-self-contained';
 
 const defaultBoardColumns = [
   { id: 'col-1', title: 'Yeni Görev', color: '#ffcb78', desc: 'Yeni oluşturulan görevler bu aşamada bekler.', tasks: [] },
