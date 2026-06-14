@@ -1,11 +1,11 @@
 {
-  "build": "v471-safe-extract-mobile-task-wizard",
-  "note": "App.jsx parçalama dördüncü adım: mobil görev oluşturma sihirbazı src/components/mobile/MobileTaskWizard.jsx dosyasına taşındı. Davranış korunur; sadece kod ayrıştırıldı.",
+  "build": "v472-safe-extract-mobile-premium-header",
+  "note": "App.jsx parçalama beşinci adım: mobil üst başlık ve bildirim butonu src/components/mobile/MobilePremiumHeader.jsx dosyasına taşındı. Bildirim açma davranışı App tarafında prop olarak korunur.",
   "changed": [
-    "src/components/mobile/MobileTaskWizard.jsx oluşturuldu/güncellendi",
-    "App.jsx'e MobileTaskWizard importu eklendi",
-    "App.jsx içindeki mobil görev sihirbazı JSX bloğu MobileTaskWizard çağrısına dönüştürüldü"
+    "src/components/mobile/MobilePremiumHeader.jsx oluşturuldu/güncellendi",
+    "App.jsx'e MobilePremiumHeader importu eklendi",
+    "App.jsx içindeki mobil üst başlık MobilePremiumHeader çağrısına dönüştürüldü"
   ],
-  "commitBefore": "511834c",
-  "createdAt": "2026-06-14T14:50:11.300739+00:00"
+  "commitBefore": "d412167",
+  "createdAt": "2026-06-14T15:01:38.636610+00:00"
 }

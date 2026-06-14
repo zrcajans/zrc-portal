@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
+import MobilePremiumHeader from './components/mobile/MobilePremiumHeader';
 import MobileTaskWizard from './components/mobile/MobileTaskWizard';
 import MobileProjectPicker from './components/mobile/MobileProjectPicker';
 import MobileTaskList from './components/mobile/MobileTaskList';
@@ -10,7 +11,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v471-safe-extract-mobile-task-wizard';
+const ZRC_APP_BUILD_LABEL = 'v472-safe-extract-mobile-premium-header';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15071,34 +15072,24 @@ return (
         
         
         <div className="zrc-mobile-simple-workspace">
-          <div className="zrc-mobile-premium-head">
-            <div className="zrc-mobile-brand-wrap">
-              <img className="zrc-mobile-brand-logo" src="/zrc-logo.png" alt="ZRC" />
-            </div>
-<div>
-              <div className="zrc-mobile-premium-kicker">ZRC Mobil</div>
-              <h1>Projeler</h1>
-            </div>
+          <MobilePremiumHeader
+            unreadNotificationCount={unreadNotificationCount}
+            onToggleNotifications={(event) => {
+              event.stopPropagation();
+              setIsPanelOpen(false);
+              setIsMessagesOpen(false);
+              setIsGlobalSearchOpen(false);
+              setIsNotificationsOpen((prev) => {
+                const nextState = !prev;
 
-            <button
-              type="button"
-              className="zrc-mobile-notification-btn"
-              onClick={(event) => {
-                event.stopPropagation();
-                setIsPanelOpen(false);
-                setIsMessagesOpen(false);
-                setIsGlobalSearchOpen(false);
-                setIsNotificationsOpen((prev) => {
-                  const nextState = !prev;
-                  if (nextState) loadActivityLogsFromSupabase();
-                  return nextState;
-                });
-              }}
-            >
-              Bildirim
-              {unreadNotificationCount > 0 && <b>{unreadNotificationCount}</b>}
-            </button>
-          </div>
+                if (nextState) {
+                  loadActivityLogsFromSupabase();
+                }
+
+                return nextState;
+              });
+            }}
+          />
 
           <MobileProjectPicker
             selectedProject={selectedProject}
