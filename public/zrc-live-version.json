@@ -1,11 +1,6 @@
 {
-  "build": "v480-safe-extract-team-helpers",
-  "note": "Ekip/rol/customer normalize yardımcıları App.jsx içinden src/utils/teamHelpers.js dosyasına taşındı.",
-  "changed": [
-    "src/utils/teamHelpers.js oluşturuldu/güncellendi",
-    "App.jsx'e teamHelpers importu eklendi",
-    "Ekip/rol helper bloğu App.jsx içinden kaldırıldı"
-  ],
-  "commitBefore": "354ee83",
-  "createdAt": "2026-06-14T15:36:05.971160+00:00"
+  "build": "v498-emergency-restore-v480-stable",
+  "note": "Canlı site navigation runtime hataları nedeniyle v480 stabil tabanına döndürüldü. v481+ refactorlar geçici olarak dışarıda bırakıldı.",
+  "restoredBaseCommit": "6f69fc1",
+  "createdAt": "2026-06-14T17:51:36.405151+00:00"
 }
