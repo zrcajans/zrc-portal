@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v452-experimental-ios-from-line-hidden-name';
+const ZRC_APP_BUILD_LABEL = 'v454cb-safe-mobile-column-tabs';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -2613,6 +2613,7 @@ function App() {
     normalizeStorageArray(readStorageValue('quickNotes', []), [])
   );
   const [boardView, setBoardView] = useState('Tüm Görevler');
+  const [mobileActiveColumnId, setMobileActiveColumnId] = useState('');
 
   const [calendarMonthDate, setCalendarMonthDate] = useState(() => {
     const now = new Date();
@@ -8317,6 +8318,24 @@ function App() {
     tasks: (column.tasks || []).filter((task) => isTaskVisibleForProject(task, selectedProject))
   }));
 
+  // zrc-v454c-mobile-active-column-sync
+  const mobileVisibleBoardColumnIds = visibleBoardColumns.map((column) => column.id).join('|');
+  const mobileActiveColumnIndex = Math.max(0, visibleBoardColumns.findIndex((column) => column.id === mobileActiveColumnId));
+
+  useEffect(() => {
+    if (visibleBoardColumns.length === 0) {
+      if (mobileActiveColumnId) setMobileActiveColumnId('');
+      return;
+    }
+
+    const hasActiveColumn = visibleBoardColumns.some((column) => column.id === mobileActiveColumnId);
+
+    if (!mobileActiveColumnId || !hasActiveColumn) {
+      setMobileActiveColumnId(visibleBoardColumns[0].id);
+    }
+  }, [mobileVisibleBoardColumnIds, mobileActiveColumnId]);
+
+
   const visibleArchivedTasks = archivedTasks.filter((task) => isTaskVisibleForProject(task, selectedProject));
 
   const canCreateTaskInSelectedProject = Boolean(
@@ -9011,6 +9030,66 @@ function App() {
           boxShadow: '0 1px 2px rgba(0,0,0,0.12)'
         };
   };
+
+  const handleMoveTaskToColumn = (sourceColumnId, targetColumnId, task = {}) => {
+    setOpenTaskMenuId(null);
+
+    if (!currentPermissions.editTasks) {
+      showPermissionWarning('Bu rol görev durumunu değiştiremez.');
+      return;
+    }
+
+    const sourceColumn = boardColumns.find((column) => column.id === sourceColumnId);
+    const targetColumn = boardColumns.find((column) => column.id === targetColumnId);
+
+    if (!sourceColumn || !targetColumn || sourceColumnId === targetColumnId) return;
+
+    const sourceTask = sourceColumn.tasks.find((item) => item.id === task.id) || task;
+
+    if (!sourceTask?.id) return;
+
+    if (!canCurrentUserModifyTask(sourceTask, selectedProject)) {
+      showPermissionWarning('Bu görev sana atanmadığı için durumunu değiştiremezsin.');
+      return;
+    }
+
+    const movedTask = {
+      ...sourceTask,
+      status: targetColumn.title,
+      columnTitle: targetColumn.title
+    };
+
+    setBoardColumns((prevColumns) => {
+      const updatedColumns = prevColumns.map((column) => ({
+        ...column,
+        tasks: [...(column.tasks || [])]
+      }));
+
+      const nextSourceColumn = updatedColumns.find((column) => column.id === sourceColumnId);
+      const nextTargetColumn = updatedColumns.find((column) => column.id === targetColumnId);
+
+      if (!nextSourceColumn || !nextTargetColumn) return prevColumns;
+
+      nextSourceColumn.tasks = nextSourceColumn.tasks.filter((item) => item.id !== sourceTask.id);
+      nextTargetColumn.tasks = [...nextTargetColumn.tasks, movedTask];
+
+      return updatedColumns;
+    });
+
+    createActivityNotification({
+      type: 'status',
+      title: 'Görev durumu değişti',
+      text: sourceTask.title || 'Adsız görev',
+      meta: `${sourceColumn.title || 'Eski durum'} → ${targetColumn.title || 'Yeni durum'}`,
+      task: movedTask,
+      columnTitle: targetColumn.title,
+      targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
+      sortWeight: 820
+    });
+
+    updateSupabaseTaskColumn(movedTask, targetColumn);
+  };
+
 
   // --- KART (GÖREV) İŞLEMLERİ ---
   const handleTaskAction = (action, columnId, task) => {
@@ -17924,7 +18003,7 @@ function App() {
               <div className="flex-1 min-h-0 bg-[#f5f6f8] flex flex-col overflow-hidden h-full">
                 {activeTab === 'Görevler' && (
                   <div className="w-full flex flex-col flex-1 animate-fade-in overflow-hidden h-full bg-[#f5f6f8]">
-                    <div className="w-full h-[54px] pl-7 pr-[76px] bg-[#f5f6f8] flex items-center justify-between shrink-0 relative z-10">
+                    <div className="w-full h-[54px] pl-7 pr-[76px] bg-[#f5f6f8] flex items-center justify-between shrink-0 relative z-10 max-md:h-[44px] max-md:px-3 max-md:gap-2">
                       <div className="flex items-center gap-3.5">
                         {canCreateTaskInSelectedProject && (
                           <button
@@ -17932,7 +18011,7 @@ function App() {
                               setEditingTask(null);
                               setIsTaskModalOpen(true);
                             }}
-                            className="h-9 min-w-[126px] bg-[#3cad6e] hover:bg-[#329b60] text-white text-[12.5px] font-extrabold pl-4 pr-3 rounded-full shadow-[0_6px_14px_rgba(60,173,110,0.14)] active:scale-[0.98] transition-all flex items-center justify-between gap-3.5"
+                            className="h-9 min-w-[126px] bg-[#3cad6e] hover:bg-[#329b60] text-white text-[12.5px] font-extrabold pl-4 pr-3 rounded-full shadow-[0_6px_14px_rgba(60,173,110,0.14)] active:scale-[0.98] transition-all flex items-center justify-between gap-3.5 max-md:h-8 max-md:min-w-0 max-md:px-3 max-md:text-[11px] max-md:gap-2"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -17998,7 +18077,7 @@ function App() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="hidden md:flex items-center gap-2">
                         <button
                           onClick={() => setBoardView('Tüm Görevler')}
                           className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
@@ -18028,7 +18107,7 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="flex-1 pl-5 pr-[76px] pt-1.5 pb-5 flex space-x-5 bg-[#f5f6f8] overflow-x-auto overflow-y-hidden h-full custom-scrollbar items-start">
+                    <div className="flex-1 pl-5 pr-[76px] pt-1.5 pb-5 flex space-x-5 bg-[#f5f6f8] overflow-x-auto overflow-y-hidden h-full custom-scrollbar items-start max-md:px-3 max-md:pt-1 max-md:pb-[112px] max-md:space-x-0 max-md:overflow-hidden">
                       {(boardView === 'Tüm Görevler' || boardView === 'Üyelere Göre') && isEditMode && currentPermissions.manageColumns && (
                         <button
                           type="button"
@@ -18046,7 +18125,7 @@ function App() {
                         visibleBoardColumns.map((column, colIdx) => (
                           <div
                             key={column.id}
-                            className={`w-[270px] shrink-0 flex flex-col max-h-[calc(100vh-145px)] relative ${
+                            className={`w-[270px] shrink-0 flex flex-col max-h-[calc(100vh-145px)] relative max-md:w-full max-md:max-h-[calc(100vh-258px)] ${mobileActiveColumnId && mobileActiveColumnId !== column.id ? 'max-md:hidden' : ''} ${
                               openMenuColumnId === column.id || column.tasks.some((task) => task.id === openTaskMenuId)
                                 ? 'z-[300]'
                                 : 'z-10'
@@ -18370,6 +18449,51 @@ function App() {
                                         </div>
                                       </div>
                                     </div>
+
+                                    {/* zrc-v454c-mobile-task-move-buttons */}
+                                    {currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject) && (() => {
+                                      const currentColumnIndex = visibleBoardColumns.findIndex((item) => item.id === column.id);
+                                      const previousColumn = currentColumnIndex > 0 ? visibleBoardColumns[currentColumnIndex - 1] : null;
+                                      const nextColumn = currentColumnIndex >= 0 && currentColumnIndex < visibleBoardColumns.length - 1 ? visibleBoardColumns[currentColumnIndex + 1] : null;
+
+                                      if (!previousColumn && !nextColumn) return null;
+
+                                      return (
+                                        <div className="md:hidden mt-3 pt-2 border-t border-zinc-100 grid grid-cols-2 gap-1.5">
+                                          {previousColumn ? (
+                                            <button
+                                              type="button"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleMoveTaskToColumn(column.id, previousColumn.id, task);
+                                                setMobileActiveColumnId(previousColumn.id);
+                                              }}
+                                              className="h-9 rounded-[10px] bg-white border border-zinc-200 text-[9.5px] font-black text-zinc-600 active:scale-[0.98] transition-all flex items-center justify-center px-2"
+                                            >
+                                              ← {previousColumn.title}
+                                            </button>
+                                          ) : (
+                                            <span />
+                                          )}
+
+                                          {nextColumn ? (
+                                            <button
+                                              type="button"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleMoveTaskToColumn(column.id, nextColumn.id, task);
+                                                setMobileActiveColumnId(nextColumn.id);
+                                              }}
+                                              className="h-9 rounded-[10px] bg-[#ff3600] border border-[#ff3600] text-[9.5px] font-black text-white active:scale-[0.98] transition-all flex items-center justify-center px-2"
+                                            >
+                                              {nextColumn.title} →
+                                            </button>
+                                          ) : (
+                                            <span />
+                                          )}
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
                                 );
                               })}
@@ -18504,6 +18628,41 @@ function App() {
                         </div>
                       )}
                     </div>
+
+                    {/* zrc-v454c-mobile-column-strip */}
+                    {(boardView === 'Tüm Görevler' || boardView === 'Üyelere Göre') && visibleBoardColumns.length > 0 && (
+                      <div className="md:hidden fixed left-0 right-0 bottom-0 z-[620] px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+10px)] bg-white/92 backdrop-blur-xl border-t border-zinc-200 shadow-[0_-16px_42px_rgba(15,23,42,0.12)]">
+                        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+                          {visibleBoardColumns.map((column, index) => {
+                            const isActiveMobileColumn = mobileActiveColumnId === column.id || (!mobileActiveColumnId && index === 0);
+
+                            return (
+                              <button
+                                key={`mobile-column-tab-${column.id}`}
+                                type="button"
+                                onClick={() => setMobileActiveColumnId(column.id)}
+                                className={`shrink-0 h-10 px-3.5 rounded-[14px] border text-[10px] font-black transition-all flex items-center gap-2 ${
+                                  isActiveMobileColumn
+                                    ? 'bg-[#101827] text-white border-[#101827] shadow-[0_10px_22px_rgba(15,23,42,0.18)]'
+                                    : 'bg-zinc-50 text-zinc-500 border-zinc-200'
+                                }`}
+                              >
+                                <span
+                                  className="w-2 h-2 rounded-full shrink-0"
+                                  style={{ backgroundColor: column.color }}
+                                />
+                                <span className="max-w-[126px] truncate">{column.title}</span>
+                                <span className={`h-5 min-w-5 px-1.5 rounded-full text-[9px] flex items-center justify-center ${
+                                  isActiveMobileColumn ? 'bg-white/16 text-white' : 'bg-white text-zinc-400 border border-zinc-200'
+                                }`}>
+                                  {column.tasks.length}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

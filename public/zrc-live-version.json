@@ -1,6 +1,18 @@
 {
-  "build": "v453-safe-clean-push-text",
-  "note": "Mobil push metni sadeleştirildi. Başlık ZRC kalır; gövde 'Yeni görev: ...' formatına çevrilir. iOS'un zorunlu 'from ZRC' kaynak satırı değiştirilemez.",
-  "commitBefore": "eaa7c10",
-  "createdAt": "2026-06-13T17:08:02.104718+00:00"
+  "build": "v454cb-safe-mobile-column-tabs",
+  "note": "Mobil görev ekranına alt kolon sekmeleri eklendi. Mobilde yalnız aktif kolonun görevleri görünür. Görev kartlarında komşu kolonlara aktarma butonları var. Üst görev barı mobilde küçültüldü.",
+  "changed": [
+    "mobileActiveColumnId state eklendi",
+    "mobil aktif kolon senkronu eklendi",
+    "komşu kolona taşıma fonksiyonu eklendi",
+    "mobil üst görev barı küçültüldü",
+    "mobil oluştur butonu küçültüldü",
+    "mobilde pano görünüm butonları gizlendi",
+    "mobil pano container düzenlendi",
+    "mobilde pasif kolonlar gizlendi",
+    "mobil görev kartı aktarma butonları eklendi",
+    "mobil alt kolon şeridi eklendi"
+  ],
+  "commitBefore": "f9bd8ef",
+  "createdAt": "2026-06-14T13:14:58.950959+00:00"
 }
