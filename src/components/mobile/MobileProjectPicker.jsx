@@ -1,19 +1,5 @@
 import React from 'react';
-
-const HIDDEN_DEFAULT_PROJECTS = ['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'];
-
-const getVisibleMobileProjects = ({ visibleProjectNames = [], projects = [] }) =>
-  Array.from(
-    new Set([
-      ...(Array.isArray(visibleProjectNames) ? visibleProjectNames : []),
-      ...(Array.isArray(projects) ? projects : [])
-    ])
-  ).filter((project) => project && !HIDDEN_DEFAULT_PROJECTS.includes(String(project).trim()));
-
-const getMobileProjectLabel = (selectedProject = '') =>
-  HIDDEN_DEFAULT_PROJECTS.includes(String(selectedProject || '').trim())
-    ? 'Proje seç'
-    : selectedProject || 'Proje seç';
+import { getMobileProjectLabel, getVisibleMobileProjects } from '../../utils/mobileProjectHelpers';
 
 export default function MobileProjectPicker({
   selectedProject,

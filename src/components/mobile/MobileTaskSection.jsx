@@ -1,12 +1,6 @@
 import React from 'react';
 import MobileTaskList from './MobileTaskList';
-
-const HIDDEN_DEFAULT_PROJECTS = ['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'];
-
-const getMobileProjectLabel = (selectedProject = '') =>
-  HIDDEN_DEFAULT_PROJECTS.includes(String(selectedProject || '').trim())
-    ? 'Proje seç'
-    : selectedProject || 'Proje seç';
+import { getMobileProjectLabel, getSafeMobileProjectName } from '../../utils/mobileProjectHelpers';
 
 export default function MobileTaskSection({
   selectedProject,
@@ -21,9 +15,7 @@ export default function MobileTaskSection({
   setIsMobileTaskWizardOpen
 }) {
   const projectLabel = getMobileProjectLabel(selectedProject);
-  const safeProjectName = HIDDEN_DEFAULT_PROJECTS.includes(String(selectedProject || '').trim())
-    ? ''
-    : selectedProject || '';
+  const safeProjectName = getSafeMobileProjectName(selectedProject);
 
   const openTaskWizard = () => {
     setMobileTaskWizardData((prev) => ({

@@ -1,11 +1,11 @@
 {
-  "build": "v475-safe-extract-mobile-assignee-utils",
-  "note": "Mobil görev kartı görevli/avatar çözümleme helperı App.jsx içinden src/utils/mobileTaskAssignees.js dosyasına taşındı. App.jsx içinde sadece kısa wrapper kaldı.",
+  "build": "v476-safe-extract-mobile-project-utils",
+  "note": "Mobil proje seçici ve mobil görev bölümü içinde tekrar eden proje yardımcıları src/utils/mobileProjectHelpers.js dosyasına taşındı.",
   "changed": [
-    "src/utils/mobileTaskAssignees.js oluşturuldu/güncellendi",
-    "App.jsx'e mobileTaskAssignees importu eklendi",
-    "App.jsx içindeki uzun getMobileTaskCardAssignees helperı kısa wrapper'a dönüştürüldü"
+    "src/utils/mobileProjectHelpers.js oluşturuldu/güncellendi",
+    "MobileProjectPicker ortak proje helperlarını kullanacak şekilde güncellendi",
+    "MobileTaskSection ortak proje helperlarını kullanacak şekilde güncellendi"
   ],
-  "commitBefore": "f1af7f7",
-  "createdAt": "2026-06-14T15:24:53.828845+00:00"
+  "commitBefore": "fdd6316",
+  "createdAt": "2026-06-14T15:26:34.901681+00:00"
 }
