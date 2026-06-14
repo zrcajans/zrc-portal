@@ -1,6 +1,12 @@
 {
-  "build": "v457-safe-instagram-style-mobile-column-bar",
-  "note": "Mobil alt kolon barı Instagram tarzı floating dark pill tasarıma çevrildi. Fonksiyonel davranış değiştirilmedi; sadece alt bar görünümü ve alt boşluk düzenlendi.",
-  "commitBefore": "a2f2c29",
-  "createdAt": "2026-06-14T13:29:26.347472+00:00"
+  "build": "v458-safe-mobile-column-live-add",
+  "note": "Yeni kolon kaydedildiği anda mobil Instagram tarzı kolon kapsülüne düşmesi için aktif kolon ve refresh tetikleyicisi eklendi. Yeni kolon otomatik seçili hale gelir.",
+  "changed": [
+    "mobil kapsül refresh state eklendi",
+    "mobil kapsül effect refresh dependency eklendi",
+    "yeni kolon eklenince mobil kapsül anlık refresh eklendi",
+    "Supabase kolon reload sonrası mobil kapsül refresh eklendi"
+  ],
+  "commitBefore": "e395dd4",
+  "createdAt": "2026-06-14T13:37:07.349961+00:00"
 }

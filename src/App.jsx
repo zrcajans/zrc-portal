@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v457-safe-instagram-style-mobile-column-bar';
+const ZRC_APP_BUILD_LABEL = 'v458-safe-mobile-column-live-add';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -2614,6 +2614,7 @@ function App() {
   );
   const [boardView, setBoardView] = useState('Tüm Görevler');
   const [mobileActiveColumnId, setMobileActiveColumnId] = useState('');
+  const [zrcMobileColumnRefreshKey, setZrcMobileColumnRefreshKey] = useState(0);
 
   const [calendarMonthDate, setCalendarMonthDate] = useState(() => {
     const now = new Date();
@@ -7510,6 +7511,10 @@ function App() {
       .filter((title) => normalizeColumnTitleForDisplay(title) !== savedColumnTitleKey);
     writeStorageValue(deletedColumnStorageKey, cleanedDeletedColumnTitles);
 
+    const zrcV458IsNewColumn = !boardColumns.some(
+      (col) => col.id === columnToSave.id || normalizeColumnTitleForDisplay(col.title) === normalizeColumnTitleForDisplay(columnToSave.title)
+    );
+
     setBoardColumns((prev) => {
       const exists = prev.some((col) => col.id === columnToSave.id);
 
@@ -7520,10 +7525,25 @@ function App() {
       return [...prev, { ...columnToSave, tasks: columnToSave.tasks || [] }];
     });
 
+    // zrc-v458-mobile-new-column-live-capsule
+    if (zrcV458IsNewColumn) {
+      setMobileActiveColumnId(columnToSave.id);
+    }
+
+    setZrcMobileColumnRefreshKey((value) => value + 1);
+
+    window.setTimeout(() => {
+      setZrcMobileColumnRefreshKey((value) => value + 1);
+    }, 120);
+
     const didSaveStageToSupabase = await saveStageToSupabase(columnToSave);
 
     if (didSaveStageToSupabase) {
-      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
+      setTimeout(() => {
+        loadSelectedProjectBoardFromSupabase();
+        // zrc-v458-mobile-refresh-after-supabase-reload
+        setZrcMobileColumnRefreshKey((value) => value + 1);
+      }, 500);
     }
 
     setIsStageModalOpen(false);
@@ -15084,6 +15104,7 @@ function App() {
     boardColumns,
     mobileActiveColumnId,
     zrcV456MobileColumnIds,
+    zrcMobileColumnRefreshKey,
     currentPermissions.editTasks
   ]);
 
