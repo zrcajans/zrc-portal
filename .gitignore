@@ -35,3 +35,5 @@ pnpm-debug.log*
 local_backups/
 src/App_v*_before_v*_backup.jsx
 src/*_backup.jsx
+local_reports/
+local_vapid_keys_v429.txt

@@ -1,12 +1,17 @@
 {
-  "build": "v473b-safe-extract-mobile-task-section",
-  "note": "v473 önceki script zrc-mobile-simple-workspace kapanış div'ini de yanlışlıkla kaldırıyordu. v473b sadece zrc-mobile-task-section div'inin matching kapanışını değiştirir.",
+  "build": "v474c-safe-extract-mobile-workspace",
+  "note": "Mobil ana çalışma alanı MobileWorkspace.jsx dosyasına taşındı. local_reports/ artık .gitignore içinde.",
   "changed": [
-    "src/components/mobile/MobileTaskSection.jsx oluşturuldu/güncellendi",
-    "App.jsx içinden MobileTaskList importu kaldırıldı",
-    "App.jsx'e MobileTaskSection importu eklendi",
-    "App.jsx içindeki sadece zrc-mobile-task-section div'i MobileTaskSection çağrısına dönüştürüldü"
+    ".gitignore içine local_reports/ ve gizli local VAPID dosyası eklendi",
+    "MobileTaskSection netleştirildi",
+    "src/components/mobile/MobileWorkspace.jsx oluşturuldu/güncellendi",
+    "App import kaldırıldı: import MobilePremiumHeader from './components/mobile/MobilePremiumHeader';",
+    "App import kaldırıldı: import MobileProjectPicker from './components/mobile/MobileProjectPicker';",
+    "App import kaldırıldı: import MobileTaskSection from './components/mobile/MobileTaskSection';",
+    "App import kaldırıldı: import MobileTaskWizard from './components/mobile/MobileTaskWizard';",
+    "App.jsx'e MobileWorkspace importu eklendi",
+    "App.jsx içindeki mobil çalışma alanı MobileWorkspace çağrısına dönüştürüldü"
   ],
-  "commitBefore": "29b4119",
-  "createdAt": "2026-06-14T15:09:02.880276+00:00"
+  "commitBefore": "ee1ee3d",
+  "createdAt": "2026-06-14T15:22:58.879220+00:00"
 }

@@ -1,17 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
-import MobileTaskSection from './components/mobile/MobileTaskSection';
-import MobilePremiumHeader from './components/mobile/MobilePremiumHeader';
-import MobileTaskWizard from './components/mobile/MobileTaskWizard';
-import MobileProjectPicker from './components/mobile/MobileProjectPicker';
+import MobileWorkspace from './components/mobile/MobileWorkspace';
 import './zrc-mobile.css';
 import TopNavbar from './components/Layout/TopNavbar';
 import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v473b-safe-extract-mobile-task-section';
+const ZRC_APP_BUILD_LABEL = 'v474c-safe-extract-mobile-workspace';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15071,73 +15068,38 @@ return (
 
         
         
-        <div className="zrc-mobile-simple-workspace">
-          <MobilePremiumHeader
-            unreadNotificationCount={unreadNotificationCount}
-            onToggleNotifications={(event) => {
-              event.stopPropagation();
-              setIsPanelOpen(false);
-              setIsMessagesOpen(false);
-              setIsGlobalSearchOpen(false);
-              setIsNotificationsOpen((prev) => {
-                const nextState = !prev;
-
-                if (nextState) {
-                  loadActivityLogsFromSupabase();
-                }
-
-                return nextState;
-              });
-            }}
-          />
-
-          <MobileProjectPicker
-            selectedProject={selectedProject}
-            visibleProjectNames={visibleProjectNames}
-            projects={projects}
-            isOpen={isMobileProjectPickerOpen}
-            setIsOpen={setIsMobileProjectPickerOpen}
-            onSelectProject={(project) => {
-              setSelectedProject(project);
-              setActiveMenu('Projeler');
-              setActiveContentMenu('Projeler');
-              setActiveTab('Görevler');
-              setIsMobileProjectPickerOpen(false);
-              setIsPanelOpen(false);
-              setIsMessagesOpen(false);
-              setIsNotificationsOpen(false);
-              setIsGlobalSearchOpen(false);
-            }}
-          />
-
-          <MobileTaskSection
-            selectedProject={selectedProject}
-            boardColumns={boardColumns}
-            normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
-            renderProfileAvatar={renderProfileAvatar}
-            createAvatarFromName={createAvatarFromName}
-            getMobileTaskCardAssignees={getMobileTaskCardAssignees}
-            moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
-            setMobileTaskWizardData={setMobileTaskWizardData}
-            setMobileTaskWizardStep={setMobileTaskWizardStep}
-            setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}
-          />
-        </div>
-
-        <MobileTaskWizard
-          isOpen={isMobileTaskWizardOpen}
-          onClose={() => setIsMobileTaskWizardOpen(false)}
+        <MobileWorkspace
+          unreadNotificationCount={unreadNotificationCount}
+          loadActivityLogsFromSupabase={loadActivityLogsFromSupabase}
           selectedProject={selectedProject}
           setSelectedProject={setSelectedProject}
-          mobileTaskWizardStep={mobileTaskWizardStep}
-          setMobileTaskWizardStep={setMobileTaskWizardStep}
-          mobileTaskWizardData={mobileTaskWizardData}
+          visibleProjectNames={visibleProjectNames}
+          projects={projects}
+          isMobileProjectPickerOpen={isMobileProjectPickerOpen}
+          setIsMobileProjectPickerOpen={setIsMobileProjectPickerOpen}
+          boardColumns={boardColumns}
+          normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
+          renderProfileAvatar={renderProfileAvatar}
+          createAvatarFromName={createAvatarFromName}
+          getMobileTaskCardAssignees={getMobileTaskCardAssignees}
+          moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
           setMobileTaskWizardData={setMobileTaskWizardData}
+          setMobileTaskWizardStep={setMobileTaskWizardStep}
+          setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}
+          isMobileTaskWizardOpen={isMobileTaskWizardOpen}
+          mobileTaskWizardStep={mobileTaskWizardStep}
+          mobileTaskWizardData={mobileTaskWizardData}
           activeTeamMembers={activeTeamMembers}
           teamMembers={teamMembers}
           normalizeTeamRole={normalizeTeamRole}
-          boardColumns={boardColumns}
           handleSaveTask={handleSaveTask}
+          setActiveMenu={setActiveMenu}
+          setActiveContentMenu={setActiveContentMenu}
+          setActiveTab={setActiveTab}
+          setIsPanelOpen={setIsPanelOpen}
+          setIsMessagesOpen={setIsMessagesOpen}
+          setIsNotificationsOpen={setIsNotificationsOpen}
+          setIsGlobalSearchOpen={setIsGlobalSearchOpen}
         />
 
         {isMessagesOpen && (
