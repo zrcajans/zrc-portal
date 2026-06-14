@@ -1,11 +1,12 @@
 {
-  "build": "v472-safe-extract-mobile-premium-header",
-  "note": "App.jsx parçalama beşinci adım: mobil üst başlık ve bildirim butonu src/components/mobile/MobilePremiumHeader.jsx dosyasına taşındı. Bildirim açma davranışı App tarafında prop olarak korunur.",
+  "build": "v473b-safe-extract-mobile-task-section",
+  "note": "v473 önceki script zrc-mobile-simple-workspace kapanış div'ini de yanlışlıkla kaldırıyordu. v473b sadece zrc-mobile-task-section div'inin matching kapanışını değiştirir.",
   "changed": [
-    "src/components/mobile/MobilePremiumHeader.jsx oluşturuldu/güncellendi",
-    "App.jsx'e MobilePremiumHeader importu eklendi",
-    "App.jsx içindeki mobil üst başlık MobilePremiumHeader çağrısına dönüştürüldü"
+    "src/components/mobile/MobileTaskSection.jsx oluşturuldu/güncellendi",
+    "App.jsx içinden MobileTaskList importu kaldırıldı",
+    "App.jsx'e MobileTaskSection importu eklendi",
+    "App.jsx içindeki sadece zrc-mobile-task-section div'i MobileTaskSection çağrısına dönüştürüldü"
   ],
-  "commitBefore": "d412167",
-  "createdAt": "2026-06-14T15:01:38.636610+00:00"
+  "commitBefore": "29b4119",
+  "createdAt": "2026-06-14T15:09:02.880276+00:00"
 }

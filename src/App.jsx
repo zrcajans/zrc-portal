@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
+import MobileTaskSection from './components/mobile/MobileTaskSection';
 import MobilePremiumHeader from './components/mobile/MobilePremiumHeader';
 import MobileTaskWizard from './components/mobile/MobileTaskWizard';
 import MobileProjectPicker from './components/mobile/MobileProjectPicker';
-import MobileTaskList from './components/mobile/MobileTaskList';
 import './zrc-mobile.css';
 import TopNavbar from './components/Layout/TopNavbar';
 import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v472-safe-extract-mobile-premium-header';
+const ZRC_APP_BUILD_LABEL = 'v473b-safe-extract-mobile-task-section';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15110,42 +15110,18 @@ return (
             }}
           />
 
-          <div className="zrc-mobile-task-section">
-            <div className="zrc-mobile-task-section-head">
-              <div>
-                <small>Seçili proje</small>
-                <h2>{['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(selectedProject || '').trim()) ? 'Proje seç' : (selectedProject || 'Proje seç')}</h2>
-              </div>
-
-              <button
-                type="button"
-                className="zrc-mobile-create-task-btn"
-                onClick={() => {
-                  setIsMobileTaskWizardOpen(true);
-                  setMobileTaskWizardStep(1);
-                  setMobileTaskWizardData({
-                    projectName: ['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'].includes(String(selectedProject || '').trim()) ? '' : (selectedProject || ''),
-                    taskTitle: '',
-                    startDate: '',
-                    endDate: '',
-                    assigneeIds: [],
-                    assignees: []
-                  });
-                }}
-              >
-                Görev Oluştur
-              </button>
-            </div>
-
-            <MobileTaskList
-              boardColumns={boardColumns}
-              normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
-              renderProfileAvatar={renderProfileAvatar}
-              createAvatarFromName={createAvatarFromName}
-              getMobileTaskCardAssignees={getMobileTaskCardAssignees}
-              moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
-            />
-          </div>
+          <MobileTaskSection
+            selectedProject={selectedProject}
+            boardColumns={boardColumns}
+            normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
+            renderProfileAvatar={renderProfileAvatar}
+            createAvatarFromName={createAvatarFromName}
+            getMobileTaskCardAssignees={getMobileTaskCardAssignees}
+            moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
+            setMobileTaskWizardData={setMobileTaskWizardData}
+            setMobileTaskWizardStep={setMobileTaskWizardStep}
+            setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}
+          />
         </div>
 
         <MobileTaskWizard
