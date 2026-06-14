@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v463-safe-stable-mobile-notification-badge';
+const ZRC_APP_BUILD_LABEL = 'v464-safe-mobile-remove-duplicate-add-avatar';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15733,6 +15733,191 @@ function App() {
       window.clearInterval(timer);
     };
   }, []);
+
+
+  // zrc-v464-mobile-remove-duplicate-add-avatar
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+
+    const styleId = 'zrc-v464-mobile-duplicate-fix-style';
+
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @media (max-width: 768px) {
+          #zrc-v456-mobile-column-board-root {
+            width: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+          }
+
+          #zrc-v456-mobile-column-board-root .zrc-v456-head,
+          #zrc-v456-mobile-column-board-root .zrc-v456-list {
+            display: none !important;
+          }
+
+          .zrc-v464-existing-card-avatar-row {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            min-height: 27px;
+          }
+
+          .zrc-v464-existing-card-avatar {
+            width: 27px;
+            height: 27px;
+            border-radius: 999px;
+            border: 2px solid #fff;
+            background: #101827;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            line-height: 1;
+            font-weight: 950;
+            letter-spacing: -.02em;
+            margin-right: -7px;
+            box-shadow: 0 8px 16px rgba(15,23,42,.16);
+            overflow: hidden;
+          }
+
+          .zrc-v464-existing-card-avatar-more {
+            background: #ff3600;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const normalizeText = (value = '') =>
+      String(value || '').replace(/\s+/g, ' ').trim();
+
+    const renderAvatarHtml = (task = {}) => {
+      if (typeof zrcV460GetTaskAssignees === 'function') {
+        const assignees = zrcV460GetTaskAssignees(task);
+
+        if (!assignees.length) return '';
+
+        const visibleAssignees = assignees.slice(0, 3);
+        const moreCount = Math.max(0, assignees.length - visibleAssignees.length);
+
+        return `
+          <div class="zrc-v464-existing-card-avatar-row" data-zrc-v464-avatar-row="true">
+            ${visibleAssignees.map((member) => `<span class="zrc-v464-existing-card-avatar" title="${zrcV456EscapeHtml(member.name || '')}">${zrcV456EscapeHtml(member.avatar || createAvatarFromName(member.name || ''))}</span>`).join('')}
+            ${moreCount > 0 ? `<span class="zrc-v464-existing-card-avatar zrc-v464-existing-card-avatar-more">+${moreCount}</span>` : ''}
+          </div>
+        `;
+      }
+
+      const name = task.assignee?.name || task.assignedTo?.name || task.owner?.name || '';
+      const avatar = createAvatarFromName(name || 'ZRC');
+
+      return `
+        <div class="zrc-v464-existing-card-avatar-row" data-zrc-v464-avatar-row="true">
+          <span class="zrc-v464-existing-card-avatar" title="${zrcV456EscapeHtml(name)}">${zrcV456EscapeHtml(avatar)}</span>
+        </div>
+      `;
+    };
+
+    const addAvatarsToExistingMobileCards = () => {
+      if (window.innerWidth > 768) return;
+
+      const allTasks = boardColumns.flatMap((column) => column.tasks || []);
+
+      if (!allTasks.length) return;
+
+      const root = document.getElementById('zrc-v456-mobile-column-board-root');
+
+      // Mevcut üst mobil görev kartlarını bul; yeni DOM panelin içindekilere dokunma.
+      const candidateCards = Array.from(document.querySelectorAll('div')).filter((element) => {
+        if (root && root.contains(element)) return false;
+        if (element.querySelector('[data-zrc-v464-avatar-row="true"]')) return false;
+
+        const text = normalizeText(element.textContent || '');
+
+        if (!text) return false;
+        if (!text.includes('Başlangıç:') && !text.includes('Bitiş:')) return false;
+
+        return allTasks.some((task) => {
+          const title = normalizeText(task.title || task.name || '');
+
+          return title && text.includes(title);
+        });
+      });
+
+      candidateCards.forEach((card) => {
+        const cardText = normalizeText(card.textContent || '');
+        const matchedTask = allTasks.find((task) => {
+          const title = normalizeText(task.title || task.name || '');
+
+          return title && cardText.includes(title);
+        });
+
+        if (!matchedTask) return;
+
+        const avatarHtml = renderAvatarHtml(matchedTask);
+
+        if (!avatarHtml) return;
+
+        const datePill =
+          Array.from(card.querySelectorAll('div, span')).reverse().find((node) => {
+            const text = normalizeText(node.textContent || '');
+
+            return text.includes('Bitiş:') || text.includes('Başlangıç:');
+          }) || card;
+
+        const avatarHolder = document.createElement('div');
+        avatarHolder.innerHTML = avatarHtml;
+
+        const avatarRow = avatarHolder.firstElementChild;
+
+        if (!avatarRow) return;
+
+        if (datePill && datePill.parentElement && datePill.parentElement !== card) {
+          datePill.parentElement.insertAdjacentElement('afterend', avatarRow);
+        } else {
+          card.appendChild(avatarRow);
+        }
+      });
+    };
+
+    const refreshMobileTaskCards = () => {
+      const root = document.getElementById('zrc-v456-mobile-column-board-root');
+
+      if (root) {
+        root.querySelectorAll('.zrc-v456-head, .zrc-v456-list').forEach((element) => {
+          element.style.display = 'none';
+        });
+      }
+
+      window.requestAnimationFrame(addAvatarsToExistingMobileCards);
+    };
+
+    refreshMobileTaskCards();
+
+    const observer = new MutationObserver(() => {
+      refreshMobileTaskCards();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    const timer = window.setInterval(refreshMobileTaskCards, 1800);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(timer);
+    };
+  }, [boardColumns, selectedProject, teamMembers]);
 
 
 return (

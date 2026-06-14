@@ -1,12 +1,9 @@
 {
-  "build": "v463-safe-stable-mobile-notification-badge",
-  "note": "Mobil sağ üst bildirim rozetinin yanıp sönmesini azaltmak için sık yedek refresh aralıkları 30 saniyeye çekildi ve mobil bildirim rozetindeki animation/transition kapatıldı. Realtime canlı senkron çalışmaya devam eder.",
+  "build": "v464-safe-mobile-remove-duplicate-add-avatar",
+  "note": "Mobilde alt tarafta oluşan ikinci görev listesi gizlendi; Instagram tarzı alt kolon kapsülü korunur. Var olan üst mobil görev kartlarına görevli kişi avatarları eklenir.",
   "changed": [
-    "}, 3000); aralığı }, 30000); yapıldı (1 adet)",
-    "}, 5000); aralığı }, 30000); yapıldı (1 adet)",
-    "}, 12000); aralığı }, 30000); yapıldı (1 adet)",
-    "mobil bildirim rozetinin animasyon/yanıp sönme etkisi kapatıldı"
+    "mobilde alt çift görev paneli gizlendi ve üst karta avatar eklendi"
   ],
-  "commitBefore": "7ff6e00",
-  "createdAt": "2026-06-14T14:05:39.142445+00:00"
+  "commitBefore": "f0b4eb3",
+  "createdAt": "2026-06-14T14:09:12.151826+00:00"
 }
