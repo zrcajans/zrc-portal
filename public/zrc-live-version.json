@@ -1,11 +1,12 @@
 {
-  "build": "v476-safe-extract-mobile-project-utils",
-  "note": "Mobil proje seçici ve mobil görev bölümü içinde tekrar eden proje yardımcıları src/utils/mobileProjectHelpers.js dosyasına taşındı.",
+  "build": "v477-safe-extract-error-boundary",
+  "note": "ZRCErrorBoundary bileşeni App.jsx içinden src/components/common/ZRCErrorBoundary.jsx dosyasına taşındı. Build label prop olarak aktarılır.",
   "changed": [
-    "src/utils/mobileProjectHelpers.js oluşturuldu/güncellendi",
-    "MobileProjectPicker ortak proje helperlarını kullanacak şekilde güncellendi",
-    "MobileTaskSection ortak proje helperlarını kullanacak şekilde güncellendi"
+    "src/components/common/ZRCErrorBoundary.jsx oluşturuldu/güncellendi",
+    "ZRCErrorBoundary class bloğu App.jsx içinden kaldırıldı",
+    "App.jsx'e ZRCErrorBoundary importu eklendi",
+    "ZRCErrorBoundary kullanımına buildLabel prop'u eklendi"
   ],
-  "commitBefore": "fdd6316",
-  "createdAt": "2026-06-14T15:26:34.901681+00:00"
+  "commitBefore": "41b1cff",
+  "createdAt": "2026-06-14T15:29:27.960831+00:00"
 }
