@@ -1,9 +1,11 @@
 {
-  "build": "v479-safe-avatar-helper-self-contained",
-  "note": "Avatar helper utility dosyası App.jsx içindeki currentProfileInitials değişkenine bağlı kalmayacak şekilde güvenli hale getirildi.",
+  "build": "v480-safe-extract-team-helpers",
+  "note": "Ekip/rol/customer normalize yardımcıları App.jsx içinden src/utils/teamHelpers.js dosyasına taşındı.",
   "changed": [
-    "avatarHelpers.jsx App içi currentProfileInitials bağımlılığından temizlendi"
+    "src/utils/teamHelpers.js oluşturuldu/güncellendi",
+    "App.jsx'e teamHelpers importu eklendi",
+    "Ekip/rol helper bloğu App.jsx içinden kaldırıldı"
   ],
-  "commitBefore": "8199eb4",
-  "createdAt": "2026-06-14T15:33:27.688872+00:00"
+  "commitBefore": "354ee83",
+  "createdAt": "2026-06-14T15:36:05.971160+00:00"
 }
