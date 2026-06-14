@@ -1,17 +1,9 @@
 {
-  "build": "v460-safe-full-live-mirror-mobile-safe",
-  "note": "Masaüstü ve mobilin birebir canlı yansıması güçlendirildi. Bildirim sayıları activity/notifications realtime ile yenilenir. Mobil görev kartları safe alana alındı, görevli avatarları eklendi, proje seçim alanı küçültüldü.",
+  "build": "v461-safe-auto-notifications-no-buttons",
+  "note": "Web ve mobil bildirim sekmesindeki Yenile ve Tümü okundu yap butonları gizlendi. Bildirimler sayfa görünürken her saniye otomatik yenilenir; mobilde de aynı şekilde çalışır.",
   "changed": [
-    "canlı refresh fonksiyonu tüm kritik veriler için güçlendirildi",
-    "mobil panel safe genişliğe alındı",
-    "mobil görev kartları safe alana daraltıldı",
-    "mobil görevli avatar CSS eklendi",
-    "mobil görevli avatar helper eklendi",
-    "mobil görev kartı avatar değişkeni eklendi",
-    "mobil görev kartına avatar satırı eklendi",
-    "mobil proje seçimi alanı kompakt yapıldı",
-    "tam canlı yansıma realtime/focus/fallback eklendi"
+    "yenile/tümü okundu butonları gizlendi ve bildirimler her saniye otomatik yenilendi"
   ],
-  "commitBefore": "8c00fc1",
-  "createdAt": "2026-06-14T13:52:54.097695+00:00"
+  "commitBefore": "60578c7",
+  "createdAt": "2026-06-14T13:56:54.500969+00:00"
 }

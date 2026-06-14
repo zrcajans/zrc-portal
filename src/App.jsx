@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v460-safe-full-live-mirror-mobile-safe';
+const ZRC_APP_BUILD_LABEL = 'v461-safe-auto-notifications-no-buttons';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -15527,6 +15527,112 @@ function App() {
       window.removeEventListener('focus', handleVisibilityOrFocus);
     };
   }, [supabaseWorkspaceId, selectedProject, currentUserId, supabaseAuthUserId, authSessionLoading]);
+
+
+  // zrc-v461-auto-notification-refresh-no-buttons
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+
+    const normalizeButtonText = (value = '') =>
+      String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('tr-TR');
+
+    const isInsideNotificationArea = (button) => {
+      let node = button;
+
+      for (let index = 0; index < 9; index += 1) {
+        if (!node) return false;
+
+        const text = normalizeButtonText(node.textContent || '');
+
+        if (
+          text.includes('bildirim') ||
+          text.includes('notification') ||
+          text.includes('okunmadı') ||
+          text.includes('okundu')
+        ) {
+          return true;
+        }
+
+        node = node.parentElement;
+      }
+
+      return false;
+    };
+
+    const hideNotificationActionButtons = () => {
+      document.querySelectorAll('button').forEach((button) => {
+        const text = normalizeButtonText(button.textContent || '');
+
+        const isRefreshButton = text === 'yenile' && isInsideNotificationArea(button);
+        const isMarkReadButton =
+          text === 'tümü okundu yap' ||
+          text === 'tumu okundu yap' ||
+          text === 'tümünü okundu yap' ||
+          text === 'tumunu okundu yap';
+
+        if (!isRefreshButton && !isMarkReadButton) return;
+
+        button.style.display = 'none';
+        button.setAttribute('aria-hidden', 'true');
+        button.setAttribute('data-zrc-v461-hidden-notification-action', 'true');
+      });
+    };
+
+    hideNotificationActionButtons();
+
+    const observer = new MutationObserver(() => {
+      hideNotificationActionButtons();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    const buttonHideTimer = window.setInterval(hideNotificationActionButtons, 1000);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(buttonHideTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (authSessionLoading || !currentUserId) return undefined;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+
+    let isRefreshingNotifications = false;
+    let isCancelled = false;
+
+    const refreshNotificationsEverySecond = async () => {
+      if (isCancelled) return;
+      if (document.visibilityState !== 'visible') return;
+      if (isRefreshingNotifications) return;
+
+      isRefreshingNotifications = true;
+
+      try {
+        await loadActivityLogsFromSupabase();
+
+        // Bildirim sayıları ve mobil kapsül aynı anda yeniden çizilsin.
+        setZrcMobileColumnRefreshKey((value) => value + 1);
+      } catch (error) {
+        console.warn('[ZRC v461] Bildirimler otomatik yenilenemedi.', error);
+      } finally {
+        isRefreshingNotifications = false;
+      }
+    };
+
+    refreshNotificationsEverySecond();
+
+    const notificationAutoRefreshTimer = window.setInterval(refreshNotificationsEverySecond, 1000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(notificationAutoRefreshTimer);
+    };
+  }, [authSessionLoading, currentUserId, selectedProject, supabaseWorkspaceId]);
 
 
 return (
