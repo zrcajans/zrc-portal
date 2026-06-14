@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v454cb-safe-mobile-column-tabs';
+const ZRC_APP_BUILD_LABEL = 'v456-safe-mobile-column-board-robust';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -14619,7 +14619,438 @@ function App() {
   }
 
 
-  return (
+    // zrc-v456-mobile-column-board-robust
+  const zrcV456MobileColumns = boardColumns.map((column) => ({
+    ...column,
+    tasks: (column.tasks || []).filter((task) => isTaskVisibleForProject(task, selectedProject))
+  }));
+
+  const zrcV456MobileColumnIds = zrcV456MobileColumns.map((column) => column.id).join('|');
+
+  const zrcV456EscapeHtml = (value = '') =>
+    String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+
+  useEffect(() => {
+    if (zrcV456MobileColumns.length === 0) {
+      if (mobileActiveColumnId) setMobileActiveColumnId('');
+      return;
+    }
+
+    const hasActiveColumn = zrcV456MobileColumns.some((column) => column.id === mobileActiveColumnId);
+
+    if (!mobileActiveColumnId || !hasActiveColumn) {
+      setMobileActiveColumnId(zrcV456MobileColumns[0].id);
+    }
+  }, [zrcV456MobileColumnIds, mobileActiveColumnId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const rootId = 'zrc-v456-mobile-column-board-root';
+    const styleId = 'zrc-v456-mobile-column-board-style';
+
+    let root = document.getElementById(rootId);
+
+    if (window.innerWidth > 768) {
+      if (root) root.remove();
+      return;
+    }
+
+    const ensureStyle = () => {
+      if (document.getElementById(styleId)) return;
+
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        #${rootId} {
+          width: 100%;
+          margin-top: 12px;
+          padding-bottom: 92px;
+        }
+
+        #${rootId} .zrc-v456-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+        }
+
+        #${rootId} .zrc-v456-kicker {
+          font-size: 10px;
+          line-height: 1;
+          font-weight: 900;
+          color: #9aa3b2;
+          text-transform: uppercase;
+          letter-spacing: .10em;
+        }
+
+        #${rootId} .zrc-v456-title {
+          margin-top: 4px;
+          font-size: 20px;
+          line-height: 1.1;
+          font-weight: 950;
+          color: #172132;
+        }
+
+        #${rootId} .zrc-v456-count {
+          height: 32px;
+          min-width: 32px;
+          padding: 0 8px;
+          border-radius: 999px;
+          background: #fff;
+          border: 1px solid #e4e7ec;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #667085;
+          font-size: 11px;
+          font-weight: 950;
+          box-shadow: 0 8px 24px rgba(15,23,42,.06);
+        }
+
+        #${rootId} .zrc-v456-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        #${rootId} .zrc-v456-card {
+          background: #fff;
+          border: 1px solid #e6e9ef;
+          border-radius: 18px;
+          padding: 14px;
+          box-shadow: 0 14px 36px rgba(15,23,42,.06);
+        }
+
+        #${rootId} .zrc-v456-card-main {
+          width: 100%;
+          border: 0;
+          background: transparent;
+          text-align: left;
+          padding: 0;
+          display: flex;
+          align-items: flex-start;
+          gap: 11px;
+        }
+
+        #${rootId} .zrc-v456-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          margin-top: 5px;
+          flex: 0 0 auto;
+        }
+
+        #${rootId} .zrc-v456-task-title {
+          font-size: 14px;
+          line-height: 1.25;
+          font-weight: 950;
+          color: #172132;
+        }
+
+        #${rootId} .zrc-v456-task-sub {
+          margin-top: 5px;
+          font-size: 10px;
+          line-height: 1;
+          font-weight: 950;
+          color: #9aa3b2;
+          text-transform: uppercase;
+          letter-spacing: .08em;
+        }
+
+        #${rootId} .zrc-v456-move-row {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid #f0f1f3;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+
+        #${rootId} .zrc-v456-move-btn {
+          height: 40px;
+          border-radius: 12px;
+          border: 1px solid #e4e7ec;
+          background: #fff;
+          color: #525866;
+          font-size: 10px;
+          font-weight: 950;
+          padding: 0 8px;
+        }
+
+        #${rootId} .zrc-v456-move-btn-next {
+          border-color: #ff3600;
+          background: #ff3600;
+          color: #fff;
+        }
+
+        #${rootId} .zrc-v456-empty {
+          border: 1px dashed #d4d9e2;
+          border-radius: 20px;
+          background: rgba(255,255,255,.72);
+          padding: 24px;
+          text-align: center;
+          color: #9aa3b2;
+          font-size: 13px;
+          font-weight: 950;
+        }
+
+        #${rootId} .zrc-v456-strip {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 900;
+          padding: 8px 12px calc(env(safe-area-inset-bottom) + 10px);
+          background: rgba(255,255,255,.94);
+          backdrop-filter: blur(20px);
+          border-top: 1px solid #e4e7ec;
+          box-shadow: 0 -16px 42px rgba(15,23,42,.12);
+        }
+
+        #${rootId} .zrc-v456-strip-scroll {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          overflow-x: auto;
+          padding-bottom: 2px;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        #${rootId} .zrc-v456-tab {
+          flex: 0 0 auto;
+          height: 40px;
+          padding: 0 13px;
+          border-radius: 14px;
+          border: 1px solid #e4e7ec;
+          background: #f8fafc;
+          color: #667085;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 10px;
+          font-weight: 950;
+          max-width: 180px;
+        }
+
+        #${rootId} .zrc-v456-tab-active {
+          background: #101827;
+          border-color: #101827;
+          color: #fff;
+          box-shadow: 0 10px 22px rgba(15,23,42,.18);
+        }
+
+        #${rootId} .zrc-v456-tab-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          flex: 0 0 auto;
+        }
+
+        #${rootId} .zrc-v456-tab-title {
+          max-width: 118px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        #${rootId} .zrc-v456-tab-count {
+          height: 20px;
+          min-width: 20px;
+          padding: 0 6px;
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #fff;
+          color: #98a2b3;
+          border: 1px solid #e4e7ec;
+          font-size: 9px;
+          font-weight: 950;
+        }
+
+        #${rootId} .zrc-v456-tab-active .zrc-v456-tab-count {
+          background: rgba(255,255,255,.16);
+          color: #fff;
+          border-color: rgba(255,255,255,.2);
+        }
+      `;
+      document.head.appendChild(style);
+    };
+
+    const findByExactText = (selector, text) =>
+      Array.from(document.querySelectorAll(selector)).find((element) => String(element.textContent || '').trim() === text);
+
+    const hideOldMobileBlocks = () => {
+      const selectedProjectLabel = findByExactText('div, span, p, strong', 'Seçili proje');
+
+      if (selectedProjectLabel?.parentElement) {
+        selectedProjectLabel.parentElement.style.display = 'none';
+      }
+
+      const emptyText = Array.from(document.querySelectorAll('div, p, span')).find((element) =>
+        String(element.textContent || '').trim() === 'Bu projede henüz görev yok.'
+      );
+
+      const emptyBox = emptyText?.closest('div');
+
+      if (emptyBox) {
+        emptyBox.style.display = 'none';
+      }
+    };
+
+    const attachRoot = () => {
+      if (!root) {
+        root = document.createElement('div');
+        root.id = rootId;
+      }
+
+      const createTaskButton = Array.from(document.querySelectorAll('button')).find((button) =>
+        String(button.textContent || '').trim().includes('Görev Oluştur')
+      );
+
+      const anchor =
+        createTaskButton?.closest('div')?.parentElement ||
+        createTaskButton?.parentElement ||
+        document.querySelector('main') ||
+        document.body;
+
+      if (root.parentElement !== anchor.parentElement) {
+        anchor.insertAdjacentElement('afterend', root);
+      }
+    };
+
+    ensureStyle();
+    attachRoot();
+    hideOldMobileBlocks();
+
+    if (!zrcV456MobileColumns.length) {
+      root.innerHTML = '';
+      return;
+    }
+
+    const activeColumn =
+      zrcV456MobileColumns.find((column) => column.id === mobileActiveColumnId) ||
+      zrcV456MobileColumns[0];
+
+    const activeIndex = Math.max(0, zrcV456MobileColumns.findIndex((column) => column.id === activeColumn.id));
+    const previousColumn = activeIndex > 0 ? zrcV456MobileColumns[activeIndex - 1] : null;
+    const nextColumn = activeIndex < zrcV456MobileColumns.length - 1 ? zrcV456MobileColumns[activeIndex + 1] : null;
+
+    const tasks = activeColumn.tasks || [];
+
+    root.innerHTML = `
+      <div class="zrc-v456-head">
+        <div>
+          <div class="zrc-v456-kicker">Kolon</div>
+          <div class="zrc-v456-title">${zrcV456EscapeHtml(activeColumn.title || 'Kolon')}</div>
+        </div>
+        <div class="zrc-v456-count">${tasks.length}</div>
+      </div>
+
+      <div class="zrc-v456-list">
+        ${
+          tasks.length
+            ? tasks.map((task) => {
+                const title = zrcV456EscapeHtml(task.title || task.name || 'Adsız görev');
+                const canMoveTask = currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject);
+
+                return `
+                  <div class="zrc-v456-card" data-zrc-task-card="${zrcV456EscapeHtml(task.id)}">
+                    <button type="button" class="zrc-v456-card-main" data-zrc-open-task="${zrcV456EscapeHtml(task.id)}">
+                      <span class="zrc-v456-dot" style="background:${zrcV456EscapeHtml(activeColumn.color || '#ff3600')}"></span>
+                      <span>
+                        <span class="zrc-v456-task-title">${title}</span>
+                        <span class="zrc-v456-task-sub">${zrcV456EscapeHtml(activeColumn.title || '')}</span>
+                      </span>
+                    </button>
+
+                    ${
+                      canMoveTask && (previousColumn || nextColumn)
+                        ? `
+                          <div class="zrc-v456-move-row">
+                            ${
+                              previousColumn
+                                ? `<button type="button" class="zrc-v456-move-btn" data-zrc-move-task="${zrcV456EscapeHtml(task.id)}" data-zrc-target-column="${zrcV456EscapeHtml(previousColumn.id)}">← ${zrcV456EscapeHtml(previousColumn.title || '')}</button>`
+                                : '<span></span>'
+                            }
+                            ${
+                              nextColumn
+                                ? `<button type="button" class="zrc-v456-move-btn zrc-v456-move-btn-next" data-zrc-move-task="${zrcV456EscapeHtml(task.id)}" data-zrc-target-column="${zrcV456EscapeHtml(nextColumn.id)}">${zrcV456EscapeHtml(nextColumn.title || '')} →</button>`
+                                : '<span></span>'
+                            }
+                          </div>
+                        `
+                        : ''
+                    }
+                  </div>
+                `;
+              }).join('')
+            : '<div class="zrc-v456-empty">Bu kolonda henüz görev yok.</div>'
+        }
+      </div>
+
+      <div class="zrc-v456-strip">
+        <div class="zrc-v456-strip-scroll">
+          ${zrcV456MobileColumns.map((column) => {
+            const isActive = column.id === activeColumn.id;
+
+            return `
+              <button type="button" class="zrc-v456-tab ${isActive ? 'zrc-v456-tab-active' : ''}" data-zrc-column-tab="${zrcV456EscapeHtml(column.id)}">
+                <span class="zrc-v456-tab-dot" style="background:${zrcV456EscapeHtml(column.color || '#ff3600')}"></span>
+                <span class="zrc-v456-tab-title">${zrcV456EscapeHtml(column.title || 'Kolon')}</span>
+                <span class="zrc-v456-tab-count">${(column.tasks || []).length}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+
+    root.querySelectorAll('[data-zrc-column-tab]').forEach((button) => {
+      button.addEventListener('click', () => {
+        setMobileActiveColumnId(button.getAttribute('data-zrc-column-tab') || '');
+      });
+    });
+
+    root.querySelectorAll('[data-zrc-open-task]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const taskId = button.getAttribute('data-zrc-open-task');
+        const task = tasks.find((item) => String(item.id) === String(taskId));
+
+        if (task) openTaskDetail(task, activeColumn.title);
+      });
+    });
+
+    root.querySelectorAll('[data-zrc-move-task]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+
+        const taskId = button.getAttribute('data-zrc-move-task');
+        const targetColumnId = button.getAttribute('data-zrc-target-column');
+        const task = tasks.find((item) => String(item.id) === String(taskId));
+
+        if (!task || !targetColumnId) return;
+
+        handleMoveTaskToColumn(activeColumn.id, targetColumnId, task);
+        setMobileActiveColumnId(targetColumnId);
+      });
+    });
+  }, [
+    selectedProject,
+    boardColumns,
+    mobileActiveColumnId,
+    zrcV456MobileColumnIds,
+    currentPermissions.editTasks
+  ]);
+
+
+return (
     <div className="min-h-screen flex bg-[#f5f6f8] antialiased selection:bg-[#ff3600] overflow-x-hidden relative font-[Inter]">
       {customStyles}
       {renderSupabaseConnectionBadge()}
