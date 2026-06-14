@@ -1,10 +1,13 @@
 {
-  "build": "v465-safe-mobile-real-profile-avatar-fix",
-  "note": "v464'teki hatalı çoklu avatar ekleme efekti kaldırıldı. Mobilde alt görev listesi gizli kalır; sadece üst mevcut görev kartına, görevli kişilerin gerçek profil fotoğrafı tek satır olarak eklenir.",
+  "build": "v466-cleanup-appjsx-mobile-dom",
+  "note": "App.jsx içindeki sonradan eklenen hatalı mobil DOM paneli, çift realtime kanalları ve DOM ile avatar basan yamalar temizlendi. Amaç: çift görev kartı, tekrar eden avatar ve rozet titremesi gibi yan etkileri durdurmak. App.jsx parçalama işleminden önce stabil zemin.",
   "changed": [
-    "v464 hatalı çoklu avatar efekti kaldırıldı (1 adet)",
-    "üst mobil görev kartına tek profil fotoğrafı efekti eklendi"
+    "v456 DOM tabanlı mobil kolon/görev paneli kaldırıldı",
+    "v459 ekstra proje bazlı realtime ve kolon sıra persist bloğu kaldırıldı",
+    "v460 DOM avatar helperları kaldırıldı",
+    "v460 ekstra tam canlı mirror kanalı kaldırıldı",
+    "v465 DOM ile avatar basan efekt kaldırıldı (1 adet)"
   ],
-  "commitBefore": "e04b668",
-  "createdAt": "2026-06-14T14:17:22.466230+00:00"
+  "commitBefore": "75938c1",
+  "createdAt": "2026-06-14T14:32:34.362000+00:00"
 }
