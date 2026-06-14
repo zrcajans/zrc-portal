@@ -7,7 +7,7 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import { supabase } from './supabaseClient';
 
-const ZRC_APP_BUILD_LABEL = 'v456-safe-mobile-column-board-robust';
+const ZRC_APP_BUILD_LABEL = 'v457-safe-instagram-style-mobile-column-bar';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -14670,7 +14670,7 @@ function App() {
         #${rootId} {
           width: 100%;
           margin-top: 12px;
-          padding-bottom: 92px;
+          padding-bottom: 104px;
         }
 
         #${rootId} .zrc-v456-head {
@@ -14802,47 +14802,81 @@ function App() {
 
         #${rootId} .zrc-v456-strip {
           position: fixed;
-          left: 0;
-          right: 0;
-          bottom: 0;
+          left: 50%;
+          right: auto;
+          bottom: calc(env(safe-area-inset-bottom) + 12px);
           z-index: 900;
-          padding: 8px 12px calc(env(safe-area-inset-bottom) + 10px);
-          background: rgba(255,255,255,.94);
-          backdrop-filter: blur(20px);
-          border-top: 1px solid #e4e7ec;
-          box-shadow: 0 -16px 42px rgba(15,23,42,.12);
+          width: min(92vw, 720px);
+          transform: translateX(-50%);
+          padding: 8px;
+          border-radius: 999px;
+          background: rgba(15, 23, 32, .88);
+          backdrop-filter: blur(24px) saturate(145%);
+          -webkit-backdrop-filter: blur(24px) saturate(145%);
+          border: 1px solid rgba(255, 255, 255, .10);
+          box-shadow:
+            0 18px 46px rgba(15, 23, 42, .26),
+            inset 0 1px 0 rgba(255, 255, 255, .12);
         }
 
         #${rootId} .zrc-v456-strip-scroll {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
           overflow-x: auto;
-          padding-bottom: 2px;
+          padding: 0;
           -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+
+        #${rootId} .zrc-v456-strip-scroll::-webkit-scrollbar {
+          display: none;
         }
 
         #${rootId} .zrc-v456-tab {
           flex: 0 0 auto;
-          height: 40px;
-          padding: 0 13px;
-          border-radius: 14px;
-          border: 1px solid #e4e7ec;
-          background: #f8fafc;
-          color: #667085;
+          min-width: 74px;
+          height: 48px;
+          padding: 0 12px;
+          border-radius: 999px;
+          border: 1px solid transparent;
+          background: transparent;
+          color: rgba(255, 255, 255, .62);
           display: flex;
           align-items: center;
-          gap: 8px;
+          justify-content: center;
+          gap: 7px;
           font-size: 10px;
           font-weight: 950;
-          max-width: 180px;
+          max-width: 172px;
+          position: relative;
+          transition: all .18s ease;
+        }
+
+        #${rootId} .zrc-v456-tab:active {
+          transform: scale(.96);
         }
 
         #${rootId} .zrc-v456-tab-active {
-          background: #101827;
-          border-color: #101827;
+          background: rgba(255, 255, 255, .14);
+          border-color: rgba(255, 255, 255, .12);
           color: #fff;
-          box-shadow: 0 10px 22px rgba(15,23,42,.18);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.12),
+            0 10px 24px rgba(0,0,0,.18);
+        }
+
+        #${rootId} .zrc-v456-tab-active::after {
+          content: '';
+          position: absolute;
+          left: 50%;
+          bottom: 6px;
+          width: 5px;
+          height: 5px;
+          border-radius: 999px;
+          transform: translateX(-50%);
+          background: #ff3600;
+          box-shadow: 0 0 0 4px rgba(255,54,0,.12);
         }
 
         #${rootId} .zrc-v456-tab-dot {
@@ -14850,34 +14884,38 @@ function App() {
           height: 8px;
           border-radius: 999px;
           flex: 0 0 auto;
+          box-shadow: 0 0 0 3px rgba(255,255,255,.08);
         }
 
         #${rootId} .zrc-v456-tab-title {
-          max-width: 118px;
+          max-width: 104px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          padding-bottom: 5px;
         }
 
         #${rootId} .zrc-v456-tab-count {
-          height: 20px;
-          min-width: 20px;
-          padding: 0 6px;
+          height: 18px;
+          min-width: 18px;
+          padding: 0 5px;
           border-radius: 999px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #fff;
-          color: #98a2b3;
-          border: 1px solid #e4e7ec;
+          background: rgba(255,255,255,.10);
+          color: rgba(255,255,255,.78);
+          border: 1px solid rgba(255,255,255,.08);
           font-size: 9px;
           font-weight: 950;
+          margin-bottom: 5px;
         }
 
         #${rootId} .zrc-v456-tab-active .zrc-v456-tab-count {
-          background: rgba(255,255,255,.16);
+          background: #ff3600;
           color: #fff;
-          border-color: rgba(255,255,255,.2);
+          border-color: #ff3600;
+          box-shadow: 0 6px 14px rgba(255,54,0,.24);
         }
       `;
       document.head.appendChild(style);
