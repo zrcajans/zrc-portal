@@ -1,9 +1,7 @@
 {
-  "build": "v499-fix-login-return-hook-order",
-  "note": "Minified React error #310 için login erken return bloğu, sonradan çalışan useEffect hooklarının altına taşındı.",
-  "changed": [
-    "if (!isLoggedIn) erken return bloğu useEffect hooklarının altına taşındı"
-  ],
-  "commitBefore": "110cb25",
-  "createdAt": "2026-06-14T18:03:55.872825+00:00"
+  "build": "v500-stable-checkpoint",
+  "note": "Canlı site çalışır duruma getirildikten sonra stabil checkpoint alındı. Sonraki refactorlar bu noktadan kontrollü ilerleyecek.",
+  "stableCommit": "4fbd91b",
+  "appJsxLines": 22025,
+  "createdAt": "2026-06-15T08:02:44.606774+00:00"
 }
