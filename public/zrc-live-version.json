@@ -1,11 +1,10 @@
 {
-  "build": "v517d-extract-mobile-task-move-buttons-linebased",
-  "note": "zrc-v454c-mobile-task-move-buttons IIFE bloğu satır bazlı doğru kesilerek MobileTaskMoveButtons bileşenine taşındı.",
-  "changed": [
-    "src/components/mobile/MobileTaskMoveButtons.jsx oluşturuldu: 44 satırlık IIFE bloğu taşındı",
-    "App.jsx'e MobileTaskMoveButtons importu eklendi"
-  ],
-  "movedLines": 44,
-  "commitBefore": "badfd55",
-  "createdAt": "2026-06-15T18:59:52.672369+00:00"
+  "build": "v518-mega-app-shell-split",
+  "note": "App.jsx mini entry dosyasına çevrildi; mevcut büyük uygulama kabuğu src/app/ZRCAppShell.jsx dosyasına taşındı. Çalışan mantığa dokunulmadı, sadece import yolları bir seviye alta göre düzeltildi.",
+  "appJsxLinesBefore": 19359,
+  "appJsxLinesAfter": 4,
+  "shellFile": "src/app/ZRCAppShell.jsx",
+  "shellLines": 19359,
+  "commitBefore": "c545f03",
+  "createdAt": "2026-06-15T19:16:22.200692+00:00"
 }
