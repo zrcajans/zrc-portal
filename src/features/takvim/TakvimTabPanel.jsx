@@ -5,26 +5,15 @@ import TakvimTabPanelCalendarViewAyBlock from './blocks/TakvimTabPanelCalendarVi
 export default function TakvimTabPanel(props) {
   const {
     activeTab,
-    Takvim,
     w,
     full,
     flex,
     bg,
-    f5f6f8,
-    overflow,
-    auto,
-    custom,
-    scrollbar,
-    animate,
-    fade,
     px,
     py,
-    max,
-    mx,
     items,
     center,
     justify,
-    end,
     mb,
     relative,
     setIsCalendarDisplayMenuOpen,
@@ -35,41 +24,26 @@ export default function TakvimTabPanel(props) {
     white,
     font,
     black,
-    hover,
     shadow,
     transition,
     all,
     gap,
     none,
-    currentColor,
-    round,
-    M3,
     isCalendarDisplayMenuOpen,
     absolute,
-    right,
-    top,
     border,
     zinc,
     z,
-    hideLongTasks,
-    Uzun,
-    Gizle,
-    hideCompletedTasks,
-    hideArchivedTasks,
     item,
     setCalendarDisplayOptions,
     prevOptions,
     left,
     colors,
     calendarDisplayOptions,
-    transparent,
-    M5,
     bold,
-    hidden,
     b,
     between,
     goToPreviousCalendarPeriod,
-    tracking,
     tight,
     capitalize,
     min,
@@ -77,21 +51,12 @@ export default function TakvimTabPanel(props) {
     goToNextCalendarPeriod,
     goToCurrentCalendarPeriod,
     Ay,
-    Hafta,
-    Liste,
     view,
     pressed,
     calendarView,
     changeCalendarView,
     blue,
-    sm,
     grid,
-    Pzt,
-    Sal,
-    Per,
-    Cum,
-    Cmt,
-    Paz,
     dayName,
     last,
     calendarGridDays,
@@ -123,7 +88,6 @@ export default function TakvimTabPanel(props) {
     calendarWeekDays,
     week,
     mt,
-    uppercase,
     formatCalendarWeekday,
     handleCalendarDayClick,
     calendarFocusedDate,
@@ -139,16 +103,14 @@ export default function TakvimTabPanel(props) {
     Normal,
     dashed,
     yok,
-    fbfcfd,
     calendarTasks,
     list,
-    col,
     formatCalendarDate,
     Takvimde,
     Tarihi,
     olan,
     burada,
-    listelenir
+    listelenir,
   } = props;
 
   return (
@@ -277,10 +239,6 @@ export default function TakvimTabPanel(props) {
                                                 {/* zrc-v523-block-calendarview-ay */}
                         <TakvimTabPanelCalendarViewAyBlock
                           calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
-                          Ay={typeof Ay !== 'undefined' ? Ay : undefined}
-                          grid={typeof grid !== 'undefined' ? grid : undefined}
-                          bg={typeof bg !== 'undefined' ? bg : undefined}
-                          white={typeof white !== 'undefined' ? white : undefined}
                           calendarGridDays={typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined}
                           getTasksForCalendarDay={typeof getTasksForCalendarDay !== 'undefined' ? getTasksForCalendarDay : undefined}
                           calendarMonthDate={typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined}
@@ -300,32 +258,21 @@ export default function TakvimTabPanel(props) {
                           py={typeof py !== 'undefined' ? py : undefined}
                           relative={typeof relative !== 'undefined' ? relative : undefined}
                           canCreateTaskFromCalendar={typeof canCreateTaskFromCalendar !== 'undefined' ? canCreateTaskFromCalendar : undefined}
-                          cursor={typeof cursor !== 'undefined' ? cursor : undefined}
-                          pointer={typeof pointer !== 'undefined' ? pointer : undefined}
                           transition={typeof transition !== 'undefined' ? transition : undefined}
                           colors={typeof colors !== 'undefined' ? colors : undefined}
                           ekle={typeof ekle !== 'undefined' ? ekle : undefined}
                           openTaskModalForCalendarDay={typeof openTaskModalForCalendarDay !== 'undefined' ? openTaskModalForCalendarDay : undefined}
-                          absolute={typeof absolute !== 'undefined' ? absolute : undefined}
-                          inset={typeof inset !== 'undefined' ? inset : undefined}
                           z={typeof z !== 'undefined' ? z : undefined}
                           rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                          events={typeof events !== 'undefined' ? events : undefined}
-                          none={typeof none !== 'undefined' ? none : undefined}
                           flex={typeof flex !== 'undefined' ? flex : undefined}
                           items={typeof items !== 'undefined' ? items : undefined}
                           center={typeof center !== 'undefined' ? center : undefined}
                           justify={typeof justify !== 'undefined' ? justify : undefined}
-                          between={typeof between !== 'undefined' ? between : undefined}
-                          mb={typeof mb !== 'undefined' ? mb : undefined}
                           w={typeof w !== 'undefined' ? w : undefined}
                           full={typeof full !== 'undefined' ? full : undefined}
                           text={typeof text !== 'undefined' ? text : undefined}
                           font={typeof font !== 'undefined' ? font : undefined}
                           black={typeof black !== 'undefined' ? black : undefined}
-                          blue={typeof blue !== 'undefined' ? blue : undefined}
-                          leading={typeof leading !== 'undefined' ? leading : undefined}
-                          space={typeof space !== 'undefined' ? space : undefined}
                           onMouseDown={typeof onMouseDown !== 'undefined' ? onMouseDown : undefined}
                           openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
                           left={typeof left !== 'undefined' ? left : undefined}
@@ -416,22 +363,10 @@ export default function TakvimTabPanel(props) {
                           white={typeof white !== 'undefined' ? white : undefined}
                           transition={typeof transition !== 'undefined' ? transition : undefined}
                           colors={typeof colors !== 'undefined' ? colors : undefined}
-                          cursor={typeof cursor !== 'undefined' ? cursor : undefined}
-                          pointer={typeof pointer !== 'undefined' ? pointer : undefined}
-                          zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                          flex={typeof flex !== 'undefined' ? flex : undefined}
-                          items={typeof items !== 'undefined' ? items : undefined}
-                          center={typeof center !== 'undefined' ? center : undefined}
-                          justify={typeof justify !== 'undefined' ? justify : undefined}
-                          between={typeof between !== 'undefined' ? between : undefined}
-                          mb={typeof mb !== 'undefined' ? mb : undefined}
                           text={typeof text !== 'undefined' ? text : undefined}
                           font={typeof font !== 'undefined' ? font : undefined}
                           black={typeof black !== 'undefined' ? black : undefined}
-                          capitalize={typeof capitalize !== 'undefined' ? capitalize : undefined}
                           formatCalendarFullDate={typeof formatCalendarFullDate !== 'undefined' ? formatCalendarFullDate : undefined}
-                          mt={typeof mt !== 'undefined' ? mt : undefined}
-                          bold={typeof bold !== 'undefined' ? bold : undefined}
                           calendarDayHelperText={typeof calendarDayHelperText !== 'undefined' ? calendarDayHelperText : undefined}
                           data={typeof data !== 'undefined' ? data : undefined}
                           calendar={typeof calendar !== 'undefined' ? calendar : undefined}
@@ -440,26 +375,16 @@ export default function TakvimTabPanel(props) {
                           px={typeof px !== 'undefined' ? px : undefined}
                           rounded={typeof rounded !== 'undefined' ? rounded : undefined}
                           full={typeof full !== 'undefined' ? full : undefined}
-                          all={typeof all !== 'undefined' ? all : undefined}
                           Bu={typeof Bu !== 'undefined' ? Bu : undefined}
                           Ekle={typeof Ekle !== 'undefined' ? Ekle : undefined}
-                          space={typeof space !== 'undefined' ? space : undefined}
                           selectedDayCalendarTasks={typeof selectedDayCalendarTasks !== 'undefined' ? selectedDayCalendarTasks : undefined}
                           day={typeof day !== 'undefined' ? day : undefined}
                           openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                          w={typeof w !== 'undefined' ? w : undefined}
                           border={typeof border !== 'undefined' ? border : undefined}
-                          l={typeof l !== 'undefined' ? l : undefined}
-                          left={typeof left !== 'undefined' ? left : undefined}
-                          shadow={typeof shadow !== 'undefined' ? shadow : undefined}
                           getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
-                          gap={typeof gap !== 'undefined' ? gap : undefined}
-                          truncate={typeof truncate !== 'undefined' ? truncate : undefined}
                           getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
                           shrink={typeof shrink !== 'undefined' ? shrink : undefined}
                           getCalendarTaskBarStyle={typeof getCalendarTaskBarStyle !== 'undefined' ? getCalendarTaskBarStyle : undefined}
-                          Normal={typeof Normal !== 'undefined' ? Normal : undefined}
-                          dashed={typeof dashed !== 'undefined' ? dashed : undefined}
                           yok={typeof yok !== 'undefined' ? yok : undefined}
                         />
 
