@@ -1,12 +1,7 @@
 {
-  "build": "v507-local-zrc-helper-fallbacks",
-  "note": "v502 browserEnhancements ayrımından kalan undefined zrcV helper çağrıları import yerine local no-op fallback ile kapatıldı. Canlıyı düşüren zrcV426bApplyDueDateColors hatası giderildi.",
-  "changed": [
-    "Eksik zrcV helperlar için local no-op fallback eklendi: zrcV426bApplyDueDateColors"
-  ],
-  "missingFallbacks": [
-    "zrcV426bApplyDueDateColors"
-  ],
-  "commitBefore": "fdb8b84",
-  "createdAt": "2026-06-15T08:33:50.610188+00:00"
+  "build": "v508-stable-after-refactor-fixes",
+  "note": "v501-v505 refactor ayrımları ve v507 zrc helper fallback fix sonrası çalışan sürüm stabil checkpoint olarak kilitlendi.",
+  "stableCommit": "e52eb26",
+  "appJsxLines": 19509,
+  "createdAt": "2026-06-15T08:36:50.113146+00:00"
 }
