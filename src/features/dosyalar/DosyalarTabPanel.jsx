@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function DosyalarTabPanel(props) {
+  const ctx = props?.ctx || {};
+
   const {
     activeTab,
     currentPermissions,
@@ -139,7 +141,7 @@ export default function DosyalarTabPanel(props) {
     Soldan,
     bir,
     burada
-  } = props;
+  } = ctx;
 
   return (
     activeTab === 'Dosyalar' && (

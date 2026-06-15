@@ -12639,6 +12639,3325 @@ function App() {
 
   
 
+  // zrc-v524: feature panellerine tek context objesi
+
+
+  
+
+  
+
+  const zrcFeatureContext = {
+
+
+  
+
+  
+
+    activeTab: typeof activeTab !== 'undefined' ? activeTab : undefined,
+
+
+  
+
+  
+
+    currentAccountType: typeof currentAccountType !== 'undefined' ? currentAccountType : undefined,
+
+
+  
+
+  
+
+    Raporlar: typeof Raporlar !== 'undefined' ? Raporlar : undefined,
+
+
+  
+
+  
+
+    w: typeof w !== 'undefined' ? w : undefined,
+
+
+  
+
+  
+
+    full: typeof full !== 'undefined' ? full : undefined,
+
+
+  
+
+  
+
+    flex: typeof flex !== 'undefined' ? flex : undefined,
+
+
+  
+
+  
+
+    bg: typeof bg !== 'undefined' ? bg : undefined,
+
+
+  
+
+  
+
+    f5f6f8: typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined,
+
+
+  
+
+  
+
+    overflow: typeof overflow !== 'undefined' ? overflow : undefined,
+
+
+  
+
+  
+
+    auto: typeof auto !== 'undefined' ? auto : undefined,
+
+
+  
+
+  
+
+    custom: typeof custom !== 'undefined' ? custom : undefined,
+
+
+  
+
+  
+
+    scrollbar: typeof scrollbar !== 'undefined' ? scrollbar : undefined,
+
+
+  
+
+  
+
+    animate: typeof animate !== 'undefined' ? animate : undefined,
+
+
+  
+
+  
+
+    fade: typeof fade !== 'undefined' ? fade : undefined,
+
+
+  
+
+  
+
+    max: typeof max !== 'undefined' ? max : undefined,
+
+
+  
+
+  
+
+    mx: typeof mx !== 'undefined' ? mx : undefined,
+
+
+  
+
+  
+
+    px: typeof px !== 'undefined' ? px : undefined,
+
+
+  
+
+  
+
+    py: typeof py !== 'undefined' ? py : undefined,
+
+
+  
+
+  
+
+    items: typeof items !== 'undefined' ? items : undefined,
+
+
+  
+
+  
+
+    center: typeof center !== 'undefined' ? center : undefined,
+
+
+  
+
+  
+
+    justify: typeof justify !== 'undefined' ? justify : undefined,
+
+
+  
+
+  
+
+    between: typeof between !== 'undefined' ? between : undefined,
+
+
+  
+
+  
+
+    mb: typeof mb !== 'undefined' ? mb : undefined,
+
+
+  
+
+  
+
+    text: typeof text !== 'undefined' ? text : undefined,
+
+
+  
+
+  
+
+    font: typeof font !== 'undefined' ? font : undefined,
+
+
+  
+
+  
+
+    black: typeof black !== 'undefined' ? black : undefined,
+
+
+  
+
+  
+
+    zinc: typeof zinc !== 'undefined' ? zinc : undefined,
+
+
+  
+
+  
+
+    tracking: typeof tracking !== 'undefined' ? tracking : undefined,
+
+
+  
+
+  
+
+    tight: typeof tight !== 'undefined' ? tight : undefined,
+
+
+  
+
+  
+
+    mt: typeof mt !== 'undefined' ? mt : undefined,
+
+
+  
+
+  
+
+    bold: typeof bold !== 'undefined' ? bold : undefined,
+
+
+  
+
+  
+
+    reportIntroText: typeof reportIntroText !== 'undefined' ? reportIntroText : undefined,
+
+
+  
+
+  
+
+    setActiveTab: typeof setActiveTab !== 'undefined' ? setActiveTab : undefined,
+
+
+  
+
+  
+
+    h: typeof h !== 'undefined' ? h : undefined,
+
+
+  
+
+  
+
+    rounded: typeof rounded !== 'undefined' ? rounded : undefined,
+
+
+  
+
+  
+
+    white: typeof white !== 'undefined' ? white : undefined,
+
+
+  
+
+  
+
+    border: typeof border !== 'undefined' ? border : undefined,
+
+
+  
+
+  
+
+    hover: typeof hover !== 'undefined' ? hover : undefined,
+
+
+  
+
+  
+
+    transition: typeof transition !== 'undefined' ? transition : undefined,
+
+
+  
+
+  
+
+    all: typeof all !== 'undefined' ? all : undefined,
+
+
+  
+
+  
+
+    Git: typeof Git !== 'undefined' ? Git : undefined,
+
+
+  
+
+  
+
+    grid: typeof grid !== 'undefined' ? grid : undefined,
+
+
+  
+
+  
+
+    gap: typeof gap !== 'undefined' ? gap : undefined,
+
+
+  
+
+  
+
+    reportSummaryCards: typeof reportSummaryCards !== 'undefined' ? reportSummaryCards : undefined,
+
+
+  
+
+  
+
+    card: typeof card !== 'undefined' ? card : undefined,
+
+
+  
+
+  
+
+    shadow: typeof shadow !== 'undefined' ? shadow : undefined,
+
+
+  
+
+  
+
+    none: typeof none !== 'undefined' ? none : undefined,
+
+
+  
+
+  
+
+    currentColor: typeof currentColor !== 'undefined' ? currentColor : undefined,
+
+
+  
+
+  
+
+    round: typeof round !== 'undefined' ? round : undefined,
+
+
+  
+
+  
+
+    M4: typeof M4 !== 'undefined' ? M4 : undefined,
+
+
+  
+
+  
+
+    leading: typeof leading !== 'undefined' ? leading : undefined,
+
+
+  
+
+  
+
+    space: typeof space !== 'undefined' ? space : undefined,
+
+
+  
+
+  
+
+    Genel: typeof Genel !== 'undefined' ? Genel : undefined,
+
+
+  
+
+  
+
+    Tamamlanan: typeof Tamamlanan !== 'undefined' ? Tamamlanan : undefined,
+
+
+  
+
+  
+
+    toplam: typeof toplam !== 'undefined' ? toplam : undefined,
+
+
+  
+
+  
+
+    emerald: typeof emerald !== 'undefined' ? emerald : undefined,
+
+
+  
+
+  
+
+    reportProgressPercentage: typeof reportProgressPercentage !== 'undefined' ? reportProgressPercentage : undefined,
+
+
+  
+
+  
+
+    hidden: typeof hidden !== 'undefined' ? hidden : undefined,
+
+
+  
+
+  
+
+    duration: typeof duration !== 'undefined' ? duration : undefined,
+
+
+  
+
+  
+
+    uppercase: typeof uppercase !== 'undefined' ? uppercase : undefined,
+
+
+  
+
+  
+
+    reportOpenTasks: typeof reportOpenTasks !== 'undefined' ? reportOpenTasks : undefined,
+
+
+  
+
+  
+
+    Dosya: typeof Dosya !== 'undefined' ? Dosya : undefined,
+
+
+  
+
+  
+
+    reportFileCount: typeof reportFileCount !== 'undefined' ? reportFileCount : undefined,
+
+
+  
+
+  
+
+    Patron: typeof Patron !== 'undefined' ? Patron : undefined,
+
+
+  
+
+  
+
+    Proje: typeof Proje !== 'undefined' ? Proje : undefined,
+
+
+  
+
+  
+
+    reportCustomerCount: typeof reportCustomerCount !== 'undefined' ? reportCustomerCount : undefined,
+
+
+  
+
+  
+
+    visibleProjectNames: typeof visibleProjectNames !== 'undefined' ? visibleProjectNames : undefined,
+
+
+  
+
+  
+
+    Kolonlara: typeof Kolonlara !== 'undefined' ? Kolonlara : undefined,
+
+
+  
+
+  
+
+    boardColumns: typeof boardColumns !== 'undefined' ? boardColumns : undefined,
+
+
+  
+
+  
+
+    kolon: typeof kolon !== 'undefined' ? kolon : undefined,
+
+
+  
+
+  
+
+    pr: typeof pr !== 'undefined' ? pr : undefined,
+
+
+  
+
+  
+
+    reportColumnStats: typeof reportColumnStats !== 'undefined' ? reportColumnStats : undefined,
+
+
+  
+
+  
+
+    column: typeof column !== 'undefined' ? column : undefined,
+
+
+  
+
+  
+
+    min: typeof min !== 'undefined' ? min : undefined,
+
+
+  
+
+  
+
+    shrink: typeof shrink !== 'undefined' ? shrink : undefined,
+
+
+  
+
+  
+
+    backgroundColor: typeof backgroundColor !== 'undefined' ? backgroundColor : undefined,
+
+
+  
+
+  
+
+    truncate: typeof truncate !== 'undefined' ? truncate : undefined,
+
+
+  
+
+  
+
+    reportPriorityTitle: typeof reportPriorityTitle !== 'undefined' ? reportPriorityTitle : undefined,
+
+
+  
+
+  
+
+    reportUrgentTasks: typeof reportUrgentTasks !== 'undefined' ? reportUrgentTasks : undefined,
+
+
+  
+
+  
+
+    reportPriorityStats: typeof reportPriorityStats !== 'undefined' ? reportPriorityStats : undefined,
+
+
+  
+
+  
+
+    item: typeof item !== 'undefined' ? item : undefined,
+
+
+  
+
+  
+
+    getReportPriorityStyle: typeof getReportPriorityStyle !== 'undefined' ? getReportPriorityStyle : undefined,
+
+
+  
+
+  
+
+    reportUpcomingTasks: typeof reportUpcomingTasks !== 'undefined' ? reportUpcomingTasks : undefined,
+
+
+  
+
+  
+
+    task: typeof task !== 'undefined' ? task : undefined,
+
+
+  
+
+  
+
+    report: typeof report !== 'undefined' ? report : undefined,
+
+
+  
+
+  
+
+    upcoming: typeof upcoming !== 'undefined' ? upcoming : undefined,
+
+
+  
+
+  
+
+    openTaskDetail: typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined,
+
+
+  
+
+  
+
+    left: typeof left !== 'undefined' ? left : undefined,
+
+
+  
+
+  
+
+    start: typeof start !== 'undefined' ? start : undefined,
+
+
+  
+
+  
+
+    getRoleAwareTaskMeta: typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined,
+
+
+  
+
+  
+
+    formatCalendarDate: typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined,
+
+
+  
+
+  
+
+    dashed: typeof dashed !== 'undefined' ? dashed : undefined,
+
+
+  
+
+  
+
+    yok: typeof yok !== 'undefined' ? yok : undefined,
+
+
+  
+
+  
+
+    Tarihli: typeof Tarihli !== 'undefined' ? Tarihli : undefined,
+
+
+  
+
+  
+
+    burada: typeof burada !== 'undefined' ? burada : undefined,
+
+
+  
+
+  
+
+    Gecikenler: typeof Gecikenler !== 'undefined' ? Gecikenler : undefined,
+
+
+  
+
+  
+
+    red: typeof red !== 'undefined' ? red : undefined,
+
+
+  
+
+  
+
+    reportOverdueTasks: typeof reportOverdueTasks !== 'undefined' ? reportOverdueTasks : undefined,
+
+
+  
+
+  
+
+    overdue: typeof overdue !== 'undefined' ? overdue : undefined,
+
+
+  
+
+  
+
+    getReportTaskDate: typeof getReportTaskDate !== 'undefined' ? getReportTaskDate : undefined,
+
+
+  
+
+  
+
+    Geciken: typeof Geciken !== 'undefined' ? Geciken : undefined,
+
+
+  
+
+  
+
+    Gantt: typeof Gantt !== 'undefined' ? Gantt : undefined,
+
+
+  
+
+  
+
+    b: typeof b !== 'undefined' ? b : undefined,
+
+
+  
+
+  
+
+    blue: typeof blue !== 'undefined' ? blue : undefined,
+
+
+  
+
+  
+
+    M21: typeof M21 !== 'undefined' ? M21 : undefined,
+
+
+  
+
+  
+
+    ganttSearch: typeof ganttSearch !== 'undefined' ? ganttSearch : undefined,
+
+
+  
+
+  
+
+    setGanttSearch: typeof setGanttSearch !== 'undefined' ? setGanttSearch : undefined,
+
+
+  
+
+  
+
+    ganttSearchPlaceholder: typeof ganttSearchPlaceholder !== 'undefined' ? ganttSearchPlaceholder : undefined,
+
+
+  
+
+  
+
+    transparent: typeof transparent !== 'undefined' ? transparent : undefined,
+
+
+  
+
+  
+
+    focus: typeof focus !== 'undefined' ? focus : undefined,
+
+
+  
+
+  
+
+    outline: typeof outline !== 'undefined' ? outline : undefined,
+
+
+  
+
+  
+
+    setGanttShowCompleted: typeof setGanttShowCompleted !== 'undefined' ? setGanttShowCompleted : undefined,
+
+
+  
+
+  
+
+    prev: typeof prev !== 'undefined' ? prev : undefined,
+
+
+  
+
+  
+
+    ganttShowCompleted: typeof ganttShowCompleted !== 'undefined' ? ganttShowCompleted : undefined,
+
+
+  
+
+  
+
+    Tamamlananlar: typeof Tamamlananlar !== 'undefined' ? Tamamlananlar : undefined,
+
+
+  
+
+  
+
+    goToPreviousGanttPeriod: typeof goToPreviousGanttPeriod !== 'undefined' ? goToPreviousGanttPeriod : undefined,
+
+
+  
+
+  
+
+    capitalize: typeof capitalize !== 'undefined' ? capitalize : undefined,
+
+
+  
+
+  
+
+    ganttRangeTitle: typeof ganttRangeTitle !== 'undefined' ? ganttRangeTitle : undefined,
+
+
+  
+
+  
+
+    ganttTasks: typeof ganttTasks !== 'undefined' ? ganttTasks : undefined,
+
+
+  
+
+  
+
+    goToNextGanttPeriod: typeof goToNextGanttPeriod !== 'undefined' ? goToNextGanttPeriod : undefined,
+
+
+  
+
+  
+
+    Sonraki: typeof Sonraki !== 'undefined' ? Sonraki : undefined,
+
+
+  
+
+  
+
+    goToCurrentGanttPeriod: typeof goToCurrentGanttPeriod !== 'undefined' ? goToCurrentGanttPeriod : undefined,
+
+
+  
+
+  
+
+    Hafta: typeof Hafta !== 'undefined' ? Hafta : undefined,
+
+
+  
+
+  
+
+    Ay: typeof Ay !== 'undefined' ? Ay : undefined,
+
+
+  
+
+  
+
+    view: typeof view !== 'undefined' ? view : undefined,
+
+
+  
+
+  
+
+    changeGanttView: typeof changeGanttView !== 'undefined' ? changeGanttView : undefined,
+
+
+  
+
+  
+
+    ganttView: typeof ganttView !== 'undefined' ? ganttView : undefined,
+
+
+  
+
+  
+
+    sm: typeof sm !== 'undefined' ? sm : undefined,
+
+
+  
+
+  
+
+    relative: typeof relative !== 'undefined' ? relative : undefined,
+
+
+  
+
+  
+
+    scrollGantt: typeof scrollGantt !== 'undefined' ? scrollGantt : undefined,
+
+
+  
+
+  
+
+    absolute: typeof absolute !== 'undefined' ? absolute : undefined,
+
+
+  
+
+  
+
+    top: typeof top !== 'undefined' ? top : undefined,
+
+
+  
+
+  
+
+    translate: typeof translate !== 'undefined' ? translate : undefined,
+
+
+  
+
+  
+
+    z: typeof z !== 'undefined' ? z : undefined,
+
+
+  
+
+  
+
+    md: typeof md !== 'undefined' ? md : undefined,
+
+
+  
+
+  
+
+    Sola: typeof Sola !== 'undefined' ? Sola : undefined,
+
+
+  
+
+  
+
+    right: typeof right !== 'undefined' ? right : undefined,
+
+
+  
+
+  
+
+    ref: typeof ref !== 'undefined' ? ref : undefined,
+
+
+  
+
+  
+
+    ganttScrollRef: typeof ganttScrollRef !== 'undefined' ? ganttScrollRef : undefined,
+
+
+  
+
+  
+
+    gridTemplateColumns: typeof gridTemplateColumns !== 'undefined' ? gridTemplateColumns : undefined,
+
+
+  
+
+  
+
+    repeat: typeof repeat !== 'undefined' ? repeat : undefined,
+
+
+  
+
+  
+
+    ganttPeriods: typeof ganttPeriods !== 'undefined' ? ganttPeriods : undefined,
+
+
+  
+
+  
+
+    minmax: typeof minmax !== 'undefined' ? minmax : undefined,
+
+
+  
+
+  
+
+    ganttPeriodConfig: typeof ganttPeriodConfig !== 'undefined' ? ganttPeriodConfig : undefined,
+
+
+  
+
+  
+
+    minWidth: typeof minWidth !== 'undefined' ? minWidth : undefined,
+
+
+  
+
+  
+
+    sticky: typeof sticky !== 'undefined' ? sticky : undefined,
+
+
+  
+
+  
+
+    period: typeof period !== 'undefined' ? period : undefined,
+
+
+  
+
+  
+
+    gantt: typeof gantt !== 'undefined' ? gantt : undefined,
+
+
+  
+
+  
+
+    head: typeof head !== 'undefined' ? head : undefined,
+
+
+  
+
+  
+
+    col: typeof col !== 'undefined' ? col : undefined,
+
+
+  
+
+  
+
+    todayStart: typeof todayStart !== 'undefined' ? todayStart : undefined,
+
+
+  
+
+  
+
+    getGanttTaskPlacement: typeof getGanttTaskPlacement !== 'undefined' ? getGanttTaskPlacement : undefined,
+
+
+  
+
+  
+
+    row: typeof row !== 'undefined' ? row : undefined,
+
+
+  
+
+  
+
+    getPremiumCalendarDotStyle: typeof getPremiumCalendarDotStyle !== 'undefined' ? getPremiumCalendarDotStyle : undefined,
+
+
+  
+
+  
+
+    gridColumn: typeof gridColumn !== 'undefined' ? gridColumn : undefined,
+
+
+  
+
+  
+
+    cell: typeof cell !== 'undefined' ? cell : undefined,
+
+
+  
+
+  
+
+    self: typeof self !== 'undefined' ? self : undefined,
+
+
+  
+
+  
+
+    getGanttBarClassName: typeof getGanttBarClassName !== 'undefined' ? getGanttBarClassName : undefined,
+
+
+  
+
+  
+
+    M3: typeof M3 !== 'undefined' ? M3 : undefined,
+
+
+  
+
+  
+
+    Bu: typeof Bu !== 'undefined' ? Bu : undefined,
+
+
+  
+
+  
+
+    veya: typeof veya !== 'undefined' ? veya : undefined,
+
+
+  
+
+  
+
+    tarihi: typeof tarihi !== 'undefined' ? tarihi : undefined,
+
+
+  
+
+  
+
+    olan: typeof olan !== 'undefined' ? olan : undefined,
+
+
+  
+
+  
+
+    olarak: typeof olarak !== 'undefined' ? olarak : undefined,
+
+
+  
+
+  
+
+    Tarihi: typeof Tarihi !== 'undefined' ? Tarihi : undefined,
+
+
+  
+
+  
+
+    ganttUndatedTasks: typeof ganttUndatedTasks !== 'undefined' ? ganttUndatedTasks : undefined,
+
+
+  
+
+  
+
+    Tarihsiz: typeof Tarihsiz !== 'undefined' ? Tarihsiz : undefined,
+
+
+  
+
+  
+
+    ekle: typeof ekle !== 'undefined' ? ekle : undefined,
+
+
+  
+
+  
+
+    bulunmuyor: typeof bulunmuyor !== 'undefined' ? bulunmuyor : undefined,
+
+
+  
+
+  
+
+    undated: typeof undated !== 'undefined' ? undated : undefined,
+
+
+  
+
+  
+
+    currentPermissions: typeof currentPermissions !== 'undefined' ? currentPermissions : undefined,
+
+
+  
+
+  
+
+    selectedProject: typeof selectedProject !== 'undefined' ? selectedProject : undefined,
+
+
+  
+
+  
+
+    Dosyalar: typeof Dosyalar !== 'undefined' ? Dosyalar : undefined,
+
+
+  
+
+  
+
+    setPendingFileDeleteKey: typeof setPendingFileDeleteKey !== 'undefined' ? setPendingFileDeleteKey : undefined,
+
+
+  
+
+  
+
+    eklenen: typeof eklenen !== 'undefined' ? eklenen : undefined,
+
+
+  
+
+  
+
+    proje: typeof proje !== 'undefined' ? proje : undefined,
+
+
+  
+
+  
+
+    genelinde: typeof genelinde !== 'undefined' ? genelinde : undefined,
+
+
+  
+
+  
+
+    ara: typeof ara !== 'undefined' ? ara : undefined,
+
+
+  
+
+  
+
+    filtrele: typeof filtrele !== 'undefined' ? filtrele : undefined,
+
+
+  
+
+  
+
+    ve: typeof ve !== 'undefined' ? ve : undefined,
+
+
+  
+
+  
+
+    projectFiles: typeof projectFiles !== 'undefined' ? projectFiles : undefined,
+
+
+  
+
+  
+
+    dosya: typeof dosya !== 'undefined' ? dosya : undefined,
+
+
+  
+
+  
+
+    fileSearch: typeof fileSearch !== 'undefined' ? fileSearch : undefined,
+
+
+  
+
+  
+
+    setFileSearch: typeof setFileSearch !== 'undefined' ? setFileSearch : undefined,
+
+
+  
+
+  
+
+    projectFileTypeOptions: typeof projectFileTypeOptions !== 'undefined' ? projectFileTypeOptions : undefined,
+
+
+  
+
+  
+
+    setFileTypeFilter: typeof setFileTypeFilter !== 'undefined' ? setFileTypeFilter : undefined,
+
+
+  
+
+  
+
+    whitespace: typeof whitespace !== 'undefined' ? whitespace : undefined,
+
+
+  
+
+  
+
+    nowrap: typeof nowrap !== 'undefined' ? nowrap : undefined,
+
+
+  
+
+  
+
+    fileTypeFilter: typeof fileTypeFilter !== 'undefined' ? fileTypeFilter : undefined,
+
+
+  
+
+  
+
+    setSelectedProjectFileKey: typeof setSelectedProjectFileKey !== 'undefined' ? setSelectedProjectFileKey : undefined,
+
+
+  
+
+  
+
+    Temizle: typeof Temizle !== 'undefined' ? Temizle : undefined,
+
+
+  
+
+  
+
+    fbfcfd: typeof fbfcfd !== 'undefined' ? fbfcfd : undefined,
+
+
+  
+
+  
+
+    filteredProjectFiles: typeof filteredProjectFiles !== 'undefined' ? filteredProjectFiles : undefined,
+
+
+  
+
+  
+
+    file: typeof file !== 'undefined' ? file : undefined,
+
+
+  
+
+  
+
+    selectedProjectFile: typeof selectedProjectFile !== 'undefined' ? selectedProjectFile : undefined,
+
+
+  
+
+  
+
+    pendingFileDeleteKey: typeof pendingFileDeleteKey !== 'undefined' ? pendingFileDeleteKey : undefined,
+
+
+  
+
+  
+
+    handleSelectProjectFile: typeof handleSelectProjectFile !== 'undefined' ? handleSelectProjectFile : undefined,
+
+
+  
+
+  
+
+    group: typeof group !== 'undefined' ? group : undefined,
+
+
+  
+
+  
+
+    ring: typeof ring !== 'undefined' ? ring : undefined,
+
+
+  
+
+  
+
+    getProjectFileIconStyle: typeof getProjectFileIconStyle !== 'undefined' ? getProjectFileIconStyle : undefined,
+
+
+  
+
+  
+
+    M19: typeof M19 !== 'undefined' ? M19 : undefined,
+
+
+  
+
+  
+
+    getProjectFileSecondaryText: typeof getProjectFileSecondaryText !== 'undefined' ? getProjectFileSecondaryText : undefined,
+
+
+  
+
+  
+
+    wrap: typeof wrap !== 'undefined' ? wrap : undefined,
+
+
+  
+
+  
+
+    formatProjectFileSize: typeof formatProjectFileSize !== 'undefined' ? formatProjectFileSize : undefined,
+
+
+  
+
+  
+
+    renderProfileAvatar: typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined,
+
+
+  
+
+  
+
+    currentProfileInitials: typeof currentProfileInitials !== 'undefined' ? currentProfileInitials : undefined,
+
+
+  
+
+  
+
+    getProfileNameForRecord: typeof getProfileNameForRecord !== 'undefined' ? getProfileNameForRecord : undefined,
+
+
+  
+
+  
+
+    currentActorName: typeof currentActorName !== 'undefined' ? currentActorName : undefined,
+
+
+  
+
+  
+
+    Silmek: typeof Silmek !== 'undefined' ? Silmek : undefined,
+
+
+  
+
+  
+
+    tekrar: typeof tekrar !== 'undefined' ? tekrar : undefined,
+
+
+  
+
+  
+
+    bas: typeof bas !== 'undefined' ? bas : undefined,
+
+
+  
+
+  
+
+    colors: typeof colors !== 'undefined' ? colors : undefined,
+
+
+  
+
+  
+
+    M18: typeof M18 !== 'undefined' ? M18 : undefined,
+
+
+  
+
+  
+
+    projectFileEmptyTitle: typeof projectFileEmptyTitle !== 'undefined' ? projectFileEmptyTitle : undefined,
+
+
+  
+
+  
+
+    projectFileEmptyDescription: typeof projectFileEmptyDescription !== 'undefined' ? projectFileEmptyDescription : undefined,
+
+
+  
+
+  
+
+    words: typeof words !== 'undefined' ? words : undefined,
+
+
+  
+
+  
+
+    Bilgileri: typeof Bilgileri !== 'undefined' ? Bilgileri : undefined,
+
+
+  
+
+  
+
+    getProjectFileInfoRows: typeof getProjectFileInfoRows !== 'undefined' ? getProjectFileInfoRows : undefined,
+
+
+  
+
+  
+
+    projedeki: typeof projedeki !== 'undefined' ? projedeki : undefined,
+
+
+  
+
+  
+
+    Sadece: typeof Sadece !== 'undefined' ? Sadece : undefined,
+
+
+  
+
+  
+
+    size: typeof size !== 'undefined' ? size : undefined,
+
+
+  
+
+  
+
+    dosyalar: typeof dosyalar !== 'undefined' ? dosyalar : undefined,
+
+
+  
+
+  
+
+    listelenir: typeof listelenir !== 'undefined' ? listelenir : undefined,
+
+
+  
+
+  
+
+    projectFileTypeStats: typeof projectFileTypeStats !== 'undefined' ? projectFileTypeStats : undefined,
+
+
+  
+
+  
+
+    bilgisi: typeof bilgisi !== 'undefined' ? bilgisi : undefined,
+
+
+  
+
+  
+
+    pt: typeof pt !== 'undefined' ? pt : undefined,
+
+
+  
+
+  
+
+    downloadTaskFileFromSupabase: typeof downloadTaskFileFromSupabase !== 'undefined' ? downloadTaskFileFromSupabase : undefined,
+
+
+  
+
+  
+
+    handleDeleteProjectFile: typeof handleDeleteProjectFile !== 'undefined' ? handleDeleteProjectFile : undefined,
+
+
+  
+
+  
+
+    Tekrar: typeof Tekrar !== 'undefined' ? Tekrar : undefined,
+
+
+  
+
+  
+
+    Bas: typeof Bas !== 'undefined' ? Bas : undefined,
+
+
+  
+
+  
+
+    Sil: typeof Sil !== 'undefined' ? Sil : undefined,
+
+
+  
+
+  
+
+    M15: typeof M15 !== 'undefined' ? M15 : undefined,
+
+
+  
+
+  
+
+    Soldan: typeof Soldan !== 'undefined' ? Soldan : undefined,
+
+
+  
+
+  
+
+    bir: typeof bir !== 'undefined' ? bir : undefined,
+
+
+  
+
+  
+
+    Zaman: typeof Zaman !== 'undefined' ? Zaman : undefined,
+
+
+  
+
+  
+
+    pb: typeof pb !== 'undefined' ? pb : undefined,
+
+
+  
+
+  
+
+    calc: typeof calc !== 'undefined' ? calc : undefined,
+
+
+  
+
+  
+
+    timeChartSearch: typeof timeChartSearch !== 'undefined' ? timeChartSearch : undefined,
+
+
+  
+
+  
+
+    setTimeChartSearch: typeof setTimeChartSearch !== 'undefined' ? setTimeChartSearch : undefined,
+
+
+  
+
+  
+
+    scheduleSearchPlaceholder: typeof scheduleSearchPlaceholder !== 'undefined' ? scheduleSearchPlaceholder : undefined,
+
+
+  
+
+  
+
+    setIsTimeChartFilterOpen: typeof setIsTimeChartFilterOpen !== 'undefined' ? setIsTimeChartFilterOpen : undefined,
+
+
+  
+
+  
+
+    setIsTimeChartSettingsOpen: typeof setIsTimeChartSettingsOpen !== 'undefined' ? setIsTimeChartSettingsOpen : undefined,
+
+
+  
+
+  
+
+    Filtrele: typeof Filtrele !== 'undefined' ? Filtrele : undefined,
+
+
+  
+
+  
+
+    isTimeChartFilterOpen: typeof isTimeChartFilterOpen !== 'undefined' ? isTimeChartFilterOpen : undefined,
+
+
+  
+
+  
+
+    hideCompleted: typeof hideCompleted !== 'undefined' ? hideCompleted : undefined,
+
+
+  
+
+  
+
+    Gizle: typeof Gizle !== 'undefined' ? Gizle : undefined,
+
+
+  
+
+  
+
+    hideArchived: typeof hideArchived !== 'undefined' ? hideArchived : undefined,
+
+
+  
+
+  
+
+    hideNoDate: typeof hideNoDate !== 'undefined' ? hideNoDate : undefined,
+
+
+  
+
+  
+
+    toggleTimeChartFilter: typeof toggleTimeChartFilter !== 'undefined' ? toggleTimeChartFilter : undefined,
+
+
+  
+
+  
+
+    timeChartFilters: typeof timeChartFilters !== 'undefined' ? timeChartFilters : undefined,
+
+
+  
+
+  
+
+    M5: typeof M5 !== 'undefined' ? M5 : undefined,
+
+
+  
+
+  
+
+    setTimeChartFilters: typeof setTimeChartFilters !== 'undefined' ? setTimeChartFilters : undefined,
+
+
+  
+
+  
+
+    Filtreleri: typeof Filtreleri !== 'undefined' ? Filtreleri : undefined,
+
+
+  
+
+  
+
+    goToPreviousTimeChartPeriod: typeof goToPreviousTimeChartPeriod !== 'undefined' ? goToPreviousTimeChartPeriod : undefined,
+
+
+  
+
+  
+
+    timeChartRangeTitle: typeof timeChartRangeTitle !== 'undefined' ? timeChartRangeTitle : undefined,
+
+
+  
+
+  
+
+    timeChartFilteredTasks: typeof timeChartFilteredTasks !== 'undefined' ? timeChartFilteredTasks : undefined,
+
+
+  
+
+  
+
+    goToNextTimeChartPeriod: typeof goToNextTimeChartPeriod !== 'undefined' ? goToNextTimeChartPeriod : undefined,
+
+
+  
+
+  
+
+    goToCurrentTimeChartPeriod: typeof goToCurrentTimeChartPeriod !== 'undefined' ? goToCurrentTimeChartPeriod : undefined,
+
+
+  
+
+  
+
+    changeTimeChartView: typeof changeTimeChartView !== 'undefined' ? changeTimeChartView : undefined,
+
+
+  
+
+  
+
+    timeChartView: typeof timeChartView !== 'undefined' ? timeChartView : undefined,
+
+
+  
+
+  
+
+    Ayarlar: typeof Ayarlar !== 'undefined' ? Ayarlar : undefined,
+
+
+  
+
+  
+
+    M10: typeof M10 !== 'undefined' ? M10 : undefined,
+
+
+  
+
+  
+
+    isTimeChartSettingsOpen: typeof isTimeChartSettingsOpen !== 'undefined' ? isTimeChartSettingsOpen : undefined,
+
+
+  
+
+  
+
+    showWeekends: typeof showWeekends !== 'undefined' ? showWeekends : undefined,
+
+
+  
+
+  
+
+    Sonunu: typeof Sonunu !== 'undefined' ? Sonunu : undefined,
+
+
+  
+
+  
+
+    compactCards: typeof compactCards !== 'undefined' ? compactCards : undefined,
+
+
+  
+
+  
+
+    Kompakt: typeof Kompakt !== 'undefined' ? Kompakt : undefined,
+
+
+  
+
+  
+
+    Kartlar: typeof Kartlar !== 'undefined' ? Kartlar : undefined,
+
+
+  
+
+  
+
+    toggleTimeChartSetting: typeof toggleTimeChartSetting !== 'undefined' ? toggleTimeChartSetting : undefined,
+
+
+  
+
+  
+
+    timeChartSettings: typeof timeChartSettings !== 'undefined' ? timeChartSettings : undefined,
+
+
+  
+
+  
+
+    scrollTimeChart: typeof scrollTimeChart !== 'undefined' ? scrollTimeChart : undefined,
+
+
+  
+
+  
+
+    timeChartScrollRef: typeof timeChartScrollRef !== 'undefined' ? timeChartScrollRef : undefined,
+
+
+  
+
+  
+
+    overscroll: typeof overscroll !== 'undefined' ? overscroll : undefined,
+
+
+  
+
+  
+
+    contain: typeof contain !== 'undefined' ? contain : undefined,
+
+
+  
+
+  
+
+    timeChartPeriods: typeof timeChartPeriods !== 'undefined' ? timeChartPeriods : undefined,
+
+
+  
+
+  
+
+    time: typeof time !== 'undefined' ? time : undefined,
+
+
+  
+
+  
+
+    day: typeof day !== 'undefined' ? day : undefined,
+
+
+  
+
+  
+
+    isSameCalendarDay: typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined,
+
+
+  
+
+  
+
+    timeChartMembers: typeof timeChartMembers !== 'undefined' ? timeChartMembers : undefined,
+
+
+  
+
+  
+
+    member: typeof member !== 'undefined' ? member : undefined,
+
+
+  
+
+  
+
+    createAvatarFromName: typeof createAvatarFromName !== 'undefined' ? createAvatarFromName : undefined,
+
+
+  
+
+  
+
+    getTimeChartTasksForMemberAndPeriod: typeof getTimeChartTasksForMemberAndPeriod !== 'undefined' ? getTimeChartTasksForMemberAndPeriod : undefined,
+
+
+  
+
+  
+
+    repeating: typeof repeating !== 'undefined' ? repeating : undefined,
+
+
+  
+
+  
+
+    linear: typeof linear !== 'undefined' ? linear : undefined,
+
+
+  
+
+  
+
+    gradient: typeof gradient !== 'undefined' ? gradient : undefined,
+
+
+  
+
+  
+
+    rgba: typeof rgba !== 'undefined' ? rgba : undefined,
+
+
+  
+
+  
+
+    _0px: typeof _0px !== 'undefined' ? _0px : undefined,
+
+
+  
+
+  
+
+    _8px: typeof _8px !== 'undefined' ? _8px : undefined,
+
+
+  
+
+  
+
+    transparent_8px: typeof transparent_8px !== 'undefined' ? transparent_8px : undefined,
+
+
+  
+
+  
+
+    transparent_16px: typeof transparent_16px !== 'undefined' ? transparent_16px : undefined,
+
+
+  
+
+  
+
+    Sonu: typeof Sonu !== 'undefined' ? Sonu : undefined,
+
+
+  
+
+  
+
+    getTimeChartTaskColor: typeof getTimeChartTaskColor !== 'undefined' ? getTimeChartTaskColor : undefined,
+
+
+  
+
+  
+
+    getTimeChartTaskStartDate: typeof getTimeChartTaskStartDate !== 'undefined' ? getTimeChartTaskStartDate : undefined,
+
+
+  
+
+  
+
+    getTimeChartTaskEndDate: typeof getTimeChartTaskEndDate !== 'undefined' ? getTimeChartTaskEndDate : undefined,
+
+
+  
+
+  
+
+    openTaskModalForTimeChartPeriod: typeof openTaskModalForTimeChartPeriod !== 'undefined' ? openTaskModalForTimeChartPeriod : undefined,
+
+
+  
+
+  
+
+    alana: typeof alana !== 'undefined' ? alana : undefined,
+
+
+  
+
+  
+
+    Takvim: typeof Takvim !== 'undefined' ? Takvim : undefined,
+
+
+  
+
+  
+
+    end: typeof end !== 'undefined' ? end : undefined,
+
+
+  
+
+  
+
+    setIsCalendarDisplayMenuOpen: typeof setIsCalendarDisplayMenuOpen !== 'undefined' ? setIsCalendarDisplayMenuOpen : undefined,
+
+
+  
+
+  
+
+    isCalendarDisplayMenuOpen: typeof isCalendarDisplayMenuOpen !== 'undefined' ? isCalendarDisplayMenuOpen : undefined,
+
+
+  
+
+  
+
+    hideLongTasks: typeof hideLongTasks !== 'undefined' ? hideLongTasks : undefined,
+
+
+  
+
+  
+
+    Uzun: typeof Uzun !== 'undefined' ? Uzun : undefined,
+
+
+  
+
+  
+
+    hideCompletedTasks: typeof hideCompletedTasks !== 'undefined' ? hideCompletedTasks : undefined,
+
+
+  
+
+  
+
+    hideArchivedTasks: typeof hideArchivedTasks !== 'undefined' ? hideArchivedTasks : undefined,
+
+
+  
+
+  
+
+    setCalendarDisplayOptions: typeof setCalendarDisplayOptions !== 'undefined' ? setCalendarDisplayOptions : undefined,
+
+
+  
+
+  
+
+    prevOptions: typeof prevOptions !== 'undefined' ? prevOptions : undefined,
+
+
+  
+
+  
+
+    calendarDisplayOptions: typeof calendarDisplayOptions !== 'undefined' ? calendarDisplayOptions : undefined,
+
+
+  
+
+  
+
+    goToPreviousCalendarPeriod: typeof goToPreviousCalendarPeriod !== 'undefined' ? goToPreviousCalendarPeriod : undefined,
+
+
+  
+
+  
+
+    calendarHeaderTitle: typeof calendarHeaderTitle !== 'undefined' ? calendarHeaderTitle : undefined,
+
+
+  
+
+  
+
+    goToNextCalendarPeriod: typeof goToNextCalendarPeriod !== 'undefined' ? goToNextCalendarPeriod : undefined,
+
+
+  
+
+  
+
+    goToCurrentCalendarPeriod: typeof goToCurrentCalendarPeriod !== 'undefined' ? goToCurrentCalendarPeriod : undefined,
+
+
+  
+
+  
+
+    Liste: typeof Liste !== 'undefined' ? Liste : undefined,
+
+
+  
+
+  
+
+    pressed: typeof pressed !== 'undefined' ? pressed : undefined,
+
+
+  
+
+  
+
+    calendarView: typeof calendarView !== 'undefined' ? calendarView : undefined,
+
+
+  
+
+  
+
+    changeCalendarView: typeof changeCalendarView !== 'undefined' ? changeCalendarView : undefined,
+
+
+  
+
+  
+
+    Pzt: typeof Pzt !== 'undefined' ? Pzt : undefined,
+
+
+  
+
+  
+
+    Sal: typeof Sal !== 'undefined' ? Sal : undefined,
+
+
+  
+
+  
+
+    Per: typeof Per !== 'undefined' ? Per : undefined,
+
+
+  
+
+  
+
+    Cum: typeof Cum !== 'undefined' ? Cum : undefined,
+
+
+  
+
+  
+
+    Cmt: typeof Cmt !== 'undefined' ? Cmt : undefined,
+
+
+  
+
+  
+
+    Paz: typeof Paz !== 'undefined' ? Paz : undefined,
+
+
+  
+
+  
+
+    dayName: typeof dayName !== 'undefined' ? dayName : undefined,
+
+
+  
+
+  
+
+    last: typeof last !== 'undefined' ? last : undefined,
+
+
+  
+
+  
+
+    calendarGridDays: typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined,
+
+
+  
+
+  
+
+    getTasksForCalendarDay: typeof getTasksForCalendarDay !== 'undefined' ? getTasksForCalendarDay : undefined,
+
+
+  
+
+  
+
+    calendarMonthDate: typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined,
+
+
+  
+
+  
+
+    data: typeof data !== 'undefined' ? data : undefined,
+
+
+  
+
+  
+
+    calendar: typeof calendar !== 'undefined' ? calendar : undefined,
+
+
+  
+
+  
+
+    formatDateForTaskModal: typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined,
+
+
+  
+
+  
+
+    zrc: typeof zrc !== 'undefined' ? zrc : undefined,
+
+
+  
+
+  
+
+    canCreateTaskFromCalendar: typeof canCreateTaskFromCalendar !== 'undefined' ? canCreateTaskFromCalendar : undefined,
+
+
+  
+
+  
+
+    cursor: typeof cursor !== 'undefined' ? cursor : undefined,
+
+
+  
+
+  
+
+    pointer: typeof pointer !== 'undefined' ? pointer : undefined,
+
+
+  
+
+  
+
+    openTaskModalForCalendarDay: typeof openTaskModalForCalendarDay !== 'undefined' ? openTaskModalForCalendarDay : undefined,
+
+
+  
+
+  
+
+    inset: typeof inset !== 'undefined' ? inset : undefined,
+
+
+  
+
+  
+
+    events: typeof events !== 'undefined' ? events : undefined,
+
+
+  
+
+  
+
+    onMouseDown: typeof onMouseDown !== 'undefined' ? onMouseDown : undefined,
+
+
+  
+
+  
+
+    getCalendarTaskBarStyle: typeof getCalendarTaskBarStyle !== 'undefined' ? getCalendarTaskBarStyle : undefined,
+
+
+  
+
+  
+
+    getPremiumCalendarTaskStyle: typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined,
+
+
+  
+
+  
+
+    calendarWeekDays: typeof calendarWeekDays !== 'undefined' ? calendarWeekDays : undefined,
+
+
+  
+
+  
+
+    week: typeof week !== 'undefined' ? week : undefined,
+
+
+  
+
+  
+
+    formatCalendarWeekday: typeof formatCalendarWeekday !== 'undefined' ? formatCalendarWeekday : undefined,
+
+
+  
+
+  
+
+    handleCalendarDayClick: typeof handleCalendarDayClick !== 'undefined' ? handleCalendarDayClick : undefined,
+
+
+  
+
+  
+
+    calendarFocusedDate: typeof calendarFocusedDate !== 'undefined' ? calendarFocusedDate : undefined,
+
+
+  
+
+  
+
+    tabIndex: typeof tabIndex !== 'undefined' ? tabIndex : undefined,
+
+
+  
+
+  
+
+    formatCalendarFullDate: typeof formatCalendarFullDate !== 'undefined' ? formatCalendarFullDate : undefined,
+
+
+  
+
+  
+
+    calendarDayHelperText: typeof calendarDayHelperText !== 'undefined' ? calendarDayHelperText : undefined,
+
+
+  
+
+  
+
+    Ekle: typeof Ekle !== 'undefined' ? Ekle : undefined,
+
+
+  
+
+  
+
+    selectedDayCalendarTasks: typeof selectedDayCalendarTasks !== 'undefined' ? selectedDayCalendarTasks : undefined,
+
+
+  
+
+  
+
+    l: typeof l !== 'undefined' ? l : undefined,
+
+
+  
+
+  
+
+    Normal: typeof Normal !== 'undefined' ? Normal : undefined,
+
+
+  
+
+  
+
+    calendarTasks: typeof calendarTasks !== 'undefined' ? calendarTasks : undefined,
+
+
+  
+
+  
+
+    list: typeof list !== 'undefined' ? list : undefined,
+
+
+  
+
+  
+
+    Takvimde: typeof Takvimde !== 'undefined' ? Takvimde : undefined,
+
+
+  
+
+  
+
+    pl: typeof pl !== 'undefined' ? pl : undefined,
+
+
+  
+
+  
+
+    canCreateTaskInSelectedProject: typeof canCreateTaskInSelectedProject !== 'undefined' ? canCreateTaskInSelectedProject : undefined,
+
+
+  
+
+  
+
+    setEditingTask: typeof setEditingTask !== 'undefined' ? setEditingTask : undefined,
+
+
+  
+
+  
+
+    setIsTaskModalOpen: typeof setIsTaskModalOpen !== 'undefined' ? setIsTaskModalOpen : undefined,
+
+
+  
+
+  
+
+    extrabold: typeof extrabold !== 'undefined' ? extrabold : undefined,
+
+
+  
+
+  
+
+    active: typeof active !== 'undefined' ? active : undefined,
+
+
+  
+
+  
+
+    scale: typeof scale !== 'undefined' ? scale : undefined,
+
+
+  
+
+  
+
+    M12: typeof M12 !== 'undefined' ? M12 : undefined,
+
+
+  
+
+  
+
+    showProjectSettingsControls: typeof showProjectSettingsControls !== 'undefined' ? showProjectSettingsControls : undefined,
+
+
+  
+
+  
+
+    Pano: typeof Pano !== 'undefined' ? Pano : undefined,
+
+
+  
+
+  
+
+    openGlobalSearch: typeof openGlobalSearch !== 'undefined' ? openGlobalSearch : undefined,
+
+
+  
+
+  
+
+    Ara: typeof Ara !== 'undefined' ? Ara : undefined,
+
+
+  
+
+  
+
+    setIsEditMode: typeof setIsEditMode !== 'undefined' ? setIsEditMode : undefined,
+
+
+  
+
+  
+
+    isEditMode: typeof isEditMode !== 'undefined' ? isEditMode : undefined,
+
+
+  
+
+  
+
+    setOpenMenuColumnId: typeof setOpenMenuColumnId !== 'undefined' ? setOpenMenuColumnId : undefined,
+
+
+  
+
+  
+
+    ff3600: typeof ff3600 !== 'undefined' ? ff3600 : undefined,
+
+
+  
+
+  
+
+    Kolon: typeof Kolon !== 'undefined' ? Kolon : undefined,
+
+
+  
+
+  
+
+    modu: typeof modu !== 'undefined' ? modu : undefined,
+
+
+  
+
+  
+
+    M16: typeof M16 !== 'undefined' ? M16 : undefined,
+
+
+  
+
+  
+
+    setBoardView: typeof setBoardView !== 'undefined' ? setBoardView : undefined,
+
+
+  
+
+  
+
+    boardView: typeof boardView !== 'undefined' ? boardView : undefined,
+
+
+  
+
+  
+
+    openAddStageModal: typeof openAddStageModal !== 'undefined' ? openAddStageModal : undefined,
+
+
+  
+
+  
+
+    Yeni: typeof Yeni !== 'undefined' ? Yeni : undefined,
+
+
+  
+
+  
+
+    transform: typeof transform !== 'undefined' ? transform : undefined,
+
+
+  
+
+  
+
+    visibleBoardColumns: typeof visibleBoardColumns !== 'undefined' ? visibleBoardColumns : undefined,
+
+
+  
+
+  
+
+    colIdx: typeof colIdx !== 'undefined' ? colIdx : undefined,
+
+
+  
+
+  
+
+    mobileActiveColumnId: typeof mobileActiveColumnId !== 'undefined' ? mobileActiveColumnId : undefined,
+
+
+  
+
+  
+
+    openMenuColumnId: typeof openMenuColumnId !== 'undefined' ? openMenuColumnId : undefined,
+
+
+  
+
+  
+
+    openTaskMenuId: typeof openTaskMenuId !== 'undefined' ? openTaskMenuId : undefined,
+
+
+  
+
+  
+
+    e: typeof e !== 'undefined' ? e : undefined,
+
+
+  
+
+  
+
+    handleDrop: typeof handleDrop !== 'undefined' ? handleDrop : undefined,
+
+
+  
+
+  
+
+    color: typeof color !== 'undefined' ? color : undefined,
+
+
+  
+
+  
+
+    getReadableColumnColor: typeof getReadableColumnColor !== 'undefined' ? getReadableColumnColor : undefined,
+
+
+  
+
+  
+
+    getReadableColumnMutedColor: typeof getReadableColumnMutedColor !== 'undefined' ? getReadableColumnMutedColor : undefined,
+
+
+  
+
+  
+
+    getColumnEditToolsStyle: typeof getColumnEditToolsStyle !== 'undefined' ? getColumnEditToolsStyle : undefined,
+
+
+  
+
+  
+
+    handleMoveColumn: typeof handleMoveColumn !== 'undefined' ? handleMoveColumn : undefined,
+
+
+  
+
+  
+
+    openEditStageModal: typeof openEditStageModal !== 'undefined' ? openEditStageModal : undefined,
+
+
+  
+
+  
+
+    handleDeleteColumn: typeof handleDeleteColumn !== 'undefined' ? handleDeleteColumn : undefined,
+
+
+  
+
+  
+
+    setOpenTaskMenuId: typeof setOpenTaskMenuId !== 'undefined' ? setOpenTaskMenuId : undefined,
+
+
+  
+
+  
+
+    semibold: typeof semibold !== 'undefined' ? semibold : undefined,
+
+
+  
+
+  
+
+    visible: typeof visible !== 'undefined' ? visible : undefined,
+
+
+  
+
+  
+
+    slate: typeof slate !== 'undefined' ? slate : undefined,
+
+
+  
+
+  
+
+    M7: typeof M7 !== 'undefined' ? M7 : undefined,
+
+
+  
+
+  
+
+    handleCopyColumn: typeof handleCopyColumn !== 'undefined' ? handleCopyColumn : undefined,
+
+
+  
+
+  
+
+    M8: typeof M8 !== 'undefined' ? M8 : undefined,
+
+
+  
+
+  
+
+    Kolonu: typeof Kolonu !== 'undefined' ? Kolonu : undefined,
+
+
+  
+
+  
+
+    kopyala: typeof kopyala !== 'undefined' ? kopyala : undefined,
+
+
+  
+
+  
+
+    my: typeof my !== 'undefined' ? my : undefined,
+
+
+  
+
+  
+
+    handleArchiveColumnTasks: typeof handleArchiveColumnTasks !== 'undefined' ? handleArchiveColumnTasks : undefined,
+
+
+  
+
+  
+
+    orange: typeof orange !== 'undefined' ? orange : undefined,
+
+
+  
+
+  
+
+    handleArchiveColumn: typeof handleArchiveColumn !== 'undefined' ? handleArchiveColumn : undefined,
+
+
+  
+
+  
+
+    M20: typeof M20 !== 'undefined' ? M20 : undefined,
+
+
+  
+
+  
+
+    M6: typeof M6 !== 'undefined' ? M6 : undefined,
+
+
+  
+
+  
+
+    sil: typeof sil !== 'undefined' ? sil : undefined,
+
+
+  
+
+  
+
+    selectedTasks: typeof selectedTasks !== 'undefined' ? selectedTasks : undefined,
+
+
+  
+
+  
+
+    priorityOptions: typeof priorityOptions !== 'undefined' ? priorityOptions : undefined,
+
+
+  
+
+  
+
+    getTaskCardDateParts: typeof getTaskCardDateParts !== 'undefined' ? getTaskCardDateParts : undefined,
+
+
+  
+
+  
+
+    draggable: typeof draggable !== 'undefined' ? draggable : undefined,
+
+
+  
+
+  
+
+    canCurrentUserModifyTask: typeof canCurrentUserModifyTask !== 'undefined' ? canCurrentUserModifyTask : undefined,
+
+
+  
+
+  
+
+    showPermissionWarning: typeof showPermissionWarning !== 'undefined' ? showPermissionWarning : undefined,
+
+
+  
+
+  
+
+    sana: typeof sana !== 'undefined' ? sana : undefined,
+
+
+  
+
+  
+
+    durumunu: typeof durumunu !== 'undefined' ? durumunu : undefined,
+
+
+  
+
+  
+
+    handleDragStart: typeof handleDragStart !== 'undefined' ? handleDragStart : undefined,
+
+
+  
+
+  
+
+    bottom: typeof bottom !== 'undefined' ? bottom : undefined,
+
+
+  
+
+  
+
+    overlay: typeof overlay !== 'undefined' ? overlay : undefined,
+
+
+  
+
+  
+
+    handleTaskAction: typeof handleTaskAction !== 'undefined' ? handleTaskAction : undefined,
+
+
+  
+
+  
+
+    detay: typeof detay !== 'undefined' ? detay : undefined,
+
+
+  
+
+  
+
+    M2: typeof M2 !== 'undefined' ? M2 : undefined,
+
+
+  
+
+  
+
+    duzenle: typeof duzenle !== 'undefined' ? duzenle : undefined,
+
+
+  
+
+  
+
+    Ekip: typeof Ekip !== 'undefined' ? Ekip : undefined,
+
+
+  
+
+  
+
+    Kopyala: typeof Kopyala !== 'undefined' ? Kopyala : undefined,
+
+
+  
+
+  
+
+    arsivle: typeof arsivle !== 'undefined' ? arsivle : undefined,
+
+
+  
+
+  
+
+    snug: typeof snug !== 'undefined' ? snug : undefined,
+
+
+  
+
+  
+
+    Bit: typeof Bit !== 'undefined' ? Bit : undefined,
+
+
+  
+
+  
+
+    v517d: typeof v517d !== 'undefined' ? v517d : undefined,
+
+
+  
+
+  
+
+    mobile: typeof mobile !== 'undefined' ? mobile : undefined,
+
+
+  
+
+  
+
+    move: typeof move !== 'undefined' ? move : undefined,
+
+
+  
+
+  
+
+    buttons: typeof buttons !== 'undefined' ? buttons : undefined,
+
+
+  
+
+  
+
+    component: typeof component !== 'undefined' ? component : undefined,
+
+
+  
+
+  
+
+    MobileTaskMoveButtons: typeof MobileTaskMoveButtons !== 'undefined' ? MobileTaskMoveButtons : undefined,
+
+
+  
+
+  
+
+    handleMoveTaskToColumn: typeof handleMoveTaskToColumn !== 'undefined' ? handleMoveTaskToColumn : undefined,
+
+
+  
+
+  
+
+    setMobileActiveColumnId: typeof setMobileActiveColumnId !== 'undefined' ? setMobileActiveColumnId : undefined,
+
+
+  
+
+  
+
+    buradan: typeof buradan !== 'undefined' ? buradan : undefined,
+
+
+  
+
+  
+
+    geri: typeof geri !== 'undefined' ? geri : undefined,
+
+
+  
+
+  
+
+    getirebilir: typeof getirebilir !== 'undefined' ? getirebilir : undefined,
+
+
+  
+
+  
+
+    silebilirsin: typeof silebilirsin !== 'undefined' ? silebilirsin : undefined,
+
+
+  
+
+  
+
+    inceleyebilirsin: typeof inceleyebilirsin !== 'undefined' ? inceleyebilirsin : undefined,
+
+
+  
+
+  
+
+    archivedTasks: typeof archivedTasks !== 'undefined' ? archivedTasks : undefined,
+
+
+  
+
+  
+
+    xl: typeof xl !== 'undefined' ? xl : undefined,
+
+
+  
+
+  
+
+    TR: typeof TR !== 'undefined' ? TR : undefined,
+
+
+  
+
+  
+
+    digit: typeof digit !== 'undefined' ? digit : undefined,
+
+
+  
+
+  
+
+    month: typeof month !== 'undefined' ? month : undefined,
+
+
+  
+
+  
+
+    long: typeof long !== 'undefined' ? long : undefined,
+
+
+  
+
+  
+
+    year: typeof year !== 'undefined' ? year : undefined,
+
+
+  
+
+  
+
+    numeric: typeof numeric !== 'undefined' ? numeric : undefined,
+
+
+  
+
+  
+
+    hour: typeof hour !== 'undefined' ? hour : undefined,
+
+
+  
+
+  
+
+    minute: typeof minute !== 'undefined' ? minute : undefined,
+
+
+  
+
+  
+
+    Tarih: typeof Tarih !== 'undefined' ? Tarih : undefined,
+
+
+  
+
+  
+
+    Eski: typeof Eski !== 'undefined' ? Eski : undefined,
+
+
+  
+
+  
+
+    t: typeof t !== 'undefined' ? t : undefined,
+
+
+  
+
+  
+
+    handleRestoreArchivedTask: typeof handleRestoreArchivedTask !== 'undefined' ? handleRestoreArchivedTask : undefined,
+
+
+  
+
+  
+
+    Geri: typeof Geri !== 'undefined' ? Geri : undefined,
+
+
+  
+
+  
+
+    Getir: typeof Getir !== 'undefined' ? Getir : undefined,
+
+
+  
+
+  
+
+    handleDeleteArchivedTask: typeof handleDeleteArchivedTask !== 'undefined' ? handleDeleteArchivedTask : undefined,
+
+
+  
+
+  
+
+    getirmek: typeof getirmek !== 'undefined' ? getirmek : undefined,
+
+
+  
+
+  
+
+    tek: typeof tek !== 'undefined' ? tek : undefined,
+
+
+  
+
+  
+
+    panoya: typeof panoya !== 'undefined' ? panoya : undefined,
+
+
+  
+
+  
+
+    v454c: typeof v454c !== 'undefined' ? v454c : undefined,
+
+
+  
+
+  
+
+    strip: typeof strip !== 'undefined' ? strip : undefined,
+
+
+  
+
+  
+
+    fixed: typeof fixed !== 'undefined' ? fixed : undefined,
+
+
+  
+
+  
+
+    env: typeof env !== 'undefined' ? env : undefined,
+
+
+  
+
+  
+
+    safe: typeof safe !== 'undefined' ? safe : undefined,
+
+
+  
+
+  
+
+    area: typeof area !== 'undefined' ? area : undefined,
+
+
+  
+
+  
+
+    backdrop: typeof backdrop !== 'undefined' ? backdrop : undefined,
+
+
+  
+
+  
+
+    blur: typeof blur !== 'undefined' ? blur : undefined,
+
+
+  
+
+  
+
+    index: typeof index !== 'undefined' ? index : undefined,
+
+
+  
+
+  
+
+    tab: typeof tab !== 'undefined' ? tab : undefined,
+
+
+  
+
+  
+
+  };
+
+
+
+  
+
+  
+
   if (!isLoggedIn) {
     return (
       <div className="relative min-h-screen overflow-hidden bg-[#f4f6fb] font-[Inter] flex items-center justify-center p-6">
@@ -15595,916 +18914,28 @@ return (
 
               <div className="flex-1 min-h-0 bg-[#f5f6f8] flex flex-col overflow-hidden h-full">
                                 {/* zrc-v521-feature-gorevler */}
-                <GorevlerTabPanel
-                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
-                  currentPermissions={typeof currentPermissions !== 'undefined' ? currentPermissions : undefined}
-                  currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
-                  selectedProject={typeof selectedProject !== 'undefined' ? selectedProject : undefined}
-                  w={typeof w !== 'undefined' ? w : undefined}
-                  full={typeof full !== 'undefined' ? full : undefined}
-                  flex={typeof flex !== 'undefined' ? flex : undefined}
-                  col={typeof col !== 'undefined' ? col : undefined}
-                  animate={typeof animate !== 'undefined' ? animate : undefined}
-                  fade={typeof fade !== 'undefined' ? fade : undefined}
-                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
-                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
-                  h={typeof h !== 'undefined' ? h : undefined}
-                  bg={typeof bg !== 'undefined' ? bg : undefined}
-                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
-                  pl={typeof pl !== 'undefined' ? pl : undefined}
-                  pr={typeof pr !== 'undefined' ? pr : undefined}
-                  items={typeof items !== 'undefined' ? items : undefined}
-                  center={typeof center !== 'undefined' ? center : undefined}
-                  justify={typeof justify !== 'undefined' ? justify : undefined}
-                  between={typeof between !== 'undefined' ? between : undefined}
-                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-                  relative={typeof relative !== 'undefined' ? relative : undefined}
-                  z={typeof z !== 'undefined' ? z : undefined}
-                  max={typeof max !== 'undefined' ? max : undefined}
-                  md={typeof md !== 'undefined' ? md : undefined}
-                  px={typeof px !== 'undefined' ? px : undefined}
-                  gap={typeof gap !== 'undefined' ? gap : undefined}
-                  canCreateTaskInSelectedProject={typeof canCreateTaskInSelectedProject !== 'undefined' ? canCreateTaskInSelectedProject : undefined}
-                  setEditingTask={typeof setEditingTask !== 'undefined' ? setEditingTask : undefined}
-                  setIsTaskModalOpen={typeof setIsTaskModalOpen !== 'undefined' ? setIsTaskModalOpen : undefined}
-                  min={typeof min !== 'undefined' ? min : undefined}
-                  hover={typeof hover !== 'undefined' ? hover : undefined}
-                  text={typeof text !== 'undefined' ? text : undefined}
-                  white={typeof white !== 'undefined' ? white : undefined}
-                  font={typeof font !== 'undefined' ? font : undefined}
-                  extrabold={typeof extrabold !== 'undefined' ? extrabold : undefined}
-                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
-                  active={typeof active !== 'undefined' ? active : undefined}
-                  scale={typeof scale !== 'undefined' ? scale : undefined}
-                  transition={typeof transition !== 'undefined' ? transition : undefined}
-                  all={typeof all !== 'undefined' ? all : undefined}
-                  none={typeof none !== 'undefined' ? none : undefined}
-                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
-                  round={typeof round !== 'undefined' ? round : undefined}
-                  M12={typeof M12 !== 'undefined' ? M12 : undefined}
-                  M19={typeof M19 !== 'undefined' ? M19 : undefined}
-                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                  showProjectSettingsControls={typeof showProjectSettingsControls !== 'undefined' ? showProjectSettingsControls : undefined}
-                  setActiveTab={typeof setActiveTab !== 'undefined' ? setActiveTab : undefined}
-                  Ayarlar={typeof Ayarlar !== 'undefined' ? Ayarlar : undefined}
-                  border={typeof border !== 'undefined' ? border : undefined}
-                  Pano={typeof Pano !== 'undefined' ? Pano : undefined}
-                  M10={typeof M10 !== 'undefined' ? M10 : undefined}
-                  M15={typeof M15 !== 'undefined' ? M15 : undefined}
-                  openGlobalSearch={typeof openGlobalSearch !== 'undefined' ? openGlobalSearch : undefined}
-                  Ara={typeof Ara !== 'undefined' ? Ara : undefined}
-                  M21={typeof M21 !== 'undefined' ? M21 : undefined}
-                  Filtrele={typeof Filtrele !== 'undefined' ? Filtrele : undefined}
-                  setIsEditMode={typeof setIsEditMode !== 'undefined' ? setIsEditMode : undefined}
-                  isEditMode={typeof isEditMode !== 'undefined' ? isEditMode : undefined}
-                  setOpenMenuColumnId={typeof setOpenMenuColumnId !== 'undefined' ? setOpenMenuColumnId : undefined}
-                  sm={typeof sm !== 'undefined' ? sm : undefined}
-                  ff3600={typeof ff3600 !== 'undefined' ? ff3600 : undefined}
-                  Kolon={typeof Kolon !== 'undefined' ? Kolon : undefined}
-                  modu={typeof modu !== 'undefined' ? modu : undefined}
-                  M16={typeof M16 !== 'undefined' ? M16 : undefined}
-                  M3={typeof M3 !== 'undefined' ? M3 : undefined}
-                  setBoardView={typeof setBoardView !== 'undefined' ? setBoardView : undefined}
-                  boardView={typeof boardView !== 'undefined' ? boardView : undefined}
-                  pt={typeof pt !== 'undefined' ? pt : undefined}
-                  pb={typeof pb !== 'undefined' ? pb : undefined}
-                  space={typeof space !== 'undefined' ? space : undefined}
-                  auto={typeof auto !== 'undefined' ? auto : undefined}
-                  custom={typeof custom !== 'undefined' ? custom : undefined}
-                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
-                  start={typeof start !== 'undefined' ? start : undefined}
-                  openAddStageModal={typeof openAddStageModal !== 'undefined' ? openAddStageModal : undefined}
-                  mt={typeof mt !== 'undefined' ? mt : undefined}
-                  group={typeof group !== 'undefined' ? group : undefined}
-                  Yeni={typeof Yeni !== 'undefined' ? Yeni : undefined}
-                  kolon={typeof kolon !== 'undefined' ? kolon : undefined}
-                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
-                  transform={typeof transform !== 'undefined' ? transform : undefined}
-                  visibleBoardColumns={typeof visibleBoardColumns !== 'undefined' ? visibleBoardColumns : undefined}
-                  column={typeof column !== 'undefined' ? column : undefined}
-                  colIdx={typeof colIdx !== 'undefined' ? colIdx : undefined}
-                  calc={typeof calc !== 'undefined' ? calc : undefined}
-                  mobileActiveColumnId={typeof mobileActiveColumnId !== 'undefined' ? mobileActiveColumnId : undefined}
-                  openMenuColumnId={typeof openMenuColumnId !== 'undefined' ? openMenuColumnId : undefined}
-                  task={typeof task !== 'undefined' ? task : undefined}
-                  openTaskMenuId={typeof openTaskMenuId !== 'undefined' ? openTaskMenuId : undefined}
-                  e={typeof e !== 'undefined' ? e : undefined}
-                  handleDrop={typeof handleDrop !== 'undefined' ? handleDrop : undefined}
-                  py={typeof py !== 'undefined' ? py : undefined}
-                  black={typeof black !== 'undefined' ? black : undefined}
-                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
-                  tight={typeof tight !== 'undefined' ? tight : undefined}
-                  backgroundColor={typeof backgroundColor !== 'undefined' ? backgroundColor : undefined}
-                  color={typeof color !== 'undefined' ? color : undefined}
-                  getReadableColumnColor={typeof getReadableColumnColor !== 'undefined' ? getReadableColumnColor : undefined}
-                  bold={typeof bold !== 'undefined' ? bold : undefined}
-                  getReadableColumnMutedColor={typeof getReadableColumnMutedColor !== 'undefined' ? getReadableColumnMutedColor : undefined}
-                  getColumnEditToolsStyle={typeof getColumnEditToolsStyle !== 'undefined' ? getColumnEditToolsStyle : undefined}
-                  handleMoveColumn={typeof handleMoveColumn !== 'undefined' ? handleMoveColumn : undefined}
-                  colors={typeof colors !== 'undefined' ? colors : undefined}
-                  boardColumns={typeof boardColumns !== 'undefined' ? boardColumns : undefined}
-                  openEditStageModal={typeof openEditStageModal !== 'undefined' ? openEditStageModal : undefined}
-                  handleDeleteColumn={typeof handleDeleteColumn !== 'undefined' ? handleDeleteColumn : undefined}
-                  red={typeof red !== 'undefined' ? red : undefined}
-                  setOpenTaskMenuId={typeof setOpenTaskMenuId !== 'undefined' ? setOpenTaskMenuId : undefined}
-                  focus={typeof focus !== 'undefined' ? focus : undefined}
-                  outline={typeof outline !== 'undefined' ? outline : undefined}
-                  cursor={typeof cursor !== 'undefined' ? cursor : undefined}
-                  pointer={typeof pointer !== 'undefined' ? pointer : undefined}
-                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
-                  right={typeof right !== 'undefined' ? right : undefined}
-                  top={typeof top !== 'undefined' ? top : undefined}
-                  semibold={typeof semibold !== 'undefined' ? semibold : undefined}
-                  left={typeof left !== 'undefined' ? left : undefined}
-                  visible={typeof visible !== 'undefined' ? visible : undefined}
-                  blue={typeof blue !== 'undefined' ? blue : undefined}
-                  slate={typeof slate !== 'undefined' ? slate : undefined}
-                  M7={typeof M7 !== 'undefined' ? M7 : undefined}
-                  handleCopyColumn={typeof handleCopyColumn !== 'undefined' ? handleCopyColumn : undefined}
-                  M8={typeof M8 !== 'undefined' ? M8 : undefined}
-                  M5={typeof M5 !== 'undefined' ? M5 : undefined}
-                  Kolonu={typeof Kolonu !== 'undefined' ? Kolonu : undefined}
-                  kopyala={typeof kopyala !== 'undefined' ? kopyala : undefined}
-                  my={typeof my !== 'undefined' ? my : undefined}
-                  handleArchiveColumnTasks={typeof handleArchiveColumnTasks !== 'undefined' ? handleArchiveColumnTasks : undefined}
-                  orange={typeof orange !== 'undefined' ? orange : undefined}
-                  handleArchiveColumn={typeof handleArchiveColumn !== 'undefined' ? handleArchiveColumn : undefined}
-                  M20={typeof M20 !== 'undefined' ? M20 : undefined}
-                  M6={typeof M6 !== 'undefined' ? M6 : undefined}
-                  sil={typeof sil !== 'undefined' ? sil : undefined}
-                  selectedTasks={typeof selectedTasks !== 'undefined' ? selectedTasks : undefined}
-                  priorityOptions={typeof priorityOptions !== 'undefined' ? priorityOptions : undefined}
-                  getTaskCardDateParts={typeof getTaskCardDateParts !== 'undefined' ? getTaskCardDateParts : undefined}
-                  draggable={typeof draggable !== 'undefined' ? draggable : undefined}
-                  canCurrentUserModifyTask={typeof canCurrentUserModifyTask !== 'undefined' ? canCurrentUserModifyTask : undefined}
-                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                  showPermissionWarning={typeof showPermissionWarning !== 'undefined' ? showPermissionWarning : undefined}
-                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
-                  sana={typeof sana !== 'undefined' ? sana : undefined}
-                  durumunu={typeof durumunu !== 'undefined' ? durumunu : undefined}
-                  handleDragStart={typeof handleDragStart !== 'undefined' ? handleDragStart : undefined}
-                  duration={typeof duration !== 'undefined' ? duration : undefined}
-                  bottom={typeof bottom !== 'undefined' ? bottom : undefined}
-                  l={typeof l !== 'undefined' ? l : undefined}
-                  overlay={typeof overlay !== 'undefined' ? overlay : undefined}
-                  handleTaskAction={typeof handleTaskAction !== 'undefined' ? handleTaskAction : undefined}
-                  detay={typeof detay !== 'undefined' ? detay : undefined}
-                  M2={typeof M2 !== 'undefined' ? M2 : undefined}
-                  duzenle={typeof duzenle !== 'undefined' ? duzenle : undefined}
-                  Ekip={typeof Ekip !== 'undefined' ? Ekip : undefined}
-                  Kopyala={typeof Kopyala !== 'undefined' ? Kopyala : undefined}
-                  arsivle={typeof arsivle !== 'undefined' ? arsivle : undefined}
-                  Sil={typeof Sil !== 'undefined' ? Sil : undefined}
-                  leading={typeof leading !== 'undefined' ? leading : undefined}
-                  snug={typeof snug !== 'undefined' ? snug : undefined}
-                  mb={typeof mb !== 'undefined' ? mb : undefined}
-                  Patron={typeof Patron !== 'undefined' ? Patron : undefined}
-                  Proje={typeof Proje !== 'undefined' ? Proje : undefined}
-                  wrap={typeof wrap !== 'undefined' ? wrap : undefined}
-                  Bit={typeof Bit !== 'undefined' ? Bit : undefined}
-                  end={typeof end !== 'undefined' ? end : undefined}
-                  renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
-                  createAvatarFromName={typeof createAvatarFromName !== 'undefined' ? createAvatarFromName : undefined}
-                  zrc={typeof zrc !== 'undefined' ? zrc : undefined}
-                  v517d={typeof v517d !== 'undefined' ? v517d : undefined}
-                  mobile={typeof mobile !== 'undefined' ? mobile : undefined}
-                  move={typeof move !== 'undefined' ? move : undefined}
-                  buttons={typeof buttons !== 'undefined' ? buttons : undefined}
-                  component={typeof component !== 'undefined' ? component : undefined}
-                  MobileTaskMoveButtons={typeof MobileTaskMoveButtons !== 'undefined' ? MobileTaskMoveButtons : undefined}
-                  handleMoveTaskToColumn={typeof handleMoveTaskToColumn !== 'undefined' ? handleMoveTaskToColumn : undefined}
-                  setMobileActiveColumnId={typeof setMobileActiveColumnId !== 'undefined' ? setMobileActiveColumnId : undefined}
-                  mx={typeof mx !== 'undefined' ? mx : undefined}
-                  buradan={typeof buradan !== 'undefined' ? buradan : undefined}
-                  geri={typeof geri !== 'undefined' ? geri : undefined}
-                  getirebilir={typeof getirebilir !== 'undefined' ? getirebilir : undefined}
-                  veya={typeof veya !== 'undefined' ? veya : undefined}
-                  olarak={typeof olarak !== 'undefined' ? olarak : undefined}
-                  silebilirsin={typeof silebilirsin !== 'undefined' ? silebilirsin : undefined}
-                  inceleyebilirsin={typeof inceleyebilirsin !== 'undefined' ? inceleyebilirsin : undefined}
-                  archivedTasks={typeof archivedTasks !== 'undefined' ? archivedTasks : undefined}
-                  grid={typeof grid !== 'undefined' ? grid : undefined}
-                  xl={typeof xl !== 'undefined' ? xl : undefined}
-                  TR={typeof TR !== 'undefined' ? TR : undefined}
-                  day={typeof day !== 'undefined' ? day : undefined}
-                  digit={typeof digit !== 'undefined' ? digit : undefined}
-                  month={typeof month !== 'undefined' ? month : undefined}
-                  long={typeof long !== 'undefined' ? long : undefined}
-                  year={typeof year !== 'undefined' ? year : undefined}
-                  numeric={typeof numeric !== 'undefined' ? numeric : undefined}
-                  hour={typeof hour !== 'undefined' ? hour : undefined}
-                  minute={typeof minute !== 'undefined' ? minute : undefined}
-                  Tarih={typeof Tarih !== 'undefined' ? Tarih : undefined}
-                  yok={typeof yok !== 'undefined' ? yok : undefined}
-                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-                  Eski={typeof Eski !== 'undefined' ? Eski : undefined}
-                  t={typeof t !== 'undefined' ? t : undefined}
-                  handleRestoreArchivedTask={typeof handleRestoreArchivedTask !== 'undefined' ? handleRestoreArchivedTask : undefined}
-                  Geri={typeof Geri !== 'undefined' ? Geri : undefined}
-                  Getir={typeof Getir !== 'undefined' ? Getir : undefined}
-                  handleDeleteArchivedTask={typeof handleDeleteArchivedTask !== 'undefined' ? handleDeleteArchivedTask : undefined}
-                  burada={typeof burada !== 'undefined' ? burada : undefined}
-                  getirmek={typeof getirmek !== 'undefined' ? getirmek : undefined}
-                  tek={typeof tek !== 'undefined' ? tek : undefined}
-                  panoya={typeof panoya !== 'undefined' ? panoya : undefined}
-                  v454c={typeof v454c !== 'undefined' ? v454c : undefined}
-                  strip={typeof strip !== 'undefined' ? strip : undefined}
-                  fixed={typeof fixed !== 'undefined' ? fixed : undefined}
-                  env={typeof env !== 'undefined' ? env : undefined}
-                  safe={typeof safe !== 'undefined' ? safe : undefined}
-                  area={typeof area !== 'undefined' ? area : undefined}
-                  inset={typeof inset !== 'undefined' ? inset : undefined}
-                  backdrop={typeof backdrop !== 'undefined' ? backdrop : undefined}
-                  blur={typeof blur !== 'undefined' ? blur : undefined}
-                  index={typeof index !== 'undefined' ? index : undefined}
-                  tab={typeof tab !== 'undefined' ? tab : undefined}
-                />
+                <GorevlerTabPanel ctx={zrcFeatureContext} />
 
 
 
                                 {/* zrc-v521-feature-takvim */}
-                <TakvimTabPanel
-                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
-                  Takvim={typeof Takvim !== 'undefined' ? Takvim : undefined}
-                  w={typeof w !== 'undefined' ? w : undefined}
-                  full={typeof full !== 'undefined' ? full : undefined}
-                  flex={typeof flex !== 'undefined' ? flex : undefined}
-                  bg={typeof bg !== 'undefined' ? bg : undefined}
-                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
-                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
-                  auto={typeof auto !== 'undefined' ? auto : undefined}
-                  custom={typeof custom !== 'undefined' ? custom : undefined}
-                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
-                  animate={typeof animate !== 'undefined' ? animate : undefined}
-                  fade={typeof fade !== 'undefined' ? fade : undefined}
-                  px={typeof px !== 'undefined' ? px : undefined}
-                  py={typeof py !== 'undefined' ? py : undefined}
-                  max={typeof max !== 'undefined' ? max : undefined}
-                  mx={typeof mx !== 'undefined' ? mx : undefined}
-                  items={typeof items !== 'undefined' ? items : undefined}
-                  center={typeof center !== 'undefined' ? center : undefined}
-                  justify={typeof justify !== 'undefined' ? justify : undefined}
-                  end={typeof end !== 'undefined' ? end : undefined}
-                  mb={typeof mb !== 'undefined' ? mb : undefined}
-                  relative={typeof relative !== 'undefined' ? relative : undefined}
-                  setIsCalendarDisplayMenuOpen={typeof setIsCalendarDisplayMenuOpen !== 'undefined' ? setIsCalendarDisplayMenuOpen : undefined}
-                  prev={typeof prev !== 'undefined' ? prev : undefined}
-                  h={typeof h !== 'undefined' ? h : undefined}
-                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                  text={typeof text !== 'undefined' ? text : undefined}
-                  white={typeof white !== 'undefined' ? white : undefined}
-                  font={typeof font !== 'undefined' ? font : undefined}
-                  black={typeof black !== 'undefined' ? black : undefined}
-                  hover={typeof hover !== 'undefined' ? hover : undefined}
-                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
-                  transition={typeof transition !== 'undefined' ? transition : undefined}
-                  all={typeof all !== 'undefined' ? all : undefined}
-                  gap={typeof gap !== 'undefined' ? gap : undefined}
-                  none={typeof none !== 'undefined' ? none : undefined}
-                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
-                  round={typeof round !== 'undefined' ? round : undefined}
-                  M3={typeof M3 !== 'undefined' ? M3 : undefined}
-                  isCalendarDisplayMenuOpen={typeof isCalendarDisplayMenuOpen !== 'undefined' ? isCalendarDisplayMenuOpen : undefined}
-                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
-                  right={typeof right !== 'undefined' ? right : undefined}
-                  top={typeof top !== 'undefined' ? top : undefined}
-                  border={typeof border !== 'undefined' ? border : undefined}
-                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                  z={typeof z !== 'undefined' ? z : undefined}
-                  hideLongTasks={typeof hideLongTasks !== 'undefined' ? hideLongTasks : undefined}
-                  Uzun={typeof Uzun !== 'undefined' ? Uzun : undefined}
-                  Gizle={typeof Gizle !== 'undefined' ? Gizle : undefined}
-                  hideCompletedTasks={typeof hideCompletedTasks !== 'undefined' ? hideCompletedTasks : undefined}
-                  hideArchivedTasks={typeof hideArchivedTasks !== 'undefined' ? hideArchivedTasks : undefined}
-                  item={typeof item !== 'undefined' ? item : undefined}
-                  setCalendarDisplayOptions={typeof setCalendarDisplayOptions !== 'undefined' ? setCalendarDisplayOptions : undefined}
-                  prevOptions={typeof prevOptions !== 'undefined' ? prevOptions : undefined}
-                  left={typeof left !== 'undefined' ? left : undefined}
-                  colors={typeof colors !== 'undefined' ? colors : undefined}
-                  calendarDisplayOptions={typeof calendarDisplayOptions !== 'undefined' ? calendarDisplayOptions : undefined}
-                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
-                  M5={typeof M5 !== 'undefined' ? M5 : undefined}
-                  bold={typeof bold !== 'undefined' ? bold : undefined}
-                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
-                  b={typeof b !== 'undefined' ? b : undefined}
-                  between={typeof between !== 'undefined' ? between : undefined}
-                  goToPreviousCalendarPeriod={typeof goToPreviousCalendarPeriod !== 'undefined' ? goToPreviousCalendarPeriod : undefined}
-                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
-                  tight={typeof tight !== 'undefined' ? tight : undefined}
-                  capitalize={typeof capitalize !== 'undefined' ? capitalize : undefined}
-                  min={typeof min !== 'undefined' ? min : undefined}
-                  calendarHeaderTitle={typeof calendarHeaderTitle !== 'undefined' ? calendarHeaderTitle : undefined}
-                  goToNextCalendarPeriod={typeof goToNextCalendarPeriod !== 'undefined' ? goToNextCalendarPeriod : undefined}
-                  goToCurrentCalendarPeriod={typeof goToCurrentCalendarPeriod !== 'undefined' ? goToCurrentCalendarPeriod : undefined}
-                  Ay={typeof Ay !== 'undefined' ? Ay : undefined}
-                  Hafta={typeof Hafta !== 'undefined' ? Hafta : undefined}
-                  Liste={typeof Liste !== 'undefined' ? Liste : undefined}
-                  view={typeof view !== 'undefined' ? view : undefined}
-                  pressed={typeof pressed !== 'undefined' ? pressed : undefined}
-                  calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
-                  changeCalendarView={typeof changeCalendarView !== 'undefined' ? changeCalendarView : undefined}
-                  blue={typeof blue !== 'undefined' ? blue : undefined}
-                  sm={typeof sm !== 'undefined' ? sm : undefined}
-                  grid={typeof grid !== 'undefined' ? grid : undefined}
-                  Pzt={typeof Pzt !== 'undefined' ? Pzt : undefined}
-                  Sal={typeof Sal !== 'undefined' ? Sal : undefined}
-                  Per={typeof Per !== 'undefined' ? Per : undefined}
-                  Cum={typeof Cum !== 'undefined' ? Cum : undefined}
-                  Cmt={typeof Cmt !== 'undefined' ? Cmt : undefined}
-                  Paz={typeof Paz !== 'undefined' ? Paz : undefined}
-                  dayName={typeof dayName !== 'undefined' ? dayName : undefined}
-                  last={typeof last !== 'undefined' ? last : undefined}
-                  calendarGridDays={typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined}
-                  day={typeof day !== 'undefined' ? day : undefined}
-                  getTasksForCalendarDay={typeof getTasksForCalendarDay !== 'undefined' ? getTasksForCalendarDay : undefined}
-                  calendarMonthDate={typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined}
-                  isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
-                  todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
-                  data={typeof data !== 'undefined' ? data : undefined}
-                  calendar={typeof calendar !== 'undefined' ? calendar : undefined}
-                  formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
-                  zrc={typeof zrc !== 'undefined' ? zrc : undefined}
-                  group={typeof group !== 'undefined' ? group : undefined}
-                  canCreateTaskFromCalendar={typeof canCreateTaskFromCalendar !== 'undefined' ? canCreateTaskFromCalendar : undefined}
-                  cursor={typeof cursor !== 'undefined' ? cursor : undefined}
-                  pointer={typeof pointer !== 'undefined' ? pointer : undefined}
-                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
-                  openTaskModalForCalendarDay={typeof openTaskModalForCalendarDay !== 'undefined' ? openTaskModalForCalendarDay : undefined}
-                  inset={typeof inset !== 'undefined' ? inset : undefined}
-                  events={typeof events !== 'undefined' ? events : undefined}
-                  leading={typeof leading !== 'undefined' ? leading : undefined}
-                  space={typeof space !== 'undefined' ? space : undefined}
-                  task={typeof task !== 'undefined' ? task : undefined}
-                  onMouseDown={typeof onMouseDown !== 'undefined' ? onMouseDown : undefined}
-                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-                  getCalendarTaskBarStyle={typeof getCalendarTaskBarStyle !== 'undefined' ? getCalendarTaskBarStyle : undefined}
-                  getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
-                  calendarWeekDays={typeof calendarWeekDays !== 'undefined' ? calendarWeekDays : undefined}
-                  week={typeof week !== 'undefined' ? week : undefined}
-                  mt={typeof mt !== 'undefined' ? mt : undefined}
-                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
-                  formatCalendarWeekday={typeof formatCalendarWeekday !== 'undefined' ? formatCalendarWeekday : undefined}
-                  handleCalendarDayClick={typeof handleCalendarDayClick !== 'undefined' ? handleCalendarDayClick : undefined}
-                  calendarFocusedDate={typeof calendarFocusedDate !== 'undefined' ? calendarFocusedDate : undefined}
-                  tabIndex={typeof tabIndex !== 'undefined' ? tabIndex : undefined}
-                  formatCalendarFullDate={typeof formatCalendarFullDate !== 'undefined' ? formatCalendarFullDate : undefined}
-                  calendarDayHelperText={typeof calendarDayHelperText !== 'undefined' ? calendarDayHelperText : undefined}
-                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
-                  Ekle={typeof Ekle !== 'undefined' ? Ekle : undefined}
-                  selectedDayCalendarTasks={typeof selectedDayCalendarTasks !== 'undefined' ? selectedDayCalendarTasks : undefined}
-                  l={typeof l !== 'undefined' ? l : undefined}
-                  getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
-                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-                  Normal={typeof Normal !== 'undefined' ? Normal : undefined}
-                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
-                  yok={typeof yok !== 'undefined' ? yok : undefined}
-                  fbfcfd={typeof fbfcfd !== 'undefined' ? fbfcfd : undefined}
-                  calendarTasks={typeof calendarTasks !== 'undefined' ? calendarTasks : undefined}
-                  list={typeof list !== 'undefined' ? list : undefined}
-                  col={typeof col !== 'undefined' ? col : undefined}
-                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
-                  Takvimde={typeof Takvimde !== 'undefined' ? Takvimde : undefined}
-                  Tarihi={typeof Tarihi !== 'undefined' ? Tarihi : undefined}
-                  olan={typeof olan !== 'undefined' ? olan : undefined}
-                  burada={typeof burada !== 'undefined' ? burada : undefined}
-                  listelenir={typeof listelenir !== 'undefined' ? listelenir : undefined}
-                />
+                <TakvimTabPanel ctx={zrcFeatureContext} />
 
 
                                 {/* zrc-v521-feature-zaman_cizelgesi */}
-                <ZamanCizelgesiTabPanel
-                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
-                  selectedProject={typeof selectedProject !== 'undefined' ? selectedProject : undefined}
-                  Zaman={typeof Zaman !== 'undefined' ? Zaman : undefined}
-                  w={typeof w !== 'undefined' ? w : undefined}
-                  full={typeof full !== 'undefined' ? full : undefined}
-                  h={typeof h !== 'undefined' ? h : undefined}
-                  min={typeof min !== 'undefined' ? min : undefined}
-                  flex={typeof flex !== 'undefined' ? flex : undefined}
-                  bg={typeof bg !== 'undefined' ? bg : undefined}
-                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
-                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
-                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
-                  animate={typeof animate !== 'undefined' ? animate : undefined}
-                  fade={typeof fade !== 'undefined' ? fade : undefined}
-                  px={typeof px !== 'undefined' ? px : undefined}
-                  pt={typeof pt !== 'undefined' ? pt : undefined}
-                  pb={typeof pb !== 'undefined' ? pb : undefined}
-                  max={typeof max !== 'undefined' ? max : undefined}
-                  mx={typeof mx !== 'undefined' ? mx : undefined}
-                  auto={typeof auto !== 'undefined' ? auto : undefined}
-                  white={typeof white !== 'undefined' ? white : undefined}
-                  border={typeof border !== 'undefined' ? border : undefined}
-                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
-                  calc={typeof calc !== 'undefined' ? calc : undefined}
-                  col={typeof col !== 'undefined' ? col : undefined}
-                  b={typeof b !== 'undefined' ? b : undefined}
-                  items={typeof items !== 'undefined' ? items : undefined}
-                  center={typeof center !== 'undefined' ? center : undefined}
-                  justify={typeof justify !== 'undefined' ? justify : undefined}
-                  between={typeof between !== 'undefined' ? between : undefined}
-                  gap={typeof gap !== 'undefined' ? gap : undefined}
-                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-                  text={typeof text !== 'undefined' ? text : undefined}
-                  blue={typeof blue !== 'undefined' ? blue : undefined}
-                  none={typeof none !== 'undefined' ? none : undefined}
-                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
-                  round={typeof round !== 'undefined' ? round : undefined}
-                  M21={typeof M21 !== 'undefined' ? M21 : undefined}
-                  timeChartSearch={typeof timeChartSearch !== 'undefined' ? timeChartSearch : undefined}
-                  setTimeChartSearch={typeof setTimeChartSearch !== 'undefined' ? setTimeChartSearch : undefined}
-                  scheduleSearchPlaceholder={typeof scheduleSearchPlaceholder !== 'undefined' ? scheduleSearchPlaceholder : undefined}
-                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
-                  font={typeof font !== 'undefined' ? font : undefined}
-                  bold={typeof bold !== 'undefined' ? bold : undefined}
-                  focus={typeof focus !== 'undefined' ? focus : undefined}
-                  outline={typeof outline !== 'undefined' ? outline : undefined}
-                  relative={typeof relative !== 'undefined' ? relative : undefined}
-                  setIsTimeChartFilterOpen={typeof setIsTimeChartFilterOpen !== 'undefined' ? setIsTimeChartFilterOpen : undefined}
-                  prev={typeof prev !== 'undefined' ? prev : undefined}
-                  setIsTimeChartSettingsOpen={typeof setIsTimeChartSettingsOpen !== 'undefined' ? setIsTimeChartSettingsOpen : undefined}
-                  hover={typeof hover !== 'undefined' ? hover : undefined}
-                  transition={typeof transition !== 'undefined' ? transition : undefined}
-                  all={typeof all !== 'undefined' ? all : undefined}
-                  Filtrele={typeof Filtrele !== 'undefined' ? Filtrele : undefined}
-                  M3={typeof M3 !== 'undefined' ? M3 : undefined}
-                  isTimeChartFilterOpen={typeof isTimeChartFilterOpen !== 'undefined' ? isTimeChartFilterOpen : undefined}
-                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
-                  left={typeof left !== 'undefined' ? left : undefined}
-                  top={typeof top !== 'undefined' ? top : undefined}
-                  z={typeof z !== 'undefined' ? z : undefined}
-                  hideCompleted={typeof hideCompleted !== 'undefined' ? hideCompleted : undefined}
-                  Gizle={typeof Gizle !== 'undefined' ? Gizle : undefined}
-                  hideArchived={typeof hideArchived !== 'undefined' ? hideArchived : undefined}
-                  hideNoDate={typeof hideNoDate !== 'undefined' ? hideNoDate : undefined}
-                  Tarihsiz={typeof Tarihsiz !== 'undefined' ? Tarihsiz : undefined}
-                  item={typeof item !== 'undefined' ? item : undefined}
-                  toggleTimeChartFilter={typeof toggleTimeChartFilter !== 'undefined' ? toggleTimeChartFilter : undefined}
-                  colors={typeof colors !== 'undefined' ? colors : undefined}
-                  timeChartFilters={typeof timeChartFilters !== 'undefined' ? timeChartFilters : undefined}
-                  M5={typeof M5 !== 'undefined' ? M5 : undefined}
-                  setTimeChartFilters={typeof setTimeChartFilters !== 'undefined' ? setTimeChartFilters : undefined}
-                  mt={typeof mt !== 'undefined' ? mt : undefined}
-                  black={typeof black !== 'undefined' ? black : undefined}
-                  Filtreleri={typeof Filtreleri !== 'undefined' ? Filtreleri : undefined}
-                  goToPreviousTimeChartPeriod={typeof goToPreviousTimeChartPeriod !== 'undefined' ? goToPreviousTimeChartPeriod : undefined}
-                  capitalize={typeof capitalize !== 'undefined' ? capitalize : undefined}
-                  timeChartRangeTitle={typeof timeChartRangeTitle !== 'undefined' ? timeChartRangeTitle : undefined}
-                  timeChartFilteredTasks={typeof timeChartFilteredTasks !== 'undefined' ? timeChartFilteredTasks : undefined}
-                  goToNextTimeChartPeriod={typeof goToNextTimeChartPeriod !== 'undefined' ? goToNextTimeChartPeriod : undefined}
-                  Sonraki={typeof Sonraki !== 'undefined' ? Sonraki : undefined}
-                  goToCurrentTimeChartPeriod={typeof goToCurrentTimeChartPeriod !== 'undefined' ? goToCurrentTimeChartPeriod : undefined}
-                  Hafta={typeof Hafta !== 'undefined' ? Hafta : undefined}
-                  view={typeof view !== 'undefined' ? view : undefined}
-                  changeTimeChartView={typeof changeTimeChartView !== 'undefined' ? changeTimeChartView : undefined}
-                  timeChartView={typeof timeChartView !== 'undefined' ? timeChartView : undefined}
-                  sm={typeof sm !== 'undefined' ? sm : undefined}
-                  Ayarlar={typeof Ayarlar !== 'undefined' ? Ayarlar : undefined}
-                  M10={typeof M10 !== 'undefined' ? M10 : undefined}
-                  M15={typeof M15 !== 'undefined' ? M15 : undefined}
-                  isTimeChartSettingsOpen={typeof isTimeChartSettingsOpen !== 'undefined' ? isTimeChartSettingsOpen : undefined}
-                  right={typeof right !== 'undefined' ? right : undefined}
-                  showWeekends={typeof showWeekends !== 'undefined' ? showWeekends : undefined}
-                  Sonunu={typeof Sonunu !== 'undefined' ? Sonunu : undefined}
-                  compactCards={typeof compactCards !== 'undefined' ? compactCards : undefined}
-                  Kompakt={typeof Kompakt !== 'undefined' ? Kompakt : undefined}
-                  Kartlar={typeof Kartlar !== 'undefined' ? Kartlar : undefined}
-                  toggleTimeChartSetting={typeof toggleTimeChartSetting !== 'undefined' ? toggleTimeChartSetting : undefined}
-                  timeChartSettings={typeof timeChartSettings !== 'undefined' ? timeChartSettings : undefined}
-                  scrollTimeChart={typeof scrollTimeChart !== 'undefined' ? scrollTimeChart : undefined}
-                  translate={typeof translate !== 'undefined' ? translate : undefined}
-                  md={typeof md !== 'undefined' ? md : undefined}
-                  Sola={typeof Sola !== 'undefined' ? Sola : undefined}
-                  ref={typeof ref !== 'undefined' ? ref : undefined}
-                  timeChartScrollRef={typeof timeChartScrollRef !== 'undefined' ? timeChartScrollRef : undefined}
-                  custom={typeof custom !== 'undefined' ? custom : undefined}
-                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
-                  overscroll={typeof overscroll !== 'undefined' ? overscroll : undefined}
-                  contain={typeof contain !== 'undefined' ? contain : undefined}
-                  grid={typeof grid !== 'undefined' ? grid : undefined}
-                  gridTemplateColumns={typeof gridTemplateColumns !== 'undefined' ? gridTemplateColumns : undefined}
-                  repeat={typeof repeat !== 'undefined' ? repeat : undefined}
-                  timeChartPeriods={typeof timeChartPeriods !== 'undefined' ? timeChartPeriods : undefined}
-                  minmax={typeof minmax !== 'undefined' ? minmax : undefined}
-                  minWidth={typeof minWidth !== 'undefined' ? minWidth : undefined}
-                  period={typeof period !== 'undefined' ? period : undefined}
-                  time={typeof time !== 'undefined' ? time : undefined}
-                  head={typeof head !== 'undefined' ? head : undefined}
-                  day={typeof day !== 'undefined' ? day : undefined}
-                  isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
-                  todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
-                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
-                  timeChartMembers={typeof timeChartMembers !== 'undefined' ? timeChartMembers : undefined}
-                  member={typeof member !== 'undefined' ? member : undefined}
-                  py={typeof py !== 'undefined' ? py : undefined}
-                  renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
-                  createAvatarFromName={typeof createAvatarFromName !== 'undefined' ? createAvatarFromName : undefined}
-                  getTimeChartTasksForMemberAndPeriod={typeof getTimeChartTasksForMemberAndPeriod !== 'undefined' ? getTimeChartTasksForMemberAndPeriod : undefined}
-                  cell={typeof cell !== 'undefined' ? cell : undefined}
-                  repeating={typeof repeating !== 'undefined' ? repeating : undefined}
-                  linear={typeof linear !== 'undefined' ? linear : undefined}
-                  gradient={typeof gradient !== 'undefined' ? gradient : undefined}
-                  rgba={typeof rgba !== 'undefined' ? rgba : undefined}
-                  _0px={typeof _0px !== 'undefined' ? _0px : undefined}
-                  _8px={typeof _8px !== 'undefined' ? _8px : undefined}
-                  transparent_8px={typeof transparent_8px !== 'undefined' ? transparent_8px : undefined}
-                  transparent_16px={typeof transparent_16px !== 'undefined' ? transparent_16px : undefined}
-                  Sonu={typeof Sonu !== 'undefined' ? Sonu : undefined}
-                  space={typeof space !== 'undefined' ? space : undefined}
-                  task={typeof task !== 'undefined' ? task : undefined}
-                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                  getTimeChartTaskColor={typeof getTimeChartTaskColor !== 'undefined' ? getTimeChartTaskColor : undefined}
-                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-                  Proje={typeof Proje !== 'undefined' ? Proje : undefined}
-                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
-                  getTimeChartTaskStartDate={typeof getTimeChartTaskStartDate !== 'undefined' ? getTimeChartTaskStartDate : undefined}
-                  getTimeChartTaskEndDate={typeof getTimeChartTaskEndDate !== 'undefined' ? getTimeChartTaskEndDate : undefined}
-                  openTaskModalForTimeChartPeriod={typeof openTaskModalForTimeChartPeriod !== 'undefined' ? openTaskModalForTimeChartPeriod : undefined}
-                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
-                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
-                  alana={typeof alana !== 'undefined' ? alana : undefined}
-                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
-                />
+                <ZamanCizelgesiTabPanel ctx={zrcFeatureContext} />
 
                                 {/* zrc-v521-feature-dosyalar */}
-                <DosyalarTabPanel
-                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
-                  currentPermissions={typeof currentPermissions !== 'undefined' ? currentPermissions : undefined}
-                  currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
-                  selectedProject={typeof selectedProject !== 'undefined' ? selectedProject : undefined}
-                  Dosyalar={typeof Dosyalar !== 'undefined' ? Dosyalar : undefined}
-                  w={typeof w !== 'undefined' ? w : undefined}
-                  full={typeof full !== 'undefined' ? full : undefined}
-                  flex={typeof flex !== 'undefined' ? flex : undefined}
-                  bg={typeof bg !== 'undefined' ? bg : undefined}
-                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
-                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
-                  auto={typeof auto !== 'undefined' ? auto : undefined}
-                  custom={typeof custom !== 'undefined' ? custom : undefined}
-                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
-                  animate={typeof animate !== 'undefined' ? animate : undefined}
-                  fade={typeof fade !== 'undefined' ? fade : undefined}
-                  setPendingFileDeleteKey={typeof setPendingFileDeleteKey !== 'undefined' ? setPendingFileDeleteKey : undefined}
-                  max={typeof max !== 'undefined' ? max : undefined}
-                  mx={typeof mx !== 'undefined' ? mx : undefined}
-                  px={typeof px !== 'undefined' ? px : undefined}
-                  py={typeof py !== 'undefined' ? py : undefined}
-                  items={typeof items !== 'undefined' ? items : undefined}
-                  center={typeof center !== 'undefined' ? center : undefined}
-                  justify={typeof justify !== 'undefined' ? justify : undefined}
-                  between={typeof between !== 'undefined' ? between : undefined}
-                  mb={typeof mb !== 'undefined' ? mb : undefined}
-                  text={typeof text !== 'undefined' ? text : undefined}
-                  font={typeof font !== 'undefined' ? font : undefined}
-                  black={typeof black !== 'undefined' ? black : undefined}
-                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
-                  tight={typeof tight !== 'undefined' ? tight : undefined}
-                  mt={typeof mt !== 'undefined' ? mt : undefined}
-                  bold={typeof bold !== 'undefined' ? bold : undefined}
-                  eklenen={typeof eklenen !== 'undefined' ? eklenen : undefined}
-                  proje={typeof proje !== 'undefined' ? proje : undefined}
-                  genelinde={typeof genelinde !== 'undefined' ? genelinde : undefined}
-                  ara={typeof ara !== 'undefined' ? ara : undefined}
-                  filtrele={typeof filtrele !== 'undefined' ? filtrele : undefined}
-                  ve={typeof ve !== 'undefined' ? ve : undefined}
-                  gap={typeof gap !== 'undefined' ? gap : undefined}
-                  h={typeof h !== 'undefined' ? h : undefined}
-                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                  white={typeof white !== 'undefined' ? white : undefined}
-                  border={typeof border !== 'undefined' ? border : undefined}
-                  projectFiles={typeof projectFiles !== 'undefined' ? projectFiles : undefined}
-                  dosya={typeof dosya !== 'undefined' ? dosya : undefined}
-                  setActiveTab={typeof setActiveTab !== 'undefined' ? setActiveTab : undefined}
-                  hover={typeof hover !== 'undefined' ? hover : undefined}
-                  transition={typeof transition !== 'undefined' ? transition : undefined}
-                  all={typeof all !== 'undefined' ? all : undefined}
-                  Git={typeof Git !== 'undefined' ? Git : undefined}
-                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
-                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
-                  b={typeof b !== 'undefined' ? b : undefined}
-                  min={typeof min !== 'undefined' ? min : undefined}
-                  blue={typeof blue !== 'undefined' ? blue : undefined}
-                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-                  none={typeof none !== 'undefined' ? none : undefined}
-                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
-                  round={typeof round !== 'undefined' ? round : undefined}
-                  M21={typeof M21 !== 'undefined' ? M21 : undefined}
-                  fileSearch={typeof fileSearch !== 'undefined' ? fileSearch : undefined}
-                  setFileSearch={typeof setFileSearch !== 'undefined' ? setFileSearch : undefined}
-                  Dosya={typeof Dosya !== 'undefined' ? Dosya : undefined}
-                  veya={typeof veya !== 'undefined' ? veya : undefined}
-                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
-                  focus={typeof focus !== 'undefined' ? focus : undefined}
-                  outline={typeof outline !== 'undefined' ? outline : undefined}
-                  projectFileTypeOptions={typeof projectFileTypeOptions !== 'undefined' ? projectFileTypeOptions : undefined}
-                  setFileTypeFilter={typeof setFileTypeFilter !== 'undefined' ? setFileTypeFilter : undefined}
-                  whitespace={typeof whitespace !== 'undefined' ? whitespace : undefined}
-                  nowrap={typeof nowrap !== 'undefined' ? nowrap : undefined}
-                  fileTypeFilter={typeof fileTypeFilter !== 'undefined' ? fileTypeFilter : undefined}
-                  sm={typeof sm !== 'undefined' ? sm : undefined}
-                  setSelectedProjectFileKey={typeof setSelectedProjectFileKey !== 'undefined' ? setSelectedProjectFileKey : undefined}
-                  Temizle={typeof Temizle !== 'undefined' ? Temizle : undefined}
-                  grid={typeof grid !== 'undefined' ? grid : undefined}
-                  fbfcfd={typeof fbfcfd !== 'undefined' ? fbfcfd : undefined}
-                  filteredProjectFiles={typeof filteredProjectFiles !== 'undefined' ? filteredProjectFiles : undefined}
-                  file={typeof file !== 'undefined' ? file : undefined}
-                  selectedProjectFile={typeof selectedProjectFile !== 'undefined' ? selectedProjectFile : undefined}
-                  pendingFileDeleteKey={typeof pendingFileDeleteKey !== 'undefined' ? pendingFileDeleteKey : undefined}
-                  handleSelectProjectFile={typeof handleSelectProjectFile !== 'undefined' ? handleSelectProjectFile : undefined}
-                  group={typeof group !== 'undefined' ? group : undefined}
-                  left={typeof left !== 'undefined' ? left : undefined}
-                  ring={typeof ring !== 'undefined' ? ring : undefined}
-                  start={typeof start !== 'undefined' ? start : undefined}
-                  getProjectFileIconStyle={typeof getProjectFileIconStyle !== 'undefined' ? getProjectFileIconStyle : undefined}
-                  M19={typeof M19 !== 'undefined' ? M19 : undefined}
-                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-                  getProjectFileSecondaryText={typeof getProjectFileSecondaryText !== 'undefined' ? getProjectFileSecondaryText : undefined}
-                  wrap={typeof wrap !== 'undefined' ? wrap : undefined}
-                  formatProjectFileSize={typeof formatProjectFileSize !== 'undefined' ? formatProjectFileSize : undefined}
-                  Patron={typeof Patron !== 'undefined' ? Patron : undefined}
-                  renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
-                  currentProfileInitials={typeof currentProfileInitials !== 'undefined' ? currentProfileInitials : undefined}
-                  getProfileNameForRecord={typeof getProfileNameForRecord !== 'undefined' ? getProfileNameForRecord : undefined}
-                  currentActorName={typeof currentActorName !== 'undefined' ? currentActorName : undefined}
-                  red={typeof red !== 'undefined' ? red : undefined}
-                  Silmek={typeof Silmek !== 'undefined' ? Silmek : undefined}
-                  tekrar={typeof tekrar !== 'undefined' ? tekrar : undefined}
-                  bas={typeof bas !== 'undefined' ? bas : undefined}
-                  colors={typeof colors !== 'undefined' ? colors : undefined}
-                  col={typeof col !== 'undefined' ? col : undefined}
-                  M18={typeof M18 !== 'undefined' ? M18 : undefined}
-                  projectFileEmptyTitle={typeof projectFileEmptyTitle !== 'undefined' ? projectFileEmptyTitle : undefined}
-                  projectFileEmptyDescription={typeof projectFileEmptyDescription !== 'undefined' ? projectFileEmptyDescription : undefined}
-                  leading={typeof leading !== 'undefined' ? leading : undefined}
-                  words={typeof words !== 'undefined' ? words : undefined}
-                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
-                  Bilgileri={typeof Bilgileri !== 'undefined' ? Bilgileri : undefined}
-                  space={typeof space !== 'undefined' ? space : undefined}
-                  getProjectFileInfoRows={typeof getProjectFileInfoRows !== 'undefined' ? getProjectFileInfoRows : undefined}
-                  right={typeof right !== 'undefined' ? right : undefined}
-                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
-                  projedeki={typeof projedeki !== 'undefined' ? projedeki : undefined}
-                  Sadece={typeof Sadece !== 'undefined' ? Sadece : undefined}
-                  size={typeof size !== 'undefined' ? size : undefined}
-                  dosyalar={typeof dosyalar !== 'undefined' ? dosyalar : undefined}
-                  listelenir={typeof listelenir !== 'undefined' ? listelenir : undefined}
-                  projectFileTypeStats={typeof projectFileTypeStats !== 'undefined' ? projectFileTypeStats : undefined}
-                  item={typeof item !== 'undefined' ? item : undefined}
-                  bilgisi={typeof bilgisi !== 'undefined' ? bilgisi : undefined}
-                  yok={typeof yok !== 'undefined' ? yok : undefined}
-                  pt={typeof pt !== 'undefined' ? pt : undefined}
-                  downloadTaskFileFromSupabase={typeof downloadTaskFileFromSupabase !== 'undefined' ? downloadTaskFileFromSupabase : undefined}
-                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                  handleDeleteProjectFile={typeof handleDeleteProjectFile !== 'undefined' ? handleDeleteProjectFile : undefined}
-                  Tekrar={typeof Tekrar !== 'undefined' ? Tekrar : undefined}
-                  Bas={typeof Bas !== 'undefined' ? Bas : undefined}
-                  Sil={typeof Sil !== 'undefined' ? Sil : undefined}
-                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
-                  M15={typeof M15 !== 'undefined' ? M15 : undefined}
-                  Soldan={typeof Soldan !== 'undefined' ? Soldan : undefined}
-                  bir={typeof bir !== 'undefined' ? bir : undefined}
-                  burada={typeof burada !== 'undefined' ? burada : undefined}
-                />
+                <DosyalarTabPanel ctx={zrcFeatureContext} />
 
 
 
                                 {/* zrc-v521-feature-gantt_cizelgesi */}
-                <GanttCizelgesiTabPanel
-                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
-                  currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
-                  Gantt={typeof Gantt !== 'undefined' ? Gantt : undefined}
-                  w={typeof w !== 'undefined' ? w : undefined}
-                  full={typeof full !== 'undefined' ? full : undefined}
-                  flex={typeof flex !== 'undefined' ? flex : undefined}
-                  bg={typeof bg !== 'undefined' ? bg : undefined}
-                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
-                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
-                  auto={typeof auto !== 'undefined' ? auto : undefined}
-                  custom={typeof custom !== 'undefined' ? custom : undefined}
-                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
-                  animate={typeof animate !== 'undefined' ? animate : undefined}
-                  fade={typeof fade !== 'undefined' ? fade : undefined}
-                  px={typeof px !== 'undefined' ? px : undefined}
-                  py={typeof py !== 'undefined' ? py : undefined}
-                  white={typeof white !== 'undefined' ? white : undefined}
-                  border={typeof border !== 'undefined' ? border : undefined}
-                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
-                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
-                  h={typeof h !== 'undefined' ? h : undefined}
-                  b={typeof b !== 'undefined' ? b : undefined}
-                  items={typeof items !== 'undefined' ? items : undefined}
-                  center={typeof center !== 'undefined' ? center : undefined}
-                  justify={typeof justify !== 'undefined' ? justify : undefined}
-                  between={typeof between !== 'undefined' ? between : undefined}
-                  gap={typeof gap !== 'undefined' ? gap : undefined}
-                  text={typeof text !== 'undefined' ? text : undefined}
-                  blue={typeof blue !== 'undefined' ? blue : undefined}
-                  none={typeof none !== 'undefined' ? none : undefined}
-                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
-                  round={typeof round !== 'undefined' ? round : undefined}
-                  M21={typeof M21 !== 'undefined' ? M21 : undefined}
-                  ganttSearch={typeof ganttSearch !== 'undefined' ? ganttSearch : undefined}
-                  setGanttSearch={typeof setGanttSearch !== 'undefined' ? setGanttSearch : undefined}
-                  ganttSearchPlaceholder={typeof ganttSearchPlaceholder !== 'undefined' ? ganttSearchPlaceholder : undefined}
-                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
-                  font={typeof font !== 'undefined' ? font : undefined}
-                  bold={typeof bold !== 'undefined' ? bold : undefined}
-                  focus={typeof focus !== 'undefined' ? focus : undefined}
-                  outline={typeof outline !== 'undefined' ? outline : undefined}
-                  setGanttShowCompleted={typeof setGanttShowCompleted !== 'undefined' ? setGanttShowCompleted : undefined}
-                  prev={typeof prev !== 'undefined' ? prev : undefined}
-                  black={typeof black !== 'undefined' ? black : undefined}
-                  transition={typeof transition !== 'undefined' ? transition : undefined}
-                  all={typeof all !== 'undefined' ? all : undefined}
-                  ganttShowCompleted={typeof ganttShowCompleted !== 'undefined' ? ganttShowCompleted : undefined}
-                  emerald={typeof emerald !== 'undefined' ? emerald : undefined}
-                  hover={typeof hover !== 'undefined' ? hover : undefined}
-                  Tamamlananlar={typeof Tamamlananlar !== 'undefined' ? Tamamlananlar : undefined}
-                  goToPreviousGanttPeriod={typeof goToPreviousGanttPeriod !== 'undefined' ? goToPreviousGanttPeriod : undefined}
-                  min={typeof min !== 'undefined' ? min : undefined}
-                  capitalize={typeof capitalize !== 'undefined' ? capitalize : undefined}
-                  ganttRangeTitle={typeof ganttRangeTitle !== 'undefined' ? ganttRangeTitle : undefined}
-                  ganttTasks={typeof ganttTasks !== 'undefined' ? ganttTasks : undefined}
-                  goToNextGanttPeriod={typeof goToNextGanttPeriod !== 'undefined' ? goToNextGanttPeriod : undefined}
-                  Sonraki={typeof Sonraki !== 'undefined' ? Sonraki : undefined}
-                  goToCurrentGanttPeriod={typeof goToCurrentGanttPeriod !== 'undefined' ? goToCurrentGanttPeriod : undefined}
-                  Hafta={typeof Hafta !== 'undefined' ? Hafta : undefined}
-                  Ay={typeof Ay !== 'undefined' ? Ay : undefined}
-                  view={typeof view !== 'undefined' ? view : undefined}
-                  changeGanttView={typeof changeGanttView !== 'undefined' ? changeGanttView : undefined}
-                  ganttView={typeof ganttView !== 'undefined' ? ganttView : undefined}
-                  sm={typeof sm !== 'undefined' ? sm : undefined}
-                  relative={typeof relative !== 'undefined' ? relative : undefined}
-                  scrollGantt={typeof scrollGantt !== 'undefined' ? scrollGantt : undefined}
-                  left={typeof left !== 'undefined' ? left : undefined}
-                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
-                  top={typeof top !== 'undefined' ? top : undefined}
-                  translate={typeof translate !== 'undefined' ? translate : undefined}
-                  z={typeof z !== 'undefined' ? z : undefined}
-                  md={typeof md !== 'undefined' ? md : undefined}
-                  Sola={typeof Sola !== 'undefined' ? Sola : undefined}
-                  right={typeof right !== 'undefined' ? right : undefined}
-                  ref={typeof ref !== 'undefined' ? ref : undefined}
-                  ganttScrollRef={typeof ganttScrollRef !== 'undefined' ? ganttScrollRef : undefined}
-                  grid={typeof grid !== 'undefined' ? grid : undefined}
-                  gridTemplateColumns={typeof gridTemplateColumns !== 'undefined' ? gridTemplateColumns : undefined}
-                  repeat={typeof repeat !== 'undefined' ? repeat : undefined}
-                  ganttPeriods={typeof ganttPeriods !== 'undefined' ? ganttPeriods : undefined}
-                  minmax={typeof minmax !== 'undefined' ? minmax : undefined}
-                  ganttPeriodConfig={typeof ganttPeriodConfig !== 'undefined' ? ganttPeriodConfig : undefined}
-                  minWidth={typeof minWidth !== 'undefined' ? minWidth : undefined}
-                  sticky={typeof sticky !== 'undefined' ? sticky : undefined}
-                  period={typeof period !== 'undefined' ? period : undefined}
-                  gantt={typeof gantt !== 'undefined' ? gantt : undefined}
-                  head={typeof head !== 'undefined' ? head : undefined}
-                  col={typeof col !== 'undefined' ? col : undefined}
-                  todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
-                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
-                  task={typeof task !== 'undefined' ? task : undefined}
-                  getGanttTaskPlacement={typeof getGanttTaskPlacement !== 'undefined' ? getGanttTaskPlacement : undefined}
-                  row={typeof row !== 'undefined' ? row : undefined}
-                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-                  getPremiumCalendarDotStyle={typeof getPremiumCalendarDotStyle !== 'undefined' ? getPremiumCalendarDotStyle : undefined}
-                  mt={typeof mt !== 'undefined' ? mt : undefined}
-                  getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
-                  gridColumn={typeof gridColumn !== 'undefined' ? gridColumn : undefined}
-                  cell={typeof cell !== 'undefined' ? cell : undefined}
-                  self={typeof self !== 'undefined' ? self : undefined}
-                  mx={typeof mx !== 'undefined' ? mx : undefined}
-                  getGanttBarClassName={typeof getGanttBarClassName !== 'undefined' ? getGanttBarClassName : undefined}
-                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
-                  mb={typeof mb !== 'undefined' ? mb : undefined}
-                  M3={typeof M3 !== 'undefined' ? M3 : undefined}
-                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
-                  yok={typeof yok !== 'undefined' ? yok : undefined}
-                  Patron={typeof Patron !== 'undefined' ? Patron : undefined}
-                  veya={typeof veya !== 'undefined' ? veya : undefined}
-                  tarihi={typeof tarihi !== 'undefined' ? tarihi : undefined}
-                  olan={typeof olan !== 'undefined' ? olan : undefined}
-                  burada={typeof burada !== 'undefined' ? burada : undefined}
-                  olarak={typeof olarak !== 'undefined' ? olarak : undefined}
-                  Tarihi={typeof Tarihi !== 'undefined' ? Tarihi : undefined}
-                  ganttUndatedTasks={typeof ganttUndatedTasks !== 'undefined' ? ganttUndatedTasks : undefined}
-                  Tarihsiz={typeof Tarihsiz !== 'undefined' ? Tarihsiz : undefined}
-                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
-                  bulunmuyor={typeof bulunmuyor !== 'undefined' ? bulunmuyor : undefined}
-                  undated={typeof undated !== 'undefined' ? undated : undefined}
-                />
+                <GanttCizelgesiTabPanel ctx={zrcFeatureContext} />
 
 
                                 {/* zrc-v521-feature-raporlar */}
-                <RaporlarTabPanel
-                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
-                  currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
-                  Raporlar={typeof Raporlar !== 'undefined' ? Raporlar : undefined}
-                  w={typeof w !== 'undefined' ? w : undefined}
-                  full={typeof full !== 'undefined' ? full : undefined}
-                  flex={typeof flex !== 'undefined' ? flex : undefined}
-                  bg={typeof bg !== 'undefined' ? bg : undefined}
-                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
-                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
-                  auto={typeof auto !== 'undefined' ? auto : undefined}
-                  custom={typeof custom !== 'undefined' ? custom : undefined}
-                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
-                  animate={typeof animate !== 'undefined' ? animate : undefined}
-                  fade={typeof fade !== 'undefined' ? fade : undefined}
-                  max={typeof max !== 'undefined' ? max : undefined}
-                  mx={typeof mx !== 'undefined' ? mx : undefined}
-                  px={typeof px !== 'undefined' ? px : undefined}
-                  py={typeof py !== 'undefined' ? py : undefined}
-                  items={typeof items !== 'undefined' ? items : undefined}
-                  center={typeof center !== 'undefined' ? center : undefined}
-                  justify={typeof justify !== 'undefined' ? justify : undefined}
-                  between={typeof between !== 'undefined' ? between : undefined}
-                  mb={typeof mb !== 'undefined' ? mb : undefined}
-                  text={typeof text !== 'undefined' ? text : undefined}
-                  font={typeof font !== 'undefined' ? font : undefined}
-                  black={typeof black !== 'undefined' ? black : undefined}
-                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
-                  tight={typeof tight !== 'undefined' ? tight : undefined}
-                  mt={typeof mt !== 'undefined' ? mt : undefined}
-                  bold={typeof bold !== 'undefined' ? bold : undefined}
-                  reportIntroText={typeof reportIntroText !== 'undefined' ? reportIntroText : undefined}
-                  setActiveTab={typeof setActiveTab !== 'undefined' ? setActiveTab : undefined}
-                  h={typeof h !== 'undefined' ? h : undefined}
-                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                  white={typeof white !== 'undefined' ? white : undefined}
-                  border={typeof border !== 'undefined' ? border : undefined}
-                  hover={typeof hover !== 'undefined' ? hover : undefined}
-                  transition={typeof transition !== 'undefined' ? transition : undefined}
-                  all={typeof all !== 'undefined' ? all : undefined}
-                  Git={typeof Git !== 'undefined' ? Git : undefined}
-                  grid={typeof grid !== 'undefined' ? grid : undefined}
-                  gap={typeof gap !== 'undefined' ? gap : undefined}
-                  reportSummaryCards={typeof reportSummaryCards !== 'undefined' ? reportSummaryCards : undefined}
-                  card={typeof card !== 'undefined' ? card : undefined}
-                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
-                  none={typeof none !== 'undefined' ? none : undefined}
-                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
-                  round={typeof round !== 'undefined' ? round : undefined}
-                  M4={typeof M4 !== 'undefined' ? M4 : undefined}
-                  leading={typeof leading !== 'undefined' ? leading : undefined}
-                  space={typeof space !== 'undefined' ? space : undefined}
-                  Genel={typeof Genel !== 'undefined' ? Genel : undefined}
-                  Tamamlanan={typeof Tamamlanan !== 'undefined' ? Tamamlanan : undefined}
-                  toplam={typeof toplam !== 'undefined' ? toplam : undefined}
-                  emerald={typeof emerald !== 'undefined' ? emerald : undefined}
-                  reportProgressPercentage={typeof reportProgressPercentage !== 'undefined' ? reportProgressPercentage : undefined}
-                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
-                  duration={typeof duration !== 'undefined' ? duration : undefined}
-                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
-                  reportOpenTasks={typeof reportOpenTasks !== 'undefined' ? reportOpenTasks : undefined}
-                  Dosya={typeof Dosya !== 'undefined' ? Dosya : undefined}
-                  reportFileCount={typeof reportFileCount !== 'undefined' ? reportFileCount : undefined}
-                  Patron={typeof Patron !== 'undefined' ? Patron : undefined}
-                  Proje={typeof Proje !== 'undefined' ? Proje : undefined}
-                  reportCustomerCount={typeof reportCustomerCount !== 'undefined' ? reportCustomerCount : undefined}
-                  visibleProjectNames={typeof visibleProjectNames !== 'undefined' ? visibleProjectNames : undefined}
-                  Kolonlara={typeof Kolonlara !== 'undefined' ? Kolonlara : undefined}
-                  boardColumns={typeof boardColumns !== 'undefined' ? boardColumns : undefined}
-                  kolon={typeof kolon !== 'undefined' ? kolon : undefined}
-                  pr={typeof pr !== 'undefined' ? pr : undefined}
-                  reportColumnStats={typeof reportColumnStats !== 'undefined' ? reportColumnStats : undefined}
-                  column={typeof column !== 'undefined' ? column : undefined}
-                  min={typeof min !== 'undefined' ? min : undefined}
-                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-                  backgroundColor={typeof backgroundColor !== 'undefined' ? backgroundColor : undefined}
-                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-                  reportPriorityTitle={typeof reportPriorityTitle !== 'undefined' ? reportPriorityTitle : undefined}
-                  reportUrgentTasks={typeof reportUrgentTasks !== 'undefined' ? reportUrgentTasks : undefined}
-                  reportPriorityStats={typeof reportPriorityStats !== 'undefined' ? reportPriorityStats : undefined}
-                  item={typeof item !== 'undefined' ? item : undefined}
-                  getReportPriorityStyle={typeof getReportPriorityStyle !== 'undefined' ? getReportPriorityStyle : undefined}
-                  reportUpcomingTasks={typeof reportUpcomingTasks !== 'undefined' ? reportUpcomingTasks : undefined}
-                  task={typeof task !== 'undefined' ? task : undefined}
-                  report={typeof report !== 'undefined' ? report : undefined}
-                  upcoming={typeof upcoming !== 'undefined' ? upcoming : undefined}
-                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                  left={typeof left !== 'undefined' ? left : undefined}
-                  start={typeof start !== 'undefined' ? start : undefined}
-                  getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
-                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
-                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
-                  yok={typeof yok !== 'undefined' ? yok : undefined}
-                  Tarihli={typeof Tarihli !== 'undefined' ? Tarihli : undefined}
-                  burada={typeof burada !== 'undefined' ? burada : undefined}
-                  Gecikenler={typeof Gecikenler !== 'undefined' ? Gecikenler : undefined}
-                  red={typeof red !== 'undefined' ? red : undefined}
-                  reportOverdueTasks={typeof reportOverdueTasks !== 'undefined' ? reportOverdueTasks : undefined}
-                  overdue={typeof overdue !== 'undefined' ? overdue : undefined}
-                  getReportTaskDate={typeof getReportTaskDate !== 'undefined' ? getReportTaskDate : undefined}
-                  Geciken={typeof Geciken !== 'undefined' ? Geciken : undefined}
-                />
+                <RaporlarTabPanel ctx={zrcFeatureContext} />
 
                 {activeContentMenu === 'Diğer' && activeTab === 'Ekip' && showTeamManagementPage && (
                   <div className="zrc-team-center-page w-full h-full overflow-y-auto custom-scrollbar bg-[#f5f6f8] animate-fade-in">

@@ -3,6 +3,8 @@ import React from 'react';
 import TakvimTabPanelCalendarViewGunBlock from './blocks/TakvimTabPanelCalendarViewGunBlock';
 import TakvimTabPanelCalendarViewAyBlock from './blocks/TakvimTabPanelCalendarViewAyBlock';
 export default function TakvimTabPanel(props) {
+  const ctx = props?.ctx || {};
+
   const {
     activeTab,
     Takvim,
@@ -149,7 +151,7 @@ export default function TakvimTabPanel(props) {
     olan,
     burada,
     listelenir
-  } = props;
+  } = ctx;
 
   return (
     activeTab === 'Takvim' && (

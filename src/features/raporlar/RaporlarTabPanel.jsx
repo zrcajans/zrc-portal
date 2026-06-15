@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function RaporlarTabPanel(props) {
+  const ctx = props?.ctx || {};
+
   const {
     activeTab,
     currentAccountType,
@@ -103,7 +105,7 @@ export default function RaporlarTabPanel(props) {
     overdue,
     getReportTaskDate,
     Geciken
-  } = props;
+  } = ctx;
 
   return (
     activeTab === 'Raporlar' && (

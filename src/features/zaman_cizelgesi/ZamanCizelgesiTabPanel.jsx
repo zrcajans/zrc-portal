@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function ZamanCizelgesiTabPanel(props) {
+  const ctx = props?.ctx || {};
+
   const {
     activeTab,
     selectedProject,
@@ -155,7 +157,7 @@ export default function ZamanCizelgesiTabPanel(props) {
     Bu,
     alana,
     ekle
-  } = props;
+  } = ctx;
 
   return (
     activeTab === 'Zaman Çizelgesi' && (

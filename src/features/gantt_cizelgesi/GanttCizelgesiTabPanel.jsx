@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function GanttCizelgesiTabPanel(props) {
+  const ctx = props?.ctx || {};
+
   const {
     activeTab,
     currentAccountType,
@@ -125,7 +127,7 @@ export default function GanttCizelgesiTabPanel(props) {
     ekle,
     bulunmuyor,
     undated
-  } = props;
+  } = ctx;
 
   return (
     activeTab === 'Gantt Çizelgesi' && (

@@ -2,6 +2,8 @@ import React from 'react';
 
 import GorevlerTabPanelBoardViewArsivBlock from './blocks/GorevlerTabPanelBoardViewArsivBlock';
 export default function GorevlerTabPanel(props) {
+  const ctx = props?.ctx || {};
+
   const {
     activeTab,
     currentPermissions,
@@ -226,7 +228,7 @@ export default function GorevlerTabPanel(props) {
     blur,
     index,
     tab
-  } = props;
+  } = ctx;
 
   return (
     activeTab === 'Görevler' && (
