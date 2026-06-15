@@ -1,15 +1,12 @@
 {
-  "build": "v503-extract-color-file-helpers",
-  "note": "Renk okunabilirlik helperları ve proje dosya helperları App.jsx içinden src/utils dosyalarına taşındı. Storage/navigation/login tarafına dokunulmadı.",
+  "build": "v504-extract-dashboard-helpers",
+  "note": "Tarih/takvim/zaman çizelgesi/bildirim arama/not helperları App.jsx içinden src/utils/dashboardHelpers.js dosyasına taşındı. Storage/navigation/login tarafına dokunulmadı.",
   "changed": [
-    "src/utils/colorHelpers.js oluşturuldu/güncellendi",
-    "Renk helperları taşındı: 7 adet",
-    "App.jsx'e colorHelpers importu eklendi",
-    "src/utils/projectFileHelpers.js oluşturuldu/güncellendi",
-    "Proje dosya helperları taşındı/wrapperlandı: 4 adet",
-    "State bağımlı proje dosya helperları App.jsx içinde kısa wrapper'a dönüştürüldü",
-    "App.jsx'e projectFileHelpers importu eklendi"
+    "src/utils/dashboardHelpers.js oluşturuldu/güncellendi",
+    "App.jsx dışına taşınan helper sayısı: 34",
+    "App.jsx dışına taşınan helper satırı: yaklaşık 399",
+    "App.jsx'e dashboardHelpers importu eklendi"
   ],
-  "commitBefore": "7c046f3",
-  "createdAt": "2026-06-15T08:13:04.589220+00:00"
+  "commitBefore": "3f41e1d",
+  "createdAt": "2026-06-15T08:16:12.084231+00:00"
 }
