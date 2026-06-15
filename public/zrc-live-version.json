@@ -1,8 +1,14 @@
 {
-  "build": "v534-global-runtime-error-guard",
-  "note": "Runtime render/window/unhandledrejection hatalarını siyah ekran yerine görünür hata ekranı ile yakalayan global boundary eklendi.",
-  "entryFile": "src/main.jsx",
-  "boundaryFile": "src/components/ZRCGlobalRuntimeBoundary.jsx",
-  "commitBefore": "447f225",
-  "createdAt": "2026-06-15T20:57:57.635177+00:00"
+  "build": "v535-architecture-state-service-split",
+  "note": "ZRCAppShell içindeki temel state blokları src/app/state/useZRCAppStateLayer.js dosyasına taşındı. Service/shared klasör mimarisi açıldı.",
+  "shellLinesBefore": 16651,
+  "shellLinesAfter": 16228,
+  "shellNetReduction": 423,
+  "stateLayerLines": 480,
+  "coreStateNames": 231,
+  "boardStateNames": 4,
+  "selectionStateNames": 6,
+  "modalStateNames": 10,
+  "commitBefore": "8951cd6",
+  "createdAt": "2026-06-15T21:14:43.775835+00:00"
 }

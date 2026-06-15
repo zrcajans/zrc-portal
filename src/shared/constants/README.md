@@ -1,0 +1,1 @@
+Paylaşılan sabitler burada toplanacak.
