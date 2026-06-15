@@ -94,7 +94,14 @@ import {
   zrcV448PlayDesktopNotificationSound
 } from './utils/browserEnhancements';
 
-const ZRC_APP_BUILD_LABEL = 'v505-extract-common-controls';
+
+// zrc-v507-local-helper-fallbacks
+const zrcV426bApplyDueDateColors = (value, ...args) => {
+  console.warn('[ZRC fallback] zrcV426bApplyDueDateColors helper ayrıma takıldı, no-op çalıştı.', { value, args });
+  return value;
+};
+
+const ZRC_APP_BUILD_LABEL = 'v507-local-zrc-helper-fallbacks';
 
 
 

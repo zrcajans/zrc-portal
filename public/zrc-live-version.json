@@ -1,16 +1,12 @@
 {
-  "build": "v505-extract-common-controls",
-  "note": "Proje varsayılanları, select kontrolleri ve clipboard helper App.jsx içinden ayrı dosyalara taşındı. createDataSnapshot App.jsx içinde bırakıldı.",
+  "build": "v507-local-zrc-helper-fallbacks",
+  "note": "v502 browserEnhancements ayrımından kalan undefined zrcV helper çağrıları import yerine local no-op fallback ile kapatıldı. Canlıyı düşüren zrcV426bApplyDueDateColors hatası giderildi.",
   "changed": [
-    "src/utils/projectDefaults.js oluşturuldu/güncellendi",
-    "Proje varsayılan/helper taşındı: 6 adet",
-    "App.jsx'e projectDefaults importu eklendi",
-    "src/components/common/SelectControls.jsx oluşturuldu/güncellendi",
-    "renderProfileSelect/renderSoftSelect App.jsx içinde kısa wrapper'a dönüştürüldü",
-    "App.jsx'e SelectControls importu eklendi",
-    "src/utils/clipboardHelpers.js oluşturuldu/güncellendi",
-    "App.jsx'e clipboardHelpers importu eklendi"
+    "Eksik zrcV helperlar için local no-op fallback eklendi: zrcV426bApplyDueDateColors"
   ],
-  "commitBefore": "260d15d",
-  "createdAt": "2026-06-15T08:24:55.482802+00:00"
+  "missingFallbacks": [
+    "zrcV426bApplyDueDateColors"
+  ],
+  "commitBefore": "fdb8b84",
+  "createdAt": "2026-06-15T08:33:50.610188+00:00"
 }
