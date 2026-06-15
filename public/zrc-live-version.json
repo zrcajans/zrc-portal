@@ -1,7 +1,12 @@
 {
-  "build": "v500-stable-checkpoint",
-  "note": "Canlı site çalışır duruma getirildikten sonra stabil checkpoint alındı. Sonraki refactorlar bu noktadan kontrollü ilerleyecek.",
-  "stableCommit": "4fbd91b",
-  "appJsxLines": 22025,
-  "createdAt": "2026-06-15T08:02:44.606774+00:00"
+  "build": "v501-extract-task-detail-modal",
+  "note": "TaskDetailModal bileşeni App.jsx içinden src/components/Modals/TaskDetailModal.jsx dosyasına taşındı. Storage/navigation tarafına dokunulmadı.",
+  "changed": [
+    "src/components/Modals/TaskDetailModal.jsx oluşturuldu/güncellendi",
+    "App.jsx dışına taşınan TaskDetailModal bloğu: yaklaşık 1080 satır",
+    "TaskDetailModal fonksiyonu App.jsx içinden kaldırıldı",
+    "App.jsx'e TaskDetailModal importu eklendi"
+  ],
+  "commitBefore": "fe6fe3c",
+  "createdAt": "2026-06-15T08:07:18.909503+00:00"
 }
