@@ -1,12 +1,11 @@
 {
-  "build": "v515-extract-calendar-quick-task-helper",
-  "note": "v514 raporundaki openCalendarQuickTaskCreator fonksiyonu src/utils/calendarQuickTaskHelper.js dosyasına taşındı; App.jsx içinde state setter context wrapper bırakıldı.",
+  "build": "v517d-extract-mobile-task-move-buttons-linebased",
+  "note": "zrc-v454c-mobile-task-move-buttons IIFE bloğu satır bazlı doğru kesilerek MobileTaskMoveButtons bileşenine taşındı.",
   "changed": [
-    "src/utils/calendarQuickTaskHelper.js oluşturuldu: 42 satırlık fonksiyon taşındı",
-    "App.jsx içinde openCalendarQuickTaskCreator kısa context wrapper'a dönüştürüldü",
-    "App.jsx'e calendarQuickTaskHelper importu eklendi"
+    "src/components/mobile/MobileTaskMoveButtons.jsx oluşturuldu: 44 satırlık IIFE bloğu taşındı",
+    "App.jsx'e MobileTaskMoveButtons importu eklendi"
   ],
-  "movedLines": 42,
-  "commitBefore": "c756d3e",
-  "createdAt": "2026-06-15T10:59:02.280004+00:00"
+  "movedLines": 44,
+  "commitBefore": "badfd55",
+  "createdAt": "2026-06-15T18:59:52.672369+00:00"
 }

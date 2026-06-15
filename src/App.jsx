@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
 import MobileWorkspace from './components/mobile/MobileWorkspace';
+import MobileTaskMoveButtons from './components/mobile/MobileTaskMoveButtons';
 import ZRCErrorBoundary from './components/common/ZRCErrorBoundary';
 import { ProfileSelect, SoftSelect } from './components/common/SelectControls';
 import { resolveMobileTaskCardAssignees } from './utils/mobileTaskAssignees';
@@ -112,7 +113,7 @@ const zrcV426bApplyDueDateColors = (value, ...args) => {
   return value;
 };
 
-const ZRC_APP_BUILD_LABEL = 'v515-extract-calendar-quick-task-helper';
+const ZRC_APP_BUILD_LABEL = 'v517d-extract-mobile-task-move-buttons-linebased';
 
 
 
@@ -16385,50 +16386,17 @@ return (
                                       </div>
                                     </div>
 
-                                    {/* zrc-v454c-mobile-task-move-buttons */}
-                                    {currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject) && (() => {
-                                      const currentColumnIndex = visibleBoardColumns.findIndex((item) => item.id === column.id);
-                                      const previousColumn = currentColumnIndex > 0 ? visibleBoardColumns[currentColumnIndex - 1] : null;
-                                      const nextColumn = currentColumnIndex >= 0 && currentColumnIndex < visibleBoardColumns.length - 1 ? visibleBoardColumns[currentColumnIndex + 1] : null;
-
-                                      if (!previousColumn && !nextColumn) return null;
-
-                                      return (
-                                        <div className="md:hidden mt-3 pt-2 border-t border-zinc-100 grid grid-cols-2 gap-1.5">
-                                          {previousColumn ? (
-                                            <button
-                                              type="button"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleMoveTaskToColumn(column.id, previousColumn.id, task);
-                                                setMobileActiveColumnId(previousColumn.id);
-                                              }}
-                                              className="h-9 rounded-[10px] bg-white border border-zinc-200 text-[9.5px] font-black text-zinc-600 active:scale-[0.98] transition-all flex items-center justify-center px-2"
-                                            >
-                                              ← {previousColumn.title}
-                                            </button>
-                                          ) : (
-                                            <span />
-                                          )}
-
-                                          {nextColumn ? (
-                                            <button
-                                              type="button"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleMoveTaskToColumn(column.id, nextColumn.id, task);
-                                                setMobileActiveColumnId(nextColumn.id);
-                                              }}
-                                              className="h-9 rounded-[10px] bg-[#ff3600] border border-[#ff3600] text-[9.5px] font-black text-white active:scale-[0.98] transition-all flex items-center justify-center px-2"
-                                            >
-                                              {nextColumn.title} →
-                                            </button>
-                                          ) : (
-                                            <span />
-                                          )}
-                                        </div>
-                                      );
-                                    })()}
+                                    {/* zrc-v517d-mobile-task-move-buttons-component */}
+                                    <MobileTaskMoveButtons
+                                      task={task}
+                                      column={column}
+                                      visibleBoardColumns={visibleBoardColumns}
+                                      currentPermissions={currentPermissions}
+                                      selectedProject={selectedProject}
+                                      canCurrentUserModifyTask={canCurrentUserModifyTask}
+                                      handleMoveTaskToColumn={handleMoveTaskToColumn}
+                                      setMobileActiveColumnId={setMobileActiveColumnId}
+                                    />
                                   </div>
                                 );
                               })}
