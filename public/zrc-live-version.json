@@ -1,12 +1,66 @@
 {
-  "build": "v509-extract-customer-deletion-helpers",
-  "note": "Silinen müşteri marker/helper kodları App.jsx içinden src/utils/customerDeletionHelpers.js dosyasına taşındı. Storage/navigation/login tarafına dokunulmadı.",
-  "changed": [
-    "src/utils/customerDeletionHelpers.js oluşturuldu/güncellendi",
-    "Helper kendi localStorage okuma/yazmasını içeriyor; storageHelpers'a bağımlı değil",
-    "App.jsx'e customerDeletionHelpers importu eklendi",
-    "Silinen müşteri helper bloğu App.jsx içinden kaldırıldı: yaklaşık 46 satır"
+  "build": "v511-auto-safe-helper-extract",
+  "note": "v510 raporundaki güvenli saf helper adayları tek tek denenerek, build geçenler src/utils/appSafeHelpers.js dosyasına taşındı.",
+  "kept": [
+    [
+      "getSupabaseSafeDate",
+      57
+    ]
   ],
-  "commitBefore": "5e0e8b4",
-  "createdAt": "2026-06-15T08:48:58.143675+00:00"
+  "skipped": [
+    [
+      "createQuickNoteFromHome",
+      "build geçmedi"
+    ],
+    [
+      "getGanttPeriods",
+      "build geçmedi"
+    ],
+    [
+      "customStyles",
+      "build geçmedi"
+    ],
+    [
+      "addProfileEmailAccount",
+      "build geçmedi"
+    ],
+    [
+      "timeChartPeriods",
+      "build geçmedi"
+    ],
+    [
+      "copySupabaseBackupSnapshot",
+      "build geçmedi"
+    ],
+    [
+      "getPlainTaskDescription",
+      "build geçmedi"
+    ],
+    [
+      "createSupabaseProjectWithDefaultColumns",
+      "build geçmedi"
+    ],
+    [
+      "formatMenuCalendarTaskTime",
+      "build geçmedi"
+    ],
+    [
+      "reportSummaryCards",
+      "build geçmedi"
+    ],
+    [
+      "isHiddenTimeChartMember",
+      "build geçmedi"
+    ],
+    [
+      "normalizeTaskPersonForSave",
+      "build geçmedi"
+    ],
+    [
+      "formatDateStringShort",
+      "build geçmedi"
+    ]
+  ],
+  "commitBefore": "a1c7e4b",
+  "createdAt": "2026-06-15T09:04:50.409742+00:00"
 }
