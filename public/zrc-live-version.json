@@ -1,8 +1,28 @@
 {
-  "build": "v525-rollback-v524-context-compaction",
-  "note": "v524 context compaction satır sayısını artırdığı için geri alındı. v521/v522/v523 büyük feature parçalamaları korunur.",
-  "reason": "Tek zrcFeatureContext objesi prop satırlarını azaltmak yerine Shell satır sayısını artırdı.",
-  "shellLinesAfterRollback": 17775,
-  "commitAfterRevertBeforeThisNote": "12c9f68",
-  "createdAt": "2026-06-15T19:58:13.940975+00:00"
+  "build": "v526-mega-condition-component-split",
+  "note": "Net satır kazancı yüksek koşullu JSX blokları sections alt componentlerine taşındı.",
+  "movedTotalLinesApprox": 480,
+  "estimatedNetGain": 251,
+  "componentCount": 2,
+  "shellLinesAfter": 17524,
+  "components": [
+    {
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "activeContentMenu === 'Diğer' && activeTab === 'Müşteriler' && showCustomerManagementPage",
+      "component": "src/app/sections/ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection.jsx",
+      "movedLines": 288,
+      "props": 118,
+      "estimatedGain": 166
+    },
+    {
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "isMessagesOpen",
+      "component": "src/app/sections/ZRCAppShellIsMessagesOpenSection.jsx",
+      "movedLines": 192,
+      "props": 103,
+      "estimatedGain": 85
+    }
+  ],
+  "commitBefore": "6e7bc1b",
+  "createdAt": "2026-06-15T20:02:38.854212+00:00"
 }

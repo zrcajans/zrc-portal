@@ -134,6 +134,8 @@ import ZRCAppShellCalendarViewAyBlock from './blocks/ZRCAppShellCalendarViewAyBl
 import ZRCAppShellCalendarViewGunBlock from './blocks/ZRCAppShellCalendarViewGunBlock';
 import ZRCAppShellCalendarViewHaftaBlock2 from './blocks/ZRCAppShellCalendarViewHaftaBlock2';
 import ZRCAppShellCalendarViewAyBlock2 from './blocks/ZRCAppShellCalendarViewAyBlock2';
+import ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection from './sections/ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection';
+import ZRCAppShellIsMessagesOpenSection from './sections/ZRCAppShellIsMessagesOpenSection';
 function App() {
 
   const zrcSetSupabaseWriteInfo = (status, message) => {
@@ -12936,198 +12938,112 @@ return (
           setIsGlobalSearchOpen={setIsGlobalSearchOpen}
         />
 
-        {isMessagesOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-[670]"
-              onClick={() => {
-                setIsMessagesOpen(false);
-                setIsMessageTaskPickerOpen(false);
-              }}
-            />
-
-            <div
-              onClick={(event) => event.stopPropagation()}
-              style={{ top: activeContentMenu === 'Projeler' ? 43 : 55 }}
-              className="fixed left-1/2 -translate-x-1/2 z-[681] w-[390px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
-            >
-            <span className="absolute -top-1.5 left-[43%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
-
-            <div className="h-[54px] px-4 border-b border-zinc-100 flex items-center justify-between">
-              <div>
-                <div className="text-[13px] font-black text-zinc-800">Mesajlar</div>
-                <div className="mt-0.5 text-[10px] font-bold text-zinc-400">
-                  {unreadMessageCount > 0 ? `${unreadMessageCount} okunmamış mesaj` : 'Tüm mesajlar okundu'}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={markAllMessagesAsRead}
-                className="h-7 px-3 rounded-full bg-zinc-50 border border-zinc-100 text-[9.5px] font-black text-zinc-500 hover:text-zinc-800 hover:bg-white transition-all"
-              >
-                Tümünü Okundu Yap
-              </button>
-            </div>
-
-            <div className="max-h-[300px] overflow-y-auto custom-scrollbar p-2 bg-[#fbfcfd]">
-              {messageItems.length > 0 ? (
-                <div className="space-y-1.5">
-                  {messageItems.map((message) => {
-                    const isRead = readMessageIds.includes(message.id);
-
-                    return (
-                      <button
-                        key={message.id}
-                        type="button"
-                        onClick={() => handleMessageClick(message)}
-                        className={`w-full text-left rounded-[11px] border p-3 transition-all ${
-                          isRead
-                            ? 'bg-white border-zinc-100 hover:bg-zinc-50'
-                            : 'bg-blue-50/45 border-blue-100 hover:bg-blue-50'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#8c5220] text-white text-[8px] font-black flex items-center justify-center shrink-0 overflow-hidden">
-                            {renderProfileAvatar(message.avatar, currentProfileInitials)}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="text-[11.5px] font-black text-zinc-800 truncate">
-                                {message.title || message.sender || 'Mesaj'}
-                              </div>
-
-                              {!isRead && (
-                                <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />
-                              )}
-                            </div>
-
-                            <div className="mt-0.5 text-[11px] font-bold text-zinc-600 line-clamp-2">
-                              {message.text}
-                            </div>
-
-                            <div className="mt-1 flex items-center justify-between gap-2">
-                              <span className="text-[9.5px] font-bold text-zinc-400 truncate">
-                                {message.meta}
-                              </span>
-                              <span className="text-[9px] font-black text-zinc-300 shrink-0">
-                                {getProjectMessageDateLabel(message.createdAt)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="h-[210px] flex flex-col items-center justify-center text-center">
-                  <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-3">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm3.75 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm3.75 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12c0 4.556-4.03 8.25-9 8.25a9.76 9.76 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.924-.924 5.972 5.972 0 001.057-4.035A8.287 8.287 0 013 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-                    </svg>
-                  </div>
-
-                  <div className="text-[12px] font-black text-zinc-600">Henüz mesaj yok</div>
-                  <div className="mt-1 text-[10.5px] font-bold text-zinc-400">
-                    İlk proje mesajını aşağıdan yaz.
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handleSendProjectMessage} className="p-3 border-t border-zinc-100 bg-white">
-              <div className="relative mb-2">
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setIsMessageTaskPickerOpen((prev) => !prev);
-                  }}
-                  className="w-full h-8 rounded-[8px] bg-zinc-50 border border-zinc-100 px-3 text-left flex items-center justify-between gap-2 hover:bg-white hover:border-zinc-200 transition-all"
-                >
-                  <span className="text-[10.5px] font-black text-zinc-500 truncate">
-                    {selectedMessageTask ? `Bağlı görev: ${selectedMessageTask.title}` : 'Genel proje mesajı'}
-                  </span>
-                  <svg className="w-3.5 h-3.5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-                  </svg>
-                </button>
-
-                {isMessageTaskPickerOpen && (
-                  <div
-                    onClick={(event) => event.stopPropagation()}
-                    className="absolute left-0 right-0 bottom-[38px] z-[695] max-h-[210px] overflow-y-auto custom-scrollbar bg-white border border-zinc-200 rounded-[10px] shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-1.5"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMessageLinkedTaskId('');
-                        setIsMessageTaskPickerOpen(false);
-                      }}
-                      className={`w-full h-8 rounded-[7px] px-2.5 text-left text-[10.5px] font-black transition-all ${
-                        !messageLinkedTaskId ? 'bg-zinc-100 text-zinc-700' : 'text-zinc-500 hover:bg-zinc-50'
-                      }`}
-                    >
-                      Genel proje mesajı
-                    </button>
-
-                    {messageTaskOptions.map((task) => (
-                      <button
-                        key={`message-task-${task.id}`}
-                        type="button"
-                        onClick={() => {
-                          setMessageLinkedTaskId(task.id);
-                          setIsMessageTaskPickerOpen(false);
-                        }}
-                        className={`w-full h-8 rounded-[7px] px-2.5 text-left text-[10.5px] font-black transition-all truncate ${
-                          messageLinkedTaskId === task.id ? 'bg-zinc-100 text-zinc-700' : 'text-zinc-500 hover:bg-zinc-50'
-                        }`}
-                        title={task.title}
-                      >
-                        {task.title}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-end gap-2">
-                <textarea
-                  value={messageDraft}
-                  onChange={(event) => setMessageDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault();
-                      handleSendProjectMessage(event);
-                    }
-                  }}
-                  placeholder="Proje mesajı yaz..."
-                  rows={2}
-                  className="w-full resize-none rounded-[10px] border border-zinc-200 bg-white px-3 py-2 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-blue-300"
-                />
-
-                <button
-                  type="submit"
-                  disabled={!messageDraft.trim()}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                    messageDraft.trim()
-                      ? 'bg-[#2563eb] text-white hover:bg-[#1d4ed8] shadow-[0_9px_20px_rgba(37,99,235,0.20)]'
-                      : 'bg-zinc-100 text-zinc-300 cursor-not-allowed'
-                  }`}
-                  title="Gönder"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.125A59.77 59.77 0 0121.485 12 59.77 59.77 0 013.27 20.875L6 12zm0 0h7.5" />
-                  </svg>
-                </button>
-              </div>
-            </form>
-          </div>
-          </>
-        )}
+                {/* zrc-v526-section-ismessagesopen */}
+        <ZRCAppShellIsMessagesOpenSection
+          isMessagesOpen={typeof isMessagesOpen !== 'undefined' ? isMessagesOpen : undefined}
+          fixed={typeof fixed !== 'undefined' ? fixed : undefined}
+          inset={typeof inset !== 'undefined' ? inset : undefined}
+          z={typeof z !== 'undefined' ? z : undefined}
+          setIsMessagesOpen={typeof setIsMessagesOpen !== 'undefined' ? setIsMessagesOpen : undefined}
+          setIsMessageTaskPickerOpen={typeof setIsMessageTaskPickerOpen !== 'undefined' ? setIsMessageTaskPickerOpen : undefined}
+          activeContentMenu={typeof activeContentMenu !== 'undefined' ? activeContentMenu : undefined}
+          Projeler={typeof Projeler !== 'undefined' ? Projeler : undefined}
+          left={typeof left !== 'undefined' ? left : undefined}
+          translate={typeof translate !== 'undefined' ? translate : undefined}
+          w={typeof w !== 'undefined' ? w : undefined}
+          bg={typeof bg !== 'undefined' ? bg : undefined}
+          white={typeof white !== 'undefined' ? white : undefined}
+          border={typeof border !== 'undefined' ? border : undefined}
+          zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+          rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+          shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+          overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+          hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+          animate={typeof animate !== 'undefined' ? animate : undefined}
+          fade={typeof fade !== 'undefined' ? fade : undefined}
+          absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+          top={typeof top !== 'undefined' ? top : undefined}
+          h={typeof h !== 'undefined' ? h : undefined}
+          rotate={typeof rotate !== 'undefined' ? rotate : undefined}
+          l={typeof l !== 'undefined' ? l : undefined}
+          t={typeof t !== 'undefined' ? t : undefined}
+          px={typeof px !== 'undefined' ? px : undefined}
+          b={typeof b !== 'undefined' ? b : undefined}
+          flex={typeof flex !== 'undefined' ? flex : undefined}
+          items={typeof items !== 'undefined' ? items : undefined}
+          center={typeof center !== 'undefined' ? center : undefined}
+          justify={typeof justify !== 'undefined' ? justify : undefined}
+          between={typeof between !== 'undefined' ? between : undefined}
+          text={typeof text !== 'undefined' ? text : undefined}
+          font={typeof font !== 'undefined' ? font : undefined}
+          black={typeof black !== 'undefined' ? black : undefined}
+          Mesajlar={typeof Mesajlar !== 'undefined' ? Mesajlar : undefined}
+          mt={typeof mt !== 'undefined' ? mt : undefined}
+          bold={typeof bold !== 'undefined' ? bold : undefined}
+          unreadMessageCount={typeof unreadMessageCount !== 'undefined' ? unreadMessageCount : undefined}
+          mesaj={typeof mesaj !== 'undefined' ? mesaj : undefined}
+          mesajlar={typeof mesajlar !== 'undefined' ? mesajlar : undefined}
+          okundu={typeof okundu !== 'undefined' ? okundu : undefined}
+          markAllMessagesAsRead={typeof markAllMessagesAsRead !== 'undefined' ? markAllMessagesAsRead : undefined}
+          full={typeof full !== 'undefined' ? full : undefined}
+          transition={typeof transition !== 'undefined' ? transition : undefined}
+          all={typeof all !== 'undefined' ? all : undefined}
+          Okundu={typeof Okundu !== 'undefined' ? Okundu : undefined}
+          Yap={typeof Yap !== 'undefined' ? Yap : undefined}
+          max={typeof max !== 'undefined' ? max : undefined}
+          auto={typeof auto !== 'undefined' ? auto : undefined}
+          custom={typeof custom !== 'undefined' ? custom : undefined}
+          scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+          fbfcfd={typeof fbfcfd !== 'undefined' ? fbfcfd : undefined}
+          messageItems={typeof messageItems !== 'undefined' ? messageItems : undefined}
+          space={typeof space !== 'undefined' ? space : undefined}
+          readMessageIds={typeof readMessageIds !== 'undefined' ? readMessageIds : undefined}
+          handleMessageClick={typeof handleMessageClick !== 'undefined' ? handleMessageClick : undefined}
+          blue={typeof blue !== 'undefined' ? blue : undefined}
+          start={typeof start !== 'undefined' ? start : undefined}
+          gap={typeof gap !== 'undefined' ? gap : undefined}
+          shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+          renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
+          currentProfileInitials={typeof currentProfileInitials !== 'undefined' ? currentProfileInitials : undefined}
+          min={typeof min !== 'undefined' ? min : undefined}
+          truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+          Mesaj={typeof Mesaj !== 'undefined' ? Mesaj : undefined}
+          clamp={typeof clamp !== 'undefined' ? clamp : undefined}
+          getProjectMessageDateLabel={typeof getProjectMessageDateLabel !== 'undefined' ? getProjectMessageDateLabel : undefined}
+          col={typeof col !== 'undefined' ? col : undefined}
+          mb={typeof mb !== 'undefined' ? mb : undefined}
+          none={typeof none !== 'undefined' ? none : undefined}
+          currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
+          round={typeof round !== 'undefined' ? round : undefined}
+          M8={typeof M8 !== 'undefined' ? M8 : undefined}
+          M21={typeof M21 !== 'undefined' ? M21 : undefined}
+          yok={typeof yok !== 'undefined' ? yok : undefined}
+          proje={typeof proje !== 'undefined' ? proje : undefined}
+          yaz={typeof yaz !== 'undefined' ? yaz : undefined}
+          handleSendProjectMessage={typeof handleSendProjectMessage !== 'undefined' ? handleSendProjectMessage : undefined}
+          relative={typeof relative !== 'undefined' ? relative : undefined}
+          selectedMessageTask={typeof selectedMessageTask !== 'undefined' ? selectedMessageTask : undefined}
+          Genel={typeof Genel !== 'undefined' ? Genel : undefined}
+          M6={typeof M6 !== 'undefined' ? M6 : undefined}
+          isMessageTaskPickerOpen={typeof isMessageTaskPickerOpen !== 'undefined' ? isMessageTaskPickerOpen : undefined}
+          right={typeof right !== 'undefined' ? right : undefined}
+          bottom={typeof bottom !== 'undefined' ? bottom : undefined}
+          setMessageLinkedTaskId={typeof setMessageLinkedTaskId !== 'undefined' ? setMessageLinkedTaskId : undefined}
+          messageLinkedTaskId={typeof messageLinkedTaskId !== 'undefined' ? messageLinkedTaskId : undefined}
+          messageTaskOptions={typeof messageTaskOptions !== 'undefined' ? messageTaskOptions : undefined}
+          end={typeof end !== 'undefined' ? end : undefined}
+          messageDraft={typeof messageDraft !== 'undefined' ? messageDraft : undefined}
+          setMessageDraft={typeof setMessageDraft !== 'undefined' ? setMessageDraft : undefined}
+          Enter={typeof Enter !== 'undefined' ? Enter : undefined}
+          Proje={typeof Proje !== 'undefined' ? Proje : undefined}
+          resize={typeof resize !== 'undefined' ? resize : undefined}
+          py={typeof py !== 'undefined' ? py : undefined}
+          outline={typeof outline !== 'undefined' ? outline : undefined}
+          submit={typeof submit !== 'undefined' ? submit : undefined}
+          cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+          not={typeof not !== 'undefined' ? not : undefined}
+          allowed={typeof allowed !== 'undefined' ? allowed : undefined}
+        />
 
         {isNotificationsOpen && (
           <div
@@ -16819,294 +16735,127 @@ return (
                   </div>
                 )}
 
-                {activeContentMenu === 'Diğer' && activeTab === 'Müşteriler' && showCustomerManagementPage && (
-                  <div className="zrc-customer-center-page w-full h-full overflow-y-auto custom-scrollbar bg-[#f5f6f8] animate-fade-in">
-                    <div className="zrc-center-card max-w-[1120px] mx-auto px-6 py-5">
-                      <div className="rounded-[22px] bg-white border border-zinc-200 px-5 py-4 shadow-sm">
-                        <div className="flex items-center justify-between gap-5">
-                          <div>
-                            <div className="text-[10px] font-black tracking-[0.22em] uppercase text-[#ff3600]">Diğer / Müşteriler</div>
-                            <h1 className="mt-1 text-[24px] font-black tracking-tight text-zinc-900">Müşteri Yönetimi</h1>
-                            <p className="mt-1 text-[11px] font-bold text-zinc-400">
-                              Müşterileri ekle, durumlarını yönet ve görev bağlantılarını takip et.
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            <div className="w-[86px] rounded-[13px] bg-zinc-950 text-white px-3 py-2.5">
-                              <div className="text-[20px] font-black">{customers.length}</div>
-                              <div className="text-[8.5px] font-black text-white/45">Kayıt</div>
-                            </div>
-
-                            <div className="w-[86px] rounded-[13px] bg-[#fff3ef] border border-[#ff3600] px-3 py-2.5">
-                              <div className="text-[20px] font-black text-[#ff3600]">{customerPageItems.length}</div>
-                              <div className="text-[8.5px] font-black text-white/80">Liste</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-[320px_minmax(0,1fr)] gap-4">
-                        <div className="space-y-4">
-                          <form onSubmit={createCustomerFromCenter} className="bg-white border border-zinc-200 rounded-[18px] p-4 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
-                              <div>
-                                <div className="text-[13.5px] font-black text-zinc-800">Yeni Müşteri</div>
-                                <div className="mt-0.5 text-[10px] font-bold text-zinc-400">Müşteri kartı ve isteğe bağlı giriş hesabı oluştur</div>
-                              </div>
-
-                              <div className="w-9 h-9 rounded-[12px] bg-[#ff3600] text-white flex items-center justify-center">
-                                <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <input
-                                value={customerDraft.name}
-                                onChange={(event) => setCustomerDraft((prev) => ({ ...prev, name: event.target.value }))}
-                                placeholder="Müşteri adı"
-                                className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                              />
-
-                              <input
-                                value={customerDraft.contact}
-                                onChange={(event) => setCustomerDraft((prev) => ({ ...prev, contact: event.target.value }))}
-                                placeholder="Yetkili kişi"
-                                className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                              />
-                              <input
-                                value={customerDraft.phone}
-                                onChange={(event) => setCustomerDraft((prev) => ({ ...prev, phone: event.target.value }))}
-                                placeholder="Telefon"
-                                className="w-full h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                              />
-
-                              <div className="grid grid-cols-2 gap-2">
-                                <input
-                                  value={customerDraft.username}
-                                  onChange={(event) => setCustomerDraft((prev) => ({ ...prev, username: normalizeCredentialText(event.target.value) }))}
-                                  placeholder="Müşteri kullanıcı adı"
-                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                                />
-
-                                <input
-                                  value={customerDraft.password}
-                                  onChange={(event) => setCustomerDraft((prev) => ({ ...prev, password: event.target.value }))}
-                                  placeholder="Müşteri şifresi"
-                                  className="h-9 rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                                />
-                              </div>
-
-                              <div className="rounded-[11px] border border-orange-100 bg-orange-50 px-3 py-2 text-[10px] font-bold text-orange-600 leading-4">
-                                Kullanıcı adı ve şifre girersen bu müşteri için giriş hesabı da açılır.
-                              </div>
-
-
-                              
-                              <textarea
-                                value={customerDraft.note}
-                                onChange={(event) => setCustomerDraft((prev) => ({ ...prev, note: event.target.value }))}
-                                placeholder="Not"
-                                rows={2}
-                                className="w-full resize-none rounded-[11px] border border-zinc-200 bg-zinc-50 px-3 py-2 text-[11px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                              />
-                            </div>
-
-                            <button
-                              type="submit"
-                              className="mt-3 w-full h-9 rounded-[11px] bg-[#ff3600] text-white text-[11px] font-black hover:bg-[#e03000] active:scale-[0.98] transition-all shadow-sm"
-                            >
-                              Müşteri Ekle
-                            </button>
-                          </form>
-
-                          {selectedCustomer && (
-                            <div className="bg-white border border-zinc-200 rounded-[18px] p-4 shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <div className="text-[13.5px] font-black text-zinc-800">Seçili Müşteri</div>
-                                <button
-                                  type="button"
-                                  onClick={() => copyCredentialTextForCustomer(selectedCustomer)}
-                                  className="h-6 px-2.5 rounded-full bg-[#fff3ef] border border-[#ff3600] text-[9px] font-black text-[#ff3600] hover:bg-[#ff3600] hover:text-white transition-all"
-                                >
-                                  Giriş Bilgisi
-                                </button>
-                              </div>
-
-                              <div className="mt-3 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-[13px] bg-[#ff3600] text-white flex items-center justify-center text-[11px] font-black">
-                                  {selectedCustomer.avatar || createAvatarFromName(selectedCustomer.name)}
-                                </div>
-
-                                <div className="min-w-0">
-                                  <div className="text-[13px] font-black text-zinc-800 truncate">{selectedCustomer.name}</div>
-                                  <div className="mt-0.5 text-[10px] font-bold text-zinc-400 truncate">
-                                    {selectedCustomer.contact || 'Yetkili yok'}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="mt-3 space-y-1.5 text-[10.5px] font-bold">
-
-                                <div className="flex items-center justify-between gap-3">
-                                  <span className="text-zinc-400">Telefon</span>
-                                  <span className="text-zinc-700 truncate">{selectedCustomer.phone || '-'}</span>
-                                </div>
-                              </div>
-
-                              <div className="mt-3 grid grid-cols-3 gap-2">
-                                <div className="rounded-[10px] bg-zinc-50 border border-zinc-100 p-2">
-                                  <div className="text-[14px] font-black text-zinc-800">{selectedCustomer.taskStats?.total || 0}</div>
-                                  <div className="text-[8px] font-black text-zinc-400">Görev</div>
-                                </div>
-
-                                <div className="rounded-[10px] bg-blue-50 border border-blue-100 p-2">
-                                  <div className="text-[14px] font-black text-blue-600">{selectedCustomer.taskStats?.active || 0}</div>
-                                  <div className="text-[8px] font-black text-blue-400">Açık</div>
-                                </div>
-
-                                <div className="rounded-[10px] bg-emerald-50 border border-emerald-100 p-2">
-                                  <div className="text-[14px] font-black text-emerald-600">{selectedCustomer.taskStats?.completed || 0}</div>
-                                  <div className="text-[8px] font-black text-emerald-500/70">Biten</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="bg-white border border-zinc-200 rounded-[18px] shadow-sm overflow-hidden">
-                          <div className="h-11 px-4 border-b border-zinc-100 flex items-center justify-between">
-                            <div>
-                              <div className="text-[13px] font-black text-zinc-800">Müşteri Listesi</div>
-                              <div className="mt-0.5 text-[9px] font-bold text-zinc-400">Seç, düzenle veya sil</div>
-                            </div>
-
-                            <span className="h-6 px-2.5 rounded-full bg-zinc-50 border border-zinc-100 text-[9px] font-black text-zinc-400 flex items-center">
-                              {customerPageItems.length} kayıt
-                            </span>
-                          </div>
-
-                          <div className="p-2.5 space-y-1 max-h-[calc(100vh-325px)] min-h-[360px] overflow-y-auto custom-scrollbar">
-                            {customerPageItems.length > 0 ? (
-                              customerPageItems.map((customer) => {
-                                const isPendingDelete = pendingCustomerDeleteId === customer.id;
-                                const isSelected = selectedCustomer?.id === customer.id;
-                                const isAutoCustomer = customer.source === 'task';
-
-                                return (
-                                  <div
-                                    key={customer.id}
-                                    onClick={() => setSelectedCustomerId(customer.id)}
-                                    className={`rounded-[10px] border transition-all cursor-pointer overflow-hidden ${
-                                      isSelected
-                                        ? 'bg-white border-zinc-300 shadow-[0_1px_0_rgba(15,23,42,0.03)]'
-                                        : 'bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200'
-                                    }`}
-                                  >
-                                    <div className="h-[46px] px-2.5 flex items-center gap-2.5">
-                                      <div className="w-7 h-7 rounded-[9px] bg-zinc-100 text-zinc-600 text-[8px] font-black flex items-center justify-center shrink-0">
-                                        {customer.avatar || createAvatarFromName(customer.name)}
-                                      </div>
-
-                                      <div className="min-w-0 flex-1">
-                                        <div className="text-[11.5px] font-black text-zinc-800 truncate">
-                                          {customer.name}
-                                        </div>
-                                        <div className="mt-0.5 text-[8.5px] font-bold text-zinc-400 truncate">
-                                          {customer.contact || customer.email || customer.phone || 'İletişim yok'}
-                                        </div>
-                                      </div>
-
-                                      <div className="hidden xl:flex items-center gap-1 text-[9px] font-black text-zinc-400 shrink-0">
-                                        <span>{customer.taskStats?.total || 0}</span>
-                                        <span className="text-zinc-200">/</span>
-                                        <span>{customer.taskStats?.active || 0}</span>
-                                        <span className="text-zinc-200">/</span>
-                                        <span>{customer.taskStats?.completed || 0}</span>
-                                      </div>
-
-                                      {customer.taskStats?.overdue > 0 && (
-                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" title={`${customer.taskStats.overdue} geciken`} />
-                                      )}
-
-                                      <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${isSelected ? 'rotate-90 text-zinc-500' : 'text-zinc-300'}`} fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                                      </svg>
-                                    </div>
-
-                                    {isSelected && (
-                                      <div className="h-[32px] px-2.5 border-t border-zinc-100 bg-zinc-50/60 flex items-center gap-2">
-                                        <div className="min-w-0 flex-1 flex items-center gap-1.5 text-[8.5px] font-bold text-zinc-400">
-                                          <span className="truncate">{customer.phone || 'Telefon yok'}</span>
-                                          <span className="w-1 h-1 rounded-full bg-zinc-300 shrink-0" />
-                                          <span className="truncate">
-                                            {getCustomerLinkedAccount(customer)?.username ? `@${getCustomerLinkedAccount(customer)?.username}` : 'Kullanıcı adı yok'}
-                                          </span>
-                                        </div>
-
-                                        {isAutoCustomer ? (
-                                          <span className="h-6 px-2 rounded-[8px] bg-white border border-zinc-100 text-zinc-400 text-[8px] font-black shrink-0 flex items-center">
-                                            Otomatik
-                                          </span>
-                                        ) : (
-                                          <div className="flex items-center gap-1 shrink-0">
-                                            <button
-                                              type="button"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                copyCredentialTextForCustomer(customer);
-                                              }}
-                                              className="h-6 px-2.5 rounded-[8px] bg-[#ff3600] border border-[#ff3600] text-white hover:bg-[#ff3600] hover:text-white text-[8px] font-black transition-all"
-                                            >
-                                              Giriş Bilgisi
-                                            </button>
-
-                                            <button
-                                              type="button"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                openCustomerEditModal(customer);
-                                              }}
-                                              className="h-6 px-2.5 rounded-[8px] bg-white border border-zinc-200 text-zinc-600 hover:text-blue-600 hover:border-blue-100 text-[8px] font-black transition-all"
-                                            >
-                                              Düzenle
-                                            </button>
-
-                                            <button
-                                              type="button"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                deleteCustomerFromCenter(customer.id);
-                                              }}
-                                              className={`h-6 px-2.5 rounded-[8px] text-[8px] font-black border transition-all ${
-                                                isPendingDelete
-                                                  ? 'bg-red-500 border-red-500 text-white'
-                                                  : 'bg-white border-zinc-200 text-zinc-500 hover:text-red-500 hover:border-red-100'
-                                              }`}
-                                            >
-                                              {isPendingDelete ? 'Tekrar' : 'Sil'}
-                                            </button>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              <div className="h-[250px] rounded-[16px] bg-zinc-50 border border-dashed border-zinc-200 flex flex-col items-center justify-center text-center">
-                                <div className="text-[13px] font-black text-zinc-700">Henüz müşteri yok</div>
-                                <div className="mt-1 text-[10.5px] font-bold text-zinc-400">Sol taraftaki formdan müşteri ekle.</div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                                {/* zrc-v526-section-activecontentmenu-diger-activetab-musteriler-showcustomermanagementpage */}
+                <ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection
+                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
+                  activeContentMenu={typeof activeContentMenu !== 'undefined' ? activeContentMenu : undefined}
+                  showCustomerManagementPage={typeof showCustomerManagementPage !== 'undefined' ? showCustomerManagementPage : undefined}
+                  zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  page={typeof page !== 'undefined' ? page : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  auto={typeof auto !== 'undefined' ? auto : undefined}
+                  custom={typeof custom !== 'undefined' ? custom : undefined}
+                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
+                  animate={typeof animate !== 'undefined' ? animate : undefined}
+                  fade={typeof fade !== 'undefined' ? fade : undefined}
+                  card={typeof card !== 'undefined' ? card : undefined}
+                  max={typeof max !== 'undefined' ? max : undefined}
+                  mx={typeof mx !== 'undefined' ? mx : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  py={typeof py !== 'undefined' ? py : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  sm={typeof sm !== 'undefined' ? sm : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  justify={typeof justify !== 'undefined' ? justify : undefined}
+                  between={typeof between !== 'undefined' ? between : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
+                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
+                  ff3600={typeof ff3600 !== 'undefined' ? ff3600 : undefined}
+                  mt={typeof mt !== 'undefined' ? mt : undefined}
+                  tight={typeof tight !== 'undefined' ? tight : undefined}
+                  bold={typeof bold !== 'undefined' ? bold : undefined}
+                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
+                  ve={typeof ve !== 'undefined' ? ve : undefined}
+                  takip={typeof takip !== 'undefined' ? takip : undefined}
+                  et={typeof et !== 'undefined' ? et : undefined}
+                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                  customers={typeof customers !== 'undefined' ? customers : undefined}
+                  fff3ef={typeof fff3ef !== 'undefined' ? fff3ef : undefined}
+                  customerPageItems={typeof customerPageItems !== 'undefined' ? customerPageItems : undefined}
+                  Liste={typeof Liste !== 'undefined' ? Liste : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  space={typeof space !== 'undefined' ? space : undefined}
+                  createCustomerFromCenter={typeof createCustomerFromCenter !== 'undefined' ? createCustomerFromCenter : undefined}
+                  mb={typeof mb !== 'undefined' ? mb : undefined}
+                  Yeni={typeof Yeni !== 'undefined' ? Yeni : undefined}
+                  none={typeof none !== 'undefined' ? none : undefined}
+                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
+                  round={typeof round !== 'undefined' ? round : undefined}
+                  M12={typeof M12 !== 'undefined' ? M12 : undefined}
+                  customerDraft={typeof customerDraft !== 'undefined' ? customerDraft : undefined}
+                  setCustomerDraft={typeof setCustomerDraft !== 'undefined' ? setCustomerDraft : undefined}
+                  outline={typeof outline !== 'undefined' ? outline : undefined}
+                  Yetkili={typeof Yetkili !== 'undefined' ? Yetkili : undefined}
+                  Telefon={typeof Telefon !== 'undefined' ? Telefon : undefined}
+                  normalizeCredentialText={typeof normalizeCredentialText !== 'undefined' ? normalizeCredentialText : undefined}
+                  orange={typeof orange !== 'undefined' ? orange : undefined}
+                  leading={typeof leading !== 'undefined' ? leading : undefined}
+                  girersen={typeof girersen !== 'undefined' ? girersen : undefined}
+                  bu={typeof bu !== 'undefined' ? bu : undefined}
+                  da={typeof da !== 'undefined' ? da : undefined}
+                  Not={typeof Not !== 'undefined' ? Not : undefined}
+                  resize={typeof resize !== 'undefined' ? resize : undefined}
+                  submit={typeof submit !== 'undefined' ? submit : undefined}
+                  e03000={typeof e03000 !== 'undefined' ? e03000 : undefined}
+                  scale={typeof scale !== 'undefined' ? scale : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  Ekle={typeof Ekle !== 'undefined' ? Ekle : undefined}
+                  selectedCustomer={typeof selectedCustomer !== 'undefined' ? selectedCustomer : undefined}
+                  copyCredentialTextForCustomer={typeof copyCredentialTextForCustomer !== 'undefined' ? copyCredentialTextForCustomer : undefined}
+                  Bilgisi={typeof Bilgisi !== 'undefined' ? Bilgisi : undefined}
+                  createAvatarFromName={typeof createAvatarFromName !== 'undefined' ? createAvatarFromName : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                  yok={typeof yok !== 'undefined' ? yok : undefined}
+                  blue={typeof blue !== 'undefined' ? blue : undefined}
+                  emerald={typeof emerald !== 'undefined' ? emerald : undefined}
+                  Biten={typeof Biten !== 'undefined' ? Biten : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  b={typeof b !== 'undefined' ? b : undefined}
+                  Listesi={typeof Listesi !== 'undefined' ? Listesi : undefined}
+                  veya={typeof veya !== 'undefined' ? veya : undefined}
+                  sil={typeof sil !== 'undefined' ? sil : undefined}
+                  calc={typeof calc !== 'undefined' ? calc : undefined}
+                  pendingCustomerDeleteId={typeof pendingCustomerDeleteId !== 'undefined' ? pendingCustomerDeleteId : undefined}
+                  task={typeof task !== 'undefined' ? task : undefined}
+                  setSelectedCustomerId={typeof setSelectedCustomerId !== 'undefined' ? setSelectedCustomerId : undefined}
+                  cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                  pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
+                  red={typeof red !== 'undefined' ? red : undefined}
+                  geciken={typeof geciken !== 'undefined' ? geciken : undefined}
+                  transform={typeof transform !== 'undefined' ? transform : undefined}
+                  rotate={typeof rotate !== 'undefined' ? rotate : undefined}
+                  M9={typeof M9 !== 'undefined' ? M9 : undefined}
+                  t={typeof t !== 'undefined' ? t : undefined}
+                  getCustomerLinkedAccount={typeof getCustomerLinkedAccount !== 'undefined' ? getCustomerLinkedAccount : undefined}
+                  Otomatik={typeof Otomatik !== 'undefined' ? Otomatik : undefined}
+                  openCustomerEditModal={typeof openCustomerEditModal !== 'undefined' ? openCustomerEditModal : undefined}
+                  deleteCustomerFromCenter={typeof deleteCustomerFromCenter !== 'undefined' ? deleteCustomerFromCenter : undefined}
+                  Tekrar={typeof Tekrar !== 'undefined' ? Tekrar : undefined}
+                  Sil={typeof Sil !== 'undefined' ? Sil : undefined}
+                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
+                  col={typeof col !== 'undefined' ? col : undefined}
+                  Sol={typeof Sol !== 'undefined' ? Sol : undefined}
+                  taraftaki={typeof taraftaki !== 'undefined' ? taraftaki : undefined}
+                  formdan={typeof formdan !== 'undefined' ? formdan : undefined}
+                />
 
                 {activeTab === 'Ayarlar' && showProjectSettingsControls && (
                   <div className="w-full flex-1 bg-[#f5f6f8] overflow-y-auto custom-scrollbar animate-fade-in">
