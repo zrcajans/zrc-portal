@@ -1,10 +1,16 @@
 {
-  "build": "v518-mega-app-shell-split",
-  "note": "App.jsx mini entry dosyasına çevrildi; mevcut büyük uygulama kabuğu src/app/ZRCAppShell.jsx dosyasına taşındı. Çalışan mantığa dokunulmadı, sadece import yolları bir seviye alta göre düzeltildi.",
-  "appJsxLinesBefore": 19359,
+  "build": "v519-mega-shell-and-top-level-split",
+  "note": "App.jsx mini entry dosyasına çevrildi; büyük uygulama src/app/ZRCAppShell.jsx içine taşındı; App fonksiyonu öncesi top-level sabit/helper bloğu src/app/ZRCAppTopLevel.jsx dosyasına ayrıldı.",
+  "changed": [
+    "App.jsx zaten mini entry idi; mevcut src/app/ZRCAppShell.jsx üzerinden devam edildi",
+    "App fonksiyonu öncesi top-level blok ayrıldı: 178 satır",
+    "src/app/ZRCAppTopLevel.jsx oluşturuldu; export sayısı: 13"
+  ],
+  "appJsxLinesBefore": 4,
   "appJsxLinesAfter": 4,
-  "shellFile": "src/app/ZRCAppShell.jsx",
-  "shellLines": 19359,
-  "commitBefore": "c545f03",
-  "createdAt": "2026-06-15T19:16:22.200692+00:00"
+  "shellLinesBeforeTopSplit": 19359,
+  "shellLinesAfter": 19196,
+  "topLevelFileLines": 287,
+  "commitBefore": "c0fa68d",
+  "createdAt": "2026-06-15T19:21:20.248182+00:00"
 }

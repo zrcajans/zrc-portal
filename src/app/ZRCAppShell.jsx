@@ -105,184 +105,21 @@ import {
   zrcV442SendTaskSavePush,
   zrcV448PlayDesktopNotificationSound
 } from '../utils/browserEnhancements';
-
-
-// zrc-v507-local-helper-fallbacks
-const zrcV426bApplyDueDateColors = (value, ...args) => {
-  console.warn('[ZRC fallback] zrcV426bApplyDueDateColors helper ayrıma takıldı, no-op çalıştı.', { value, args });
-  return value;
-};
-
-const ZRC_APP_BUILD_LABEL = 'v518-mega-app-shell-split';
-
-
-
-
-
-
-
-
-
-const APP_DATA_VERSION = 113;
-
-const STORAGE_KEYS = {
-  projects: 'zrc-projects',
-  teamMembers: 'zrc-team-members',
-  customers: 'zrc-customers',
-  deletedCustomers: 'zrc-deleted-customers',
-  selectedProject: 'zrc-selected-project',
-  quickNotes: 'zrc-home-quick-notes',
-  activityNotifications: 'zrc-activity-notifications',
-  readNotifications: 'zrc-read-notifications',
-  projectMessages: 'zrc-project-messages',
-  readMessages: 'zrc-read-messages',
-  chatGroups: 'zrc-chat-groups',
-  profileDraft: 'zrc-profile-draft',
-  profilePreferences: 'zrc-profile-preferences',
-  projectSettings: 'zrc-project-settings',
-  projectBoards: 'zrc-project-boards',
-  legacyBoardColumns: 'zrc-board-columns',
-  legacyArchivedTasks: 'zrc-archived-tasks',
-  currentUserId: 'zrc-current-user-id',
-  customerLinkMigrated: 'zrc-customer-link-migrated',
-  dataVersion: 'zrc-data-version'
-};
-
-const getStorageKey = (key) => STORAGE_KEYS[key] || key;
-
-const readStorageValue = (key, fallbackValue) => {
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return fallbackValue;
-  }
-
-  const storageKey = getStorageKey(key);
-
-  try {
-    const rawValue = window.localStorage.getItem(storageKey);
-
-    if (rawValue === null || rawValue === undefined || rawValue === '') {
-      return fallbackValue;
-    }
-
-    try {
-      return JSON.parse(rawValue);
-    } catch {
-      return typeof fallbackValue === 'string' ? rawValue : fallbackValue;
-    }
-  } catch (error) {
-    console.warn(`[ZRC Storage] ${storageKey} okunamadı.`, error);
-    return fallbackValue;
-  }
-};
-
-const writeStorageValue = (key, value) => {
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return false;
-  }
-
-  const storageKey = getStorageKey(key);
-
-  try {
-    window.localStorage.setItem(storageKey, JSON.stringify(value));
-    return true;
-  } catch (error) {
-    console.warn(`[ZRC Storage] ${storageKey} kaydedilemedi.`, error);
-    return false;
-  }
-};
-
-const removeStorageValue = (key) => {
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return false;
-  }
-
-  const storageKey = getStorageKey(key);
-
-  try {
-    window.localStorage.removeItem(storageKey);
-    return true;
-  } catch (error) {
-    console.warn(`[ZRC Storage] ${storageKey} silinemedi.`, error);
-    return false;
-  }
-};
-
-
-const NAVIGATION_STORAGE_KEYS = {
-  activeMenu: 'zrcLastActiveMenu',
-  activeContentMenu: 'zrcLastActiveContentMenu',
-  activeTab: 'zrcLastActiveTab'
-};
-
-const getSavedNavigationState = (fallback = {}) => {
-  const savedActiveMenu = readStorageValue(NAVIGATION_STORAGE_KEYS.activeMenu, '');
-  const savedActiveContentMenu = readStorageValue(NAVIGATION_STORAGE_KEYS.activeContentMenu, '');
-  const savedActiveTab = readStorageValue(NAVIGATION_STORAGE_KEYS.activeTab, '');
-
-  return {
-    activeMenu: savedActiveMenu || fallback.activeMenu || fallback.menu || 'Ana Sayfa',
-    activeContentMenu: savedActiveContentMenu || fallback.activeContentMenu || fallback.content || savedActiveMenu || 'Ana Sayfa',
-    activeTab: savedActiveTab || fallback.activeTab || fallback.tab || 'Görevler'
-  };
-};
-
-const normalizeStorageArray = (value, fallbackValue = []) =>
-  Array.isArray(value) ? value : fallbackValue;
-
-const normalizeStorageObject = (value, fallbackValue = {}) =>
-  value && typeof value === 'object' && !Array.isArray(value) ? value : fallbackValue;
-
-const createDataSnapshot = ({
-  projects,
-  teamMembers,
-  customers,
-  selectedProject,
-  projectSettings,
-  projectBoards,
-  quickNotes,
-  activityNotifications,
-  readNotificationIds,
-  projectMessages,
-  readMessageIds,
-  chatGroups,
-  profileDraft,
-  profilePreferences
-}) => ({
-  app: 'zrc-is-takip',
-  version: APP_DATA_VERSION,
-  exportedAt: new Date().toISOString(),
-  data: {
-    projects,
-    teamMembers,
-    customers,
-    selectedProject,
-    projectSettings,
-    projectBoards,
-    quickNotes,
-    activityNotifications,
-    readNotificationIds,
-    projectMessages,
-    readMessageIds,
-    chatGroups,
-    profileDraft,
-    profilePreferences
-  }
-});
-
-
-
-
-
-
-
-
-if (typeof document !== 'undefined' && !document.getElementById('zrc-v423-popup-force-hide')) {
-  const style = document.createElement('style');
-  style.id = 'zrc-v423-popup-force-hide';
-  style.textContent = '#zrc-global-update-toast{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';
-  document.head.appendChild(style);
-}
-
+import {
+  zrcV426bApplyDueDateColors,
+  ZRC_APP_BUILD_LABEL,
+  APP_DATA_VERSION,
+  STORAGE_KEYS,
+  getStorageKey,
+  readStorageValue,
+  writeStorageValue,
+  removeStorageValue,
+  NAVIGATION_STORAGE_KEYS,
+  getSavedNavigationState,
+  normalizeStorageArray,
+  normalizeStorageObject,
+  createDataSnapshot
+} from './ZRCAppTopLevel';
 
 function App() {
 

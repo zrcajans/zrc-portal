@@ -1,16 +1,21 @@
-# ZRC App Shell
+# ZRC App
 
-Bu klasör v518 ile oluşturuldu.
+Bu klasör v519 mega dağıtma adımıyla oluşturuldu.
 
-`src/App.jsx` artık küçük giriş dosyasıdır. Büyük çalışan uygulama kabuğu bu dosyadadır:
+Dosya yapısı:
 
+- `src/App.jsx`
+  - Sadece küçük giriş dosyasıdır.
 - `src/app/ZRCAppShell.jsx`
+  - Ana uygulama kabuğudur.
+- `src/app/ZRCAppTopLevel.jsx`
+  - App fonksiyonu öncesindeki sabitler ve helperlar burada tutulur.
 
 Amaç:
-- App.jsx dosyasını 19K satırdan mini entry dosyasına düşürmek
-- sonraki refactorları daha kontrollü yapmak
-- mevcut çalışan mantığa dokunmadan dosya yapısını büyütmek
+- App.jsx dosyasını devasa dosya olmaktan çıkarmak
+- Sonraki büyük parçalamaları daha kontrollü yapmak
+- Çalışan davranışı değiştirmeden dosya yapısını büyütmek
 
 Not:
-- Bu adım davranış değiştirmez.
-- Yalnızca dosya konumu ve import yolları düzenlenmiştir.
+- Bu adım storage/navigation/login/auth akışına dokunmaz.
+- Build geçmezse script rollback yapar.
