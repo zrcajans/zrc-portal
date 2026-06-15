@@ -121,6 +121,12 @@ import {
   createDataSnapshot
 } from './ZRCAppTopLevel';
 
+import RaporlarTabPanel from '../features/raporlar/RaporlarTabPanel';
+import GanttCizelgesiTabPanel from '../features/gantt_cizelgesi/GanttCizelgesiTabPanel';
+import DosyalarTabPanel from '../features/dosyalar/DosyalarTabPanel';
+import ZamanCizelgesiTabPanel from '../features/zaman_cizelgesi/ZamanCizelgesiTabPanel';
+import TakvimTabPanel from '../features/takvim/TakvimTabPanel';
+import GorevlerTabPanel from '../features/gorevler/GorevlerTabPanel';
 function App() {
 
   const zrcSetSupabaseWriteInfo = (status, message) => {
@@ -15774,2158 +15780,917 @@ return (
               )}
 
               <div className="flex-1 min-h-0 bg-[#f5f6f8] flex flex-col overflow-hidden h-full">
-                {activeTab === 'Görevler' && (
-                  <div className="w-full flex flex-col flex-1 animate-fade-in overflow-hidden h-full bg-[#f5f6f8]">
-                    <div className="w-full h-[54px] pl-7 pr-[76px] bg-[#f5f6f8] flex items-center justify-between shrink-0 relative z-10 max-md:h-[44px] max-md:px-3 max-md:gap-2">
-                      <div className="flex items-center gap-3.5">
-                        {canCreateTaskInSelectedProject && (
-                          <button
-                            onClick={() => {
-                              setEditingTask(null);
-                              setIsTaskModalOpen(true);
-                            }}
-                            className="h-9 min-w-[126px] bg-[#3cad6e] hover:bg-[#329b60] text-white text-[12.5px] font-extrabold pl-4 pr-3 rounded-full shadow-[0_6px_14px_rgba(60,173,110,0.14)] active:scale-[0.98] transition-all flex items-center justify-between gap-3.5 max-md:h-8 max-md:min-w-0 max-md:px-3 max-md:text-[11px] max-md:gap-2"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                            <span>Oluştur</span>
-                            <svg className="w-3.5 h-3.5 opacity-80" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                            </svg>
-                          </button>
-                        )}
-
-                        <div className="flex items-center gap-2 text-zinc-500">
-                          {showProjectSettingsControls && (
-                            <button onClick={() => setActiveTab('Ayarlar')} className="w-9 h-9 rounded-full border border-zinc-200/80 bg-white hover:bg-white hover:text-zinc-800 hover:border-zinc-300 transition-all flex items-center justify-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]" title="Pano Ayarları">
-                              <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.094c.55 0 1.02.398 1.11.94l.149.894c.07.424.35.78.748.944.073.03.145.06.216.093.39.18.846.135 1.205-.102l.758-.5a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.5.757c-.237.36-.282.816-.102 1.206.033.071.064.143.093.216.164.398.52.678.944.748l.894.149c.542.09.94.56.94 1.11v1.094c0 .55-.398 1.02-.94 1.11l-.894.149c-.424.07-.78.35-.944.748-.03.073-.06.145-.093.216-.18.39-.135.846.102 1.205l.5.758c.32.448.27 1.061-.12 1.45l-.774.773a1.125 1.125 0 01-1.45.12l-.757-.5c-.36-.237-.816-.282-1.206-.102a5.22 5.22 0 01-.216.093c-.398.164-.678.52-.748.944l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.02-.398-1.11-.94l-.149-.894c-.07-.424-.35-.78-.748-.944a5.3 5.3 0 01-.216-.093c-.39-.18-.846-.135-1.205.102l-.758.5a1.125 1.125 0 01-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.5-.757c.237-.36.282-.816.102-1.206a5.22 5.22 0 01-.093-.216c-.164-.398-.52-.678-.944-.748l-.894-.149c-.542-.09-.94-.56-.94-1.11v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.78-.35.944-.748.03-.073.06-.145.093-.216.18-.39.135-.846-.102-1.205l-.5-.758a1.125 1.125 0 01.12-1.45l.774-.773a1.125 1.125 0 011.45-.12l.757.5c.36.237.816.282 1.206.102.071-.033.143-.064.216-.093.398-.164.678-.52.748-.944l.149-.894z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              </svg>
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={openGlobalSearch}
-                            className="w-9 h-9 rounded-full border border-zinc-200/80 bg-white hover:bg-white hover:text-zinc-800 hover:border-zinc-300 transition-all flex items-center justify-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
-                            title="Ara"
-                          >
-                            <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                          </button>
-
-                          <button className="w-9 h-9 rounded-full border border-zinc-200/80 bg-white hover:bg-white hover:text-zinc-800 hover:border-zinc-300 transition-all flex items-center justify-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]" title="Filtrele">
-                            <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 20.5v-6.068a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-                            </svg>
-                          </button>
-
-                          {currentPermissions.manageColumns && (
-                            <button
-                              onClick={() => {
-                                setIsEditMode(!isEditMode);
-                                setOpenMenuColumnId(null);
-                              }}
-                              className={`w-9 h-9 rounded-full border transition-all flex items-center justify-center shadow-sm ${
-                                isEditMode
-                                  ? 'bg-[#ff3600] text-white border-[#ff3600]'
-                                  : 'bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-800 hover:border-zinc-300'
-                              }`}
-                              title="Kolon düzenleme modu"
-                            >
-                              <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                              </svg>
-                            </button>
-                          )}
-
-                          <button className="w-9 h-9 rounded-full border border-zinc-200/80 bg-white hover:bg-white hover:text-zinc-800 hover:border-zinc-300 transition-all flex items-center justify-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]" title="Görünüm">
-                            <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 5.25h16.5M3.75 9.75h16.5M3.75 14.25h16.5M3.75 18.75h16.5" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="hidden md:flex items-center gap-2">
-                        <button
-                          onClick={() => setBoardView('Tüm Görevler')}
-                          className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
-                            boardView === 'Tüm Görevler' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                          }`}
-                        >
-                          Tüm Görevler
-                        </button>
-
-                        <button
-                          onClick={() => setBoardView('Üyelere Göre')}
-                          className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
-                            boardView === 'Üyelere Göre' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                          }`}
-                        >
-                          Üyelere Göre
-                        </button>
-
-                        <button
-                          onClick={() => setBoardView('Arşiv')}
-                          className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
-                            boardView === 'Arşiv' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                          }`}
-                        >
-                          Arşiv
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 pl-5 pr-[76px] pt-1.5 pb-5 flex space-x-5 bg-[#f5f6f8] overflow-x-auto overflow-y-hidden h-full custom-scrollbar items-start max-md:px-3 max-md:pt-1 max-md:pb-[112px] max-md:space-x-0 max-md:overflow-hidden">
-                      {(boardView === 'Tüm Görevler' || boardView === 'Üyelere Göre') && isEditMode && currentPermissions.manageColumns && (
-                        <button
-                          type="button"
-                          onClick={openAddStageModal}
-                          className="w-[38px] h-[34px] mt-[2px] rounded-[4px] bg-[#2f8ee8] hover:bg-[#2476c3] text-white shadow-[0_8px_18px_rgba(47,142,232,0.22)] transition-all active:scale-[0.96] flex items-center justify-center shrink-0 group"
-                          title="Yeni kolon ekle"
-                        >
-                          <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
-                          </svg>
-                        </button>
-                      )}
-
-                      {(boardView === 'Tüm Görevler' || boardView === 'Üyelere Göre') &&
-                        visibleBoardColumns.map((column, colIdx) => (
-                          <div
-                            key={column.id}
-                            className={`w-[270px] shrink-0 flex flex-col max-h-[calc(100vh-145px)] relative max-md:w-full max-md:max-h-[calc(100vh-258px)] ${mobileActiveColumnId && mobileActiveColumnId !== column.id ? 'max-md:hidden' : ''} ${
-                              openMenuColumnId === column.id || column.tasks.some((task) => task.id === openTaskMenuId)
-                                ? 'z-[300]'
-                                : 'z-10'
-                            }`}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => handleDrop(e, column.id)}
-                          >
-                            <div
-                              className="w-full px-3 py-1.5 flex items-center justify-between text-[10.5px] font-black select-none tracking-tight shrink-0 h-[34px] rounded-[4px] shadow-[0_2px_8px_rgba(0,0,0,0.045)] relative z-[260]"
-                              style={{ backgroundColor: column.color }}
-                            >
-                              <div className="flex items-center space-x-1">
-                                <span style={{ color: getReadableColumnColor(column.color) }}>
-                                  {column.title}
-                                </span>
-                                <span
-                                  className="opacity-80 font-bold"
-                                  style={{ color: getReadableColumnMutedColor(column.color) }}
-                                >
-                                  ({column.tasks.length})
-                                </span>
-                              </div>
-
-                              <div className="flex items-center space-x-1.5 opacity-90 relative">
-                                {isEditMode && currentPermissions.manageColumns ? (
-                                  <div
-                                    className="flex items-center gap-1 px-1.5 py-1 rounded-[8px] text-[12px] animate-fade-in z-20"
-                                    style={getColumnEditToolsStyle(column.color)}
-                                  >
-                                    <button type="button" onClick={() => handleMoveColumn(colIdx, -1)} className="w-8 h-7 rounded-[6px] transition-colors hover:bg-black/10 disabled:opacity-30" disabled={colIdx === 0}>
-                                      ‹
-                                    </button>
-                                    <button type="button" onClick={() => handleMoveColumn(colIdx, 1)} className="w-8 h-7 rounded-[6px] transition-colors hover:bg-black/10 disabled:opacity-30" disabled={colIdx === boardColumns.length - 1}>
-                                      ›
-                                    </button>
-                                    <button type="button" onClick={() => openEditStageModal(column)} className="w-8 h-7 rounded-[6px] hover:bg-black/10 transition-colors">
-                                      ✎
-                                    </button>
-                                    <button type="button" onClick={() => handleDeleteColumn(column.id)} className="w-8 h-7 rounded-[6px] hover:bg-red-500/20 transition-colors">
-                                      ×
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <>
-                                    {canCreateTaskInSelectedProject && (
-                                      <button
-                                        type="button"
-                                        className="hover:opacity-100 font-black text-[13px] px-1"
-                                        style={{ color: getReadableColumnColor(column.color) }}
-                                        onClick={() => {
-                                          setEditingTask(null);
-                                          setIsTaskModalOpen(true);
-                                        }}
-                                      >
-                                        +
-                                      </button>
-                                    )}
-
-                                    {currentPermissions.manageColumns && (
-                                      <button
-                                        type="button"
-                                        style={{ color: getReadableColumnColor(column.color) }}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setOpenMenuColumnId(openMenuColumnId === column.id ? null : column.id);
-                                          setOpenTaskMenuId(null);
-                                        }}
-                                        className="hover:opacity-100 text-[9.5px] font-black px-0.5 tracking-tight focus:outline-none cursor-pointer"
-                                      >
-                                        •••
-                                      </button>
-                                    )}
-
-                                    {currentPermissions.manageColumns && openMenuColumnId === column.id && (
-                                      <div
-                                        onClick={(event) => event.stopPropagation()}
-                                        className="absolute right-0 top-8 bg-white border border-zinc-200 shadow-[0_18px_45px_rgba(15,23,42,0.18)] rounded-[10px] p-1.5 w-[190px] z-[500] text-zinc-700 font-semibold text-[11px] animate-fade-in text-left max-h-none overflow-visible"
-                                      >
-                                        <button
-                                          type="button"
-                                          onClick={() => openEditStageModal(column)}
-                                          className="w-full h-8 px-2.5 rounded-[7px] hover:bg-zinc-50 transition-all flex items-center gap-2 text-left"
-                                        >
-                                          <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L9.75 16.902 6 18l1.098-3.75L16.862 4.487z" />
-                                          </svg>
-                                          Düzenle
-                                        </button>
-
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            setIsEditMode(true);
-                                            setOpenMenuColumnId(null);
-                                          }}
-                                          className="w-full h-8 px-2.5 rounded-[7px] hover:bg-zinc-50 transition-all flex items-center gap-2 text-left"
-                                        >
-                                          <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75L3.75 7.5 7.5 11.25M3.75 7.5h16.5M16.5 12.75l3.75 3.75-3.75 3.75M20.25 16.5H3.75" />
-                                          </svg>
-                                          Sıralama modu
-                                        </button>
-
-                                        <button
-                                          type="button"
-                                          onClick={() => handleCopyColumn(column, colIdx)}
-                                          className="w-full h-8 px-2.5 rounded-[7px] hover:bg-zinc-50 transition-all flex items-center gap-2 text-left"
-                                        >
-                                          <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 8.25h9A1.5 1.5 0 0118.75 9.75v9a1.5 1.5 0 01-1.5 1.5h-9a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 15.75h-.75a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5h9a1.5 1.5 0 011.5 1.5V6" />
-                                          </svg>
-                                          Kolonu kopyala
-                                        </button>
-
-                                        <div className="h-px bg-zinc-100 my-1" />
-
-                                        <button
-                                          type="button"
-                                          onClick={() => handleArchiveColumnTasks(column)}
-                                          className="w-full h-8 px-2.5 rounded-[7px] hover:bg-zinc-50 transition-all flex items-center justify-between gap-2 text-left"
-                                        >
-                                          <span className="flex items-center gap-2">
-                                            <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 7.5h16.5M5.25 7.5v11.25A1.5 1.5 0 006.75 20.25h10.5a1.5 1.5 0 001.5-1.5V7.5M9 11.25h6" />
-                                            </svg>
-                                            Görevleri arşivle
-                                          </span>
-                                          <span className="text-[9px] text-zinc-400 font-black">{column.tasks.length}</span>
-                                        </button>
-
-                                        <button
-                                          type="button"
-                                          onClick={() => handleArchiveColumn(column)}
-                                          className="w-full h-8 px-2.5 rounded-[7px] hover:bg-zinc-50 transition-all flex items-center gap-2 text-left"
-                                        >
-                                          <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632A2.25 2.25 0 0117.38 20.25H6.62a2.25 2.25 0 01-2.245-2.118L3.75 7.5M9.75 11.25h4.5M3 7.5h18M8.25 7.5V5.625A1.875 1.875 0 0110.125 3.75h3.75A1.875 1.875 0 0115.75 5.625V7.5" />
-                                          </svg>
-                                          Kolonu arşivle
-                                        </button>
-
-                                        <div className="h-px bg-zinc-100 my-1" />
-
-                                        <button
-                                          type="button"
-                                          onClick={() => handleDeleteColumn(column.id)}
-                                          className="w-full h-8 px-2.5 rounded-[7px] hover:bg-red-50 text-red-600 transition-all flex items-center gap-2 text-left font-black"
-                                        >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7V5.75A1.75 1.75 0 0110.75 4h2.5A1.75 1.75 0 0115 5.75V7m-8 0l.75 12A2 2 0 009.75 21h4.5a2 2 0 002-1.875L17 7" />
-                                          </svg>
-                                          Kolonu sil
-                                        </button>
-                                      </div>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className={`w-full mt-2.5 space-y-1.5 flex-1 pr-0.5 pb-24 ${
-                                column.tasks.some((task) => task.id === openTaskMenuId) || openMenuColumnId === column.id
-                                  ? 'overflow-visible'
-                                  : 'overflow-y-auto custom-scrollbar'
-                              }`} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, column.id)}>
-                              {column.tasks.map((task) => {
-                                const isSelected = selectedTasks.includes(task.id);
-                                const prioColor = priorityOptions.find((p) => p.label === task.priority)?.color || '#9ca3af';
-                                const taskCardDateParts = getTaskCardDateParts(task);
-
-                                return (
-                                  <div
-                                    key={task.id}
-                                    draggable={Boolean(currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject))}
-                                    onClick={() => {
-                                      if (isEditMode) return;
-                                      openTaskDetail(task, column.title);
-                                    }}
-                                    onDragStart={(e) => {
-                                      if (!currentPermissions.editTasks || !canCurrentUserModifyTask(task, selectedProject)) {
-                                        e.preventDefault();
-                                        showPermissionWarning('Bu görev sana atanmadığı için durumunu değiştiremezsin.');
-                                        return;
-                                      }
-                                      handleDragStart(e, task.id, column.id);
-                                    }}
-                                    className={`w-full bg-white p-3.5 rounded-[3px] border border-zinc-100 shadow-[0_6px_16px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)] transition-all duration-200 group relative ${isEditMode ? 'cursor-default opacity-70 hover:shadow-[0_6px_16px_rgba(15,23,42,0.055)]' : 'cursor-pointer'} ${openTaskMenuId === task.id ? 'z-[400]' : 'z-10'} ${
-                                      isSelected ? 'border-[#3b82f6] border-2 bg-zinc-50' : 'border-zinc-200/50'
-                                    }`}
-                                  >
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[3px]" style={{ backgroundColor: prioColor }} />
-
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setOpenTaskMenuId(openTaskMenuId === task.id ? null : task.id);
-                                        setOpenMenuColumnId(null);
-                                      }}
-                                      className="absolute top-2.5 right-2.5 w-4.5 h-4.5 rounded-full text-zinc-300 group-hover:text-zinc-500 hover:bg-zinc-100 transition-all z-20 flex items-center justify-center"
-                                      title="Görev menüsü"
-                                    >
-                                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <circle cx="10" cy="4" r="1.5" />
-                                        <circle cx="10" cy="10" r="1.5" />
-                                        <circle cx="10" cy="16" r="1.5" />
-                                      </svg>
-                                    </button>
-
-                                    {openTaskMenuId === task.id && (
-                                      <div
-                                        onClick={(event) => event.stopPropagation()}
-                                        className="absolute right-0 top-[calc(100%+7px)] w-[170px] bg-white border border-slate-200 rounded-[10px] shadow-[0_18px_45px_rgba(15,23,42,0.18)] p-1.5 z-[500] animate-overlay-in"
-                                      >
-                                        <button
-                                          type="button"
-                                          onClick={() => handleTaskAction('detay', column.id, task)}
-                                          className="w-full h-8 px-2.5 rounded-[7px] text-left text-[11px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2"
-                                        >
-                                          <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                          </svg>
-                                          Detayı aç
-                                        </button>
-
-                                        {currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject) && (
-                                          <button
-                                            type="button"
-                                            onClick={() => handleTaskAction('duzenle', column.id, task)}
-                                            className="w-full h-8 px-2.5 rounded-[7px] text-left text-[11px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2"
-                                          >
-                                            <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L9.75 16.902 6 18l1.098-3.75L16.862 4.487z" />
-                                            </svg>
-                                            Düzenle
-                                          </button>
-                                        )}
-
-                                        {canCreateTaskInSelectedProject && (currentAccountType !== 'Ekip Üyesi' || canCurrentUserModifyTask(task, selectedProject)) && (
-                                          <button
-                                            type="button"
-                                            onClick={() => handleTaskAction('kopyala', column.id, task)}
-                                            className="w-full h-8 px-2.5 rounded-[7px] text-left text-[11px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2"
-                                          >
-                                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 8.25h9A1.5 1.5 0 0118.75 9.75v9a1.5 1.5 0 01-1.5 1.5h-9a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5z" />
-                                              <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 15.75h-.75a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5h9a1.5 1.5 0 011.5 1.5V6" />
-                                            </svg>
-                                            Kopyala
-                                          </button>
-                                        )}
-
-                                        {currentPermissions.deleteTasks && (
-                                          <>
-                                            <div className="h-px bg-slate-100 my-1" />
-
-                                            <button
-                                              type="button"
-                                              onClick={() => handleTaskAction('arsivle', column.id, task)}
-                                              className="w-full h-8 px-2.5 rounded-[7px] text-left text-[11px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2"
-                                            >
-                                              <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 7.5h16.5M5.25 7.5v11.25A1.5 1.5 0 006.75 20.25h10.5a1.5 1.5 0 001.5-1.5V7.5M9 11.25h6" />
-                                              </svg>
-                                              Arşivle
-                                            </button>
-
-                                            <button
-                                              type="button"
-                                              onClick={() => handleTaskAction('sil', column.id, task)}
-                                              className="w-full h-8 px-2.5 rounded-[7px] text-left text-[11px] font-black text-red-500 hover:bg-red-50 transition-all flex items-center gap-2"
-                                            >
-                                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7V5.75A1.75 1.75 0 0110.75 4h2.5A1.75 1.75 0 0115 5.75V7m-8 0l.75 12A2 2 0 009.75 21h4.5a2 2 0 002-1.875L17 7" />
-                                              </svg>
-                                              Sil
-                                            </button>
-                                          </>
-                                        )}
-                                      </div>
-                                    )}
-
-                                    <h4 className="text-[13.5px] font-extrabold text-zinc-800 leading-snug mb-2 pr-6 pl-1 tracking-tight">{task.title}</h4>
-                                    {currentAccountType === 'Patron' && task.customer && task.customer !== 'Müşteri Seçin...' && (
-                                      <div className="text-[11.5px] font-bold text-zinc-500 mb-2 pl-1">
-                                        {currentAccountType === 'Patron' ? 'Müşteri' : 'Proje'}: <span className="text-zinc-700">{task.customer}</span>
-                                      </div>
-                                    )}
-
-                                    <div className="flex flex-col space-y-1 pl-1">
-                                      {taskCardDateParts.hasAnyDate && (
-                                        <div className="flex flex-wrap items-center gap-1.5 text-[10.5px] font-black text-zinc-400">
-                                          {taskCardDateParts.startDate && (
-                                            <span className="px-2 py-0.5 rounded-full bg-zinc-50 border border-zinc-100">
-                                              Baş: {taskCardDateParts.startDate}
-                                            </span>
-                                          )}
-
-                                          {taskCardDateParts.endDate && (
-                                            <span className={`px-2 py-0.5 rounded-full border ${task.isDateUrgent ? 'bg-red-50 border-red-100 text-red-500' : 'bg-zinc-50 border-zinc-100 text-zinc-400'}`}>
-                                              Bit: {taskCardDateParts.endDate}{task.isDateUrgent ? ', 15:00' : ''}
-                                            </span>
-                                          )}
-                                        </div>
-                                      )}
-
-                                      <div className="flex justify-between items-end mt-1">
-                                        <div className="flex -space-x-1.5">
-                                          {task.assignees?.map((a) => (
-                                            <div
-                                              key={a.id}
-                                              className="w-7 h-7 rounded-full bg-[#8c5220] border-2 border-white flex items-center justify-center text-white text-[8px] font-black shadow-sm overflow-hidden"
-                                              title={a.name}
-                                            >
-                                              {renderProfileAvatar(a.avatar, createAvatarFromName(a.name))}
-                                            </div>
-                                          ))}
-
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* zrc-v517d-mobile-task-move-buttons-component */}
-                                    <MobileTaskMoveButtons
-                                      task={task}
-                                      column={column}
-                                      visibleBoardColumns={visibleBoardColumns}
-                                      currentPermissions={currentPermissions}
-                                      selectedProject={selectedProject}
-                                      canCurrentUserModifyTask={canCurrentUserModifyTask}
-                                      handleMoveTaskToColumn={handleMoveTaskToColumn}
-                                      setMobileActiveColumnId={setMobileActiveColumnId}
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-
-                      {boardView === 'Arşiv' && (
-                        <div className="w-full h-full animate-fade-in p-6 overflow-y-auto custom-scrollbar">
-                          <div className="w-full max-w-6xl mx-auto">
-                            <div className="flex items-center justify-between mb-3">
-                              <div>
-                                <h2 className="text-[18px] font-black text-zinc-700 tracking-tight">Arşiv</h2>
-                                <p className="text-[11px] font-bold text-zinc-400 mt-1">
-                                  {currentPermissions.deleteTasks
-                                    ? 'Arşivlenen görevleri buradan geri getirebilir veya kalıcı olarak silebilirsin.'
-                                    : 'Arşivlenen görevleri buradan inceleyebilirsin.'}
-                                </p>
-                              </div>
-
-                              <div className="h-9 px-3.5 rounded-full bg-white border border-zinc-200 text-[10.5px] font-black text-zinc-500 flex items-center gap-2 shadow-sm">
-                                <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 7.5h16.5M5.25 7.5v11.25A1.5 1.5 0 006.75 20.25h10.5a1.5 1.5 0 001.5-1.5V7.5M9 11.25h6" />
-                                </svg>
-                                {archivedTasks.length} görev
-                              </div>
-                            </div>
-
-                            {archivedTasks.length > 0 ? (
-                              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                {archivedTasks.map((task) => {
-                                  const archivedDate = task.archivedAt
-                                    ? new Date(task.archivedAt).toLocaleString('tr-TR', {
-                                        day: '2-digit',
-                                        month: 'long',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })
-                                    : 'Tarih yok';
-
-                                  return (
-                                    <div
-                                      key={task.id}
-                                      className="w-full bg-white rounded-[12px] border border-zinc-200 shadow-[0_8px_24px_rgba(15,23,42,0.045)] hover:shadow-[0_14px_32px_rgba(15,23,42,0.08)] transition-all overflow-hidden text-left"
-                                    >
-                                      <div className="p-4">
-                                        <div className="flex items-start justify-between gap-3">
-                                          <div className="min-w-0">
-                                            <h4 className="text-[12.5px] font-black text-zinc-800 leading-tight truncate">
-                                              {task.title}
-                                            </h4>
-
-                                            <div className="mt-2 flex flex-wrap gap-1.5">
-                                              <span className="h-6 px-2.5 rounded-full bg-zinc-100 text-zinc-700 text-[9.5px] font-black flex items-center">
-                                                {task.sourceColumnTitle || 'Eski kolon'}
-                                              </span>
-
-                                              {task.priority && (
-                                                <span className="h-6 px-2.5 rounded-full bg-slate-50 text-slate-500 text-[9.5px] font-black flex items-center">
-                                                  {task.priority}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          <div className="w-8 h-8 rounded-full bg-zinc-100 text-zinc-700 flex items-center justify-center shrink-0">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 7.5h16.5M5.25 7.5v11.25A1.5 1.5 0 006.75 20.25h10.5a1.5 1.5 0 001.5-1.5V7.5M9 11.25h6" />
-                                            </svg>
-                                          </div>
-                                        </div>
-
-                                        {currentAccountType === 'Patron' && task.customer && task.customer !== 'Müşteri Seçin...' && (
-                                          <div className="mt-3 text-[11px] font-bold text-zinc-500">
-                                            {currentAccountType === 'Patron' ? 'Müşteri' : 'Proje'}: <span className="text-zinc-700">{task.customer}</span>
-                                          </div>
-                                        )}
-
-                                        {(task.startDate || task.endDate || task.date) && (
-                                          <div className="mt-2 text-[10.5px] font-bold text-zinc-400 flex items-center gap-1.5">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M5.25 5.25h13.5A1.5 1.5 0 0120.25 6.75v12A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75v-12A1.5 1.5 0 015.25 5.25z" />
-                                            </svg>
-                                            <span>{task.startDate || task.date}{task.endDate ? ` - ${task.endDate}` : ''}</span>
-                                          </div>
-                                        )}
-
-                                        <div className="mt-3 text-[10.5px] font-bold text-zinc-400">
-                                          Arşivlenme: <span className="text-zinc-500">{archivedDate}</span>
-                                        </div>
-                                      </div>
-
-                                      {currentPermissions.deleteTasks && (
-                                        <div className="h-[48px] px-3 border-t border-zinc-100 bg-zinc-50/55 flex items-center justify-end gap-2">
-                                          <button
-                                            type="button"
-                                            onClick={() => handleRestoreArchivedTask(task)}
-                                            className="h-8 px-3 rounded-[8px] bg-[#10b981] hover:bg-[#059669] text-white text-[10.5px] font-black shadow-sm transition-all active:scale-[0.98]"
-                                          >
-                                            Geri Getir
-                                          </button>
-
-                                          <button
-                                            type="button"
-                                            onClick={() => handleDeleteArchivedTask(task.id)}
-                                            className="h-8 px-3 rounded-[8px] bg-white border border-red-100 text-red-500 hover:bg-red-50 text-[10.5px] font-black shadow-sm transition-all active:scale-[0.98]"
-                                          >
-                                            Kalıcı Sil
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div className="h-[420px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex flex-col items-center justify-center text-center">
-                                <div className="w-16 h-16 rounded-full bg-zinc-100 text-zinc-700 flex items-center justify-center mb-3">
-                                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 7.5h16.5M5.25 7.5v11.25A1.5 1.5 0 006.75 20.25h10.5a1.5 1.5 0 001.5-1.5V7.5M9 11.25h6" />
-                                  </svg>
-                                </div>
-
-                                <div className="text-[14px] font-black text-zinc-700">Arşiv boş</div>
-                                <div className="text-[11px] font-bold text-zinc-400 mt-1 max-w-[340px]">
-                                  Arşivlediğin görevler burada görünecek. Geri getirmek istediğinde tek tıkla panoya taşıyabilirsin.
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* zrc-v454c-mobile-column-strip */}
-                    {(boardView === 'Tüm Görevler' || boardView === 'Üyelere Göre') && visibleBoardColumns.length > 0 && (
-                      <div className="md:hidden fixed left-0 right-0 bottom-0 z-[620] px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+10px)] bg-white/92 backdrop-blur-xl border-t border-zinc-200 shadow-[0_-16px_42px_rgba(15,23,42,0.12)]">
-                        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
-                          {visibleBoardColumns.map((column, index) => {
-                            const isActiveMobileColumn = mobileActiveColumnId === column.id || (!mobileActiveColumnId && index === 0);
-
-                            return (
-                              <button
-                                key={`mobile-column-tab-${column.id}`}
-                                type="button"
-                                onClick={() => setMobileActiveColumnId(column.id)}
-                                className={`shrink-0 h-10 px-3.5 rounded-[14px] border text-[10px] font-black transition-all flex items-center gap-2 ${
-                                  isActiveMobileColumn
-                                    ? 'bg-[#101827] text-white border-[#101827] shadow-[0_10px_22px_rgba(15,23,42,0.18)]'
-                                    : 'bg-zinc-50 text-zinc-500 border-zinc-200'
-                                }`}
-                              >
-                                <span
-                                  className="w-2 h-2 rounded-full shrink-0"
-                                  style={{ backgroundColor: column.color }}
-                                />
-                                <span className="max-w-[126px] truncate">{column.title}</span>
-                                <span className={`h-5 min-w-5 px-1.5 rounded-full text-[9px] flex items-center justify-center ${
-                                  isActiveMobileColumn ? 'bg-white/16 text-white' : 'bg-white text-zinc-400 border border-zinc-200'
-                                }`}>
-                                  {column.tasks.length}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-
-
-                {activeTab === 'Takvim' && (
-                  <div className="w-full flex-1 bg-[#f5f6f8] overflow-y-auto custom-scrollbar animate-fade-in">
-                    <div className="px-7 py-4 max-w-[1210px] mx-auto">
-                      <div className="flex items-center justify-end mb-3">
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setIsCalendarDisplayMenuOpen((prev) => !prev);
-                            }}
-                            className="h-8 px-3.5 rounded-full bg-[#2563eb] text-white text-[10.5px] font-black hover:bg-[#1d4ed8] shadow-[0_8px_18px_rgba(37,99,235,0.18)] transition-all flex items-center gap-2"
-                          >
-                            <span>Gösterim Şekli</span>
-                            <svg className="w-3.5 h-3.5 opacity-90" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M7 12h10M10 18h4" />
-                            </svg>
-                          </button>
-
-                          {isCalendarDisplayMenuOpen && (
-                            <div
-                              onClick={(event) => event.stopPropagation()}
-                              className="absolute right-0 top-[38px] w-[230px] bg-white border border-zinc-200 rounded-[8px] shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2 z-[520] animate-fade-in"
-                            >
-                              {[
-                                { key: 'hideLongTasks', label: 'Uzun Süreli Görevleri Gizle' },
-                                { key: 'hideCompletedTasks', label: 'Tamamlanmış Görevleri Gizle' },
-                                { key: 'hideArchivedTasks', label: 'Arşivlenmiş Görevleri Gizle' }
-                              ].map((item) => (
-                                <button
-                                  key={item.key}
-                                  type="button"
-                                  onClick={() =>
-                                    setCalendarDisplayOptions((prevOptions) => ({
-                                      ...prevOptions,
-                                      [item.key]: !prevOptions[item.key]
-                                    }))
-                                  }
-                                  className="w-full h-7 rounded-[6px] px-1.5 flex items-center gap-2 text-left hover:bg-zinc-50 transition-colors"
-                                >
-                                  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                    calendarDisplayOptions[item.key]
-                                      ? 'bg-[#46b16f] border-[#46b16f] text-white'
-                                      : 'bg-white border-zinc-300 text-transparent'
-                                  }`}>
-                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  </span>
-
-                                  <span className="text-[10.5px] font-bold text-zinc-500">{item.label}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden">
-                        <div className="h-[50px] px-5 border-b border-zinc-100 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <button
-                              type="button"
-                              onClick={goToPreviousCalendarPeriod}
-                              className="w-8 h-8 rounded-full text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all flex items-center justify-center"
-                            >
-                              ‹
-                            </button>
-
-                            <h3 className="text-[15px] font-black text-zinc-800 tracking-tight capitalize min-w-[170px]">
-                              {calendarHeaderTitle}
-                            </h3>
-
-                            <button
-                              type="button"
-                              onClick={goToNextCalendarPeriod}
-                              className="w-8 h-8 rounded-full text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all flex items-center justify-center"
-                            >
-                              ›
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={goToCurrentCalendarPeriod}
-                              className="h-6 px-3 rounded-full bg-zinc-100 text-[9.5px] font-black text-zinc-400 hover:text-zinc-700 transition-all"
-                            >
-                              Bugün
-                            </button>
-                          </div>
-
-                          <div className="flex items-center gap-1.5">
-                            {['Ay', 'Hafta', 'Gün', 'Liste'].map((view) => (
-                              <button
-                                key={view}
-                                type="button"
-                                aria-pressed={calendarView === view}
-                                onClick={() => changeCalendarView(view)}
-                                className={`h-6 px-3 rounded-full text-[9.5px] font-black transition-all ${
-                                  calendarView === view
-                                    ? 'bg-blue-500 text-white shadow-sm'
-                                    : 'bg-zinc-100 text-zinc-400 hover:text-zinc-700'
-                                }`}
-                              >
-                                {view}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {(calendarView === 'Ay' || calendarView === 'Hafta') && (
-                          <div className="grid grid-cols-7 h-7 border-b border-zinc-100 bg-white">
-                            {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((dayName) => (
-                              <div
-                                key={dayName}
-                                className="px-3 flex items-center justify-center text-[10px] font-black text-zinc-400 border-r border-zinc-100 last:border-r-0"
-                              >
-                                {dayName}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {calendarView === 'Ay' && (
-                          <div
-                            className="grid grid-cols-7 bg-white"
-                          >
-                            {calendarGridDays.map((day) => {
-                              const dayTasks = getTasksForCalendarDay(day);
-                              const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
-                              const isToday = isSameCalendarDay(day, todayStart);
-
-                              return (
-                                <div
-                                  key={day.toISOString()}
-                                  data-calendar-day={formatDateForTaskModal(day)}
-                                  data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                  className={`group min-h-[86px] border-r border-b border-zinc-100 last:border-r-0 px-2 py-1.5 relative ${
-                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
-                                  } transition-colors ${
-                                    isCurrentMonth ? 'bg-white' : 'bg-zinc-50/60'
-                                  }`}
-                                >
-                                  {canCreateTaskFromCalendar && (
-                                    <button
-                                      type="button"
-                                      data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                      aria-label={`${day.getDate()} için görev ekle`}
-                                      onClick={(event) => {
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        openTaskModalForCalendarDay(day);
-                                      }}
-                                      className="absolute inset-0 z-10 cursor-pointer rounded-[4px]"
-                                    />
-                                  )}
-
-                                  <div className="relative z-20 pointer-events-none flex items-center justify-between mb-1">
-                                    <span
-                                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                                        isToday
-                                          ? 'bg-blue-500 text-white'
-                                          : isCurrentMonth
-                                            ? 'text-zinc-500'
-                                            : 'text-zinc-300'
-                                      }`}
-                                    >
-                                      {day.getDate()}
-                                    </span>
-
-                                    {dayTasks.length > 3 ? (
-                                      <span className="text-[9px] font-black text-zinc-300">
-                                        +{dayTasks.length - 3}
-                                      </span>
-                                    ) : (
-                                      canCreateTaskFromCalendar ? (
-                                        <span className="opacity-0 group-hover:opacity-100 text-[13px] leading-none font-black text-blue-400 transition-opacity">
-                                          +
-                                        </span>
-                                      ) : null
-                                    )}
-                                  </div>
-
-                                  <div className="relative z-30 space-y-1">
-                                    {dayTasks.slice(0, 3).map((task) => (
-                                      <button
-                                        key={`${day.toISOString()}-${task.id}`}
-                                        type="button"
-                                        data-calendar-task-button="true"
-                                        onMouseDown={(event) => event.stopPropagation()}
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          openTaskDetail(task, task.columnTitle);
-                                        }}
-                                        className={`relative z-40 w-full h-[21px] px-1.5 rounded-[7px] border text-left text-[9px] font-black truncate transition-all ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}
-                                        style={getPremiumCalendarTaskStyle(task)}
-                                        title={task.title}
-                                      >
-                                        {task.title}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {calendarView === 'Hafta' && (
-                          <div
-                            className="grid grid-cols-7 bg-white"
-                          >
-                            {calendarWeekDays.map((day) => {
-                              const dayTasks = getTasksForCalendarDay(day);
-                              const isToday = isSameCalendarDay(day, todayStart);
-
-                              return (
-                                <div
-                                  key={`week-${day.toISOString()}`}
-                                  data-calendar-day={formatDateForTaskModal(day)}
-                                  data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                  className={`group min-h-[310px] border-r border-b border-zinc-100 last:border-r-0 px-2.5 py-2 relative transition-colors ${
-                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
-                                  }`}
-                                >
-                                  {canCreateTaskFromCalendar && (
-                                    <button
-                                      type="button"
-                                      data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                      aria-label={`${day.getDate()} için görev ekle`}
-                                      onClick={(event) => {
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        openTaskModalForCalendarDay(day);
-                                      }}
-                                      className="absolute inset-0 z-10 cursor-pointer rounded-[4px]"
-                                    />
-                                  )}
-
-                                  <div className="relative z-20 pointer-events-none mb-2 flex items-center justify-between">
-                                    <div>
-                                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black ${
-                                        isToday ? 'bg-blue-500 text-white' : 'bg-zinc-100 text-zinc-500'
-                                      }`}>
-                                        {day.getDate()}
-                                      </div>
-                                      <div className="mt-1 text-[9.5px] font-black text-zinc-400 uppercase">
-                                        {formatCalendarWeekday(day)}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="relative z-30 space-y-1.5">
-                                    {dayTasks.map((task) => (
-                                      <button
-                                        key={`week-task-${day.toISOString()}-${task.id}`}
-                                        type="button"
-                                        data-calendar-task-button="true"
-                                        onMouseDown={(event) => event.stopPropagation()}
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          openTaskDetail(task, task.columnTitle);
-                                        }}
-                                        className={`relative z-20 w-full min-h-[30px] px-2 py-1 rounded-[8px] border text-left text-[10px] font-black leading-tight transition-all ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}
-                                        style={getPremiumCalendarTaskStyle(task)}
-                                      >
-                                        {task.title}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {calendarView === 'Gün' && (
-                          <div
-                            onClick={(event) => {
-                              if (!canCreateTaskFromCalendar) return;
-                              handleCalendarDayClick(event, calendarFocusedDate);
-                            }}
-                            role="button"
-                            tabIndex={0}
-                            className={`min-h-[430px] bg-white p-5 transition-colors ${
-                              canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <div>
-                                <div className="text-[13px] font-black text-zinc-800 capitalize">{formatCalendarFullDate(calendarFocusedDate)}</div>
-                                <div className="mt-1 text-[10.5px] font-bold text-zinc-400">{calendarDayHelperText}</div>
-                              </div>
-
-                              {canCreateTaskFromCalendar && (
-                                <button
-                                  type="button"
-                                  data-calendar-task-button="true"
-                                  onMouseDown={(event) => event.stopPropagation()}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openTaskModalForCalendarDay(calendarFocusedDate);
-                                  }}
-                                  className="h-8 px-3.5 rounded-full bg-[#2563eb] text-white text-[10.5px] font-black hover:bg-[#1d4ed8] transition-all"
-                                >
-                                  Bu Güne Görev Ekle
-                                </button>
-                              )}
-                            </div>
-
-                            <div className="space-y-2">
-                              {selectedDayCalendarTasks.map((task) => (
-                                <button
-                                  key={`day-task-${task.id}`}
-                                  type="button"
-                                  onMouseDown={(event) => event.stopPropagation()}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openTaskDetail(task, task.columnTitle);
-                                  }}
-                                  className="w-full bg-white border border-zinc-200 border-l-[3px] rounded-[10px] p-3 text-left hover:border-zinc-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all"
-                                  style={getPremiumCalendarTaskStyle(task)}
-                                >
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div className="min-w-0">
-                                      <div className="text-[12px] font-black text-zinc-800 truncate">{task.title}</div>
-                                      <div className="mt-1 text-[10px] font-bold text-zinc-400 truncate">
-                                        {getRoleAwareTaskMeta(task)}
-                                      </div>
-                                    </div>
-
-                                    <span className={`shrink-0 h-5 px-2 rounded-full border text-[9px] font-black ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}>
-                                      {task.priority || 'Normal'}
-                                    </span>
-                                  </div>
-                                </button>
-                              ))}
-
-                              {selectedDayCalendarTasks.length === 0 && (
-                                <div className="h-[180px] rounded-[12px] border border-dashed border-zinc-200 bg-zinc-50/60 flex items-center justify-center text-[11px] font-bold text-zinc-400">
-                                  Bu gün için görev yok.
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {calendarView === 'Liste' && (
-                          <div className="min-h-[430px] bg-[#fbfcfd] p-4">
-                            {calendarTasks.length > 0 ? (
-                              <div className="space-y-2">
-                                {calendarTasks.map((task) => (
-                                  <button
-                                    key={`list-task-${task.id}`}
-                                    type="button"
-                                    data-calendar-task-button="true"
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      openTaskDetail(task, task.columnTitle);
-                                    }}
-                                    className="w-full bg-white border border-zinc-200 border-l-[3px] rounded-[10px] p-3 text-left hover:border-zinc-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all"
-                                    style={getPremiumCalendarTaskStyle(task)}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-12 h-12 rounded-[10px] bg-zinc-50 border border-zinc-100 flex flex-col items-center justify-center text-zinc-500 shrink-0">
-                                        <span className="text-[13px] font-black leading-none">{formatCalendarDate(task.calendarEndDate || task.calendarStartDate).split(' ')[0]}</span>
-                                        <span className="mt-1 text-[8.5px] font-black uppercase">{formatCalendarWeekday(task.calendarEndDate || task.calendarStartDate)}</span>
-                                      </div>
-
-                                      <div className="min-w-0 flex-1">
-                                        <div className="text-[12px] font-black text-zinc-800 truncate">{task.title}</div>
-                                        <div className="mt-1 text-[10px] font-bold text-zinc-400 truncate">
-                                          {getRoleAwareTaskMeta(task)}
-                                        </div>
-                                      </div>
-
-                                      <span className={`shrink-0 h-5 px-2 rounded-full border text-[9px] font-black ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}>
-                                        {task.isArchivedCalendarTask ? 'Arşiv' : task.priority || 'Normal'}
-                                      </span>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="h-[260px] bg-white border border-zinc-200 rounded-[12px] flex items-center justify-center text-center">
-                                <div>
-                                  <div className="text-[13px] font-black text-zinc-700">Takvimde görev yok</div>
-                                  <div className="text-[10.5px] font-bold text-zinc-400 mt-1">
-                                    Tarihi olan görevler burada listelenir.
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-
-                {activeTab === 'Zaman Çizelgesi' && (
-                  <div className="w-full h-full min-h-0 flex-1 bg-[#f5f6f8] overflow-hidden animate-fade-in">
-                    <div className="px-7 pt-3 pb-4 max-w-[1160px] mx-auto">
-                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden h-[calc(100vh-300px)] min-h-[500px] max-h-[640px] flex flex-col">
-                        <div className="h-[58px] px-4 border-b border-zinc-100 flex items-center justify-between gap-3 shrink-0">
-                          <div className="flex items-center gap-2">
-                            <div className="w-[210px] h-8 rounded-[8px] bg-white border border-zinc-200 flex items-center px-2.5 gap-2">
-                              <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
-                              </svg>
-                              <input
-                                value={timeChartSearch}
-                                onChange={(event) => setTimeChartSearch(event.target.value)}
-                                placeholder={scheduleSearchPlaceholder}
-                                className="w-full bg-transparent text-[11px] font-bold text-zinc-600 placeholder:text-zinc-300 focus:outline-none"
-                              />
-                            </div>
-
-                            <div className="relative">
-                              <button
-                                type="button"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  setIsTimeChartFilterOpen((prev) => !prev);
-                                  setIsTimeChartSettingsOpen(false);
-                                }}
-                                className="w-8 h-8 rounded-full bg-zinc-100 text-zinc-400 hover:text-zinc-700 hover:bg-white border border-zinc-200 transition-all flex items-center justify-center"
-                                title="Filtrele"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h18l-7 8v5l-4 2v-7l-7-8z" />
-                                </svg>
-                              </button>
-
-                              {isTimeChartFilterOpen && (
-                                <div
-                                  onClick={(event) => event.stopPropagation()}
-                                  className="absolute left-0 top-[38px] w-[230px] bg-white border border-zinc-200 rounded-[8px] shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2 z-[540] animate-fade-in"
-                                >
-                                  {[
-                                    { key: 'hideCompleted', label: 'Tamamlanmış Görevleri Gizle' },
-                                    { key: 'hideArchived', label: 'Arşivlenmiş Görevleri Gizle' },
-                                    { key: 'hideNoDate', label: 'Tarihsiz Görevleri Gizle' }
-                                  ].map((item) => (
-                                    <button
-                                      key={item.key}
-                                      type="button"
-                                      onClick={() => toggleTimeChartFilter(item.key)}
-                                      className="w-full h-7 rounded-[6px] px-1.5 flex items-center gap-2 text-left hover:bg-zinc-50 transition-colors"
-                                    >
-                                      <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                        timeChartFilters[item.key]
-                                          ? 'bg-[#46b16f] border-[#46b16f] text-white'
-                                          : 'bg-white border-zinc-300 text-transparent'
-                                      }`}>
-                                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                      </span>
-
-                                      <span className="text-[10.5px] font-bold text-zinc-500">{item.label}</span>
-                                    </button>
-                                  ))}
-
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setTimeChartSearch('');
-                                      setTimeChartFilters({
-                                        hideCompleted: false,
-                                        hideArchived: true,
-                                        hideNoDate: true
-                                      });
-                                    }}
-                                    className="mt-1 w-full h-7 rounded-[6px] bg-zinc-50 text-[10.5px] font-black text-zinc-500 hover:bg-zinc-100 transition-all"
-                                  >
-                                    Filtreleri Sıfırla
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={goToPreviousTimeChartPeriod}
-                                className="w-8 h-8 rounded-full text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all flex items-center justify-center"
-                                title="Önceki"
-                              >
-                                ‹
-                              </button>
-
-                              <div className="min-w-[150px] text-center">
-                                <div className="text-[12px] font-black text-zinc-800 capitalize">{timeChartRangeTitle}</div>
-                                <div className="text-[9px] font-bold text-zinc-400">{timeChartFilteredTasks.length} görev</div>
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={goToNextTimeChartPeriod}
-                                className="w-8 h-8 rounded-full text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all flex items-center justify-center"
-                                title="Sonraki"
-                              >
-                                ›
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={goToCurrentTimeChartPeriod}
-                                className="h-7 px-3 rounded-full bg-zinc-100 text-[9.5px] font-black text-zinc-400 hover:text-zinc-700 transition-all"
-                              >
-                                Bugün
-                              </button>
-                            </div>
-
-                            <div className="flex items-center gap-1 rounded-full bg-zinc-100 p-1">
-                              {['Gün', 'Hafta'].map((view) => (
-                                <button
-                                  key={view}
-                                  type="button"
-                                  onClick={() => changeTimeChartView(view)}
-                                  className={`h-7 px-3 rounded-full text-[10px] font-black transition-all ${
-                                    timeChartView === view
-                                      ? 'bg-[#2563eb] text-white shadow-sm'
-                                      : 'text-zinc-400 hover:text-zinc-700'
-                                  }`}
-                                >
-                                  {view}
-                                </button>
-                              ))}
-                            </div>
-
-                            <div className="relative">
-                              <button
-                                type="button"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  setIsTimeChartSettingsOpen((prev) => !prev);
-                                  setIsTimeChartFilterOpen(false);
-                                }}
-                                className="w-8 h-8 rounded-full bg-zinc-100 text-zinc-400 hover:text-zinc-700 hover:bg-white border border-zinc-200 transition-all flex items-center justify-center"
-                                title="Ayarlar"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.607 2.296.07 2.572-1.065z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                              </button>
-
-                              {isTimeChartSettingsOpen && (
-                                <div
-                                  onClick={(event) => event.stopPropagation()}
-                                  className="absolute right-0 top-[38px] w-[220px] bg-white border border-zinc-200 rounded-[8px] shadow-[0_18px_50px_rgba(15,23,42,0.16)] p-2 z-[540] animate-fade-in"
-                                >
-                                  {[
-                                    { key: 'showWeekends', label: 'Hafta Sonunu Göster' },
-                                    { key: 'compactCards', label: 'Kompakt Kartlar' }
-                                  ].map((item) => (
-                                    <button
-                                      key={item.key}
-                                      type="button"
-                                      onClick={() => toggleTimeChartSetting(item.key)}
-                                      className="w-full h-7 rounded-[6px] px-1.5 flex items-center gap-2 text-left hover:bg-zinc-50 transition-colors"
-                                    >
-                                      <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                        timeChartSettings[item.key]
-                                          ? 'bg-[#46b16f] border-[#46b16f] text-white'
-                                          : 'bg-white border-zinc-300 text-transparent'
-                                      }`}>
-                                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                      </span>
-
-                                      <span className="text-[10.5px] font-bold text-zinc-500">{item.label}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="relative bg-white min-h-0 flex-1 overflow-hidden">
-                          <button
-                            type="button"
-                            onClick={() => scrollTimeChart('left')}
-                            className="absolute left-2 top-1/2 -translate-y-1/2 z-[30] w-8 h-8 rounded-full bg-white/95 border border-zinc-200 text-zinc-500 shadow-md hover:text-zinc-900 transition-all flex items-center justify-center"
-                            title="Sola kaydır"
-                          >
-                            ‹
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => scrollTimeChart('right')}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 z-[30] w-8 h-8 rounded-full bg-white/95 border border-zinc-200 text-zinc-500 shadow-md hover:text-zinc-900 transition-all flex items-center justify-center"
-                            title="Sağa kaydır"
-                          >
-                            ›
-                          </button>
-
-                          <div ref={timeChartScrollRef} className="h-full overflow-auto custom-scrollbar min-h-0 overscroll-contain">
-                            <div
-                              className="grid pb-4"
-                              style={{ gridTemplateColumns: `150px repeat(${Math.max(timeChartPeriods.length, 1)}, minmax(${timeChartView === 'Gün' ? '210px' : '250px'}, 1fr))`, minWidth: `${150 + Math.max(timeChartPeriods.length, 1) * (timeChartView === 'Gün' ? 210 : 250)}px` }}
-                            >
-                              <div className="h-10 border-r border-b border-zinc-100 bg-white px-4 flex items-center text-[11px] font-black text-zinc-500">
-                                Üyeler
-                              </div>
-
-                              {timeChartPeriods.map((period) => (
-                              <div
-                                key={`time-head-${period.key}`}
-                                className={`h-10 border-r border-b border-zinc-100 px-3 flex flex-col justify-center ${
-                                  period.type === 'day' && isSameCalendarDay(period.date, todayStart) ? 'bg-blue-50/50' : 'bg-white'
-                                }`}
-                              >
-                                <div className="text-[11px] font-black text-zinc-700 capitalize">
-                                  {period.title}
-                                </div>
-                                <div className="text-[9px] font-black text-zinc-400 uppercase">
-                                  {period.subtitle}
-                                </div>
-                              </div>
-                            ))}
-
-                            {timeChartMembers.map((member) => (
-                              <React.Fragment key={member.id}>
-                                <div className="min-h-[160px] border-r border-b border-zinc-100 bg-white px-4 py-5 flex flex-col items-center justify-center">
-                                  <div className="w-11 h-11 rounded-full bg-[#8c5220] text-white text-[11px] font-black flex items-center justify-center shadow-sm overflow-hidden">
-                                    {renderProfileAvatar(member.avatar, createAvatarFromName(member.name))}
-                                  </div>
-                                  <div className="mt-2 text-[11px] font-black text-zinc-700 text-center">{member.name}</div>
-                                  <div className="mt-0.5 text-[9px] font-bold text-zinc-400">{member.role}</div>
-                                </div>
-
-                                {timeChartPeriods.map((period) => {
-                                  const dayTasks = getTimeChartTasksForMemberAndPeriod(member.id, period);
-
-                                  return (
-                                    <div
-                                      key={`time-cell-${member.id}-${period.key}`}
-                                      className={`min-h-[160px] border-r border-b border-zinc-100 px-2 py-3 ${
-                                        period.type === 'day' && (period.date.getDay() === 0 || period.date.getDay() === 6)
-                                          ? 'bg-zinc-50/60 bg-[repeating-linear-gradient(135deg,rgba(148,163,184,0.04)_0px,rgba(148,163,184,0.04)_8px,transparent_8px,transparent_16px)]'
-                                          : 'bg-white'
-                                      }`}
-                                    >
-                                      {period.type === 'day' && (period.date.getDay() === 0 || period.date.getDay() === 6) ? (
-                                        <div className="h-full min-h-[110px] flex items-center justify-center">
-                                          <span className="text-[18px] font-black text-zinc-300">Hafta Sonu</span>
-                                        </div>
-                                      ) : dayTasks.length > 0 ? (
-                                        <div className="space-y-2">
-                                          {dayTasks.map((task) => (
-                                            <button
-                                              key={`time-task-${member.id}-${period.key}-${task.id}`}
-                                              type="button"
-                                              onClick={() => openTaskDetail(task, task.columnTitle)}
-                                              className={`w-full rounded-[6px] border px-3 text-left shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all ${getTimeChartTaskColor(task)} ${
-                                                timeChartSettings.compactCards ? 'py-2' : 'py-3'
-                                              }`}
-                                            >
-                                              <div className="text-[11px] font-black truncate">{task.title}</div>
-                                              <div className="mt-1 text-[9.5px] font-bold opacity-80 truncate">
-                                                Proje: {selectedProject}
-                                              </div>
-                                              <div className="mt-0.5 text-[9.5px] font-bold opacity-80 truncate">
-                                                {formatCalendarDate(getTimeChartTaskStartDate(task))} - {formatCalendarDate(getTimeChartTaskEndDate(task))}
-                                              </div>
-                                            </button>
-                                          ))}
-
-                                          <button
-                                            type="button"
-                                            onClick={(event) => openTaskModalForTimeChartPeriod(period, event)}
-                                            className="w-full h-7 rounded-[6px] border border-dashed border-blue-100 bg-zinc-50 text-blue-400 text-[14px] font-black hover:bg-blue-50 transition-all"
-                                            title="Bu alana görev ekle"
-                                          >
-                                            +
-                                          </button>
-                                        </div>
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          onClick={(event) => openTaskModalForTimeChartPeriod(period, event)}
-                                          className="w-full h-full min-h-[110px] rounded-[8px] border border-dashed border-transparent hover:border-blue-200 hover:bg-zinc-50 text-transparent hover:text-blue-400 text-[20px] font-black transition-all"
-                                          title="Bu güne görev ekle"
-                                        >
-                                          +
-                                        </button>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </React.Fragment>
-                            ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'Dosyalar' && (
-                  <div
-                    className="w-full flex-1 bg-[#f5f6f8] overflow-y-auto custom-scrollbar animate-fade-in"
-                    onClick={() => setPendingFileDeleteKey(null)}
-                  >
-                    <div className="max-w-[1180px] mx-auto px-7 py-5">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="text-[18px] font-black text-zinc-800 tracking-tight">Dosyalar</h3>
-                          <p className="mt-1 text-[11px] font-bold text-zinc-400">
-                            Görevlere eklenen dosyaları proje genelinde ara, filtrele ve yönet.
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span className="h-8 px-3 rounded-full bg-white border border-zinc-200 text-[10.5px] font-black text-zinc-500 flex items-center">
-                            {projectFiles.length} dosya
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={() => setActiveTab('Görevler')}
-                            className="h-8 px-3.5 rounded-full bg-white border border-zinc-200 text-[10.5px] font-black text-zinc-500 hover:text-zinc-800 hover:border-zinc-300 transition-all"
-                          >
-                            Görevlere Git
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="bg-white border border-zinc-200/70 rounded-[16px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden">
-                        <div className="h-[62px] px-5 border-b border-zinc-100 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-[280px] h-8 rounded-[8px] bg-white border border-zinc-200 flex items-center px-2.5 gap-2">
-                              <svg className="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
-                              </svg>
-                              <input
-                                value={fileSearch}
-                                onChange={(event) => {
-                                  setFileSearch(event.target.value);
-                                  setPendingFileDeleteKey(null);
-                                }}
-                                placeholder="Dosya, görev veya müşteri ara..."
-                                className="w-full bg-transparent text-[11px] font-bold text-zinc-600 placeholder:text-zinc-300 focus:outline-none"
-                              />
-                            </div>
-
-                            <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar max-w-[560px]">
-                              {projectFileTypeOptions.map((type) => (
-                                <button
-                                  key={type}
-                                  type="button"
-                                  onClick={() => {
-                                    setFileTypeFilter(type);
-                                    setPendingFileDeleteKey(null);
-                                  }}
-                                  className={`h-8 px-3 rounded-full border text-[10px] font-black whitespace-nowrap transition-all ${
-                                    fileTypeFilter === type
-                                      ? 'bg-[#2563eb] border-[#2563eb] text-white shadow-sm'
-                                      : 'bg-white border-zinc-200 text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
-                                  }`}
-                                >
-                                  {type}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFileSearch('');
-                              setFileTypeFilter('Tümü');
-                              setSelectedProjectFileKey(null);
-                              setPendingFileDeleteKey(null);
-                            }}
-                            className="h-8 px-3 rounded-full bg-zinc-50 border border-zinc-100 text-[10px] font-black text-zinc-400 hover:text-zinc-700 transition-all"
-                          >
-                            Temizle
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-[1fr_330px] min-h-[520px] bg-[#fbfcfd]">
-                          <div className="p-5 border-r border-zinc-100">
-                            {filteredProjectFiles.length > 0 ? (
-                              <div className="grid grid-cols-2 gap-3">
-                                {filteredProjectFiles.map((file) => {
-                                  const isSelected = selectedProjectFile?.fileKey === file.fileKey;
-                                  const isPendingDelete = pendingFileDeleteKey === file.fileKey;
-
-                                  return (
-                                    <button
-                                      key={file.fileKey}
-                                      type="button"
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        handleSelectProjectFile(file);
-                                      }}
-                                      className={`group text-left bg-white border rounded-[12px] p-3.5 shadow-sm hover:shadow-[0_12px_26px_rgba(15,23,42,0.075)] transition-all ${
-                                        isSelected
-                                          ? 'border-blue-200 ring-0'
-                                          : 'border-zinc-200 hover:border-zinc-300'
-                                      }`}
-                                    >
-                                      <div className="flex items-start gap-3">
-                                        <div className={`w-11 h-11 rounded-[11px] flex items-center justify-center shrink-0 ${getProjectFileIconStyle(file.type)}`}>
-                                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-.988-2.387l-4.5-4.5A3.375 3.375 0 0011.625 3.75H8.25A2.25 2.25 0 006 6v12a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 18v-3.75" />
-                                          </svg>
-                                        </div>
-
-                                        <div className="min-w-0 flex-1">
-                                          <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
-                                              <div className="text-[12.5px] font-black text-zinc-750 truncate group-hover:text-zinc-900" title={file.name}>
-                                                {file.name}
-                                              </div>
-
-                                              <div className="mt-1 text-[10.5px] font-bold text-zinc-400 truncate" title={getProjectFileSecondaryText(file)}>
-                                                {getProjectFileSecondaryText(file)}
-                                              </div>
-                                            </div>
-
-                                            <span className="shrink-0 h-5 px-2 rounded-full bg-zinc-50 border border-zinc-100 text-[9px] font-black text-zinc-400">
-                                              {file.type || 'Dosya'}
-                                            </span>
-                                          </div>
-
-                                          <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-                                            <span className="h-5 px-2 rounded-full bg-zinc-50 border border-zinc-100 text-[9px] font-black text-zinc-400">
-                                              {formatProjectFileSize(file.size)}
-                                            </span>
-
-                                            <span className="h-5 px-2 rounded-full bg-zinc-50 border border-zinc-100 text-[9px] font-black text-zinc-400">
-                                              {file.columnTitle}
-                                            </span>
-
-                                            <span className="h-5 px-2 rounded-full bg-zinc-50 border border-zinc-100 text-[9px] font-black text-zinc-400">
-                                              {currentAccountType === 'Patron' ? file.customer : file.projectName || selectedProject}
-                                            </span>
-                                          </div>
-
-                                          <div className="mt-3 flex items-center justify-between">
-                                            <div className="flex items-center gap-1.5 text-[9.5px] font-bold text-zinc-400 min-w-0">
-                                              {currentAccountType !== 'Müşteri' && (
-                                                <>
-                                                  <span className="w-5 h-5 rounded-full bg-[#8c5220] text-white text-[7px] font-black flex items-center justify-center shrink-0">
-                                                    {renderProfileAvatar(file.avatar, currentProfileInitials)}
-                                                  </span>
-                                                  <span className="truncate">{getProfileNameForRecord(file, file.uploader || currentActorName)}</span>
-                                                  <span>·</span>
-                                                </>
-                                              )}
-                                              <span className="truncate">{file.date}</span>
-                                            </div>
-
-                                            {isPendingDelete ? (
-                                              <span className="text-[9.5px] font-black text-red-500">
-                                                Silmek için tekrar bas
-                                              </span>
-                                            ) : (
-                                              <span className="text-[9.5px] font-black text-zinc-300 group-hover:text-zinc-500 transition-colors">
-                                                Önizle
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div className="h-[460px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex flex-col items-center justify-center text-center">
-                                <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-3">
-                                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94a3 3 0 114.243 4.243L8.552 18.32a1.5 1.5 0 11-2.121-2.121l9.546-9.546" />
-                                  </svg>
-                                </div>
-
-                                <div className="text-[14px] font-black text-zinc-700">
-                                  {projectFileEmptyTitle}
-                                </div>
-                                <div className="text-[11px] font-bold text-zinc-400 mt-1 max-w-[360px]">
-                                  {projectFileEmptyDescription}
-                                </div>
-
-                                {projectFiles.length === 0 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setActiveTab('Görevler')}
-                                    className="mt-5 h-9 px-4 rounded-full bg-[#2563eb] text-white text-[11px] font-black hover:bg-[#1d4ed8] shadow-[0_9px_20px_rgba(37,99,235,0.18)] transition-all"
-                                  >
-                                    Görevlere Git
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          <aside className="bg-white p-5">
-                            {selectedProjectFile ? (
-                              <div className="h-full flex flex-col">
-                                <div className="flex items-start gap-3">
-                                  <div className={`w-14 h-14 rounded-[14px] flex items-center justify-center shrink-0 ${getProjectFileIconStyle(selectedProjectFile.type)}`}>
-                                    <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-.988-2.387l-4.5-4.5A3.375 3.375 0 0011.625 3.75H8.25A2.25 2.25 0 006 6v12a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 18v-3.75" />
-                                    </svg>
-                                  </div>
-
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-[13px] font-black text-zinc-800 leading-tight break-words">
-                                      {selectedProjectFile.name}
-                                    </div>
-                                    <div className="mt-1 text-[10px] font-bold text-zinc-400">
-                                      {selectedProjectFile.type || 'Dosya'} · {formatProjectFileSize(selectedProjectFile.size)}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="mt-5 rounded-[13px] bg-zinc-50 border border-zinc-100 p-4">
-                                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.08em] mb-3">
-                                    Dosya Bilgileri
-                                  </div>
-
-                                  <div className="space-y-3">
-                                    {getProjectFileInfoRows(selectedProjectFile).map(([label, value]) => (
-                                      <div key={label} className="flex items-start justify-between gap-3">
-                                        <span className="text-[10px] font-black text-zinc-400">{label}</span>
-                                        <span className="text-[10.5px] font-black text-zinc-700 text-right break-words">{value || '-'}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="mt-4 rounded-[13px] bg-zinc-50 border border-zinc-100 p-4">
-                                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.08em] mb-2">
-                                    {currentAccountType === 'Müşteri' ? 'Dosya Özeti' : 'Tür Dağılımı'}
-                                  </div>
-
-                                  {currentAccountType === 'Müşteri' ? (
-                                    <div className="space-y-2">
-                                      <div className="flex items-center justify-between h-7 rounded-[7px] px-2 bg-white">
-                                        <span className="text-[10.5px] font-black text-zinc-600">Bu projedeki görünür dosya</span>
-                                        <span className="text-[10px] font-black text-zinc-400">{filteredProjectFiles.length}</span>
-                                      </div>
-                                      <div className="text-[10px] font-bold text-zinc-400 leading-4">
-                                        Sadece size açık proje ve görevlerdeki dosyalar listelenir.
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="space-y-2">
-                                      {projectFileTypeStats.length > 0 ? (
-                                        projectFileTypeStats.map((item) => (
-                                          <button
-                                            key={item.type}
-                                            type="button"
-                                            onClick={() => setFileTypeFilter(item.type)}
-                                            className="w-full flex items-center justify-between h-7 rounded-[7px] px-2 hover:bg-white transition-all"
-                                          >
-                                            <span className="text-[10.5px] font-black text-zinc-600">{item.type}</span>
-                                            <span className="text-[10px] font-black text-zinc-400">{item.count}</span>
-                                          </button>
-                                        ))
-                                      ) : (
-                                        <div className="text-[10.5px] font-bold text-zinc-400">Henüz tür bilgisi yok.</div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="mt-auto pt-4 space-y-2">
-                                  {selectedProjectFile.storagePath && (
-                                    <button
-                                      type="button"
-                                      onClick={() => downloadTaskFileFromSupabase(selectedProjectFile)}
-                                      className="w-full h-9 rounded-full bg-[#263244] text-white text-[11px] font-black hover:bg-[#111827] shadow-[0_9px_20px_rgba(15,23,42,0.14)] transition-all"
-                                    >
-                                      Dosyayı İndir
-                                    </button>
-                                  )}
-
-                                  {selectedProjectFile.task && (
-                                    <button
-                                      type="button"
-                                      onClick={() => openTaskDetail(selectedProjectFile.task, selectedProjectFile.columnTitle)}
-                                      className="w-full h-9 rounded-full bg-[#2563eb] text-white text-[11px] font-black hover:bg-[#1d4ed8] shadow-[0_9px_20px_rgba(37,99,235,0.18)] transition-all"
-                                    >
-                                      Görev Detayını Aç
-                                    </button>
-                                  )}
-
-                                  {currentPermissions.manageFiles && (
-                                    <button
-                                      type="button"
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        handleDeleteProjectFile(selectedProjectFile);
-                                      }}
-                                      className={`w-full h-9 rounded-full border text-[11px] font-black transition-all ${
-                                        pendingFileDeleteKey === selectedProjectFile.fileKey
-                                          ? 'bg-red-500 border-red-500 text-white'
-                                          : 'bg-white border-red-100 text-red-500 hover:bg-red-50'
-                                      }`}
-                                    >
-                                      {pendingFileDeleteKey === selectedProjectFile.fileKey
-                                        ? 'Silmek İçin Tekrar Bas'
-                                        : 'Dosyayı Sil'}
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="h-full rounded-[13px] bg-zinc-50 border border-dashed border-zinc-200 flex flex-col items-center justify-center text-center px-6">
-                                <div className="w-14 h-14 rounded-full bg-white border border-zinc-100 text-zinc-300 flex items-center justify-center mb-3">
-                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h9a2.25 2.25 0 002.25-2.25V12M15.75 9h3.75M15.75 9L19.5 5.25" />
-                                  </svg>
-                                </div>
-
-                                <div className="text-[12px] font-black text-zinc-600">Dosya seçilmedi</div>
-                                <div className="mt-1 text-[10.5px] font-bold text-zinc-400">
-                                  Soldan bir dosya seçtiğinde detayları burada görünür.
-                                </div>
-                              </div>
-                            )}
-                          </aside>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-
-
-                {activeTab === 'Gantt Çizelgesi' && (
-                  <div className="w-full flex-1 bg-[#f5f6f8] overflow-y-auto custom-scrollbar animate-fade-in">
-                    <div className="px-6 py-5">
-                      <div className="bg-white border border-zinc-200/70 rounded-[14px] shadow-[0_10px_32px_rgba(15,23,42,0.045)] overflow-hidden">
-                        <div className="h-[60px] px-4 border-b border-zinc-100 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-[230px] h-8 rounded-[8px] bg-white border border-zinc-200 flex items-center px-2.5 gap-2">
-                              <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
-                              </svg>
-                              <input
-                                value={ganttSearch}
-                                onChange={(event) => setGanttSearch(event.target.value)}
-                                placeholder={ganttSearchPlaceholder}
-                                className="w-full bg-transparent text-[11px] font-bold text-zinc-600 placeholder:text-zinc-300 focus:outline-none"
-                              />
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => setGanttShowCompleted((prev) => !prev)}
-                              className={`h-8 px-3 rounded-full border text-[10px] font-black transition-all ${
-                                ganttShowCompleted
-                                  ? 'bg-emerald-50 border-emerald-100 text-emerald-600'
-                                  : 'bg-white border-zinc-200 text-zinc-400 hover:text-zinc-700'
-                              }`}
-                            >
-                              Tamamlananlar
-                            </button>
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={goToPreviousGanttPeriod}
-                                className="w-8 h-8 rounded-full text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all flex items-center justify-center"
-                                title="Önceki"
-                              >
-                                ‹
-                              </button>
-
-                              <div className="min-w-[165px] text-center">
-                                <div className="text-[12px] font-black text-zinc-800 capitalize">{ganttRangeTitle}</div>
-                                <div className="text-[9px] font-bold text-zinc-400">{ganttTasks.length} görev</div>
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={goToNextGanttPeriod}
-                                className="w-8 h-8 rounded-full text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all flex items-center justify-center"
-                                title="Sonraki"
-                              >
-                                ›
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={goToCurrentGanttPeriod}
-                                className="h-7 px-3 rounded-full bg-zinc-100 text-[9.5px] font-black text-zinc-400 hover:text-zinc-700 transition-all"
-                              >
-                                Bugün
-                              </button>
-                            </div>
-
-                            <div className="flex items-center gap-1 rounded-full bg-zinc-100 p-1">
-                              {['Gün', 'Hafta', 'Ay'].map((view) => (
-                                <button
-                                  key={view}
-                                  type="button"
-                                  onClick={() => changeGanttView(view)}
-                                  className={`h-7 px-3 rounded-full text-[10px] font-black transition-all ${
-                                    ganttView === view
-                                      ? 'bg-[#2563eb] text-white shadow-sm'
-                                      : 'text-zinc-400 hover:text-zinc-700'
-                                  }`}
-                                >
-                                  {view}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="relative bg-white">
-                          <button
-                            type="button"
-                            onClick={() => scrollGantt('left')}
-                            className="absolute left-[268px] top-[52%] -translate-y-1/2 z-[30] w-8 h-8 rounded-full bg-white/95 border border-zinc-200 text-zinc-500 shadow-md hover:text-zinc-900 transition-all flex items-center justify-center"
-                            title="Sola kaydır"
-                          >
-                            ‹
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => scrollGantt('right')}
-                            className="absolute right-2 top-[52%] -translate-y-1/2 z-[30] w-8 h-8 rounded-full bg-white/95 border border-zinc-200 text-zinc-500 shadow-md hover:text-zinc-900 transition-all flex items-center justify-center"
-                            title="Sağa kaydır"
-                          >
-                            ›
-                          </button>
-
-                          <div ref={ganttScrollRef} className="overflow-x-auto custom-scrollbar">
-                            <div
-                              className="grid"
-                              style={{
-                                gridTemplateColumns: `260px repeat(${Math.max(ganttPeriods.length, 1)}, minmax(${ganttPeriodConfig.width}px, 1fr))`,
-                                minWidth: `${260 + Math.max(ganttPeriods.length, 1) * ganttPeriodConfig.width}px`
-                              }}
-                            >
-                              <div className="h-11 sticky left-0 z-[20] bg-white border-r border-b border-zinc-100 px-4 flex items-center text-[11px] font-black text-zinc-500">
-                                Görevler
-                              </div>
-
-                              {ganttPeriods.map((period) => (
-                                <div
-                                  key={`gantt-head-${period.key}`}
-                                  className={`h-11 border-r border-b border-zinc-100 px-3 flex flex-col justify-center ${
-                                    period.start <= todayStart && period.end >= todayStart ? 'bg-blue-50/50' : 'bg-white'
-                                  }`}
-                                >
-                                  <div className="text-[11px] font-black text-zinc-700 capitalize truncate">{period.title}</div>
-                                  <div className="text-[9px] font-black text-zinc-400 uppercase">{period.subtitle}</div>
-                                </div>
-                              ))}
-
-                              {ganttTasks.length > 0 ? (
-                                ganttTasks.map((task) => {
-                                  const placement = getGanttTaskPlacement(task);
-
-                                  return (
-                                    <React.Fragment key={`gantt-row-${task.id}`}>
-                                      <button
-                                        type="button"
-                                        onClick={() => openTaskDetail(task, task.columnTitle)}
-                                        className="h-[58px] sticky left-0 z-[15] bg-white border-r border-b border-zinc-100 px-4 text-left hover:bg-zinc-50 transition-all"
-                                      >
-                                        <div className="flex items-center gap-2 min-w-0">
-                                          <span
-                                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                                            style={getPremiumCalendarDotStyle(task)}
-                                          />
-                                          <div className="min-w-0">
-                                            <div className="text-[11.5px] font-black text-zinc-800 truncate">{task.title}</div>
-                                            <div className="mt-0.5 text-[9.5px] font-bold text-zinc-400 truncate">
-                                              {getRoleAwareTaskMeta(task)}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </button>
-
-                                      <div
-                                        className="h-[58px] grid relative border-b border-zinc-100"
-                                        style={{
-                                          gridColumn: `2 / span ${Math.max(ganttPeriods.length, 1)}`,
-                                          gridTemplateColumns: `repeat(${Math.max(ganttPeriods.length, 1)}, minmax(${ganttPeriodConfig.width}px, 1fr))`
-                                        }}
-                                      >
-                                        {ganttPeriods.map((period) => (
-                                          <div
-                                            key={`gantt-cell-${task.id}-${period.key}`}
-                                            className={`border-r border-zinc-100 ${
-                                              period.start <= todayStart && period.end >= todayStart ? 'bg-zinc-50' : 'bg-white'
-                                            }`}
-                                          />
-                                        ))}
-
-                                        <button
-                                          type="button"
-                                          onClick={() => openTaskDetail(task, task.columnTitle)}
-                                          className={`relative z-[10] self-center h-8 rounded-[7px] border px-3 mx-1 text-left shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all ${getGanttBarClassName(task)}`}
-                                          style={{ gridColumn: `${placement.columnStart} / span ${placement.span}` }}
-                                          title={`${task.title} · ${formatCalendarDate(task.ganttStartDate)} - ${formatCalendarDate(task.ganttEndDate)}`}
-                                        >
-                                          <div className="flex items-center justify-between gap-2 min-w-0">
-                                            <span className="text-[10.5px] font-black truncate">{task.title}</span>
-                                            <span className="text-[9px] font-black opacity-70 shrink-0">
-                                              {formatCalendarDate(task.ganttStartDate)}
-                                            </span>
-                                          </div>
-                                        </button>
-                                      </div>
-                                    </React.Fragment>
-                                  );
-                                })
-                              ) : (
-                                <div
-                                  className="col-span-full h-[260px] bg-white flex flex-col items-center justify-center text-center"
-                                  style={{ gridColumn: `1 / span ${Math.max(ganttPeriods.length + 1, 2)}` }}
-                                >
-                                  <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-3">
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M6 11h12M8 15h8M10 19h4" />
-                                    </svg>
-                                  </div>
-                                  <div className="text-[13px] font-black text-zinc-700">Bu aralıkta Gantt görevi yok</div>
-                                  <div className="text-[10.5px] font-bold text-zinc-400 mt-1">
-                                    {currentAccountType === 'Patron'
-                                      ? 'Başlangıç veya bitiş tarihi olan görevler burada çubuk olarak görünür.'
-                                      : 'Tarihi olan görünür görevler burada çubuk olarak görünür.'}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {ganttUndatedTasks.length > 0 && (
-                        <div className="mt-4 bg-white border border-zinc-200/70 rounded-[14px] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <h4 className="text-[13px] font-black text-zinc-800">Tarihsiz Görevler</h4>
-                              <p className="mt-0.5 text-[10.5px] font-bold text-zinc-400">
-                                {currentAccountType === 'Patron'
-                                  ? 'Gantt üzerinde görünmesi için başlangıç veya bitiş tarihi ekle.'
-                                  : 'Bu görevlerde başlangıç veya bitiş tarihi bulunmuyor.'}
-                              </p>
-                            </div>
-
-                            <span className="text-[10px] font-black text-zinc-400">{ganttUndatedTasks.length}</span>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-2">
-                            {ganttUndatedTasks.slice(0, 6).map((task) => (
-                              <button
-                                key={`gantt-undated-${task.id}`}
-                                type="button"
-                                onClick={() => openTaskDetail(task, task.columnTitle)}
-                                className="rounded-[10px] border border-zinc-100 bg-zinc-50 hover:bg-white hover:border-zinc-200 p-3 text-left transition-all"
-                              >
-                                <div className="text-[11px] font-black text-zinc-800 truncate">{task.title}</div>
-                                <div className="mt-1 text-[9.5px] font-bold text-zinc-400 truncate">
-                                  {getRoleAwareTaskMeta(task)}
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-
-                {activeTab === 'Raporlar' && (
-                  <div className="w-full flex-1 bg-[#f5f6f8] overflow-y-auto custom-scrollbar animate-fade-in">
-                    <div className="max-w-[1120px] mx-auto px-7 py-5">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="text-[18px] font-black text-zinc-800 tracking-tight">Raporlar</h3>
-                          <p className="mt-1 text-[11px] font-bold text-zinc-400">
-                            {reportIntroText}
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab('Görevler')}
-                          className="h-9 px-4 rounded-full bg-white border border-zinc-200 text-[11px] font-black text-zinc-500 hover:text-zinc-800 hover:border-zinc-300 transition-all"
-                        >
-                          Görevlere Git
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-3 mb-3">
-                        {reportSummaryCards.map((card) => (
-                          <div
-                            key={card.title}
-                            className="bg-white border border-zinc-200/70 rounded-[14px] p-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className={`w-8 h-8 rounded-[9px] flex items-center justify-center ${card.tone}`}>
-                                <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                </svg>
-                              </div>
-
-                              <span className="text-[20px] font-black text-zinc-800 leading-none">{card.value}</span>
-                            </div>
-
-                            <div className="mt-2.5 text-[11.5px] font-black text-zinc-700">{card.title}</div>
-                            <div className="mt-0.5 text-[10px] font-bold text-zinc-400">{card.description}</div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="grid grid-cols-[1fr_320px] gap-4">
-                        <div className="space-y-2.5">
-                          <div className="bg-white border border-zinc-200/70 rounded-[15px] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-                            <div className="flex items-center justify-between mb-3">
-                              <div>
-                                <h4 className="text-[13px] font-black text-zinc-800">Genel İlerleme</h4>
-                                <p className="mt-0.5 text-[10.5px] font-bold text-zinc-400">
-                                  Tamamlanan görevlerin toplam görevlere oranı.
-                                </p>
-                              </div>
-
-                              <span className="text-[22px] font-black text-emerald-600">{reportProgressPercentage}%</span>
-                            </div>
-
-                            <div className="h-2.5 rounded-full bg-zinc-100 overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-[#46b16f] transition-all duration-300"
-                                style={{ width: `${reportProgressPercentage}%` }}
-                              />
-                            </div>
-
-                            <div className="mt-3 grid grid-cols-3 gap-2">
-                              <div className="rounded-[9px] bg-zinc-50 border border-zinc-100 p-2.5">
-                                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.08em]">Açık</div>
-                                <div className="mt-1 text-[15px] font-black text-zinc-800">{reportOpenTasks}</div>
-                              </div>
-
-                              <div className="rounded-[9px] bg-zinc-50 border border-zinc-100 p-2.5">
-                                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.08em]">Dosya</div>
-                                <div className="mt-1 text-[15px] font-black text-zinc-800">{reportFileCount}</div>
-                              </div>
-
-                              <div className="rounded-[9px] bg-zinc-50 border border-zinc-100 p-2.5">
-                                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.08em]">
-                                  {currentAccountType === 'Patron' ? 'Müşteri' : 'Proje'}
-                                </div>
-                                <div className="mt-1 text-[15px] font-black text-zinc-800">
-                                  {currentAccountType === 'Patron' ? reportCustomerCount : visibleProjectNames.length}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="bg-white border border-zinc-200/70 rounded-[15px] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-                            <div className="flex items-center justify-between mb-3">
-                              <div>
-                                <h4 className="text-[13px] font-black text-zinc-800">Kolonlara Göre Dağılım</h4>
-                                <p className="mt-0.5 text-[10.5px] font-bold text-zinc-400">
-                                  Görevlerin aşamalara göre yoğunluğu.
-                                </p>
-                              </div>
-
-                              <span className="text-[10px] font-black text-zinc-400">{boardColumns.length} kolon</span>
-                            </div>
-
-                            <div className="space-y-2.5 max-h-[190px] overflow-y-auto custom-scrollbar pr-1">
-                              {reportColumnStats.map((column) => (
-                                <div key={column.id}>
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      <span
-                                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                                        style={{ backgroundColor: column.color }}
-                                      />
-                                      <span className="text-[11px] font-black text-zinc-700 truncate">{column.title}</span>
-                                    </div>
-
-                                    <span className="text-[10.5px] font-black text-zinc-400">{column.count}</span>
-                                  </div>
-
-                                  <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
-                                    <div
-                                      className="h-full rounded-full transition-all duration-300"
-                                      style={{ width: `${column.percentage}%`, backgroundColor: column.color }}
-                                    />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2.5">
-                          <div className="bg-white border border-zinc-200/70 rounded-[15px] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-[13px] font-black text-zinc-800">{reportPriorityTitle}</h4>
-                              <span className="text-[10px] font-black text-zinc-400">{reportUrgentTasks.length} önemli</span>
-                            </div>
-
-                            <div className="space-y-2.5">
-                              {reportPriorityStats.map((item) => (
-                                <div key={item.priority}>
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <span className={`h-5 px-2 rounded-full border text-[9px] font-black ${getReportPriorityStyle(item.priority)}`}>
-                                      {item.priority}
-                                    </span>
-                                    <span className="text-[10.5px] font-black text-zinc-400">{item.count}</span>
-                                  </div>
-
-                                  <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
-                                    <div
-                                      className="h-full rounded-full bg-zinc-700 transition-all duration-300"
-                                      style={{ width: `${item.percentage}%` }}
-                                    />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="bg-white border border-zinc-200/70 rounded-[15px] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-[13px] font-black text-zinc-800">Yaklaşan Görevler</h4>
-                              <span className="text-[10px] font-black text-zinc-400">{reportUpcomingTasks.length}</span>
-                            </div>
-
-                            <div className="space-y-2">
-                              {reportUpcomingTasks.length > 0 ? (
-                                reportUpcomingTasks.map((task) => (
-                                  <button
-                                    key={`report-upcoming-${task.id}`}
-                                    type="button"
-                                    onClick={() => openTaskDetail(task, task.columnTitle)}
-                                    className="w-full text-left rounded-[9px] border border-zinc-100 bg-zinc-50 hover:bg-white hover:border-zinc-200 px-3 py-2 transition-all"
-                                  >
-                                    <div className="flex items-start justify-between gap-2">
-                                      <div className="min-w-0">
-                                        <div className="text-[11px] font-black text-zinc-800 truncate">{task.title}</div>
-                                        <div className="mt-1 text-[9.5px] font-bold text-zinc-400 truncate">
-                                          {getRoleAwareTaskMeta(task)}
-                                        </div>
-                                      </div>
-
-                                      <span className="shrink-0 text-[9px] font-black text-zinc-400">
-                                        {formatCalendarDate(task.reportDate)}
-                                      </span>
-                                    </div>
-                                  </button>
-                                ))
-                              ) : (
-                                <div className="h-[72px] rounded-[10px] border border-dashed border-zinc-200 bg-zinc-50/60 flex items-center justify-center text-center">
-                                  <div>
-                                    <div className="text-[11px] font-black text-zinc-500">Yaklaşan görev yok</div>
-                                    <div className="mt-1 text-[10px] font-bold text-zinc-400">
-                                      Tarihli görevler burada görünür.
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="bg-white border border-zinc-200/70 rounded-[15px] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-[13px] font-black text-zinc-800">Gecikenler</h4>
-                              <span className="text-[10px] font-black text-red-500">
-                                {reportOverdueTasks.length > 2 ? `2 / ${reportOverdueTasks.length}` : reportOverdueTasks.length}
-                              </span>
-                            </div>
-
-                            {reportOverdueTasks.length > 0 ? (
-                              <div className="space-y-2">
-                                {reportOverdueTasks.slice(0, 2).map((task) => (
-                                  <button
-                                    key={`report-overdue-${task.id}`}
-                                    type="button"
-                                    onClick={() => openTaskDetail(task, task.columnTitle)}
-                                    className="w-full text-left rounded-[9px] border border-red-100 bg-red-50/50 hover:bg-white px-3 py-2 transition-all"
-                                  >
-                                    <div className="text-[11px] font-black text-zinc-800 truncate">{task.title}</div>
-                                    <div className="mt-1 text-[9.5px] font-bold text-red-400">
-                                      {formatCalendarDate(getReportTaskDate(task))}
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="h-[54px] rounded-[10px] bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[11px] font-black text-emerald-600">
-                                Geciken görev yok
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                                {/* zrc-v521-feature-gorevler */}
+                <GorevlerTabPanel
+                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
+                  currentPermissions={typeof currentPermissions !== 'undefined' ? currentPermissions : undefined}
+                  currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
+                  selectedProject={typeof selectedProject !== 'undefined' ? selectedProject : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  col={typeof col !== 'undefined' ? col : undefined}
+                  animate={typeof animate !== 'undefined' ? animate : undefined}
+                  fade={typeof fade !== 'undefined' ? fade : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
+                  pl={typeof pl !== 'undefined' ? pl : undefined}
+                  pr={typeof pr !== 'undefined' ? pr : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  justify={typeof justify !== 'undefined' ? justify : undefined}
+                  between={typeof between !== 'undefined' ? between : undefined}
+                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                  relative={typeof relative !== 'undefined' ? relative : undefined}
+                  z={typeof z !== 'undefined' ? z : undefined}
+                  max={typeof max !== 'undefined' ? max : undefined}
+                  md={typeof md !== 'undefined' ? md : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  canCreateTaskInSelectedProject={typeof canCreateTaskInSelectedProject !== 'undefined' ? canCreateTaskInSelectedProject : undefined}
+                  setEditingTask={typeof setEditingTask !== 'undefined' ? setEditingTask : undefined}
+                  setIsTaskModalOpen={typeof setIsTaskModalOpen !== 'undefined' ? setIsTaskModalOpen : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  hover={typeof hover !== 'undefined' ? hover : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  extrabold={typeof extrabold !== 'undefined' ? extrabold : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  active={typeof active !== 'undefined' ? active : undefined}
+                  scale={typeof scale !== 'undefined' ? scale : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  none={typeof none !== 'undefined' ? none : undefined}
+                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
+                  round={typeof round !== 'undefined' ? round : undefined}
+                  M12={typeof M12 !== 'undefined' ? M12 : undefined}
+                  M19={typeof M19 !== 'undefined' ? M19 : undefined}
+                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                  showProjectSettingsControls={typeof showProjectSettingsControls !== 'undefined' ? showProjectSettingsControls : undefined}
+                  setActiveTab={typeof setActiveTab !== 'undefined' ? setActiveTab : undefined}
+                  Ayarlar={typeof Ayarlar !== 'undefined' ? Ayarlar : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  Pano={typeof Pano !== 'undefined' ? Pano : undefined}
+                  M10={typeof M10 !== 'undefined' ? M10 : undefined}
+                  M15={typeof M15 !== 'undefined' ? M15 : undefined}
+                  openGlobalSearch={typeof openGlobalSearch !== 'undefined' ? openGlobalSearch : undefined}
+                  Ara={typeof Ara !== 'undefined' ? Ara : undefined}
+                  M21={typeof M21 !== 'undefined' ? M21 : undefined}
+                  Filtrele={typeof Filtrele !== 'undefined' ? Filtrele : undefined}
+                  setIsEditMode={typeof setIsEditMode !== 'undefined' ? setIsEditMode : undefined}
+                  isEditMode={typeof isEditMode !== 'undefined' ? isEditMode : undefined}
+                  setOpenMenuColumnId={typeof setOpenMenuColumnId !== 'undefined' ? setOpenMenuColumnId : undefined}
+                  sm={typeof sm !== 'undefined' ? sm : undefined}
+                  ff3600={typeof ff3600 !== 'undefined' ? ff3600 : undefined}
+                  Kolon={typeof Kolon !== 'undefined' ? Kolon : undefined}
+                  modu={typeof modu !== 'undefined' ? modu : undefined}
+                  M16={typeof M16 !== 'undefined' ? M16 : undefined}
+                  M3={typeof M3 !== 'undefined' ? M3 : undefined}
+                  setBoardView={typeof setBoardView !== 'undefined' ? setBoardView : undefined}
+                  boardView={typeof boardView !== 'undefined' ? boardView : undefined}
+                  pt={typeof pt !== 'undefined' ? pt : undefined}
+                  pb={typeof pb !== 'undefined' ? pb : undefined}
+                  space={typeof space !== 'undefined' ? space : undefined}
+                  auto={typeof auto !== 'undefined' ? auto : undefined}
+                  custom={typeof custom !== 'undefined' ? custom : undefined}
+                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                  start={typeof start !== 'undefined' ? start : undefined}
+                  openAddStageModal={typeof openAddStageModal !== 'undefined' ? openAddStageModal : undefined}
+                  mt={typeof mt !== 'undefined' ? mt : undefined}
+                  group={typeof group !== 'undefined' ? group : undefined}
+                  Yeni={typeof Yeni !== 'undefined' ? Yeni : undefined}
+                  kolon={typeof kolon !== 'undefined' ? kolon : undefined}
+                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
+                  transform={typeof transform !== 'undefined' ? transform : undefined}
+                  visibleBoardColumns={typeof visibleBoardColumns !== 'undefined' ? visibleBoardColumns : undefined}
+                  column={typeof column !== 'undefined' ? column : undefined}
+                  colIdx={typeof colIdx !== 'undefined' ? colIdx : undefined}
+                  calc={typeof calc !== 'undefined' ? calc : undefined}
+                  mobileActiveColumnId={typeof mobileActiveColumnId !== 'undefined' ? mobileActiveColumnId : undefined}
+                  openMenuColumnId={typeof openMenuColumnId !== 'undefined' ? openMenuColumnId : undefined}
+                  task={typeof task !== 'undefined' ? task : undefined}
+                  openTaskMenuId={typeof openTaskMenuId !== 'undefined' ? openTaskMenuId : undefined}
+                  e={typeof e !== 'undefined' ? e : undefined}
+                  handleDrop={typeof handleDrop !== 'undefined' ? handleDrop : undefined}
+                  py={typeof py !== 'undefined' ? py : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
+                  tight={typeof tight !== 'undefined' ? tight : undefined}
+                  backgroundColor={typeof backgroundColor !== 'undefined' ? backgroundColor : undefined}
+                  color={typeof color !== 'undefined' ? color : undefined}
+                  getReadableColumnColor={typeof getReadableColumnColor !== 'undefined' ? getReadableColumnColor : undefined}
+                  bold={typeof bold !== 'undefined' ? bold : undefined}
+                  getReadableColumnMutedColor={typeof getReadableColumnMutedColor !== 'undefined' ? getReadableColumnMutedColor : undefined}
+                  getColumnEditToolsStyle={typeof getColumnEditToolsStyle !== 'undefined' ? getColumnEditToolsStyle : undefined}
+                  handleMoveColumn={typeof handleMoveColumn !== 'undefined' ? handleMoveColumn : undefined}
+                  colors={typeof colors !== 'undefined' ? colors : undefined}
+                  boardColumns={typeof boardColumns !== 'undefined' ? boardColumns : undefined}
+                  openEditStageModal={typeof openEditStageModal !== 'undefined' ? openEditStageModal : undefined}
+                  handleDeleteColumn={typeof handleDeleteColumn !== 'undefined' ? handleDeleteColumn : undefined}
+                  red={typeof red !== 'undefined' ? red : undefined}
+                  setOpenTaskMenuId={typeof setOpenTaskMenuId !== 'undefined' ? setOpenTaskMenuId : undefined}
+                  focus={typeof focus !== 'undefined' ? focus : undefined}
+                  outline={typeof outline !== 'undefined' ? outline : undefined}
+                  cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                  pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+                  right={typeof right !== 'undefined' ? right : undefined}
+                  top={typeof top !== 'undefined' ? top : undefined}
+                  semibold={typeof semibold !== 'undefined' ? semibold : undefined}
+                  left={typeof left !== 'undefined' ? left : undefined}
+                  visible={typeof visible !== 'undefined' ? visible : undefined}
+                  blue={typeof blue !== 'undefined' ? blue : undefined}
+                  slate={typeof slate !== 'undefined' ? slate : undefined}
+                  M7={typeof M7 !== 'undefined' ? M7 : undefined}
+                  handleCopyColumn={typeof handleCopyColumn !== 'undefined' ? handleCopyColumn : undefined}
+                  M8={typeof M8 !== 'undefined' ? M8 : undefined}
+                  M5={typeof M5 !== 'undefined' ? M5 : undefined}
+                  Kolonu={typeof Kolonu !== 'undefined' ? Kolonu : undefined}
+                  kopyala={typeof kopyala !== 'undefined' ? kopyala : undefined}
+                  my={typeof my !== 'undefined' ? my : undefined}
+                  handleArchiveColumnTasks={typeof handleArchiveColumnTasks !== 'undefined' ? handleArchiveColumnTasks : undefined}
+                  orange={typeof orange !== 'undefined' ? orange : undefined}
+                  handleArchiveColumn={typeof handleArchiveColumn !== 'undefined' ? handleArchiveColumn : undefined}
+                  M20={typeof M20 !== 'undefined' ? M20 : undefined}
+                  M6={typeof M6 !== 'undefined' ? M6 : undefined}
+                  sil={typeof sil !== 'undefined' ? sil : undefined}
+                  selectedTasks={typeof selectedTasks !== 'undefined' ? selectedTasks : undefined}
+                  priorityOptions={typeof priorityOptions !== 'undefined' ? priorityOptions : undefined}
+                  getTaskCardDateParts={typeof getTaskCardDateParts !== 'undefined' ? getTaskCardDateParts : undefined}
+                  draggable={typeof draggable !== 'undefined' ? draggable : undefined}
+                  canCurrentUserModifyTask={typeof canCurrentUserModifyTask !== 'undefined' ? canCurrentUserModifyTask : undefined}
+                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
+                  showPermissionWarning={typeof showPermissionWarning !== 'undefined' ? showPermissionWarning : undefined}
+                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
+                  sana={typeof sana !== 'undefined' ? sana : undefined}
+                  durumunu={typeof durumunu !== 'undefined' ? durumunu : undefined}
+                  handleDragStart={typeof handleDragStart !== 'undefined' ? handleDragStart : undefined}
+                  duration={typeof duration !== 'undefined' ? duration : undefined}
+                  bottom={typeof bottom !== 'undefined' ? bottom : undefined}
+                  l={typeof l !== 'undefined' ? l : undefined}
+                  overlay={typeof overlay !== 'undefined' ? overlay : undefined}
+                  handleTaskAction={typeof handleTaskAction !== 'undefined' ? handleTaskAction : undefined}
+                  detay={typeof detay !== 'undefined' ? detay : undefined}
+                  M2={typeof M2 !== 'undefined' ? M2 : undefined}
+                  duzenle={typeof duzenle !== 'undefined' ? duzenle : undefined}
+                  Ekip={typeof Ekip !== 'undefined' ? Ekip : undefined}
+                  Kopyala={typeof Kopyala !== 'undefined' ? Kopyala : undefined}
+                  arsivle={typeof arsivle !== 'undefined' ? arsivle : undefined}
+                  Sil={typeof Sil !== 'undefined' ? Sil : undefined}
+                  leading={typeof leading !== 'undefined' ? leading : undefined}
+                  snug={typeof snug !== 'undefined' ? snug : undefined}
+                  mb={typeof mb !== 'undefined' ? mb : undefined}
+                  Patron={typeof Patron !== 'undefined' ? Patron : undefined}
+                  Proje={typeof Proje !== 'undefined' ? Proje : undefined}
+                  wrap={typeof wrap !== 'undefined' ? wrap : undefined}
+                  Bit={typeof Bit !== 'undefined' ? Bit : undefined}
+                  end={typeof end !== 'undefined' ? end : undefined}
+                  renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
+                  createAvatarFromName={typeof createAvatarFromName !== 'undefined' ? createAvatarFromName : undefined}
+                  zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                  v517d={typeof v517d !== 'undefined' ? v517d : undefined}
+                  mobile={typeof mobile !== 'undefined' ? mobile : undefined}
+                  move={typeof move !== 'undefined' ? move : undefined}
+                  buttons={typeof buttons !== 'undefined' ? buttons : undefined}
+                  component={typeof component !== 'undefined' ? component : undefined}
+                  MobileTaskMoveButtons={typeof MobileTaskMoveButtons !== 'undefined' ? MobileTaskMoveButtons : undefined}
+                  handleMoveTaskToColumn={typeof handleMoveTaskToColumn !== 'undefined' ? handleMoveTaskToColumn : undefined}
+                  setMobileActiveColumnId={typeof setMobileActiveColumnId !== 'undefined' ? setMobileActiveColumnId : undefined}
+                  mx={typeof mx !== 'undefined' ? mx : undefined}
+                  buradan={typeof buradan !== 'undefined' ? buradan : undefined}
+                  geri={typeof geri !== 'undefined' ? geri : undefined}
+                  getirebilir={typeof getirebilir !== 'undefined' ? getirebilir : undefined}
+                  veya={typeof veya !== 'undefined' ? veya : undefined}
+                  olarak={typeof olarak !== 'undefined' ? olarak : undefined}
+                  silebilirsin={typeof silebilirsin !== 'undefined' ? silebilirsin : undefined}
+                  inceleyebilirsin={typeof inceleyebilirsin !== 'undefined' ? inceleyebilirsin : undefined}
+                  archivedTasks={typeof archivedTasks !== 'undefined' ? archivedTasks : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  xl={typeof xl !== 'undefined' ? xl : undefined}
+                  TR={typeof TR !== 'undefined' ? TR : undefined}
+                  day={typeof day !== 'undefined' ? day : undefined}
+                  digit={typeof digit !== 'undefined' ? digit : undefined}
+                  month={typeof month !== 'undefined' ? month : undefined}
+                  long={typeof long !== 'undefined' ? long : undefined}
+                  year={typeof year !== 'undefined' ? year : undefined}
+                  numeric={typeof numeric !== 'undefined' ? numeric : undefined}
+                  hour={typeof hour !== 'undefined' ? hour : undefined}
+                  minute={typeof minute !== 'undefined' ? minute : undefined}
+                  Tarih={typeof Tarih !== 'undefined' ? Tarih : undefined}
+                  yok={typeof yok !== 'undefined' ? yok : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                  Eski={typeof Eski !== 'undefined' ? Eski : undefined}
+                  t={typeof t !== 'undefined' ? t : undefined}
+                  handleRestoreArchivedTask={typeof handleRestoreArchivedTask !== 'undefined' ? handleRestoreArchivedTask : undefined}
+                  Geri={typeof Geri !== 'undefined' ? Geri : undefined}
+                  Getir={typeof Getir !== 'undefined' ? Getir : undefined}
+                  handleDeleteArchivedTask={typeof handleDeleteArchivedTask !== 'undefined' ? handleDeleteArchivedTask : undefined}
+                  burada={typeof burada !== 'undefined' ? burada : undefined}
+                  getirmek={typeof getirmek !== 'undefined' ? getirmek : undefined}
+                  tek={typeof tek !== 'undefined' ? tek : undefined}
+                  panoya={typeof panoya !== 'undefined' ? panoya : undefined}
+                  v454c={typeof v454c !== 'undefined' ? v454c : undefined}
+                  strip={typeof strip !== 'undefined' ? strip : undefined}
+                  fixed={typeof fixed !== 'undefined' ? fixed : undefined}
+                  env={typeof env !== 'undefined' ? env : undefined}
+                  safe={typeof safe !== 'undefined' ? safe : undefined}
+                  area={typeof area !== 'undefined' ? area : undefined}
+                  inset={typeof inset !== 'undefined' ? inset : undefined}
+                  backdrop={typeof backdrop !== 'undefined' ? backdrop : undefined}
+                  blur={typeof blur !== 'undefined' ? blur : undefined}
+                  index={typeof index !== 'undefined' ? index : undefined}
+                  tab={typeof tab !== 'undefined' ? tab : undefined}
+                />
+
+
+
+                                {/* zrc-v521-feature-takvim */}
+                <TakvimTabPanel
+                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
+                  Takvim={typeof Takvim !== 'undefined' ? Takvim : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  auto={typeof auto !== 'undefined' ? auto : undefined}
+                  custom={typeof custom !== 'undefined' ? custom : undefined}
+                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                  animate={typeof animate !== 'undefined' ? animate : undefined}
+                  fade={typeof fade !== 'undefined' ? fade : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  py={typeof py !== 'undefined' ? py : undefined}
+                  max={typeof max !== 'undefined' ? max : undefined}
+                  mx={typeof mx !== 'undefined' ? mx : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  justify={typeof justify !== 'undefined' ? justify : undefined}
+                  end={typeof end !== 'undefined' ? end : undefined}
+                  mb={typeof mb !== 'undefined' ? mb : undefined}
+                  relative={typeof relative !== 'undefined' ? relative : undefined}
+                  setIsCalendarDisplayMenuOpen={typeof setIsCalendarDisplayMenuOpen !== 'undefined' ? setIsCalendarDisplayMenuOpen : undefined}
+                  prev={typeof prev !== 'undefined' ? prev : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  hover={typeof hover !== 'undefined' ? hover : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  none={typeof none !== 'undefined' ? none : undefined}
+                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
+                  round={typeof round !== 'undefined' ? round : undefined}
+                  M3={typeof M3 !== 'undefined' ? M3 : undefined}
+                  isCalendarDisplayMenuOpen={typeof isCalendarDisplayMenuOpen !== 'undefined' ? isCalendarDisplayMenuOpen : undefined}
+                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+                  right={typeof right !== 'undefined' ? right : undefined}
+                  top={typeof top !== 'undefined' ? top : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                  z={typeof z !== 'undefined' ? z : undefined}
+                  hideLongTasks={typeof hideLongTasks !== 'undefined' ? hideLongTasks : undefined}
+                  Uzun={typeof Uzun !== 'undefined' ? Uzun : undefined}
+                  Gizle={typeof Gizle !== 'undefined' ? Gizle : undefined}
+                  hideCompletedTasks={typeof hideCompletedTasks !== 'undefined' ? hideCompletedTasks : undefined}
+                  hideArchivedTasks={typeof hideArchivedTasks !== 'undefined' ? hideArchivedTasks : undefined}
+                  item={typeof item !== 'undefined' ? item : undefined}
+                  setCalendarDisplayOptions={typeof setCalendarDisplayOptions !== 'undefined' ? setCalendarDisplayOptions : undefined}
+                  prevOptions={typeof prevOptions !== 'undefined' ? prevOptions : undefined}
+                  left={typeof left !== 'undefined' ? left : undefined}
+                  colors={typeof colors !== 'undefined' ? colors : undefined}
+                  calendarDisplayOptions={typeof calendarDisplayOptions !== 'undefined' ? calendarDisplayOptions : undefined}
+                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
+                  M5={typeof M5 !== 'undefined' ? M5 : undefined}
+                  bold={typeof bold !== 'undefined' ? bold : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  b={typeof b !== 'undefined' ? b : undefined}
+                  between={typeof between !== 'undefined' ? between : undefined}
+                  goToPreviousCalendarPeriod={typeof goToPreviousCalendarPeriod !== 'undefined' ? goToPreviousCalendarPeriod : undefined}
+                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
+                  tight={typeof tight !== 'undefined' ? tight : undefined}
+                  capitalize={typeof capitalize !== 'undefined' ? capitalize : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  calendarHeaderTitle={typeof calendarHeaderTitle !== 'undefined' ? calendarHeaderTitle : undefined}
+                  goToNextCalendarPeriod={typeof goToNextCalendarPeriod !== 'undefined' ? goToNextCalendarPeriod : undefined}
+                  goToCurrentCalendarPeriod={typeof goToCurrentCalendarPeriod !== 'undefined' ? goToCurrentCalendarPeriod : undefined}
+                  Ay={typeof Ay !== 'undefined' ? Ay : undefined}
+                  Hafta={typeof Hafta !== 'undefined' ? Hafta : undefined}
+                  Liste={typeof Liste !== 'undefined' ? Liste : undefined}
+                  view={typeof view !== 'undefined' ? view : undefined}
+                  pressed={typeof pressed !== 'undefined' ? pressed : undefined}
+                  calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+                  changeCalendarView={typeof changeCalendarView !== 'undefined' ? changeCalendarView : undefined}
+                  blue={typeof blue !== 'undefined' ? blue : undefined}
+                  sm={typeof sm !== 'undefined' ? sm : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  Pzt={typeof Pzt !== 'undefined' ? Pzt : undefined}
+                  Sal={typeof Sal !== 'undefined' ? Sal : undefined}
+                  Per={typeof Per !== 'undefined' ? Per : undefined}
+                  Cum={typeof Cum !== 'undefined' ? Cum : undefined}
+                  Cmt={typeof Cmt !== 'undefined' ? Cmt : undefined}
+                  Paz={typeof Paz !== 'undefined' ? Paz : undefined}
+                  dayName={typeof dayName !== 'undefined' ? dayName : undefined}
+                  last={typeof last !== 'undefined' ? last : undefined}
+                  calendarGridDays={typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined}
+                  day={typeof day !== 'undefined' ? day : undefined}
+                  getTasksForCalendarDay={typeof getTasksForCalendarDay !== 'undefined' ? getTasksForCalendarDay : undefined}
+                  calendarMonthDate={typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined}
+                  isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
+                  todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
+                  data={typeof data !== 'undefined' ? data : undefined}
+                  calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+                  formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
+                  zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                  group={typeof group !== 'undefined' ? group : undefined}
+                  canCreateTaskFromCalendar={typeof canCreateTaskFromCalendar !== 'undefined' ? canCreateTaskFromCalendar : undefined}
+                  cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                  pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
+                  openTaskModalForCalendarDay={typeof openTaskModalForCalendarDay !== 'undefined' ? openTaskModalForCalendarDay : undefined}
+                  inset={typeof inset !== 'undefined' ? inset : undefined}
+                  events={typeof events !== 'undefined' ? events : undefined}
+                  leading={typeof leading !== 'undefined' ? leading : undefined}
+                  space={typeof space !== 'undefined' ? space : undefined}
+                  task={typeof task !== 'undefined' ? task : undefined}
+                  onMouseDown={typeof onMouseDown !== 'undefined' ? onMouseDown : undefined}
+                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                  getCalendarTaskBarStyle={typeof getCalendarTaskBarStyle !== 'undefined' ? getCalendarTaskBarStyle : undefined}
+                  getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                  calendarWeekDays={typeof calendarWeekDays !== 'undefined' ? calendarWeekDays : undefined}
+                  week={typeof week !== 'undefined' ? week : undefined}
+                  mt={typeof mt !== 'undefined' ? mt : undefined}
+                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
+                  formatCalendarWeekday={typeof formatCalendarWeekday !== 'undefined' ? formatCalendarWeekday : undefined}
+                  handleCalendarDayClick={typeof handleCalendarDayClick !== 'undefined' ? handleCalendarDayClick : undefined}
+                  calendarFocusedDate={typeof calendarFocusedDate !== 'undefined' ? calendarFocusedDate : undefined}
+                  tabIndex={typeof tabIndex !== 'undefined' ? tabIndex : undefined}
+                  formatCalendarFullDate={typeof formatCalendarFullDate !== 'undefined' ? formatCalendarFullDate : undefined}
+                  calendarDayHelperText={typeof calendarDayHelperText !== 'undefined' ? calendarDayHelperText : undefined}
+                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
+                  Ekle={typeof Ekle !== 'undefined' ? Ekle : undefined}
+                  selectedDayCalendarTasks={typeof selectedDayCalendarTasks !== 'undefined' ? selectedDayCalendarTasks : undefined}
+                  l={typeof l !== 'undefined' ? l : undefined}
+                  getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
+                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                  Normal={typeof Normal !== 'undefined' ? Normal : undefined}
+                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
+                  yok={typeof yok !== 'undefined' ? yok : undefined}
+                  fbfcfd={typeof fbfcfd !== 'undefined' ? fbfcfd : undefined}
+                  calendarTasks={typeof calendarTasks !== 'undefined' ? calendarTasks : undefined}
+                  list={typeof list !== 'undefined' ? list : undefined}
+                  col={typeof col !== 'undefined' ? col : undefined}
+                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
+                  Takvimde={typeof Takvimde !== 'undefined' ? Takvimde : undefined}
+                  Tarihi={typeof Tarihi !== 'undefined' ? Tarihi : undefined}
+                  olan={typeof olan !== 'undefined' ? olan : undefined}
+                  burada={typeof burada !== 'undefined' ? burada : undefined}
+                  listelenir={typeof listelenir !== 'undefined' ? listelenir : undefined}
+                />
+
+
+                                {/* zrc-v521-feature-zaman_cizelgesi */}
+                <ZamanCizelgesiTabPanel
+                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
+                  selectedProject={typeof selectedProject !== 'undefined' ? selectedProject : undefined}
+                  Zaman={typeof Zaman !== 'undefined' ? Zaman : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  animate={typeof animate !== 'undefined' ? animate : undefined}
+                  fade={typeof fade !== 'undefined' ? fade : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  pt={typeof pt !== 'undefined' ? pt : undefined}
+                  pb={typeof pb !== 'undefined' ? pb : undefined}
+                  max={typeof max !== 'undefined' ? max : undefined}
+                  mx={typeof mx !== 'undefined' ? mx : undefined}
+                  auto={typeof auto !== 'undefined' ? auto : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  calc={typeof calc !== 'undefined' ? calc : undefined}
+                  col={typeof col !== 'undefined' ? col : undefined}
+                  b={typeof b !== 'undefined' ? b : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  justify={typeof justify !== 'undefined' ? justify : undefined}
+                  between={typeof between !== 'undefined' ? between : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  blue={typeof blue !== 'undefined' ? blue : undefined}
+                  none={typeof none !== 'undefined' ? none : undefined}
+                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
+                  round={typeof round !== 'undefined' ? round : undefined}
+                  M21={typeof M21 !== 'undefined' ? M21 : undefined}
+                  timeChartSearch={typeof timeChartSearch !== 'undefined' ? timeChartSearch : undefined}
+                  setTimeChartSearch={typeof setTimeChartSearch !== 'undefined' ? setTimeChartSearch : undefined}
+                  scheduleSearchPlaceholder={typeof scheduleSearchPlaceholder !== 'undefined' ? scheduleSearchPlaceholder : undefined}
+                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  bold={typeof bold !== 'undefined' ? bold : undefined}
+                  focus={typeof focus !== 'undefined' ? focus : undefined}
+                  outline={typeof outline !== 'undefined' ? outline : undefined}
+                  relative={typeof relative !== 'undefined' ? relative : undefined}
+                  setIsTimeChartFilterOpen={typeof setIsTimeChartFilterOpen !== 'undefined' ? setIsTimeChartFilterOpen : undefined}
+                  prev={typeof prev !== 'undefined' ? prev : undefined}
+                  setIsTimeChartSettingsOpen={typeof setIsTimeChartSettingsOpen !== 'undefined' ? setIsTimeChartSettingsOpen : undefined}
+                  hover={typeof hover !== 'undefined' ? hover : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  Filtrele={typeof Filtrele !== 'undefined' ? Filtrele : undefined}
+                  M3={typeof M3 !== 'undefined' ? M3 : undefined}
+                  isTimeChartFilterOpen={typeof isTimeChartFilterOpen !== 'undefined' ? isTimeChartFilterOpen : undefined}
+                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+                  left={typeof left !== 'undefined' ? left : undefined}
+                  top={typeof top !== 'undefined' ? top : undefined}
+                  z={typeof z !== 'undefined' ? z : undefined}
+                  hideCompleted={typeof hideCompleted !== 'undefined' ? hideCompleted : undefined}
+                  Gizle={typeof Gizle !== 'undefined' ? Gizle : undefined}
+                  hideArchived={typeof hideArchived !== 'undefined' ? hideArchived : undefined}
+                  hideNoDate={typeof hideNoDate !== 'undefined' ? hideNoDate : undefined}
+                  Tarihsiz={typeof Tarihsiz !== 'undefined' ? Tarihsiz : undefined}
+                  item={typeof item !== 'undefined' ? item : undefined}
+                  toggleTimeChartFilter={typeof toggleTimeChartFilter !== 'undefined' ? toggleTimeChartFilter : undefined}
+                  colors={typeof colors !== 'undefined' ? colors : undefined}
+                  timeChartFilters={typeof timeChartFilters !== 'undefined' ? timeChartFilters : undefined}
+                  M5={typeof M5 !== 'undefined' ? M5 : undefined}
+                  setTimeChartFilters={typeof setTimeChartFilters !== 'undefined' ? setTimeChartFilters : undefined}
+                  mt={typeof mt !== 'undefined' ? mt : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  Filtreleri={typeof Filtreleri !== 'undefined' ? Filtreleri : undefined}
+                  goToPreviousTimeChartPeriod={typeof goToPreviousTimeChartPeriod !== 'undefined' ? goToPreviousTimeChartPeriod : undefined}
+                  capitalize={typeof capitalize !== 'undefined' ? capitalize : undefined}
+                  timeChartRangeTitle={typeof timeChartRangeTitle !== 'undefined' ? timeChartRangeTitle : undefined}
+                  timeChartFilteredTasks={typeof timeChartFilteredTasks !== 'undefined' ? timeChartFilteredTasks : undefined}
+                  goToNextTimeChartPeriod={typeof goToNextTimeChartPeriod !== 'undefined' ? goToNextTimeChartPeriod : undefined}
+                  Sonraki={typeof Sonraki !== 'undefined' ? Sonraki : undefined}
+                  goToCurrentTimeChartPeriod={typeof goToCurrentTimeChartPeriod !== 'undefined' ? goToCurrentTimeChartPeriod : undefined}
+                  Hafta={typeof Hafta !== 'undefined' ? Hafta : undefined}
+                  view={typeof view !== 'undefined' ? view : undefined}
+                  changeTimeChartView={typeof changeTimeChartView !== 'undefined' ? changeTimeChartView : undefined}
+                  timeChartView={typeof timeChartView !== 'undefined' ? timeChartView : undefined}
+                  sm={typeof sm !== 'undefined' ? sm : undefined}
+                  Ayarlar={typeof Ayarlar !== 'undefined' ? Ayarlar : undefined}
+                  M10={typeof M10 !== 'undefined' ? M10 : undefined}
+                  M15={typeof M15 !== 'undefined' ? M15 : undefined}
+                  isTimeChartSettingsOpen={typeof isTimeChartSettingsOpen !== 'undefined' ? isTimeChartSettingsOpen : undefined}
+                  right={typeof right !== 'undefined' ? right : undefined}
+                  showWeekends={typeof showWeekends !== 'undefined' ? showWeekends : undefined}
+                  Sonunu={typeof Sonunu !== 'undefined' ? Sonunu : undefined}
+                  compactCards={typeof compactCards !== 'undefined' ? compactCards : undefined}
+                  Kompakt={typeof Kompakt !== 'undefined' ? Kompakt : undefined}
+                  Kartlar={typeof Kartlar !== 'undefined' ? Kartlar : undefined}
+                  toggleTimeChartSetting={typeof toggleTimeChartSetting !== 'undefined' ? toggleTimeChartSetting : undefined}
+                  timeChartSettings={typeof timeChartSettings !== 'undefined' ? timeChartSettings : undefined}
+                  scrollTimeChart={typeof scrollTimeChart !== 'undefined' ? scrollTimeChart : undefined}
+                  translate={typeof translate !== 'undefined' ? translate : undefined}
+                  md={typeof md !== 'undefined' ? md : undefined}
+                  Sola={typeof Sola !== 'undefined' ? Sola : undefined}
+                  ref={typeof ref !== 'undefined' ? ref : undefined}
+                  timeChartScrollRef={typeof timeChartScrollRef !== 'undefined' ? timeChartScrollRef : undefined}
+                  custom={typeof custom !== 'undefined' ? custom : undefined}
+                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                  overscroll={typeof overscroll !== 'undefined' ? overscroll : undefined}
+                  contain={typeof contain !== 'undefined' ? contain : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  gridTemplateColumns={typeof gridTemplateColumns !== 'undefined' ? gridTemplateColumns : undefined}
+                  repeat={typeof repeat !== 'undefined' ? repeat : undefined}
+                  timeChartPeriods={typeof timeChartPeriods !== 'undefined' ? timeChartPeriods : undefined}
+                  minmax={typeof minmax !== 'undefined' ? minmax : undefined}
+                  minWidth={typeof minWidth !== 'undefined' ? minWidth : undefined}
+                  period={typeof period !== 'undefined' ? period : undefined}
+                  time={typeof time !== 'undefined' ? time : undefined}
+                  head={typeof head !== 'undefined' ? head : undefined}
+                  day={typeof day !== 'undefined' ? day : undefined}
+                  isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
+                  todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
+                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
+                  timeChartMembers={typeof timeChartMembers !== 'undefined' ? timeChartMembers : undefined}
+                  member={typeof member !== 'undefined' ? member : undefined}
+                  py={typeof py !== 'undefined' ? py : undefined}
+                  renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
+                  createAvatarFromName={typeof createAvatarFromName !== 'undefined' ? createAvatarFromName : undefined}
+                  getTimeChartTasksForMemberAndPeriod={typeof getTimeChartTasksForMemberAndPeriod !== 'undefined' ? getTimeChartTasksForMemberAndPeriod : undefined}
+                  cell={typeof cell !== 'undefined' ? cell : undefined}
+                  repeating={typeof repeating !== 'undefined' ? repeating : undefined}
+                  linear={typeof linear !== 'undefined' ? linear : undefined}
+                  gradient={typeof gradient !== 'undefined' ? gradient : undefined}
+                  rgba={typeof rgba !== 'undefined' ? rgba : undefined}
+                  _0px={typeof _0px !== 'undefined' ? _0px : undefined}
+                  _8px={typeof _8px !== 'undefined' ? _8px : undefined}
+                  transparent_8px={typeof transparent_8px !== 'undefined' ? transparent_8px : undefined}
+                  transparent_16px={typeof transparent_16px !== 'undefined' ? transparent_16px : undefined}
+                  Sonu={typeof Sonu !== 'undefined' ? Sonu : undefined}
+                  space={typeof space !== 'undefined' ? space : undefined}
+                  task={typeof task !== 'undefined' ? task : undefined}
+                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
+                  getTimeChartTaskColor={typeof getTimeChartTaskColor !== 'undefined' ? getTimeChartTaskColor : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                  Proje={typeof Proje !== 'undefined' ? Proje : undefined}
+                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
+                  getTimeChartTaskStartDate={typeof getTimeChartTaskStartDate !== 'undefined' ? getTimeChartTaskStartDate : undefined}
+                  getTimeChartTaskEndDate={typeof getTimeChartTaskEndDate !== 'undefined' ? getTimeChartTaskEndDate : undefined}
+                  openTaskModalForTimeChartPeriod={typeof openTaskModalForTimeChartPeriod !== 'undefined' ? openTaskModalForTimeChartPeriod : undefined}
+                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
+                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
+                  alana={typeof alana !== 'undefined' ? alana : undefined}
+                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
+                />
+
+                                {/* zrc-v521-feature-dosyalar */}
+                <DosyalarTabPanel
+                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
+                  currentPermissions={typeof currentPermissions !== 'undefined' ? currentPermissions : undefined}
+                  currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
+                  selectedProject={typeof selectedProject !== 'undefined' ? selectedProject : undefined}
+                  Dosyalar={typeof Dosyalar !== 'undefined' ? Dosyalar : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  auto={typeof auto !== 'undefined' ? auto : undefined}
+                  custom={typeof custom !== 'undefined' ? custom : undefined}
+                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                  animate={typeof animate !== 'undefined' ? animate : undefined}
+                  fade={typeof fade !== 'undefined' ? fade : undefined}
+                  setPendingFileDeleteKey={typeof setPendingFileDeleteKey !== 'undefined' ? setPendingFileDeleteKey : undefined}
+                  max={typeof max !== 'undefined' ? max : undefined}
+                  mx={typeof mx !== 'undefined' ? mx : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  py={typeof py !== 'undefined' ? py : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  justify={typeof justify !== 'undefined' ? justify : undefined}
+                  between={typeof between !== 'undefined' ? between : undefined}
+                  mb={typeof mb !== 'undefined' ? mb : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
+                  tight={typeof tight !== 'undefined' ? tight : undefined}
+                  mt={typeof mt !== 'undefined' ? mt : undefined}
+                  bold={typeof bold !== 'undefined' ? bold : undefined}
+                  eklenen={typeof eklenen !== 'undefined' ? eklenen : undefined}
+                  proje={typeof proje !== 'undefined' ? proje : undefined}
+                  genelinde={typeof genelinde !== 'undefined' ? genelinde : undefined}
+                  ara={typeof ara !== 'undefined' ? ara : undefined}
+                  filtrele={typeof filtrele !== 'undefined' ? filtrele : undefined}
+                  ve={typeof ve !== 'undefined' ? ve : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  projectFiles={typeof projectFiles !== 'undefined' ? projectFiles : undefined}
+                  dosya={typeof dosya !== 'undefined' ? dosya : undefined}
+                  setActiveTab={typeof setActiveTab !== 'undefined' ? setActiveTab : undefined}
+                  hover={typeof hover !== 'undefined' ? hover : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  Git={typeof Git !== 'undefined' ? Git : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  b={typeof b !== 'undefined' ? b : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  blue={typeof blue !== 'undefined' ? blue : undefined}
+                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                  none={typeof none !== 'undefined' ? none : undefined}
+                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
+                  round={typeof round !== 'undefined' ? round : undefined}
+                  M21={typeof M21 !== 'undefined' ? M21 : undefined}
+                  fileSearch={typeof fileSearch !== 'undefined' ? fileSearch : undefined}
+                  setFileSearch={typeof setFileSearch !== 'undefined' ? setFileSearch : undefined}
+                  Dosya={typeof Dosya !== 'undefined' ? Dosya : undefined}
+                  veya={typeof veya !== 'undefined' ? veya : undefined}
+                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
+                  focus={typeof focus !== 'undefined' ? focus : undefined}
+                  outline={typeof outline !== 'undefined' ? outline : undefined}
+                  projectFileTypeOptions={typeof projectFileTypeOptions !== 'undefined' ? projectFileTypeOptions : undefined}
+                  setFileTypeFilter={typeof setFileTypeFilter !== 'undefined' ? setFileTypeFilter : undefined}
+                  whitespace={typeof whitespace !== 'undefined' ? whitespace : undefined}
+                  nowrap={typeof nowrap !== 'undefined' ? nowrap : undefined}
+                  fileTypeFilter={typeof fileTypeFilter !== 'undefined' ? fileTypeFilter : undefined}
+                  sm={typeof sm !== 'undefined' ? sm : undefined}
+                  setSelectedProjectFileKey={typeof setSelectedProjectFileKey !== 'undefined' ? setSelectedProjectFileKey : undefined}
+                  Temizle={typeof Temizle !== 'undefined' ? Temizle : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  fbfcfd={typeof fbfcfd !== 'undefined' ? fbfcfd : undefined}
+                  filteredProjectFiles={typeof filteredProjectFiles !== 'undefined' ? filteredProjectFiles : undefined}
+                  file={typeof file !== 'undefined' ? file : undefined}
+                  selectedProjectFile={typeof selectedProjectFile !== 'undefined' ? selectedProjectFile : undefined}
+                  pendingFileDeleteKey={typeof pendingFileDeleteKey !== 'undefined' ? pendingFileDeleteKey : undefined}
+                  handleSelectProjectFile={typeof handleSelectProjectFile !== 'undefined' ? handleSelectProjectFile : undefined}
+                  group={typeof group !== 'undefined' ? group : undefined}
+                  left={typeof left !== 'undefined' ? left : undefined}
+                  ring={typeof ring !== 'undefined' ? ring : undefined}
+                  start={typeof start !== 'undefined' ? start : undefined}
+                  getProjectFileIconStyle={typeof getProjectFileIconStyle !== 'undefined' ? getProjectFileIconStyle : undefined}
+                  M19={typeof M19 !== 'undefined' ? M19 : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                  getProjectFileSecondaryText={typeof getProjectFileSecondaryText !== 'undefined' ? getProjectFileSecondaryText : undefined}
+                  wrap={typeof wrap !== 'undefined' ? wrap : undefined}
+                  formatProjectFileSize={typeof formatProjectFileSize !== 'undefined' ? formatProjectFileSize : undefined}
+                  Patron={typeof Patron !== 'undefined' ? Patron : undefined}
+                  renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
+                  currentProfileInitials={typeof currentProfileInitials !== 'undefined' ? currentProfileInitials : undefined}
+                  getProfileNameForRecord={typeof getProfileNameForRecord !== 'undefined' ? getProfileNameForRecord : undefined}
+                  currentActorName={typeof currentActorName !== 'undefined' ? currentActorName : undefined}
+                  red={typeof red !== 'undefined' ? red : undefined}
+                  Silmek={typeof Silmek !== 'undefined' ? Silmek : undefined}
+                  tekrar={typeof tekrar !== 'undefined' ? tekrar : undefined}
+                  bas={typeof bas !== 'undefined' ? bas : undefined}
+                  colors={typeof colors !== 'undefined' ? colors : undefined}
+                  col={typeof col !== 'undefined' ? col : undefined}
+                  M18={typeof M18 !== 'undefined' ? M18 : undefined}
+                  projectFileEmptyTitle={typeof projectFileEmptyTitle !== 'undefined' ? projectFileEmptyTitle : undefined}
+                  projectFileEmptyDescription={typeof projectFileEmptyDescription !== 'undefined' ? projectFileEmptyDescription : undefined}
+                  leading={typeof leading !== 'undefined' ? leading : undefined}
+                  words={typeof words !== 'undefined' ? words : undefined}
+                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
+                  Bilgileri={typeof Bilgileri !== 'undefined' ? Bilgileri : undefined}
+                  space={typeof space !== 'undefined' ? space : undefined}
+                  getProjectFileInfoRows={typeof getProjectFileInfoRows !== 'undefined' ? getProjectFileInfoRows : undefined}
+                  right={typeof right !== 'undefined' ? right : undefined}
+                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
+                  projedeki={typeof projedeki !== 'undefined' ? projedeki : undefined}
+                  Sadece={typeof Sadece !== 'undefined' ? Sadece : undefined}
+                  size={typeof size !== 'undefined' ? size : undefined}
+                  dosyalar={typeof dosyalar !== 'undefined' ? dosyalar : undefined}
+                  listelenir={typeof listelenir !== 'undefined' ? listelenir : undefined}
+                  projectFileTypeStats={typeof projectFileTypeStats !== 'undefined' ? projectFileTypeStats : undefined}
+                  item={typeof item !== 'undefined' ? item : undefined}
+                  bilgisi={typeof bilgisi !== 'undefined' ? bilgisi : undefined}
+                  yok={typeof yok !== 'undefined' ? yok : undefined}
+                  pt={typeof pt !== 'undefined' ? pt : undefined}
+                  downloadTaskFileFromSupabase={typeof downloadTaskFileFromSupabase !== 'undefined' ? downloadTaskFileFromSupabase : undefined}
+                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
+                  handleDeleteProjectFile={typeof handleDeleteProjectFile !== 'undefined' ? handleDeleteProjectFile : undefined}
+                  Tekrar={typeof Tekrar !== 'undefined' ? Tekrar : undefined}
+                  Bas={typeof Bas !== 'undefined' ? Bas : undefined}
+                  Sil={typeof Sil !== 'undefined' ? Sil : undefined}
+                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
+                  M15={typeof M15 !== 'undefined' ? M15 : undefined}
+                  Soldan={typeof Soldan !== 'undefined' ? Soldan : undefined}
+                  bir={typeof bir !== 'undefined' ? bir : undefined}
+                  burada={typeof burada !== 'undefined' ? burada : undefined}
+                />
+
+
+
+                                {/* zrc-v521-feature-gantt_cizelgesi */}
+                <GanttCizelgesiTabPanel
+                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
+                  currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
+                  Gantt={typeof Gantt !== 'undefined' ? Gantt : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  auto={typeof auto !== 'undefined' ? auto : undefined}
+                  custom={typeof custom !== 'undefined' ? custom : undefined}
+                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                  animate={typeof animate !== 'undefined' ? animate : undefined}
+                  fade={typeof fade !== 'undefined' ? fade : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  py={typeof py !== 'undefined' ? py : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  b={typeof b !== 'undefined' ? b : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  justify={typeof justify !== 'undefined' ? justify : undefined}
+                  between={typeof between !== 'undefined' ? between : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  blue={typeof blue !== 'undefined' ? blue : undefined}
+                  none={typeof none !== 'undefined' ? none : undefined}
+                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
+                  round={typeof round !== 'undefined' ? round : undefined}
+                  M21={typeof M21 !== 'undefined' ? M21 : undefined}
+                  ganttSearch={typeof ganttSearch !== 'undefined' ? ganttSearch : undefined}
+                  setGanttSearch={typeof setGanttSearch !== 'undefined' ? setGanttSearch : undefined}
+                  ganttSearchPlaceholder={typeof ganttSearchPlaceholder !== 'undefined' ? ganttSearchPlaceholder : undefined}
+                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  bold={typeof bold !== 'undefined' ? bold : undefined}
+                  focus={typeof focus !== 'undefined' ? focus : undefined}
+                  outline={typeof outline !== 'undefined' ? outline : undefined}
+                  setGanttShowCompleted={typeof setGanttShowCompleted !== 'undefined' ? setGanttShowCompleted : undefined}
+                  prev={typeof prev !== 'undefined' ? prev : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  ganttShowCompleted={typeof ganttShowCompleted !== 'undefined' ? ganttShowCompleted : undefined}
+                  emerald={typeof emerald !== 'undefined' ? emerald : undefined}
+                  hover={typeof hover !== 'undefined' ? hover : undefined}
+                  Tamamlananlar={typeof Tamamlananlar !== 'undefined' ? Tamamlananlar : undefined}
+                  goToPreviousGanttPeriod={typeof goToPreviousGanttPeriod !== 'undefined' ? goToPreviousGanttPeriod : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  capitalize={typeof capitalize !== 'undefined' ? capitalize : undefined}
+                  ganttRangeTitle={typeof ganttRangeTitle !== 'undefined' ? ganttRangeTitle : undefined}
+                  ganttTasks={typeof ganttTasks !== 'undefined' ? ganttTasks : undefined}
+                  goToNextGanttPeriod={typeof goToNextGanttPeriod !== 'undefined' ? goToNextGanttPeriod : undefined}
+                  Sonraki={typeof Sonraki !== 'undefined' ? Sonraki : undefined}
+                  goToCurrentGanttPeriod={typeof goToCurrentGanttPeriod !== 'undefined' ? goToCurrentGanttPeriod : undefined}
+                  Hafta={typeof Hafta !== 'undefined' ? Hafta : undefined}
+                  Ay={typeof Ay !== 'undefined' ? Ay : undefined}
+                  view={typeof view !== 'undefined' ? view : undefined}
+                  changeGanttView={typeof changeGanttView !== 'undefined' ? changeGanttView : undefined}
+                  ganttView={typeof ganttView !== 'undefined' ? ganttView : undefined}
+                  sm={typeof sm !== 'undefined' ? sm : undefined}
+                  relative={typeof relative !== 'undefined' ? relative : undefined}
+                  scrollGantt={typeof scrollGantt !== 'undefined' ? scrollGantt : undefined}
+                  left={typeof left !== 'undefined' ? left : undefined}
+                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+                  top={typeof top !== 'undefined' ? top : undefined}
+                  translate={typeof translate !== 'undefined' ? translate : undefined}
+                  z={typeof z !== 'undefined' ? z : undefined}
+                  md={typeof md !== 'undefined' ? md : undefined}
+                  Sola={typeof Sola !== 'undefined' ? Sola : undefined}
+                  right={typeof right !== 'undefined' ? right : undefined}
+                  ref={typeof ref !== 'undefined' ? ref : undefined}
+                  ganttScrollRef={typeof ganttScrollRef !== 'undefined' ? ganttScrollRef : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  gridTemplateColumns={typeof gridTemplateColumns !== 'undefined' ? gridTemplateColumns : undefined}
+                  repeat={typeof repeat !== 'undefined' ? repeat : undefined}
+                  ganttPeriods={typeof ganttPeriods !== 'undefined' ? ganttPeriods : undefined}
+                  minmax={typeof minmax !== 'undefined' ? minmax : undefined}
+                  ganttPeriodConfig={typeof ganttPeriodConfig !== 'undefined' ? ganttPeriodConfig : undefined}
+                  minWidth={typeof minWidth !== 'undefined' ? minWidth : undefined}
+                  sticky={typeof sticky !== 'undefined' ? sticky : undefined}
+                  period={typeof period !== 'undefined' ? period : undefined}
+                  gantt={typeof gantt !== 'undefined' ? gantt : undefined}
+                  head={typeof head !== 'undefined' ? head : undefined}
+                  col={typeof col !== 'undefined' ? col : undefined}
+                  todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
+                  task={typeof task !== 'undefined' ? task : undefined}
+                  getGanttTaskPlacement={typeof getGanttTaskPlacement !== 'undefined' ? getGanttTaskPlacement : undefined}
+                  row={typeof row !== 'undefined' ? row : undefined}
+                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
+                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                  getPremiumCalendarDotStyle={typeof getPremiumCalendarDotStyle !== 'undefined' ? getPremiumCalendarDotStyle : undefined}
+                  mt={typeof mt !== 'undefined' ? mt : undefined}
+                  getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
+                  gridColumn={typeof gridColumn !== 'undefined' ? gridColumn : undefined}
+                  cell={typeof cell !== 'undefined' ? cell : undefined}
+                  self={typeof self !== 'undefined' ? self : undefined}
+                  mx={typeof mx !== 'undefined' ? mx : undefined}
+                  getGanttBarClassName={typeof getGanttBarClassName !== 'undefined' ? getGanttBarClassName : undefined}
+                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
+                  mb={typeof mb !== 'undefined' ? mb : undefined}
+                  M3={typeof M3 !== 'undefined' ? M3 : undefined}
+                  Bu={typeof Bu !== 'undefined' ? Bu : undefined}
+                  yok={typeof yok !== 'undefined' ? yok : undefined}
+                  Patron={typeof Patron !== 'undefined' ? Patron : undefined}
+                  veya={typeof veya !== 'undefined' ? veya : undefined}
+                  tarihi={typeof tarihi !== 'undefined' ? tarihi : undefined}
+                  olan={typeof olan !== 'undefined' ? olan : undefined}
+                  burada={typeof burada !== 'undefined' ? burada : undefined}
+                  olarak={typeof olarak !== 'undefined' ? olarak : undefined}
+                  Tarihi={typeof Tarihi !== 'undefined' ? Tarihi : undefined}
+                  ganttUndatedTasks={typeof ganttUndatedTasks !== 'undefined' ? ganttUndatedTasks : undefined}
+                  Tarihsiz={typeof Tarihsiz !== 'undefined' ? Tarihsiz : undefined}
+                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
+                  bulunmuyor={typeof bulunmuyor !== 'undefined' ? bulunmuyor : undefined}
+                  undated={typeof undated !== 'undefined' ? undated : undefined}
+                />
+
+
+                                {/* zrc-v521-feature-raporlar */}
+                <RaporlarTabPanel
+                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
+                  currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
+                  Raporlar={typeof Raporlar !== 'undefined' ? Raporlar : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  auto={typeof auto !== 'undefined' ? auto : undefined}
+                  custom={typeof custom !== 'undefined' ? custom : undefined}
+                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                  animate={typeof animate !== 'undefined' ? animate : undefined}
+                  fade={typeof fade !== 'undefined' ? fade : undefined}
+                  max={typeof max !== 'undefined' ? max : undefined}
+                  mx={typeof mx !== 'undefined' ? mx : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  py={typeof py !== 'undefined' ? py : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  justify={typeof justify !== 'undefined' ? justify : undefined}
+                  between={typeof between !== 'undefined' ? between : undefined}
+                  mb={typeof mb !== 'undefined' ? mb : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
+                  tight={typeof tight !== 'undefined' ? tight : undefined}
+                  mt={typeof mt !== 'undefined' ? mt : undefined}
+                  bold={typeof bold !== 'undefined' ? bold : undefined}
+                  reportIntroText={typeof reportIntroText !== 'undefined' ? reportIntroText : undefined}
+                  setActiveTab={typeof setActiveTab !== 'undefined' ? setActiveTab : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  hover={typeof hover !== 'undefined' ? hover : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  Git={typeof Git !== 'undefined' ? Git : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  reportSummaryCards={typeof reportSummaryCards !== 'undefined' ? reportSummaryCards : undefined}
+                  card={typeof card !== 'undefined' ? card : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  none={typeof none !== 'undefined' ? none : undefined}
+                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
+                  round={typeof round !== 'undefined' ? round : undefined}
+                  M4={typeof M4 !== 'undefined' ? M4 : undefined}
+                  leading={typeof leading !== 'undefined' ? leading : undefined}
+                  space={typeof space !== 'undefined' ? space : undefined}
+                  Genel={typeof Genel !== 'undefined' ? Genel : undefined}
+                  Tamamlanan={typeof Tamamlanan !== 'undefined' ? Tamamlanan : undefined}
+                  toplam={typeof toplam !== 'undefined' ? toplam : undefined}
+                  emerald={typeof emerald !== 'undefined' ? emerald : undefined}
+                  reportProgressPercentage={typeof reportProgressPercentage !== 'undefined' ? reportProgressPercentage : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  duration={typeof duration !== 'undefined' ? duration : undefined}
+                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
+                  reportOpenTasks={typeof reportOpenTasks !== 'undefined' ? reportOpenTasks : undefined}
+                  Dosya={typeof Dosya !== 'undefined' ? Dosya : undefined}
+                  reportFileCount={typeof reportFileCount !== 'undefined' ? reportFileCount : undefined}
+                  Patron={typeof Patron !== 'undefined' ? Patron : undefined}
+                  Proje={typeof Proje !== 'undefined' ? Proje : undefined}
+                  reportCustomerCount={typeof reportCustomerCount !== 'undefined' ? reportCustomerCount : undefined}
+                  visibleProjectNames={typeof visibleProjectNames !== 'undefined' ? visibleProjectNames : undefined}
+                  Kolonlara={typeof Kolonlara !== 'undefined' ? Kolonlara : undefined}
+                  boardColumns={typeof boardColumns !== 'undefined' ? boardColumns : undefined}
+                  kolon={typeof kolon !== 'undefined' ? kolon : undefined}
+                  pr={typeof pr !== 'undefined' ? pr : undefined}
+                  reportColumnStats={typeof reportColumnStats !== 'undefined' ? reportColumnStats : undefined}
+                  column={typeof column !== 'undefined' ? column : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                  backgroundColor={typeof backgroundColor !== 'undefined' ? backgroundColor : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                  reportPriorityTitle={typeof reportPriorityTitle !== 'undefined' ? reportPriorityTitle : undefined}
+                  reportUrgentTasks={typeof reportUrgentTasks !== 'undefined' ? reportUrgentTasks : undefined}
+                  reportPriorityStats={typeof reportPriorityStats !== 'undefined' ? reportPriorityStats : undefined}
+                  item={typeof item !== 'undefined' ? item : undefined}
+                  getReportPriorityStyle={typeof getReportPriorityStyle !== 'undefined' ? getReportPriorityStyle : undefined}
+                  reportUpcomingTasks={typeof reportUpcomingTasks !== 'undefined' ? reportUpcomingTasks : undefined}
+                  task={typeof task !== 'undefined' ? task : undefined}
+                  report={typeof report !== 'undefined' ? report : undefined}
+                  upcoming={typeof upcoming !== 'undefined' ? upcoming : undefined}
+                  openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
+                  left={typeof left !== 'undefined' ? left : undefined}
+                  start={typeof start !== 'undefined' ? start : undefined}
+                  getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
+                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
+                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
+                  yok={typeof yok !== 'undefined' ? yok : undefined}
+                  Tarihli={typeof Tarihli !== 'undefined' ? Tarihli : undefined}
+                  burada={typeof burada !== 'undefined' ? burada : undefined}
+                  Gecikenler={typeof Gecikenler !== 'undefined' ? Gecikenler : undefined}
+                  red={typeof red !== 'undefined' ? red : undefined}
+                  reportOverdueTasks={typeof reportOverdueTasks !== 'undefined' ? reportOverdueTasks : undefined}
+                  overdue={typeof overdue !== 'undefined' ? overdue : undefined}
+                  getReportTaskDate={typeof getReportTaskDate !== 'undefined' ? getReportTaskDate : undefined}
+                  Geciken={typeof Geciken !== 'undefined' ? Geciken : undefined}
+                />
 
                 {activeContentMenu === 'Diğer' && activeTab === 'Ekip' && showTeamManagementPage && (
                   <div className="zrc-team-center-page w-full h-full overflow-y-auto custom-scrollbar bg-[#f5f6f8] animate-fade-in">

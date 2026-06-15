@@ -1,16 +1,53 @@
 {
-  "build": "v519-mega-shell-and-top-level-split",
-  "note": "App.jsx mini entry dosyasına çevrildi; büyük uygulama src/app/ZRCAppShell.jsx içine taşındı; App fonksiyonu öncesi top-level sabit/helper bloğu src/app/ZRCAppTopLevel.jsx dosyasına ayrıldı.",
-  "changed": [
-    "App.jsx zaten mini entry idi; mevcut src/app/ZRCAppShell.jsx üzerinden devam edildi",
-    "App fonksiyonu öncesi top-level blok ayrıldı: 178 satır",
-    "src/app/ZRCAppTopLevel.jsx oluşturuldu; export sayısı: 13"
+  "build": "v521-mega-active-tab-feature-split",
+  "note": "ZRCAppShell.jsx içindeki büyük activeTab feature panelleri src/features altında ayrı component dosyalarına taşındı.",
+  "shellLinesBefore": 19196,
+  "shellLinesAfter": 17961,
+  "movedTotalLinesApprox": 2141,
+  "components": [
+    {
+      "tab": "Raporlar",
+      "component": "src/features/raporlar/RaporlarTabPanel.jsx",
+      "componentName": "RaporlarTabPanel",
+      "movedLines": 229,
+      "props": 101
+    },
+    {
+      "tab": "Gantt Çizelgesi",
+      "component": "src/features/gantt_cizelgesi/GanttCizelgesiTabPanel.jsx",
+      "componentName": "GanttCizelgesiTabPanel",
+      "movedLines": 244,
+      "props": 123
+    },
+    {
+      "tab": "Dosyalar",
+      "component": "src/features/dosyalar/DosyalarTabPanel.jsx",
+      "componentName": "DosyalarTabPanel",
+      "movedLines": 332,
+      "props": 137
+    },
+    {
+      "tab": "Zaman Çizelgesi",
+      "component": "src/features/zaman_cizelgesi/ZamanCizelgesiTabPanel.jsx",
+      "componentName": "ZamanCizelgesiTabPanel",
+      "movedLines": 307,
+      "props": 153
+    },
+    {
+      "tab": "Takvim",
+      "component": "src/features/takvim/TakvimTabPanel.jsx",
+      "componentName": "TakvimTabPanel",
+      "movedLines": 398,
+      "props": 145
+    },
+    {
+      "tab": "Görevler",
+      "component": "src/features/gorevler/GorevlerTabPanel.jsx",
+      "componentName": "GorevlerTabPanel",
+      "movedLines": 631,
+      "props": 223
+    }
   ],
-  "appJsxLinesBefore": 4,
-  "appJsxLinesAfter": 4,
-  "shellLinesBeforeTopSplit": 19359,
-  "shellLinesAfter": 19196,
-  "topLevelFileLines": 287,
-  "commitBefore": "c0fa68d",
-  "createdAt": "2026-06-15T19:21:20.248182+00:00"
+  "commitBefore": "c7e0c20",
+  "createdAt": "2026-06-15T19:36:29.050622+00:00"
 }
