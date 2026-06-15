@@ -1,8 +1,8 @@
 {
-  "build": "v532c-rollback-v532b-main-view",
-  "note": "v532b ana view extraction canlıda runtime siyah ekran oluşturduğu için geri alındı. En son çalışan Shell yapısına dönüldü.",
-  "reason": "Build başarılıydı fakat runtime'da loading ekranında kalıyordu.",
-  "shellLinesAfterRollback": 16651,
-  "commitAfterRevertBeforeThisNote": "ad67cd0",
-  "createdAt": "2026-06-15T20:44:14.848406+00:00"
+  "build": "v534-global-runtime-error-guard",
+  "note": "Runtime render/window/unhandledrejection hatalarını siyah ekran yerine görünür hata ekranı ile yakalayan global boundary eklendi.",
+  "entryFile": "src/main.jsx",
+  "boundaryFile": "src/components/ZRCGlobalRuntimeBoundary.jsx",
+  "commitBefore": "447f225",
+  "createdAt": "2026-06-15T20:57:57.635177+00:00"
 }
