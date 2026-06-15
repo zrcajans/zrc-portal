@@ -237,50 +237,7 @@ export default function TakvimTabPanel(props) {
                         )}
 
                                                 {/* zrc-v523-block-calendarview-ay */}
-                        <TakvimTabPanelCalendarViewAyBlock
-                          calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
-                          calendarGridDays={typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined}
-                          getTasksForCalendarDay={typeof getTasksForCalendarDay !== 'undefined' ? getTasksForCalendarDay : undefined}
-                          calendarMonthDate={typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined}
-                          isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
-                          todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
-                          data={typeof data !== 'undefined' ? data : undefined}
-                          calendar={typeof calendar !== 'undefined' ? calendar : undefined}
-                          formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
-                          zrc={typeof zrc !== 'undefined' ? zrc : undefined}
-                          group={typeof group !== 'undefined' ? group : undefined}
-                          min={typeof min !== 'undefined' ? min : undefined}
-                          h={typeof h !== 'undefined' ? h : undefined}
-                          border={typeof border !== 'undefined' ? border : undefined}
-                          b={typeof b !== 'undefined' ? b : undefined}
-                          zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                          px={typeof px !== 'undefined' ? px : undefined}
-                          py={typeof py !== 'undefined' ? py : undefined}
-                          relative={typeof relative !== 'undefined' ? relative : undefined}
-                          canCreateTaskFromCalendar={typeof canCreateTaskFromCalendar !== 'undefined' ? canCreateTaskFromCalendar : undefined}
-                          transition={typeof transition !== 'undefined' ? transition : undefined}
-                          colors={typeof colors !== 'undefined' ? colors : undefined}
-                          ekle={typeof ekle !== 'undefined' ? ekle : undefined}
-                          openTaskModalForCalendarDay={typeof openTaskModalForCalendarDay !== 'undefined' ? openTaskModalForCalendarDay : undefined}
-                          z={typeof z !== 'undefined' ? z : undefined}
-                          rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                          flex={typeof flex !== 'undefined' ? flex : undefined}
-                          items={typeof items !== 'undefined' ? items : undefined}
-                          center={typeof center !== 'undefined' ? center : undefined}
-                          justify={typeof justify !== 'undefined' ? justify : undefined}
-                          w={typeof w !== 'undefined' ? w : undefined}
-                          full={typeof full !== 'undefined' ? full : undefined}
-                          text={typeof text !== 'undefined' ? text : undefined}
-                          font={typeof font !== 'undefined' ? font : undefined}
-                          black={typeof black !== 'undefined' ? black : undefined}
-                          onMouseDown={typeof onMouseDown !== 'undefined' ? onMouseDown : undefined}
-                          openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                          left={typeof left !== 'undefined' ? left : undefined}
-                          truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-                          all={typeof all !== 'undefined' ? all : undefined}
-                          getCalendarTaskBarStyle={typeof getCalendarTaskBarStyle !== 'undefined' ? getCalendarTaskBarStyle : undefined}
-                          getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
-                        />
+                        <TakvimTabPanelCalendarViewAyBlock {...props} />
 
                         {calendarView === 'Hafta' && (
                           <div
@@ -351,42 +308,7 @@ export default function TakvimTabPanel(props) {
                         )}
 
                                                 {/* zrc-v523-block-calendarview-gun */}
-                        <TakvimTabPanelCalendarViewGunBlock
-                          calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
-                          canCreateTaskFromCalendar={typeof canCreateTaskFromCalendar !== 'undefined' ? canCreateTaskFromCalendar : undefined}
-                          handleCalendarDayClick={typeof handleCalendarDayClick !== 'undefined' ? handleCalendarDayClick : undefined}
-                          calendarFocusedDate={typeof calendarFocusedDate !== 'undefined' ? calendarFocusedDate : undefined}
-                          tabIndex={typeof tabIndex !== 'undefined' ? tabIndex : undefined}
-                          min={typeof min !== 'undefined' ? min : undefined}
-                          h={typeof h !== 'undefined' ? h : undefined}
-                          bg={typeof bg !== 'undefined' ? bg : undefined}
-                          white={typeof white !== 'undefined' ? white : undefined}
-                          transition={typeof transition !== 'undefined' ? transition : undefined}
-                          colors={typeof colors !== 'undefined' ? colors : undefined}
-                          text={typeof text !== 'undefined' ? text : undefined}
-                          font={typeof font !== 'undefined' ? font : undefined}
-                          black={typeof black !== 'undefined' ? black : undefined}
-                          formatCalendarFullDate={typeof formatCalendarFullDate !== 'undefined' ? formatCalendarFullDate : undefined}
-                          calendarDayHelperText={typeof calendarDayHelperText !== 'undefined' ? calendarDayHelperText : undefined}
-                          data={typeof data !== 'undefined' ? data : undefined}
-                          calendar={typeof calendar !== 'undefined' ? calendar : undefined}
-                          onMouseDown={typeof onMouseDown !== 'undefined' ? onMouseDown : undefined}
-                          openTaskModalForCalendarDay={typeof openTaskModalForCalendarDay !== 'undefined' ? openTaskModalForCalendarDay : undefined}
-                          px={typeof px !== 'undefined' ? px : undefined}
-                          rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                          full={typeof full !== 'undefined' ? full : undefined}
-                          Bu={typeof Bu !== 'undefined' ? Bu : undefined}
-                          Ekle={typeof Ekle !== 'undefined' ? Ekle : undefined}
-                          selectedDayCalendarTasks={typeof selectedDayCalendarTasks !== 'undefined' ? selectedDayCalendarTasks : undefined}
-                          day={typeof day !== 'undefined' ? day : undefined}
-                          openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
-                          border={typeof border !== 'undefined' ? border : undefined}
-                          getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
-                          getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
-                          shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-                          getCalendarTaskBarStyle={typeof getCalendarTaskBarStyle !== 'undefined' ? getCalendarTaskBarStyle : undefined}
-                          yok={typeof yok !== 'undefined' ? yok : undefined}
-                        />
+                        <TakvimTabPanelCalendarViewGunBlock {...props} />
 
                         {calendarView === 'Liste' && (
                           <div className="min-h-[430px] bg-[#fbfcfd] p-4">

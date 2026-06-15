@@ -1,61 +1,42 @@
 {
-  "build": "v528-shell-feature-prop-spread-compaction",
-  "note": "ZRCAppShell içindeki büyük feature panel prop listeleri componentleri değiştirmeden tek zrcFeatureSpreadProps spread objesine indirildi.",
-  "shellLinesBefore": 17201,
+  "build": "v529-generated-child-prop-spread-compaction",
+  "note": "Generated blocks/sections child component çağrılarındaki uzun prop listeleri güvenli spread ile kısaltıldı.",
+  "beforeTotalLines": 19777,
+  "afterTotalLines": 19612,
+  "netReduction": 165,
+  "compactedCallCount": 3,
+  "changedFiles": [
+    "src/app/ZRCAppShell.jsx",
+    "src/features/gorevler/GorevlerTabPanel.jsx",
+    "src/features/takvim/TakvimTabPanel.jsx"
+  ],
   "shellLinesAfter": 16651,
-  "shellNetReduction": 550,
-  "featureSpreadPropCount": 371,
-  "compactedCallCount": 6,
-  "components": [
+  "calls": [
     {
-      "start": 657388,
-      "end": 662510,
-      "component": "RaporlarTabPanel",
-      "propCount": 56,
-      "removedLinesApprox": 57,
-      "replacement": "                <RaporlarTabPanel {...zrcFeatureSpreadProps} />"
+      "file": "src/features/gorevler/GorevlerTabPanel.jsx",
+      "component": "GorevlerTabPanelBoardViewArsivBlock",
+      "propCount": 86,
+      "oldLines": 88,
+      "gain": 87,
+      "spread": "props"
     },
     {
-      "start": 650949,
-      "end": 657319,
-      "component": "GanttCizelgesiTabPanel",
-      "propCount": 72,
-      "removedLinesApprox": 73,
-      "replacement": "                <GanttCizelgesiTabPanel {...zrcFeatureSpreadProps} />"
+      "file": "src/features/takvim/TakvimTabPanel.jsx",
+      "component": "TakvimTabPanelCalendarViewGunBlock",
+      "propCount": 34,
+      "oldLines": 36,
+      "gain": 35,
+      "spread": "props"
     },
     {
-      "start": 643158,
-      "end": 650872,
-      "component": "DosyalarTabPanel",
-      "propCount": 84,
-      "removedLinesApprox": 85,
-      "replacement": "                <DosyalarTabPanel {...zrcFeatureSpreadProps} />"
-    },
-    {
-      "start": 634980,
-      "end": 643090,
-      "component": "ZamanCizelgesiTabPanel",
-      "propCount": 85,
-      "removedLinesApprox": 86,
-      "replacement": "                <ZamanCizelgesiTabPanel {...zrcFeatureSpreadProps} />"
-    },
-    {
-      "start": 625380,
-      "end": 634904,
-      "component": "TakvimTabPanel",
-      "propCount": 107,
-      "removedLinesApprox": 108,
-      "replacement": "                <TakvimTabPanel {...zrcFeatureSpreadProps} />"
-    },
-    {
-      "start": 611772,
-      "end": 625312,
-      "component": "GorevlerTabPanel",
-      "propCount": 155,
-      "removedLinesApprox": 156,
-      "replacement": "                <GorevlerTabPanel {...zrcFeatureSpreadProps} />"
+      "file": "src/features/takvim/TakvimTabPanel.jsx",
+      "component": "TakvimTabPanelCalendarViewAyBlock",
+      "propCount": 42,
+      "oldLines": 44,
+      "gain": 43,
+      "spread": "props"
     }
   ],
-  "commitBefore": "7fdb5b9",
-  "createdAt": "2026-06-15T20:10:36.024903+00:00"
+  "commitBefore": "289cf9d",
+  "createdAt": "2026-06-15T20:17:05.371502+00:00"
 }
