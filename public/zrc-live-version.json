@@ -1,66 +1,12 @@
 {
-  "build": "v511-auto-safe-helper-extract",
-  "note": "v510 raporundaki güvenli saf helper adayları tek tek denenerek, build geçenler src/utils/appSafeHelpers.js dosyasına taşındı.",
-  "kept": [
-    [
-      "getSupabaseSafeDate",
-      57
-    ]
+  "build": "v515-extract-calendar-quick-task-helper",
+  "note": "v514 raporundaki openCalendarQuickTaskCreator fonksiyonu src/utils/calendarQuickTaskHelper.js dosyasına taşındı; App.jsx içinde state setter context wrapper bırakıldı.",
+  "changed": [
+    "src/utils/calendarQuickTaskHelper.js oluşturuldu: 42 satırlık fonksiyon taşındı",
+    "App.jsx içinde openCalendarQuickTaskCreator kısa context wrapper'a dönüştürüldü",
+    "App.jsx'e calendarQuickTaskHelper importu eklendi"
   ],
-  "skipped": [
-    [
-      "createQuickNoteFromHome",
-      "build geçmedi"
-    ],
-    [
-      "getGanttPeriods",
-      "build geçmedi"
-    ],
-    [
-      "customStyles",
-      "build geçmedi"
-    ],
-    [
-      "addProfileEmailAccount",
-      "build geçmedi"
-    ],
-    [
-      "timeChartPeriods",
-      "build geçmedi"
-    ],
-    [
-      "copySupabaseBackupSnapshot",
-      "build geçmedi"
-    ],
-    [
-      "getPlainTaskDescription",
-      "build geçmedi"
-    ],
-    [
-      "createSupabaseProjectWithDefaultColumns",
-      "build geçmedi"
-    ],
-    [
-      "formatMenuCalendarTaskTime",
-      "build geçmedi"
-    ],
-    [
-      "reportSummaryCards",
-      "build geçmedi"
-    ],
-    [
-      "isHiddenTimeChartMember",
-      "build geçmedi"
-    ],
-    [
-      "normalizeTaskPersonForSave",
-      "build geçmedi"
-    ],
-    [
-      "formatDateStringShort",
-      "build geçmedi"
-    ]
-  ],
-  "commitBefore": "a1c7e4b",
-  "createdAt": "2026-06-15T09:04:50.409742+00:00"
+  "movedLines": 42,
+  "commitBefore": "c756d3e",
+  "createdAt": "2026-06-15T10:59:02.280004+00:00"
 }
