@@ -1,12 +1,12 @@
 {
-  "build": "v501-extract-task-detail-modal",
-  "note": "TaskDetailModal bileşeni App.jsx içinden src/components/Modals/TaskDetailModal.jsx dosyasına taşındı. Storage/navigation tarafına dokunulmadı.",
+  "build": "v502-extract-browser-enhancements",
+  "note": "Browser/PWA/Push/DueDate top-level blokları App.jsx içinden src/utils/browserEnhancements.js dosyasına taşındı. Storage/navigation/login hook sırasına dokunulmadı.",
   "changed": [
-    "src/components/Modals/TaskDetailModal.jsx oluşturuldu/güncellendi",
-    "App.jsx dışına taşınan TaskDetailModal bloğu: yaklaşık 1080 satır",
-    "TaskDetailModal fonksiyonu App.jsx içinden kaldırıldı",
-    "App.jsx'e TaskDetailModal importu eklendi"
+    "src/utils/browserEnhancements.js oluşturuldu/güncellendi",
+    "App.jsx dışına taşınan browser/PWA/push bloğu: yaklaşık 897 satır",
+    "Browser/PWA/Push/DueDate blokları App.jsx içinden kaldırıldı",
+    "App.jsx'e browserEnhancements importu eklendi"
   ],
-  "commitBefore": "fe6fe3c",
-  "createdAt": "2026-06-15T08:07:18.909503+00:00"
+  "commitBefore": "c934465",
+  "createdAt": "2026-06-15T08:10:33.098457+00:00"
 }
