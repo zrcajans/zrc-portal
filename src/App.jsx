@@ -28,12 +28,27 @@ import StageModal from './components/Modals/StageModal';
 import TaskDetailModal from './components/Modals/TaskDetailModal';
 import { supabase } from './supabaseClient';
 import {
+  formatProjectFileSize,
+  getProjectFileIconStyle,
+  buildProjectFileSecondaryText,
+  buildProjectFileInfoRows
+} from './utils/projectFileHelpers';
+import {
+  hexToRgb,
+  rgbToHsl,
+  hslToCss,
+  isLightColor,
+  getReadableColumnColor,
+  getReadableColumnMutedColor,
+  getColumnEditToolsStyle
+} from './utils/colorHelpers';
+import {
   zrcV426bNormalizeTaskDateFields,
   zrcV442SendTaskSavePush,
   zrcV448PlayDesktopNotificationSound
 } from './utils/browserEnhancements';
 
-const ZRC_APP_BUILD_LABEL = 'v502-extract-browser-enhancements';
+const ZRC_APP_BUILD_LABEL = 'v503-extract-color-file-helpers';
 
 const defaultBoardColumns = [
   { id: 'col-1', title: 'Yeni Görev', color: '#ffcb78', desc: 'Yeni oluşturulan görevler bu aşamada bekler.', tasks: [] },
@@ -7695,95 +7710,19 @@ function App() {
     );
   };
 
-  const hexToRgb = (hexColor = '#ffffff') => {
-    const cleanHex = hexColor.replace('#', '');
 
-    if (cleanHex.length !== 6) {
-      return { red: 255, green: 255, blue: 255 };
-    }
 
-    return {
-      red: parseInt(cleanHex.slice(0, 2), 16),
-      green: parseInt(cleanHex.slice(2, 4), 16),
-      blue: parseInt(cleanHex.slice(4, 6), 16)
-    };
-  };
 
-  const rgbToHsl = ({ red, green, blue }) => {
-    const r = red / 255;
-    const g = green / 255;
-    const b = blue / 255;
 
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let hue = 0;
-    let saturation = 0;
-    const lightness = (max + min) / 2;
 
-    if (max !== min) {
-      const diff = max - min;
-      saturation = lightness > 0.5 ? diff / (2 - max - min) : diff / (max + min);
 
-      if (max === r) hue = (g - b) / diff + (g < b ? 6 : 0);
-      if (max === g) hue = (b - r) / diff + 2;
-      if (max === b) hue = (r - g) / diff + 4;
 
-      hue /= 6;
-    }
 
-    return {
-      hue: Math.round(hue * 360),
-      saturation: Math.round(saturation * 100),
-      lightness: Math.round(lightness * 100)
-    };
-  };
 
-  const hslToCss = ({ hue, saturation, lightness }) => {
-    return `hsl(${hue} ${saturation}% ${lightness}%)`;
-  };
 
-  const isLightColor = (hexColor = '#ffffff') => {
-    const { red, green, blue } = hexToRgb(hexColor);
-    const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
 
-    return brightness > 170;
-  };
 
-  const getReadableColumnColor = (hexColor) => {
-    const hsl = rgbToHsl(hexToRgb(hexColor));
-    const saturation = Math.min(72, Math.max(34, hsl.saturation));
 
-    return hslToCss({
-      hue: hsl.hue,
-      saturation,
-      lightness: isLightColor(hexColor) ? 24 : 92
-    });
-  };
-
-  const getReadableColumnMutedColor = (hexColor) => {
-    const hsl = rgbToHsl(hexToRgb(hexColor));
-    const saturation = Math.min(55, Math.max(24, hsl.saturation));
-
-    return hslToCss({
-      hue: hsl.hue,
-      saturation,
-      lightness: isLightColor(hexColor) ? 36 : 84
-    });
-  };
-
-  const getColumnEditToolsStyle = (hexColor) => {
-    return isLightColor(hexColor)
-      ? {
-          backgroundColor: 'rgba(255,255,255,0.72)',
-          color: getReadableColumnColor(hexColor),
-          boxShadow: '0 1px 2px rgba(15,23,42,0.10)'
-        }
-      : {
-          backgroundColor: 'rgba(0,0,0,0.22)',
-          color: getReadableColumnColor(hexColor),
-          boxShadow: '0 1px 2px rgba(0,0,0,0.12)'
-        };
-  };
 
   const handleMoveTaskToColumn = (sourceColumnId, targetColumnId, task = {}) => {
     setOpenTaskMenuId(null);
@@ -8377,25 +8316,22 @@ function App() {
     setActiveTab('Görevler');
   };
 
-  const formatProjectFileSize = (bytes) => {
-    if (!bytes && bytes !== 0) return '-';
+  const getProjectFileSecondaryText = (file = {}) =>
+    buildProjectFileSecondaryText(file, {
+      currentAccountType,
+      selectedProject
+    });
 
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  const getProjectFileInfoRows = (file = {}) =>
+    buildProjectFileInfoRows(file, {
+      currentAccountType,
+      selectedProject,
+      currentProfileName
+    });
 
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
 
-  const getProjectFileIconStyle = (type = '') => {
-    if (type === 'Görsel') return 'bg-emerald-50 text-emerald-600';
-    if (type === 'Video') return 'bg-purple-50 text-purple-600';
-    if (type === 'PDF') return 'bg-red-50 text-red-600';
-    if (type === 'Word') return 'bg-zinc-100 text-zinc-700';
-    if (type === 'Excel') return 'bg-green-50 text-green-600';
-    if (type === 'Sunum') return 'bg-zinc-100 text-zinc-700';
 
-    return 'bg-slate-50 text-slate-500';
-  };
+
 
   const projectFiles = visibleBoardColumns.flatMap((column) =>
     column.tasks.flatMap((task) =>
@@ -8440,41 +8376,9 @@ function App() {
       count: projectFiles.filter((file) => (file.type || 'Dosya') === type).length
     }));
 
-  const getProjectFileSecondaryText = (file = {}) => {
-    if (currentAccountType === 'Patron') return file.taskTitle || 'Görev yok';
-    if (currentAccountType === 'Müşteri') return file.projectName || selectedProject || 'Proje dosyası';
 
-    return file.taskTitle || file.projectName || selectedProject || 'Görev dosyası';
-  };
 
-  const getProjectFileInfoRows = (file = {}) => {
-    if (currentAccountType === 'Patron') {
-      return [
-        ['Bağlı Görev', file.taskTitle],
-        ['Kolon', file.columnTitle],
-        ['Müşteri', file.customer],
-        ['Yükleyen', file.uploader || currentProfileName],
-        ['Tarih', `${file.date || '-'} ${file.time || ''}`]
-      ];
-    }
 
-    if (currentAccountType === 'Müşteri') {
-      return [
-        ['Bağlı Görev', file.taskTitle],
-        ['Proje', file.projectName || selectedProject],
-        ['Tür', file.type || 'Dosya'],
-        ['Tarih', `${file.date || '-'} ${file.time || ''}`]
-      ];
-    }
-
-    return [
-      ['Bağlı Görev', file.taskTitle],
-      ['Kolon', file.columnTitle],
-      ['Proje', file.projectName || selectedProject],
-      ['Yükleyen', file.uploader || currentProfileName],
-      ['Tarih', `${file.date || '-'} ${file.time || ''}`]
-    ];
-  };
 
   const projectFileEmptyTitle = projectFiles.length > 0 ? 'Eşleşen dosya yok' : 'Henüz dosya yok';
   const projectFileEmptyDescription =

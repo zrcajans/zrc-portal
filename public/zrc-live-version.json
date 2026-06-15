@@ -1,12 +1,15 @@
 {
-  "build": "v502-extract-browser-enhancements",
-  "note": "Browser/PWA/Push/DueDate top-level blokları App.jsx içinden src/utils/browserEnhancements.js dosyasına taşındı. Storage/navigation/login hook sırasına dokunulmadı.",
+  "build": "v503-extract-color-file-helpers",
+  "note": "Renk okunabilirlik helperları ve proje dosya helperları App.jsx içinden src/utils dosyalarına taşındı. Storage/navigation/login tarafına dokunulmadı.",
   "changed": [
-    "src/utils/browserEnhancements.js oluşturuldu/güncellendi",
-    "App.jsx dışına taşınan browser/PWA/push bloğu: yaklaşık 897 satır",
-    "Browser/PWA/Push/DueDate blokları App.jsx içinden kaldırıldı",
-    "App.jsx'e browserEnhancements importu eklendi"
+    "src/utils/colorHelpers.js oluşturuldu/güncellendi",
+    "Renk helperları taşındı: 7 adet",
+    "App.jsx'e colorHelpers importu eklendi",
+    "src/utils/projectFileHelpers.js oluşturuldu/güncellendi",
+    "Proje dosya helperları taşındı/wrapperlandı: 4 adet",
+    "State bağımlı proje dosya helperları App.jsx içinde kısa wrapper'a dönüştürüldü",
+    "App.jsx'e projectFileHelpers importu eklendi"
   ],
-  "commitBefore": "c934465",
-  "createdAt": "2026-06-15T08:10:33.098457+00:00"
+  "commitBefore": "7c046f3",
+  "createdAt": "2026-06-15T08:13:04.589220+00:00"
 }
