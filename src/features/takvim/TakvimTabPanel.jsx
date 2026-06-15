@@ -1,5 +1,7 @@
 import React from 'react';
 
+import TakvimTabPanelCalendarViewGunBlock from './blocks/TakvimTabPanelCalendarViewGunBlock';
+import TakvimTabPanelCalendarViewAyBlock from './blocks/TakvimTabPanelCalendarViewAyBlock';
 export default function TakvimTabPanel(props) {
   const {
     activeTab,
@@ -272,90 +274,66 @@ export default function TakvimTabPanel(props) {
                           </div>
                         )}
 
-                        {calendarView === 'Ay' && (
-                          <div
-                            className="grid grid-cols-7 bg-white"
-                          >
-                            {calendarGridDays.map((day) => {
-                              const dayTasks = getTasksForCalendarDay(day);
-                              const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
-                              const isToday = isSameCalendarDay(day, todayStart);
-
-                              return (
-                                <div
-                                  key={day.toISOString()}
-                                  data-calendar-day={formatDateForTaskModal(day)}
-                                  data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                  className={`group min-h-[86px] border-r border-b border-zinc-100 last:border-r-0 px-2 py-1.5 relative ${
-                                    canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
-                                  } transition-colors ${
-                                    isCurrentMonth ? 'bg-white' : 'bg-zinc-50/60'
-                                  }`}
-                                >
-                                  {canCreateTaskFromCalendar && (
-                                    <button
-                                      type="button"
-                                      data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                      aria-label={`${day.getDate()} için görev ekle`}
-                                      onClick={(event) => {
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        openTaskModalForCalendarDay(day);
-                                      }}
-                                      className="absolute inset-0 z-10 cursor-pointer rounded-[4px]"
-                                    />
-                                  )}
-
-                                  <div className="relative z-20 pointer-events-none flex items-center justify-between mb-1">
-                                    <span
-                                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                                        isToday
-                                          ? 'bg-blue-500 text-white'
-                                          : isCurrentMonth
-                                            ? 'text-zinc-500'
-                                            : 'text-zinc-300'
-                                      }`}
-                                    >
-                                      {day.getDate()}
-                                    </span>
-
-                                    {dayTasks.length > 3 ? (
-                                      <span className="text-[9px] font-black text-zinc-300">
-                                        +{dayTasks.length - 3}
-                                      </span>
-                                    ) : (
-                                      canCreateTaskFromCalendar ? (
-                                        <span className="opacity-0 group-hover:opacity-100 text-[13px] leading-none font-black text-blue-400 transition-opacity">
-                                          +
-                                        </span>
-                                      ) : null
-                                    )}
-                                  </div>
-
-                                  <div className="relative z-30 space-y-1">
-                                    {dayTasks.slice(0, 3).map((task) => (
-                                      <button
-                                        key={`${day.toISOString()}-${task.id}`}
-                                        type="button"
-                                        data-calendar-task-button="true"
-                                        onMouseDown={(event) => event.stopPropagation()}
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          openTaskDetail(task, task.columnTitle);
-                                        }}
-                                        className={`relative z-40 w-full h-[21px] px-1.5 rounded-[7px] border text-left text-[9px] font-black truncate transition-all ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}
-                                        style={getPremiumCalendarTaskStyle(task)}
-                                        title={task.title}
-                                      >
-                                        {task.title}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                                                {/* zrc-v523-block-calendarview-ay */}
+                        <TakvimTabPanelCalendarViewAyBlock
+                          calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+                          Ay={typeof Ay !== 'undefined' ? Ay : undefined}
+                          grid={typeof grid !== 'undefined' ? grid : undefined}
+                          bg={typeof bg !== 'undefined' ? bg : undefined}
+                          white={typeof white !== 'undefined' ? white : undefined}
+                          calendarGridDays={typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined}
+                          getTasksForCalendarDay={typeof getTasksForCalendarDay !== 'undefined' ? getTasksForCalendarDay : undefined}
+                          calendarMonthDate={typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined}
+                          isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
+                          todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
+                          data={typeof data !== 'undefined' ? data : undefined}
+                          calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+                          formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
+                          zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                          group={typeof group !== 'undefined' ? group : undefined}
+                          min={typeof min !== 'undefined' ? min : undefined}
+                          h={typeof h !== 'undefined' ? h : undefined}
+                          border={typeof border !== 'undefined' ? border : undefined}
+                          b={typeof b !== 'undefined' ? b : undefined}
+                          zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                          px={typeof px !== 'undefined' ? px : undefined}
+                          py={typeof py !== 'undefined' ? py : undefined}
+                          relative={typeof relative !== 'undefined' ? relative : undefined}
+                          canCreateTaskFromCalendar={typeof canCreateTaskFromCalendar !== 'undefined' ? canCreateTaskFromCalendar : undefined}
+                          cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                          pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                          transition={typeof transition !== 'undefined' ? transition : undefined}
+                          colors={typeof colors !== 'undefined' ? colors : undefined}
+                          ekle={typeof ekle !== 'undefined' ? ekle : undefined}
+                          openTaskModalForCalendarDay={typeof openTaskModalForCalendarDay !== 'undefined' ? openTaskModalForCalendarDay : undefined}
+                          absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+                          inset={typeof inset !== 'undefined' ? inset : undefined}
+                          z={typeof z !== 'undefined' ? z : undefined}
+                          rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                          events={typeof events !== 'undefined' ? events : undefined}
+                          none={typeof none !== 'undefined' ? none : undefined}
+                          flex={typeof flex !== 'undefined' ? flex : undefined}
+                          items={typeof items !== 'undefined' ? items : undefined}
+                          center={typeof center !== 'undefined' ? center : undefined}
+                          justify={typeof justify !== 'undefined' ? justify : undefined}
+                          between={typeof between !== 'undefined' ? between : undefined}
+                          mb={typeof mb !== 'undefined' ? mb : undefined}
+                          w={typeof w !== 'undefined' ? w : undefined}
+                          full={typeof full !== 'undefined' ? full : undefined}
+                          text={typeof text !== 'undefined' ? text : undefined}
+                          font={typeof font !== 'undefined' ? font : undefined}
+                          black={typeof black !== 'undefined' ? black : undefined}
+                          blue={typeof blue !== 'undefined' ? blue : undefined}
+                          leading={typeof leading !== 'undefined' ? leading : undefined}
+                          space={typeof space !== 'undefined' ? space : undefined}
+                          onMouseDown={typeof onMouseDown !== 'undefined' ? onMouseDown : undefined}
+                          openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
+                          left={typeof left !== 'undefined' ? left : undefined}
+                          truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                          all={typeof all !== 'undefined' ? all : undefined}
+                          getCalendarTaskBarStyle={typeof getCalendarTaskBarStyle !== 'undefined' ? getCalendarTaskBarStyle : undefined}
+                          getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                        />
 
                         {calendarView === 'Hafta' && (
                           <div
@@ -425,76 +403,65 @@ export default function TakvimTabPanel(props) {
                           </div>
                         )}
 
-                        {calendarView === 'Gün' && (
-                          <div
-                            onClick={(event) => {
-                              if (!canCreateTaskFromCalendar) return;
-                              handleCalendarDayClick(event, calendarFocusedDate);
-                            }}
-                            role="button"
-                            tabIndex={0}
-                            className={`min-h-[430px] bg-white p-5 transition-colors ${
-                              canCreateTaskFromCalendar ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <div>
-                                <div className="text-[13px] font-black text-zinc-800 capitalize">{formatCalendarFullDate(calendarFocusedDate)}</div>
-                                <div className="mt-1 text-[10.5px] font-bold text-zinc-400">{calendarDayHelperText}</div>
-                              </div>
-
-                              {canCreateTaskFromCalendar && (
-                                <button
-                                  type="button"
-                                  data-calendar-task-button="true"
-                                  onMouseDown={(event) => event.stopPropagation()}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openTaskModalForCalendarDay(calendarFocusedDate);
-                                  }}
-                                  className="h-8 px-3.5 rounded-full bg-[#2563eb] text-white text-[10.5px] font-black hover:bg-[#1d4ed8] transition-all"
-                                >
-                                  Bu Güne Görev Ekle
-                                </button>
-                              )}
-                            </div>
-
-                            <div className="space-y-2">
-                              {selectedDayCalendarTasks.map((task) => (
-                                <button
-                                  key={`day-task-${task.id}`}
-                                  type="button"
-                                  onMouseDown={(event) => event.stopPropagation()}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openTaskDetail(task, task.columnTitle);
-                                  }}
-                                  className="w-full bg-white border border-zinc-200 border-l-[3px] rounded-[10px] p-3 text-left hover:border-zinc-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all"
-                                  style={getPremiumCalendarTaskStyle(task)}
-                                >
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div className="min-w-0">
-                                      <div className="text-[12px] font-black text-zinc-800 truncate">{task.title}</div>
-                                      <div className="mt-1 text-[10px] font-bold text-zinc-400 truncate">
-                                        {getRoleAwareTaskMeta(task)}
-                                      </div>
-                                    </div>
-
-                                    <span className={`shrink-0 h-5 px-2 rounded-full border text-[9px] font-black ${getCalendarTaskBarStyle(task.priority, task.isArchivedCalendarTask)}`}>
-                                      {task.priority || 'Normal'}
-                                    </span>
-                                  </div>
-                                </button>
-                              ))}
-
-                              {selectedDayCalendarTasks.length === 0 && (
-                                <div className="h-[180px] rounded-[12px] border border-dashed border-zinc-200 bg-zinc-50/60 flex items-center justify-center text-[11px] font-bold text-zinc-400">
-                                  Bu gün için görev yok.
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                                                {/* zrc-v523-block-calendarview-gun */}
+                        <TakvimTabPanelCalendarViewGunBlock
+                          calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+                          canCreateTaskFromCalendar={typeof canCreateTaskFromCalendar !== 'undefined' ? canCreateTaskFromCalendar : undefined}
+                          handleCalendarDayClick={typeof handleCalendarDayClick !== 'undefined' ? handleCalendarDayClick : undefined}
+                          calendarFocusedDate={typeof calendarFocusedDate !== 'undefined' ? calendarFocusedDate : undefined}
+                          tabIndex={typeof tabIndex !== 'undefined' ? tabIndex : undefined}
+                          min={typeof min !== 'undefined' ? min : undefined}
+                          h={typeof h !== 'undefined' ? h : undefined}
+                          bg={typeof bg !== 'undefined' ? bg : undefined}
+                          white={typeof white !== 'undefined' ? white : undefined}
+                          transition={typeof transition !== 'undefined' ? transition : undefined}
+                          colors={typeof colors !== 'undefined' ? colors : undefined}
+                          cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                          pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                          zinc={typeof zinc !== 'undefined' ? zinc : undefined}
+                          flex={typeof flex !== 'undefined' ? flex : undefined}
+                          items={typeof items !== 'undefined' ? items : undefined}
+                          center={typeof center !== 'undefined' ? center : undefined}
+                          justify={typeof justify !== 'undefined' ? justify : undefined}
+                          between={typeof between !== 'undefined' ? between : undefined}
+                          mb={typeof mb !== 'undefined' ? mb : undefined}
+                          text={typeof text !== 'undefined' ? text : undefined}
+                          font={typeof font !== 'undefined' ? font : undefined}
+                          black={typeof black !== 'undefined' ? black : undefined}
+                          capitalize={typeof capitalize !== 'undefined' ? capitalize : undefined}
+                          formatCalendarFullDate={typeof formatCalendarFullDate !== 'undefined' ? formatCalendarFullDate : undefined}
+                          mt={typeof mt !== 'undefined' ? mt : undefined}
+                          bold={typeof bold !== 'undefined' ? bold : undefined}
+                          calendarDayHelperText={typeof calendarDayHelperText !== 'undefined' ? calendarDayHelperText : undefined}
+                          data={typeof data !== 'undefined' ? data : undefined}
+                          calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+                          onMouseDown={typeof onMouseDown !== 'undefined' ? onMouseDown : undefined}
+                          openTaskModalForCalendarDay={typeof openTaskModalForCalendarDay !== 'undefined' ? openTaskModalForCalendarDay : undefined}
+                          px={typeof px !== 'undefined' ? px : undefined}
+                          rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                          full={typeof full !== 'undefined' ? full : undefined}
+                          all={typeof all !== 'undefined' ? all : undefined}
+                          Bu={typeof Bu !== 'undefined' ? Bu : undefined}
+                          Ekle={typeof Ekle !== 'undefined' ? Ekle : undefined}
+                          space={typeof space !== 'undefined' ? space : undefined}
+                          selectedDayCalendarTasks={typeof selectedDayCalendarTasks !== 'undefined' ? selectedDayCalendarTasks : undefined}
+                          day={typeof day !== 'undefined' ? day : undefined}
+                          openTaskDetail={typeof openTaskDetail !== 'undefined' ? openTaskDetail : undefined}
+                          w={typeof w !== 'undefined' ? w : undefined}
+                          border={typeof border !== 'undefined' ? border : undefined}
+                          l={typeof l !== 'undefined' ? l : undefined}
+                          left={typeof left !== 'undefined' ? left : undefined}
+                          shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                          getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                          gap={typeof gap !== 'undefined' ? gap : undefined}
+                          truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                          getRoleAwareTaskMeta={typeof getRoleAwareTaskMeta !== 'undefined' ? getRoleAwareTaskMeta : undefined}
+                          shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                          getCalendarTaskBarStyle={typeof getCalendarTaskBarStyle !== 'undefined' ? getCalendarTaskBarStyle : undefined}
+                          Normal={typeof Normal !== 'undefined' ? Normal : undefined}
+                          dashed={typeof dashed !== 'undefined' ? dashed : undefined}
+                          yok={typeof yok !== 'undefined' ? yok : undefined}
+                        />
 
                         {calendarView === 'Liste' && (
                           <div className="min-h-[430px] bg-[#fbfcfd] p-4">

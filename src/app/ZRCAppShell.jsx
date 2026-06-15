@@ -127,6 +127,13 @@ import DosyalarTabPanel from '../features/dosyalar/DosyalarTabPanel';
 import ZamanCizelgesiTabPanel from '../features/zaman_cizelgesi/ZamanCizelgesiTabPanel';
 import TakvimTabPanel from '../features/takvim/TakvimTabPanel';
 import GorevlerTabPanel from '../features/gorevler/GorevlerTabPanel';
+import ZRCAppShellActiveProfileTabVeriYonetimiBlock from './blocks/ZRCAppShellActiveProfileTabVeriYonetimiBlock';
+import ZRCAppShellActiveProfileTabHesapBlock from './blocks/ZRCAppShellActiveProfileTabHesapBlock';
+import ZRCAppShellCalendarViewHaftaBlock from './blocks/ZRCAppShellCalendarViewHaftaBlock';
+import ZRCAppShellCalendarViewAyBlock from './blocks/ZRCAppShellCalendarViewAyBlock';
+import ZRCAppShellCalendarViewGunBlock from './blocks/ZRCAppShellCalendarViewGunBlock';
+import ZRCAppShellCalendarViewHaftaBlock2 from './blocks/ZRCAppShellCalendarViewHaftaBlock2';
+import ZRCAppShellCalendarViewAyBlock2 from './blocks/ZRCAppShellCalendarViewAyBlock2';
 function App() {
 
   const zrcSetSupabaseWriteInfo = (status, message) => {
@@ -13828,273 +13835,235 @@ return (
                       </div>
                     </div>
 
-                    {calendarView === 'Ay' && (
-                      <>
-                        <div className="grid grid-cols-7 h-[36px] bg-white border-b border-[#eceff4]">
-                          {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((dayName) => (
-                            <div
-                              key={`home-calendar-head-${dayName}`}
-                              className="border-r border-[#eceff4] last:border-r-0 flex items-center justify-center text-[13px] font-semibold text-[#9aa4b2]"
-                            >
-                              {dayName}
-                            </div>
-                          ))}
-                        </div>
+                                        {/* zrc-v523-block-calendarview-ay */}
+                    <ZRCAppShellCalendarViewAyBlock2
+                      calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+                      Ay={typeof Ay !== 'undefined' ? Ay : undefined}
+                      grid={typeof grid !== 'undefined' ? grid : undefined}
+                      h={typeof h !== 'undefined' ? h : undefined}
+                      bg={typeof bg !== 'undefined' ? bg : undefined}
+                      white={typeof white !== 'undefined' ? white : undefined}
+                      border={typeof border !== 'undefined' ? border : undefined}
+                      b={typeof b !== 'undefined' ? b : undefined}
+                      eceff4={typeof eceff4 !== 'undefined' ? eceff4 : undefined}
+                      Pzt={typeof Pzt !== 'undefined' ? Pzt : undefined}
+                      Sal={typeof Sal !== 'undefined' ? Sal : undefined}
+                      Per={typeof Per !== 'undefined' ? Per : undefined}
+                      Cum={typeof Cum !== 'undefined' ? Cum : undefined}
+                      Cmt={typeof Cmt !== 'undefined' ? Cmt : undefined}
+                      Paz={typeof Paz !== 'undefined' ? Paz : undefined}
+                      home={typeof home !== 'undefined' ? home : undefined}
+                      calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+                      head={typeof head !== 'undefined' ? head : undefined}
+                      flex={typeof flex !== 'undefined' ? flex : undefined}
+                      items={typeof items !== 'undefined' ? items : undefined}
+                      center={typeof center !== 'undefined' ? center : undefined}
+                      justify={typeof justify !== 'undefined' ? justify : undefined}
+                      text={typeof text !== 'undefined' ? text : undefined}
+                      font={typeof font !== 'undefined' ? font : undefined}
+                      semibold={typeof semibold !== 'undefined' ? semibold : undefined}
+                      repeat={typeof repeat !== 'undefined' ? repeat : undefined}
+                      calendarGridDays={typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined}
+                      getMenuCalendarTasksForDay={typeof getMenuCalendarTasksForDay !== 'undefined' ? getMenuCalendarTasksForDay : undefined}
+                      calendarMonthDate={typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined}
+                      isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
+                      todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
+                      month={typeof month !== 'undefined' ? month : undefined}
+                      tabIndex={typeof tabIndex !== 'undefined' ? tabIndex : undefined}
+                      data={typeof data !== 'undefined' ? data : undefined}
+                      zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                      formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
+                      openHomeCalendarQuickTaskForDate={typeof openHomeCalendarQuickTaskForDate !== 'undefined' ? openHomeCalendarQuickTaskForDate : undefined}
+                      onMouseUp={typeof onMouseUp !== 'undefined' ? onMouseUp : undefined}
+                      Enter={typeof Enter !== 'undefined' ? Enter : undefined}
+                      min={typeof min !== 'undefined' ? min : undefined}
+                      px={typeof px !== 'undefined' ? px : undefined}
+                      py={typeof py !== 'undefined' ? py : undefined}
+                      left={typeof left !== 'undefined' ? left : undefined}
+                      transition={typeof transition !== 'undefined' ? transition : undefined}
+                      all={typeof all !== 'undefined' ? all : undefined}
+                      fafcff={typeof fafcff !== 'undefined' ? fafcff : undefined}
+                      overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                      hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                      cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                      pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                      fbfcfe={typeof fbfcfe !== 'undefined' ? fbfcfe : undefined}
+                      start={typeof start !== 'undefined' ? start : undefined}
+                      end={typeof end !== 'undefined' ? end : undefined}
+                      w={typeof w !== 'undefined' ? w : undefined}
+                      rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                      full={typeof full !== 'undefined' ? full : undefined}
+                      c4cbd5={typeof c4cbd5 !== 'undefined' ? c4cbd5 : undefined}
+                      mt={typeof mt !== 'undefined' ? mt : undefined}
+                      space={typeof space !== 'undefined' ? space : undefined}
+                      cal={typeof cal !== 'undefined' ? cal : undefined}
+                      openMenuCalendarTask={typeof openMenuCalendarTask !== 'undefined' ? openMenuCalendarTask : undefined}
+                      gap={typeof gap !== 'undefined' ? gap : undefined}
+                      e4e9f1={typeof e4e9f1 !== 'undefined' ? e4e9f1 : undefined}
+                      l={typeof l !== 'undefined' ? l : undefined}
+                      shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                      getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                      shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                      getPremiumCalendarDotStyle={typeof getPremiumCalendarDotStyle !== 'undefined' ? getPremiumCalendarDotStyle : undefined}
+                      black={typeof black !== 'undefined' ? black : undefined}
+                      current={typeof current !== 'undefined' ? current : undefined}
+                      truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                      formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
+                      bold={typeof bold !== 'undefined' ? bold : undefined}
+                      b8bfca={typeof b8bfca !== 'undefined' ? b8bfca : undefined}
+                    />
 
-                        <div className="grid grid-cols-7 grid-rows-[repeat(6,93px)]">
-                          {calendarGridDays.map((day) => {
-                            const dayTasks = getMenuCalendarTasksForDay(day);
-                            const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
-                            const isToday = isSameCalendarDay(day, todayStart);
+                                        {/* zrc-v523-block-calendarview-hafta */}
+                    <ZRCAppShellCalendarViewHaftaBlock2
+                      calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+                      Hafta={typeof Hafta !== 'undefined' ? Hafta : undefined}
+                      bg={typeof bg !== 'undefined' ? bg : undefined}
+                      white={typeof white !== 'undefined' ? white : undefined}
+                      grid={typeof grid !== 'undefined' ? grid : undefined}
+                      h={typeof h !== 'undefined' ? h : undefined}
+                      border={typeof border !== 'undefined' ? border : undefined}
+                      b={typeof b !== 'undefined' ? b : undefined}
+                      edf0f4={typeof edf0f4 !== 'undefined' ? edf0f4 : undefined}
+                      calendarWeekDays={typeof calendarWeekDays !== 'undefined' ? calendarWeekDays : undefined}
+                      isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
+                      todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
+                      home={typeof home !== 'undefined' ? home : undefined}
+                      week={typeof week !== 'undefined' ? week : undefined}
+                      head={typeof head !== 'undefined' ? head : undefined}
+                      data={typeof data !== 'undefined' ? data : undefined}
+                      zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                      calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+                      formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
+                      openHomeCalendarQuickTaskForDate={typeof openHomeCalendarQuickTaskForDate !== 'undefined' ? openHomeCalendarQuickTaskForDate : undefined}
+                      text={typeof text !== 'undefined' ? text : undefined}
+                      center={typeof center !== 'undefined' ? center : undefined}
+                      font={typeof font !== 'undefined' ? font : undefined}
+                      bold={typeof bold !== 'undefined' ? bold : undefined}
+                      transition={typeof transition !== 'undefined' ? transition : undefined}
+                      all={typeof all !== 'undefined' ? all : undefined}
+                      f8fbff={typeof f8fbff !== 'undefined' ? f8fbff : undefined}
+                      fafcff={typeof fafcff !== 'undefined' ? fafcff : undefined}
+                      formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
+                      formatCalendarWeekday={typeof formatCalendarWeekday !== 'undefined' ? formatCalendarWeekday : undefined}
+                      px={typeof px !== 'undefined' ? px : undefined}
+                      flex={typeof flex !== 'undefined' ? flex : undefined}
+                      items={typeof items !== 'undefined' ? items : undefined}
+                      getMenuCalendarAllDayTasks={typeof getMenuCalendarAllDayTasks !== 'undefined' ? getMenuCalendarAllDayTasks : undefined}
+                      allday={typeof allday !== 'undefined' ? allday : undefined}
+                      gap={typeof gap !== 'undefined' ? gap : undefined}
+                      overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                      hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                      cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                      pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                      onPointerUp={typeof onPointerUp !== 'undefined' ? onPointerUp : undefined}
+                      openMenuCalendarTask={typeof openMenuCalendarTask !== 'undefined' ? openMenuCalendarTask : undefined}
+                      w={typeof w !== 'undefined' ? w : undefined}
+                      full={typeof full !== 'undefined' ? full : undefined}
+                      rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                      left={typeof left !== 'undefined' ? left : undefined}
+                      black={typeof black !== 'undefined' ? black : undefined}
+                      current={typeof current !== 'undefined' ? current : undefined}
+                      truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                      max={typeof max !== 'undefined' ? max : undefined}
+                      auto={typeof auto !== 'undefined' ? auto : undefined}
+                      custom={typeof custom !== 'undefined' ? custom : undefined}
+                      scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                      menuCalendarHours={typeof menuCalendarHours !== 'undefined' ? menuCalendarHours : undefined}
+                      pt={typeof pt !== 'undefined' ? pt : undefined}
+                      semibold={typeof semibold !== 'undefined' ? semibold : undefined}
+                      getMenuCalendarTasksForHour={typeof getMenuCalendarTasksForHour !== 'undefined' ? getMenuCalendarTasksForHour : undefined}
+                      relative={typeof relative !== 'undefined' ? relative : undefined}
+                      repeating={typeof repeating !== 'undefined' ? repeating : undefined}
+                      linear={typeof linear !== 'undefined' ? linear : undefined}
+                      gradient={typeof gradient !== 'undefined' ? gradient : undefined}
+                      fff_0={typeof fff_0 !== 'undefined' ? fff_0 : undefined}
+                      fff_8px={typeof fff_8px !== 'undefined' ? fff_8px : undefined}
+                      fbfbfb_8px={typeof fbfbfb_8px !== 'undefined' ? fbfbfb_8px : undefined}
+                      fbfbfb_16px={typeof fbfbfb_16px !== 'undefined' ? fbfbfb_16px : undefined}
+                      absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+                      right={typeof right !== 'undefined' ? right : undefined}
+                      top={typeof top !== 'undefined' ? top : undefined}
+                      min={typeof min !== 'undefined' ? min : undefined}
+                      e4e9f1={typeof e4e9f1 !== 'undefined' ? e4e9f1 : undefined}
+                      l={typeof l !== 'undefined' ? l : undefined}
+                      py={typeof py !== 'undefined' ? py : undefined}
+                      shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                      getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                      formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
+                    />
 
-                            return (
-                              <div
-                                key={`home-calendar-month-${day.toISOString()}`}
-                                role="button"
-                                tabIndex={0}
-                                data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
-                                onMouseUp={(event) => {
-                                  if (event.target?.closest?.('[data-calendar-task-button="true"]')) return;
-                                  openHomeCalendarQuickTaskForDate(day, event);
-                                }}
-                                onKeyDown={(event) => {
-                                  if (event.key === 'Enter' || event.key === ' ') {
-                                    event.preventDefault();
-                                    openHomeCalendarQuickTaskForDate(day, event);
-                                  }
-                                }}
-                                className={`min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-hidden cursor-pointer ${
-                                  isCurrentMonth ? 'bg-white' : 'bg-[#fbfcfe]'
-                                }`}
-                              >
-                                <div className="flex items-start justify-end">
-                                  <span
-                                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[13px] font-semibold ${
-                                      isToday
-                                        ? 'bg-[#56a8e8] text-white'
-                                        : isCurrentMonth
-                                          ? 'text-[#293241]'
-                                          : 'text-[#c4cbd5]'
-                                    }`}
-                                  >
-                                    {day.getDate()}
-                                  </span>
-                                </div>
-
-                                <div className="mt-2 space-y-1">
-                                  {dayTasks.slice(0, 3).map((task) => (
-                                    <button
-                                      key={`home-cal-task-${day.toISOString()}-${task.projectName}-${task.id}`}
-                                      type="button"
-                                      data-calendar-task-button="true"
-                                      onMouseUp={(event) => event.stopPropagation()}
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        openMenuCalendarTask(task);
-                                      }}
-                                      className="w-full h-[20px] px-1.5 flex items-center gap-1.5 overflow-hidden rounded-[6px] border border-[#e4e9f1] border-l-[3px] bg-white text-left shadow-[0_5px_12px_rgba(15,23,42,0.035)] hover:shadow-[0_8px_16px_rgba(15,23,42,0.06)] transition-all"
-                                      style={getPremiumCalendarTaskStyle(task)}
-                                    >
-                                      <span
-                                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                                        style={getPremiumCalendarDotStyle(task)}
-                                      />
-                                      <span className="min-w-0 flex-1 text-[8px] font-black text-current truncate">
-                                        {formatMenuCalendarTaskTime(task) ? `${formatMenuCalendarTaskTime(task)} · ${task.title}` : task.title}
-                                      </span>
-                                    </button>
-                                  ))}
-
-                                  {dayTasks.length > 3 && (
-                                    <div className="text-[8px] font-bold text-[#b8bfca] px-1">
-                                      +{dayTasks.length - 3}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </>
-                    )}
-
-                    {calendarView === 'Hafta' && (
-                      <div className="bg-white">
-                        <div className="grid grid-cols-[54px_repeat(7,1fr)] h-[36px] border-b border-[#edf0f4]">
-                          <div className="border-r border-[#edf0f4]" />
-                          {calendarWeekDays.map((day) => {
-                            const isToday = isSameCalendarDay(day, todayStart);
-
-                            return (
-                              <button
-                                key={`home-week-head-${day.toISOString()}`}
-                                type="button"
-                                data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
-                                className={`border-r border-[#edf0f4] last:border-r-0 text-center text-[10px] font-bold transition-all ${
-                                  isToday ? 'text-[#56a8e8] bg-[#f8fbff]' : 'text-[#9aa3b1] hover:bg-[#fafcff]'
-                                }`}
-                              >
-                                {formatCalendarDate(day)} {formatCalendarWeekday(day)}
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        <div className="grid grid-cols-[54px_repeat(7,1fr)] h-[34px] border-b border-[#edf0f4]">
-                          <div className="px-2 flex items-center text-[10px] font-bold text-[#4b5563] border-r border-[#edf0f4]">
-                            Tüm Gün
-                          </div>
-                          {calendarWeekDays.map((day) => {
-                            const allDayTasks = getMenuCalendarAllDayTasks(day);
-
-                            return (
-                              <div
-                                key={`home-week-allday-${day.toISOString()}`}
-                                data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
-                                className="px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden cursor-pointer hover:bg-[#fafcff]"
-                              >
-                                {allDayTasks[0] ? (
-                                  <button
-                                    type="button"
-                                    data-calendar-task-button="true"
-                                    onPointerUp={(event) => event.stopPropagation()}
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      openMenuCalendarTask(allDayTasks[0]);
-                                    }}
-                                    className="h-[20px] w-full rounded-[2px] px-2 text-left text-[8px] font-black text-current truncate"
-                                    style={{ backgroundColor: `${allDayTasks[0].columnColor || '#8ecae6'}24` }}
-                                  >
-                                    {allDayTasks[0].title}
-                                  </button>
-                                ) : null}
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="max-h-[528px] overflow-y-auto custom-scrollbar">
-                          {menuCalendarHours.map((hour) => (
-                            <div key={`home-week-hour-${hour}`} className="grid grid-cols-[54px_repeat(7,1fr)] h-[48px] border-b border-[#edf0f4]">
-                              <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
-                                {hour}:00
-                              </div>
-                              {calendarWeekDays.map((day) => {
-                                const hourTasks = getMenuCalendarTasksForHour(day, hour);
-
-                                return (
-                                  <div
-                                    key={`home-week-hour-${day.toISOString()}-${hour}`}
-                                    data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                    onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
-                                    className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
-                                  >
-                                    {hourTasks.slice(0, 2).map((task) => (
-                                      <button
-                                        key={`home-week-task-${task.projectName}-${task.id}`}
-                                        type="button"
-                                        data-calendar-task-button="true"
-                                        onPointerUp={(event) => event.stopPropagation()}
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          openMenuCalendarTask(task);
-                                        }}
-                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
-                                        style={getPremiumCalendarTaskStyle(task)}
-                                      >
-                                        <div>{formatMenuCalendarTaskTime(task)}</div>
-                                        <div className="truncate">{task.title}</div>
-                                      </button>
-                                    ))}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {calendarView === 'Gün' && (
-                      <div className="bg-white">
-                        <button
-                          type="button"
-                          data-zrc-calendar-day={formatDateForTaskModal(calendarFocusedDate)}
-                          onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
-                          className="w-full h-[36px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4] hover:bg-[#fafcff] transition-all"
-                        >
-                          <div className="border-r border-[#edf0f4]" />
-                          <div className="flex items-center justify-center text-[10px] font-bold text-[#9aa3b1]">
-                            {formatCalendarWeekday(calendarFocusedDate)}
-                          </div>
-                        </button>
-
-                        <div className="h-[34px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4]">
-                          <div className="px-2 flex items-center text-[10px] font-bold text-[#4b5563] border-r border-[#edf0f4]">
-                            Tüm Gün
-                          </div>
-                          <div
-                            data-zrc-calendar-day={formatDateForTaskModal(calendarFocusedDate)}
-                            onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
-                            className="px-2 flex items-center cursor-pointer hover:bg-[#fafcff]"
-                          >
-                            {getMenuCalendarAllDayTasks(calendarFocusedDate).slice(0, 2).map((task) => (
-                              <button
-                                key={`home-day-allday-${task.projectName}-${task.id}`}
-                                type="button"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  openMenuCalendarTask(task);
-                                }}
-                                data-calendar-task-button="true"
-                                className="h-[22px] mr-1 rounded-[7px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 text-left text-[8px] font-black text-current truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
-                                style={getPremiumCalendarTaskStyle(task)}
-                              >
-                                {task.title}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="max-h-[528px] overflow-y-auto custom-scrollbar">
-                          {menuCalendarHours.map((hour) => {
-                            const hourTasks = getMenuCalendarTasksForHour(calendarFocusedDate, hour);
-
-                            return (
-                              <div key={`home-day-hour-${hour}`} className="grid grid-cols-[54px_1fr] h-[48px] border-b border-[#edf0f4]">
-                                <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
-                                  {hour}:00
-                                </div>
-                                <div
-                                  data-zrc-calendar-day={formatDateForTaskModal(calendarFocusedDate)}
-                                  onClick={(event) => openHomeCalendarQuickTaskForDate(calendarFocusedDate, event)}
-                                  className="relative bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
-                                >
-                                  {hourTasks.map((task) => (
-                                    <button
-                                      key={`home-day-task-${task.projectName}-${task.id}`}
-                                      type="button"
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        openMenuCalendarTask(task);
-                                      }}
-                                      className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
-                                      style={getPremiumCalendarTaskStyle(task)}
-                                    >
-                                      <div>{formatMenuCalendarTaskTime(task)}</div>
-                                      <div className="truncate">{task.title}</div>
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+                                        {/* zrc-v523-block-calendarview-gun */}
+                    <ZRCAppShellCalendarViewGunBlock
+                      calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+                      bg={typeof bg !== 'undefined' ? bg : undefined}
+                      white={typeof white !== 'undefined' ? white : undefined}
+                      data={typeof data !== 'undefined' ? data : undefined}
+                      zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                      calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+                      day={typeof day !== 'undefined' ? day : undefined}
+                      formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
+                      calendarFocusedDate={typeof calendarFocusedDate !== 'undefined' ? calendarFocusedDate : undefined}
+                      openHomeCalendarQuickTaskForDate={typeof openHomeCalendarQuickTaskForDate !== 'undefined' ? openHomeCalendarQuickTaskForDate : undefined}
+                      w={typeof w !== 'undefined' ? w : undefined}
+                      full={typeof full !== 'undefined' ? full : undefined}
+                      h={typeof h !== 'undefined' ? h : undefined}
+                      grid={typeof grid !== 'undefined' ? grid : undefined}
+                      border={typeof border !== 'undefined' ? border : undefined}
+                      b={typeof b !== 'undefined' ? b : undefined}
+                      edf0f4={typeof edf0f4 !== 'undefined' ? edf0f4 : undefined}
+                      fafcff={typeof fafcff !== 'undefined' ? fafcff : undefined}
+                      transition={typeof transition !== 'undefined' ? transition : undefined}
+                      all={typeof all !== 'undefined' ? all : undefined}
+                      flex={typeof flex !== 'undefined' ? flex : undefined}
+                      items={typeof items !== 'undefined' ? items : undefined}
+                      center={typeof center !== 'undefined' ? center : undefined}
+                      justify={typeof justify !== 'undefined' ? justify : undefined}
+                      text={typeof text !== 'undefined' ? text : undefined}
+                      font={typeof font !== 'undefined' ? font : undefined}
+                      bold={typeof bold !== 'undefined' ? bold : undefined}
+                      formatCalendarWeekday={typeof formatCalendarWeekday !== 'undefined' ? formatCalendarWeekday : undefined}
+                      px={typeof px !== 'undefined' ? px : undefined}
+                      cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                      pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                      getMenuCalendarAllDayTasks={typeof getMenuCalendarAllDayTasks !== 'undefined' ? getMenuCalendarAllDayTasks : undefined}
+                      home={typeof home !== 'undefined' ? home : undefined}
+                      allday={typeof allday !== 'undefined' ? allday : undefined}
+                      openMenuCalendarTask={typeof openMenuCalendarTask !== 'undefined' ? openMenuCalendarTask : undefined}
+                      mr={typeof mr !== 'undefined' ? mr : undefined}
+                      rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                      e4e9f1={typeof e4e9f1 !== 'undefined' ? e4e9f1 : undefined}
+                      l={typeof l !== 'undefined' ? l : undefined}
+                      left={typeof left !== 'undefined' ? left : undefined}
+                      black={typeof black !== 'undefined' ? black : undefined}
+                      current={typeof current !== 'undefined' ? current : undefined}
+                      truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                      shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                      getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                      max={typeof max !== 'undefined' ? max : undefined}
+                      overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                      auto={typeof auto !== 'undefined' ? auto : undefined}
+                      custom={typeof custom !== 'undefined' ? custom : undefined}
+                      scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                      menuCalendarHours={typeof menuCalendarHours !== 'undefined' ? menuCalendarHours : undefined}
+                      getMenuCalendarTasksForHour={typeof getMenuCalendarTasksForHour !== 'undefined' ? getMenuCalendarTasksForHour : undefined}
+                      pt={typeof pt !== 'undefined' ? pt : undefined}
+                      semibold={typeof semibold !== 'undefined' ? semibold : undefined}
+                      relative={typeof relative !== 'undefined' ? relative : undefined}
+                      repeating={typeof repeating !== 'undefined' ? repeating : undefined}
+                      linear={typeof linear !== 'undefined' ? linear : undefined}
+                      gradient={typeof gradient !== 'undefined' ? gradient : undefined}
+                      fff_0={typeof fff_0 !== 'undefined' ? fff_0 : undefined}
+                      fff_8px={typeof fff_8px !== 'undefined' ? fff_8px : undefined}
+                      fbfbfb_8px={typeof fbfbfb_8px !== 'undefined' ? fbfbfb_8px : undefined}
+                      fbfbfb_16px={typeof fbfbfb_16px !== 'undefined' ? fbfbfb_16px : undefined}
+                      absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+                      right={typeof right !== 'undefined' ? right : undefined}
+                      top={typeof top !== 'undefined' ? top : undefined}
+                      min={typeof min !== 'undefined' ? min : undefined}
+                      py={typeof py !== 'undefined' ? py : undefined}
+                      hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                      formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
+                    />
 
                     {calendarView === 'Liste' && (
                       <div className="bg-white min-h-[590px]">
@@ -14328,183 +14297,165 @@ return (
                   </div>
                 </div>
 
-                {calendarView === 'Ay' && (
-                  <>
-                    <div className="grid grid-cols-7 h-[32px] bg-white border-b border-[#edf0f4]">
-                      {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((dayName) => (
-                        <div key={dayName} className="px-3 flex items-center justify-center text-[10px] font-black text-[#9aa3b1] border-r border-[#edf0f4] last:border-r-0">
-                          {dayName}
-                        </div>
-                      ))}
-                    </div>
+                                {/* zrc-v523-block-calendarview-ay */}
+                <ZRCAppShellCalendarViewAyBlock
+                  calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+                  Ay={typeof Ay !== 'undefined' ? Ay : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  b={typeof b !== 'undefined' ? b : undefined}
+                  edf0f4={typeof edf0f4 !== 'undefined' ? edf0f4 : undefined}
+                  Pzt={typeof Pzt !== 'undefined' ? Pzt : undefined}
+                  Sal={typeof Sal !== 'undefined' ? Sal : undefined}
+                  Per={typeof Per !== 'undefined' ? Per : undefined}
+                  Cum={typeof Cum !== 'undefined' ? Cum : undefined}
+                  Cmt={typeof Cmt !== 'undefined' ? Cmt : undefined}
+                  Paz={typeof Paz !== 'undefined' ? Paz : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  justify={typeof justify !== 'undefined' ? justify : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  repeat={typeof repeat !== 'undefined' ? repeat : undefined}
+                  calendarGridDays={typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined}
+                  getMenuCalendarTasksForDay={typeof getMenuCalendarTasksForDay !== 'undefined' ? getMenuCalendarTasksForDay : undefined}
+                  getMenuCalendarHolidayLabel={typeof getMenuCalendarHolidayLabel !== 'undefined' ? getMenuCalendarHolidayLabel : undefined}
+                  calendarMonthDate={typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined}
+                  isSameCalendarDay={typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined}
+                  todayStart={typeof todayStart !== 'undefined' ? todayStart : undefined}
+                  menu={typeof menu !== 'undefined' ? menu : undefined}
+                  calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+                  month={typeof month !== 'undefined' ? month : undefined}
+                  handleCalendarDayClick={typeof handleCalendarDayClick !== 'undefined' ? handleCalendarDayClick : undefined}
+                  data={typeof data !== 'undefined' ? data : undefined}
+                  zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                  formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
+                  relative={typeof relative !== 'undefined' ? relative : undefined}
+                  left={typeof left !== 'undefined' ? left : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  f8fbff={typeof f8fbff !== 'undefined' ? f8fbff : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                  pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                  fbfcfe={typeof fbfcfe !== 'undefined' ? fbfcfe : undefined}
+                  repeating={typeof repeating !== 'undefined' ? repeating : undefined}
+                  linear={typeof linear !== 'undefined' ? linear : undefined}
+                  gradient={typeof gradient !== 'undefined' ? gradient : undefined}
+                  fafafa_0={typeof fafafa_0 !== 'undefined' ? fafafa_0 : undefined}
+                  fafafa_6px={typeof fafafa_6px !== 'undefined' ? fafafa_6px : undefined}
+                  f6f6f6_6px={typeof f6f6f6_6px !== 'undefined' ? f6f6f6_6px : undefined}
+                  f6f6f6_12px={typeof f6f6f6_12px !== 'undefined' ? f6f6f6_12px : undefined}
+                  start={typeof start !== 'undefined' ? start : undefined}
+                  between={typeof between !== 'undefined' ? between : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  c5cad3={typeof c5cad3 !== 'undefined' ? c5cad3 : undefined}
+                  mt={typeof mt !== 'undefined' ? mt : undefined}
+                  leading={typeof leading !== 'undefined' ? leading : undefined}
+                  space={typeof space !== 'undefined' ? space : undefined}
+                  openMenuCalendarTask={typeof openMenuCalendarTask !== 'undefined' ? openMenuCalendarTask : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  e4e9f1={typeof e4e9f1 !== 'undefined' ? e4e9f1 : undefined}
+                  l={typeof l !== 'undefined' ? l : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  translate={typeof translate !== 'undefined' ? translate : undefined}
+                  getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                  getPremiumCalendarDotStyle={typeof getPremiumCalendarDotStyle !== 'undefined' ? getPremiumCalendarDotStyle : undefined}
+                  current={typeof current !== 'undefined' ? current : undefined}
+                  formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                />
 
-                    <div className="grid grid-cols-7 grid-rows-[repeat(6,92px)] bg-white">
-                      {calendarGridDays.map((day) => {
-                        const dayTasks = getMenuCalendarTasksForDay(day);
-                        const holidayLabel = getMenuCalendarHolidayLabel(day);
-                        const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
-                        const isToday = isSameCalendarDay(day, todayStart);
-
-                        return (
-                          <button
-                            key={`menu-calendar-month-${day.toISOString()}`}
-                            type="button"
-                            onClick={(event) => handleCalendarDayClick(event, day)}
-                            data-zrc-calendar-day={formatDateForTaskModal(day)}
-                            className={`relative p-1.5 border-r border-b border-[#edf0f4] text-left overflow-hidden hover:bg-[#f8fbff] transition-all cursor-pointer ${
-                              isCurrentMonth ? 'bg-white' : 'bg-[#fbfcfe]'
-                            } ${holidayLabel ? 'bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_6px,#f6f6f6_6px,#f6f6f6_12px)]' : ''}`}
-                          >
-                            <div className="flex items-start justify-between">
-                              <span
-                                className={`w-5 h-5 rounded-[4px] flex items-center justify-center text-[8.5px] font-black ${
-                                  isToday
-                                    ? 'bg-[#55ace8] text-white'
-                                    : isCurrentMonth
-                                      ? 'text-[#4b5563]'
-                                      : 'text-[#c5cad3]'
-                                }`}
-                              >
-                                {day.getDate()}
-                              </span>
-                            </div>
-
-                            {holidayLabel && (
-                              <div className="mt-1 text-[9.5px] font-black leading-4 text-[#374151] text-center">
-                                {holidayLabel}
-                              </div>
-                            )}
-
-                            <div className="mt-1 space-y-1">
-                              {dayTasks.slice(0, 3).map((task) => (
-                                <button
-                                  key={`menu-month-task-${day.toISOString()}-${task.projectName}-${task.id}`}
-                                  type="button"
-                                  data-calendar-task-button="true"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openMenuCalendarTask(task);
-                                  }}
-                                  className="h-[21px] w-full rounded-[7px] px-1.5 flex items-center gap-1.5 overflow-hidden border border-[#e4e9f1] border-l-[3px] bg-white text-left shadow-[0_6px_14px_rgba(15,23,42,0.045)] hover:shadow-[0_9px_18px_rgba(15,23,42,0.075)] hover:-translate-y-[1px] transition-all"
-                                  style={getPremiumCalendarTaskStyle(task)}
-                                >
-                                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={getPremiumCalendarDotStyle(task)} />
-                                  <span className="text-[7.5px] font-black text-current shrink-0">
-                                    {formatMenuCalendarTaskTime(task)}
-                                  </span>
-                                  <span className="min-w-0 flex-1 text-[8.5px] font-black text-current truncate">
-                                    {task.title}
-                                  </span>
-                                </button>
-                              ))}
-
-                              {dayTasks.length > 3 && (
-                                <div className="text-[8px] font-black text-[#9aa3b1] px-1">
-                                  +{dayTasks.length - 3}
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-
-                {calendarView === 'Hafta' && (
-                  <div className="bg-white">
-                    <div className="grid grid-cols-[54px_repeat(7,1fr)] h-[36px] border-b border-[#edf0f4]">
-                      <div className="border-r border-[#edf0f4]" />
-                      {calendarWeekDays.map((day) => (
-                        <button
-                          key={`week-head-${day.toISOString()}`}
-                          type="button"
-                          onClick={() => setCalendarFocusedDate(day)}
-                          className="border-r border-[#edf0f4] last:border-r-0 text-center text-[10px] font-black text-[#9aa3b1]"
-                        >
-                          {formatCalendarDate(day)} {formatCalendarWeekday(day)}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-[54px_repeat(7,1fr)] h-[32px] border-b border-[#edf0f4]">
-                      <div className="px-2 flex items-center text-[10px] font-bold text-[#4b5563] border-r border-[#edf0f4]">
-                        Tüm Gün
-                      </div>
-                      {calendarWeekDays.map((day) => {
-                        const allDayTasks = getMenuCalendarAllDayTasks(day);
-                        const holidayLabel = getMenuCalendarHolidayLabel(day);
-
-                        return (
-                          <div
-                            key={`week-allday-${day.toISOString()}`}
-                            data-zrc-calendar-day={formatDateForTaskModal(day)}
-                            onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
-                            className={`px-2 flex items-center gap-1 border-r border-[#edf0f4] last:border-r-0 overflow-hidden cursor-pointer hover:bg-[#f8fbff] ${
-                              holidayLabel ? 'bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_6px,#f6f6f6_6px,#f6f6f6_12px)]' : ''
-                            }`}
-                          >
-                            {holidayLabel ? (
-                              <span className="text-[9px] font-black text-[#374151] truncate">{holidayLabel}</span>
-                            ) : allDayTasks[0] ? (
-                              <button
-                                type="button"
-                                data-calendar-task-button="true"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  openMenuCalendarTask(allDayTasks[0]);
-                                }}
-                                className="h-[22px] w-full rounded-[7px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 text-left text-[8px] font-black text-current truncate shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
-                                style={getPremiumCalendarTaskStyle(allDayTasks[0])}
-                              >
-                                {allDayTasks[0].title}
-                              </button>
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="max-h-[560px] overflow-y-auto custom-scrollbar">
-                      {menuCalendarHours.map((hour) => (
-                        <div key={`week-hour-${hour}`} className="grid grid-cols-[54px_repeat(7,1fr)] h-[48px] border-b border-[#edf0f4]">
-                          <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
-                            {hour}:00
-                          </div>
-                          {calendarWeekDays.map((day) => {
-                            const hourTasks = getMenuCalendarTasksForHour(day, hour);
-
-                            return (
-                              <div
-                                key={`week-hour-${day.toISOString()}-${hour}`}
-                                data-zrc-calendar-day={formatDateForTaskModal(day)}
-                                onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
-                                className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#f8fbff]"
-                              >
-                                {hourTasks.slice(0, 2).map((task) => (
-                                  <button
-                                    key={`week-task-${task.projectName}-${task.id}`}
-                                    type="button"
-                                    data-calendar-task-button="true"
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      openMenuCalendarTask(task);
-                                    }}
-                                    className="absolute left-1 right-1 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] transition-all"
-                                    style={getPremiumCalendarTaskStyle(task)}
-                                  >
-                                    <div className="opacity-80">{formatMenuCalendarTaskTime(task)}</div>
-                                    <div className="truncate">{task.title}</div>
-                                  </button>
-                                ))}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                                {/* zrc-v523-block-calendarview-hafta */}
+                <ZRCAppShellCalendarViewHaftaBlock
+                  calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+                  Hafta={typeof Hafta !== 'undefined' ? Hafta : undefined}
+                  bg={typeof bg !== 'undefined' ? bg : undefined}
+                  white={typeof white !== 'undefined' ? white : undefined}
+                  grid={typeof grid !== 'undefined' ? grid : undefined}
+                  h={typeof h !== 'undefined' ? h : undefined}
+                  border={typeof border !== 'undefined' ? border : undefined}
+                  b={typeof b !== 'undefined' ? b : undefined}
+                  edf0f4={typeof edf0f4 !== 'undefined' ? edf0f4 : undefined}
+                  calendarWeekDays={typeof calendarWeekDays !== 'undefined' ? calendarWeekDays : undefined}
+                  week={typeof week !== 'undefined' ? week : undefined}
+                  head={typeof head !== 'undefined' ? head : undefined}
+                  setCalendarFocusedDate={typeof setCalendarFocusedDate !== 'undefined' ? setCalendarFocusedDate : undefined}
+                  text={typeof text !== 'undefined' ? text : undefined}
+                  center={typeof center !== 'undefined' ? center : undefined}
+                  font={typeof font !== 'undefined' ? font : undefined}
+                  black={typeof black !== 'undefined' ? black : undefined}
+                  formatCalendarDate={typeof formatCalendarDate !== 'undefined' ? formatCalendarDate : undefined}
+                  formatCalendarWeekday={typeof formatCalendarWeekday !== 'undefined' ? formatCalendarWeekday : undefined}
+                  px={typeof px !== 'undefined' ? px : undefined}
+                  flex={typeof flex !== 'undefined' ? flex : undefined}
+                  items={typeof items !== 'undefined' ? items : undefined}
+                  bold={typeof bold !== 'undefined' ? bold : undefined}
+                  getMenuCalendarAllDayTasks={typeof getMenuCalendarAllDayTasks !== 'undefined' ? getMenuCalendarAllDayTasks : undefined}
+                  getMenuCalendarHolidayLabel={typeof getMenuCalendarHolidayLabel !== 'undefined' ? getMenuCalendarHolidayLabel : undefined}
+                  allday={typeof allday !== 'undefined' ? allday : undefined}
+                  data={typeof data !== 'undefined' ? data : undefined}
+                  zrc={typeof zrc !== 'undefined' ? zrc : undefined}
+                  calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+                  formatDateForTaskModal={typeof formatDateForTaskModal !== 'undefined' ? formatDateForTaskModal : undefined}
+                  openHomeCalendarQuickTaskForDate={typeof openHomeCalendarQuickTaskForDate !== 'undefined' ? openHomeCalendarQuickTaskForDate : undefined}
+                  gap={typeof gap !== 'undefined' ? gap : undefined}
+                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
+                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                  cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                  pointer={typeof pointer !== 'undefined' ? pointer : undefined}
+                  f8fbff={typeof f8fbff !== 'undefined' ? f8fbff : undefined}
+                  repeating={typeof repeating !== 'undefined' ? repeating : undefined}
+                  linear={typeof linear !== 'undefined' ? linear : undefined}
+                  gradient={typeof gradient !== 'undefined' ? gradient : undefined}
+                  fafafa_0={typeof fafafa_0 !== 'undefined' ? fafafa_0 : undefined}
+                  fafafa_6px={typeof fafafa_6px !== 'undefined' ? fafafa_6px : undefined}
+                  f6f6f6_6px={typeof f6f6f6_6px !== 'undefined' ? f6f6f6_6px : undefined}
+                  f6f6f6_12px={typeof f6f6f6_12px !== 'undefined' ? f6f6f6_12px : undefined}
+                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                  openMenuCalendarTask={typeof openMenuCalendarTask !== 'undefined' ? openMenuCalendarTask : undefined}
+                  w={typeof w !== 'undefined' ? w : undefined}
+                  full={typeof full !== 'undefined' ? full : undefined}
+                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                  e4e9f1={typeof e4e9f1 !== 'undefined' ? e4e9f1 : undefined}
+                  l={typeof l !== 'undefined' ? l : undefined}
+                  left={typeof left !== 'undefined' ? left : undefined}
+                  current={typeof current !== 'undefined' ? current : undefined}
+                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                  getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                  max={typeof max !== 'undefined' ? max : undefined}
+                  auto={typeof auto !== 'undefined' ? auto : undefined}
+                  custom={typeof custom !== 'undefined' ? custom : undefined}
+                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
+                  menuCalendarHours={typeof menuCalendarHours !== 'undefined' ? menuCalendarHours : undefined}
+                  pt={typeof pt !== 'undefined' ? pt : undefined}
+                  semibold={typeof semibold !== 'undefined' ? semibold : undefined}
+                  getMenuCalendarTasksForHour={typeof getMenuCalendarTasksForHour !== 'undefined' ? getMenuCalendarTasksForHour : undefined}
+                  relative={typeof relative !== 'undefined' ? relative : undefined}
+                  fff_0={typeof fff_0 !== 'undefined' ? fff_0 : undefined}
+                  fff_8px={typeof fff_8px !== 'undefined' ? fff_8px : undefined}
+                  fbfbfb_8px={typeof fbfbfb_8px !== 'undefined' ? fbfbfb_8px : undefined}
+                  fbfbfb_16px={typeof fbfbfb_16px !== 'undefined' ? fbfbfb_16px : undefined}
+                  absolute={typeof absolute !== 'undefined' ? absolute : undefined}
+                  right={typeof right !== 'undefined' ? right : undefined}
+                  top={typeof top !== 'undefined' ? top : undefined}
+                  min={typeof min !== 'undefined' ? min : undefined}
+                  py={typeof py !== 'undefined' ? py : undefined}
+                  transition={typeof transition !== 'undefined' ? transition : undefined}
+                  all={typeof all !== 'undefined' ? all : undefined}
+                  formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
+                />
 
                 {calendarView === 'Gün' && (
                   <div className="bg-white">
@@ -15059,163 +15010,92 @@ return (
                 </div>
 
                 <div className="zrc-profile-tab-content-safe-v328 p-5">
-                  {activeProfileTab === 'Hesap' && (
-                    <div className="space-y-6">
-                      <section>
-                        <div className="text-[14px] font-black text-current mb-4">Hesap Ayarları</div>
-
-                        <div className="text-[12px] font-black text-current mb-3">E-Posta Bilgilerini Güncelle</div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <label className="block">
-                            <span className="block text-[10px] font-black text-[#a1aabb] mb-1.5">E-posta</span>
-                            <input
-                              value={profileDraft.email}
-                              onChange={(event) => setProfileDraft((prev) => ({ ...prev, email: event.target.value }))}
-                              className="w-full h-8 rounded-[15px] border border-[#e4e7ec] px-3 text-[10.5px] font-semibold text-[#394150] focus:outline-none focus:border-[#b7d4ff]"
-                            />
-                          </label>
-
-                          <label className="block">
-                            <span className="block text-[10px] font-black text-[#a1aabb] mb-1.5">Şifre</span>
-                            <input
-                              type="password"
-                              value={profileDraft.password}
-                              onChange={(event) => setProfileDraft((prev) => ({ ...prev, password: event.target.value }))}
-                              placeholder="Şifre"
-                              className="w-full h-8 rounded-[15px] border border-[#e4e7ec] px-3 text-[10.5px] font-semibold text-[#394150] focus:outline-none focus:border-[#b7d4ff]"
-                            />
-                            <div className="mt-1.5 text-[10px] font-bold text-[#7c8798]">E-posta adresini değiştirebilmek için şifre girmelisiniz.</div>
-                          </label>
-                        </div>
-
-                        <div className="mt-3 flex justify-end">
-                          <button type="button" onClick={saveProfileSection} className="h-8 px-4 rounded-full bg-[#45b978] text-white text-[10px] font-black hover:bg-[#38a86b] transition-all">
-                            Güncelle
-                          </button>
-                        </div>
-                      </section>
-
-                      <section className="border-t border-[#edf0f4] pt-5">
-                        <div className="text-[12px] font-black text-current mb-3">Şifreni Değiştir</div>
-                        <div className="grid grid-cols-3 gap-4">
-                          {[
-                            ['currentPassword', 'Güncel şifre'],
-                            ['newPassword', 'Yeni şifre'],
-                            ['repeatPassword', 'Yeni şifre (tekrar)']
-                          ].map(([keyName, label]) => (
-                            <label key={keyName} className="block">
-                              <span className="block text-[10px] font-black text-[#a1aabb] mb-1.5">{keyName === 'currentPassword' ? 'Şifre' : label}</span>
-                              <input
-                                type="password"
-                                value={profileDraft[keyName]}
-                                onChange={(event) => setProfileDraft((prev) => ({ ...prev, [keyName]: event.target.value }))}
-                                placeholder={label}
-                                className="w-full h-8 rounded-[15px] border border-[#e4e7ec] px-3 text-[10.5px] font-semibold text-[#394150] focus:outline-none focus:border-[#b7d4ff]"
-                              />
-                            </label>
-                          ))}
-                        </div>
-                        <div className="mt-3 flex justify-end">
-                          <button type="button" onClick={saveProfileSection} className="h-8 px-4 rounded-full bg-[#45b978] text-white text-[10px] font-black hover:bg-[#38a86b] transition-all">
-                            Güncelle
-                          </button>
-                        </div>
-                      </section>
-
-                      <section className="border-t border-[#edf0f4] pt-5">
-                        <div className="text-[12px] font-black text-current mb-3">Yerelleştirme Ayarları</div>
-                        <div className="grid grid-cols-3 gap-4">
-                          {renderProfileSelect({
-                            id: 'profile-date-format',
-                            label: 'Tarih Formatı',
-                            value: profileDraft.dateFormat,
-                            options: ['DD/MM/YYYY (30/05/2026)', 'MM/DD/YYYY (05/30/2026)'],
-                            onChange: (value) => setProfileDraft((prev) => ({ ...prev, dateFormat: value }))
-                          })}
-
-                          {renderProfileSelect({
-                            id: 'profile-time-format',
-                            label: 'Zaman Formatı',
-                            value: profileDraft.timeFormat,
-                            options: ['24-Saat Formatı (02:21)', '12-Saat Formatı (02:21 AM)'],
-                            onChange: (value) => setProfileDraft((prev) => ({ ...prev, timeFormat: value }))
-                          })}
-
-                          {renderProfileSelect({
-                            id: 'profile-timezone',
-                            label: 'Zaman Dilimi',
-                            value: profileDraft.timezone,
-                            options: ['UTC+03:00', 'UTC+00:00', 'UTC+01:00'],
-                            onChange: (value) => setProfileDraft((prev) => ({ ...prev, timezone: value }))
-                          })}
-                        </div>
-
-                        <div className="mt-3 flex justify-end">
-                          <button type="button" onClick={saveProfileSection} className="h-8 px-4 rounded-full bg-[#45b978] text-white text-[10px] font-black hover:bg-[#38a86b] transition-all">
-                            Güncelle
-                          </button>
-                        </div>
-                      </section>
-
-                      <section className="border-t border-[#edf0f4] pt-5 grid grid-cols-[1fr_auto] gap-4 items-center">
-                        <div>
-                          <div className="text-[12px] font-black text-current">2 Adımlı Doğrulama</div>
-                          <div className="mt-1 text-[10px] font-semibold text-[#7c8798]">
-                            Girişte 6 haneli kod isteyerek hesap güvenliğini artırır.
-                          </div>
-                        </div>
-
-                        <div className="h-8 rounded-full bg-[#e5e7eb] p-0.5 flex">
-                          {[
-                            ['Açık', true],
-                            ['Kapalı', false]
-                          ].map(([label, value]) => (
-                            <button
-                              key={label}
-                              type="button"
-                              onClick={() =>
-                                setProfilePreferences((prev) => ({
-                                  ...prev,
-                                  twoFactorEnabled: value,
-                                  lastSavedAt: new Date().toISOString()
-                                }))
-                              }
-                              className={`h-7 px-4 rounded-full text-[10px] font-black ${
-                                profilePreferences.twoFactorEnabled === value
-                                  ? value
-                                    ? 'bg-[#45b978] text-white'
-                                    : 'bg-red-600 text-white'
-                                  : 'text-[#6b7280]'
-                              }`}
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
-                      </section>
-
-                      <section className="border-t border-[#edf0f4] pt-5 grid grid-cols-[1fr_auto] gap-4 items-center">
-                        <div>
-                          <div className="text-[12px] font-black text-current">Hesabı Sil</div>
-                          <div className="mt-1 text-[10px] font-semibold text-[#7c8798]">
-                            Hesabınızı silme işlemi geri alınamaz.
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setPendingProfileDelete((prev) => !prev)}
-                          className={`h-8 px-4 rounded-full border text-[10px] font-black ${
-                            pendingProfileDelete
-                              ? 'bg-red-600 border-red-600 text-white'
-                              : 'border-red-300 text-red-500 hover:bg-red-50'
-                          }`}
-                        >
-                          {pendingProfileDelete ? 'Emin misin?' : 'Sil'}
-                        </button>
-                      </section>
-                    </div>
-                  )}
+                                    {/* zrc-v523-block-activeprofiletab-hesap */}
+                  <ZRCAppShellActiveProfileTabHesapBlock
+                    activeProfileTab={typeof activeProfileTab !== 'undefined' ? activeProfileTab : undefined}
+                    Hesap={typeof Hesap !== 'undefined' ? Hesap : undefined}
+                    space={typeof space !== 'undefined' ? space : undefined}
+                    text={typeof text !== 'undefined' ? text : undefined}
+                    font={typeof font !== 'undefined' ? font : undefined}
+                    black={typeof black !== 'undefined' ? black : undefined}
+                    current={typeof current !== 'undefined' ? current : undefined}
+                    mb={typeof mb !== 'undefined' ? mb : undefined}
+                    E={typeof E !== 'undefined' ? E : undefined}
+                    Posta={typeof Posta !== 'undefined' ? Posta : undefined}
+                    Bilgilerini={typeof Bilgilerini !== 'undefined' ? Bilgilerini : undefined}
+                    grid={typeof grid !== 'undefined' ? grid : undefined}
+                    gap={typeof gap !== 'undefined' ? gap : undefined}
+                    block={typeof block !== 'undefined' ? block : undefined}
+                    a1aabb={typeof a1aabb !== 'undefined' ? a1aabb : undefined}
+                    posta={typeof posta !== 'undefined' ? posta : undefined}
+                    profileDraft={typeof profileDraft !== 'undefined' ? profileDraft : undefined}
+                    setProfileDraft={typeof setProfileDraft !== 'undefined' ? setProfileDraft : undefined}
+                    w={typeof w !== 'undefined' ? w : undefined}
+                    full={typeof full !== 'undefined' ? full : undefined}
+                    h={typeof h !== 'undefined' ? h : undefined}
+                    rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                    border={typeof border !== 'undefined' ? border : undefined}
+                    e4e7ec={typeof e4e7ec !== 'undefined' ? e4e7ec : undefined}
+                    px={typeof px !== 'undefined' ? px : undefined}
+                    semibold={typeof semibold !== 'undefined' ? semibold : undefined}
+                    outline={typeof outline !== 'undefined' ? outline : undefined}
+                    none={typeof none !== 'undefined' ? none : undefined}
+                    b7d4ff={typeof b7d4ff !== 'undefined' ? b7d4ff : undefined}
+                    password={typeof password !== 'undefined' ? password : undefined}
+                    mt={typeof mt !== 'undefined' ? mt : undefined}
+                    bold={typeof bold !== 'undefined' ? bold : undefined}
+                    adresini={typeof adresini !== 'undefined' ? adresini : undefined}
+                    girmelisiniz={typeof girmelisiniz !== 'undefined' ? girmelisiniz : undefined}
+                    flex={typeof flex !== 'undefined' ? flex : undefined}
+                    justify={typeof justify !== 'undefined' ? justify : undefined}
+                    end={typeof end !== 'undefined' ? end : undefined}
+                    saveProfileSection={typeof saveProfileSection !== 'undefined' ? saveProfileSection : undefined}
+                    bg={typeof bg !== 'undefined' ? bg : undefined}
+                    white={typeof white !== 'undefined' ? white : undefined}
+                    transition={typeof transition !== 'undefined' ? transition : undefined}
+                    all={typeof all !== 'undefined' ? all : undefined}
+                    t={typeof t !== 'undefined' ? t : undefined}
+                    edf0f4={typeof edf0f4 !== 'undefined' ? edf0f4 : undefined}
+                    pt={typeof pt !== 'undefined' ? pt : undefined}
+                    currentPassword={typeof currentPassword !== 'undefined' ? currentPassword : undefined}
+                    newPassword={typeof newPassword !== 'undefined' ? newPassword : undefined}
+                    Yeni={typeof Yeni !== 'undefined' ? Yeni : undefined}
+                    repeatPassword={typeof repeatPassword !== 'undefined' ? repeatPassword : undefined}
+                    tekrar={typeof tekrar !== 'undefined' ? tekrar : undefined}
+                    keyName={typeof keyName !== 'undefined' ? keyName : undefined}
+                    renderProfileSelect={typeof renderProfileSelect !== 'undefined' ? renderProfileSelect : undefined}
+                    profile={typeof profile !== 'undefined' ? profile : undefined}
+                    date={typeof date !== 'undefined' ? date : undefined}
+                    format={typeof format !== 'undefined' ? format : undefined}
+                    Tarih={typeof Tarih !== 'undefined' ? Tarih : undefined}
+                    DD={typeof DD !== 'undefined' ? DD : undefined}
+                    MM={typeof MM !== 'undefined' ? MM : undefined}
+                    YYYY={typeof YYYY !== 'undefined' ? YYYY : undefined}
+                    time={typeof time !== 'undefined' ? time : undefined}
+                    Zaman={typeof Zaman !== 'undefined' ? Zaman : undefined}
+                    Saat={typeof Saat !== 'undefined' ? Saat : undefined}
+                    AM={typeof AM !== 'undefined' ? AM : undefined}
+                    timezone={typeof timezone !== 'undefined' ? timezone : undefined}
+                    Dilimi={typeof Dilimi !== 'undefined' ? Dilimi : undefined}
+                    UTC={typeof UTC !== 'undefined' ? UTC : undefined}
+                    items={typeof items !== 'undefined' ? items : undefined}
+                    center={typeof center !== 'undefined' ? center : undefined}
+                    haneli={typeof haneli !== 'undefined' ? haneli : undefined}
+                    kod={typeof kod !== 'undefined' ? kod : undefined}
+                    isteyerek={typeof isteyerek !== 'undefined' ? isteyerek : undefined}
+                    hesap={typeof hesap !== 'undefined' ? hesap : undefined}
+                    e5e7eb={typeof e5e7eb !== 'undefined' ? e5e7eb : undefined}
+                    setProfilePreferences={typeof setProfilePreferences !== 'undefined' ? setProfilePreferences : undefined}
+                    profilePreferences={typeof profilePreferences !== 'undefined' ? profilePreferences : undefined}
+                    red={typeof red !== 'undefined' ? red : undefined}
+                    Sil={typeof Sil !== 'undefined' ? Sil : undefined}
+                    silme={typeof silme !== 'undefined' ? silme : undefined}
+                    geri={typeof geri !== 'undefined' ? geri : undefined}
+                    setPendingProfileDelete={typeof setPendingProfileDelete !== 'undefined' ? setPendingProfileDelete : undefined}
+                    pendingProfileDelete={typeof pendingProfileDelete !== 'undefined' ? pendingProfileDelete : undefined}
+                    Emin={typeof Emin !== 'undefined' ? Emin : undefined}
+                    misin={typeof misin !== 'undefined' ? misin : undefined}
+                  />
 
                   {activeProfileTab === 'E-Posta Bildirimi' && (
                     <div>
@@ -15448,225 +15328,159 @@ return (
                     </div>
                   )}
 
-                  {activeProfileTab === 'Veri Yönetimi' && (
-                    <div>
-                      <div className="flex items-start justify-between gap-4 mb-5">
-                        <div>
-                          <div className="text-[14px] font-black text-current">Veri Yönetimi</div>
-                          <div className="mt-1 text-[10.5px] font-semibold text-[#7c8798] leading-4">
-                            Proje, görev, ekip, müşteri, yazışma ve bildirim verilerini yedekle veya geri yükle.
-                          </div>
-                        </div>
-
-                        <span className="h-8 px-3 rounded-full bg-[#f6f7fb] border border-[#e5e8ee] text-[10px] font-black text-[#7c8798] flex items-center shrink-0">
-                          Veri sürümü v{APP_DATA_VERSION}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-3">
-                        {dataManagementStats.map(([label, value]) => (
-                          <div key={`data-management-${label}`} className="rounded-[8px] border border-[#edf0f4] bg-[#fafbfc] px-3 py-3">
-                            <div className="text-[20px] font-black text-current">{value}</div>
-                            <div className="mt-1 text-[9px] font-black text-[#9aa3b1] uppercase tracking-[0.06em]">{label}</div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="mt-5 rounded-[10px] border border-[#e5e8ee] bg-[#fafbfc] p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <div className="text-[12px] font-black text-current">Supabase Kontrol Merkezi</div>
-                            <div className="mt-1 text-[10px] font-semibold text-[#7c8798] leading-4">
-                              Veritabanı tablolarını, Storage erişimini ve manuel senkronu tek yerden kontrol et.
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={runSupabaseHealthCheck}
-                              disabled={supabaseHealthLoading || supabaseBackupLoading}
-                              className="h-9 px-4 rounded-full bg-[#263244] text-white text-[10px] font-black disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#111827] transition-all"
-                            >
-                              {supabaseHealthLoading ? 'Kontrol...' : 'Sağlık Kontrolü'}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={runFullSupabaseRefresh}
-                              disabled={supabaseHealthLoading || supabaseBackupLoading}
-                              className="h-9 px-4 rounded-full bg-[#ff3600] border border-[#ff3600] text-white text-[10px] font-black disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#ff3600] hover:text-white transition-all"
-                            >
-                              Tümünü Yenile
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={downloadSupabaseBackupSnapshot}
-                              disabled={supabaseHealthLoading || supabaseBackupLoading}
-                              className="h-9 px-4 rounded-full bg-[#45b978] text-white text-[10px] font-black disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#38a86b] transition-all"
-                            >
-                              {supabaseBackupLoading ? 'Yedek...' : 'Supabase Yedeği'}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={copySupabaseBackupSnapshot}
-                              disabled={supabaseHealthLoading || supabaseBackupLoading}
-                              className="h-9 px-4 rounded-full bg-white border border-[#dfe4ec] text-[#394150] text-[10px] font-black disabled:opacity-60 disabled:cursor-not-allowed hover:border-[#b7d4ff] transition-all"
-                            >
-                              Yedeği Kopyala
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={migrateLocalDataToSupabase}
-                              disabled={supabaseHealthLoading || supabaseBackupLoading}
-                              className="h-9 px-4 rounded-full bg-[#eef6ff] border border-[#cfe4ff] text-[#1769c2] text-[10px] font-black disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#1769c2] hover:text-white transition-all"
-                            >
-                              Yereli Supabase’e Aktar
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={handleInstallPwa}
-                              className="h-9 px-4 rounded-full bg-[#101827] text-white text-[10px] font-black hover:bg-[#000] transition-all"
-                              title="Telefon veya bilgisayara uygulama gibi kur"
-                            >
-                              {pwaInstallStatus.state === 'installed' ? 'Kurulu' : isIosDevice() ? 'iPhone Kurulum' : 'Mobil Kurulum'}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="mt-3 flex flex-wrap items-center gap-2 text-[9.5px] font-black text-[#7c8798]">
-                          <span className="px-2.5 py-1 rounded-full bg-white border border-[#edf0f4]">
-                            {getSupabaseHealthSummary()}
-                          </span>
-                          <span className="px-2.5 py-1 rounded-full bg-white border border-[#edf0f4]">
-                            Son toplu yenileme: {supabaseLastFullRefreshAt ? new Date(supabaseLastFullRefreshAt).toLocaleString('tr-TR') : 'Henüz yok'}
-                          </span>
-                          <span className="px-2.5 py-1 rounded-full bg-white border border-[#edf0f4]">
-                            Son Supabase yedeği: {(supabaseLastBackupAt || profilePreferences.lastSupabaseBackupAt) ? new Date(supabaseLastBackupAt || profilePreferences.lastSupabaseBackupAt).toLocaleString('tr-TR') : 'Henüz yok'}
-                          </span>
-                          <span className="px-2.5 py-1 rounded-full bg-white border border-[#edf0f4]">
-                            Yerel aktarım: tarayıcı verisini Supabase’e taşır
-                          </span>
-                          <span className={`px-2.5 py-1 rounded-full border ${getSupabaseRealtimeClass()}`}>
-                            {supabaseRealtimeStatus.label}
-                          </span>
-                          <span className="px-2.5 py-1 rounded-full bg-white border border-[#edf0f4]">
-                            Son canlı senkron: {supabaseLastRealtimeAt ? new Date(supabaseLastRealtimeAt).toLocaleString('tr-TR') : 'Henüz yok'}
-                          </span>
-                          <span
-                            className={`px-2.5 py-1 rounded-full border ${getPwaInstallClass()}`}
-                            title="Mobil/PWA kurulum durumu"
-                          >
-                            {pwaInstallStatus.label}
-                          </span>
-                        </div>
-
-                        {supabaseHealthReport.length > 0 && (
-                          <div className="mt-4 grid grid-cols-2 gap-2">
-                            {supabaseHealthReport.map((row) => (
-                              <div
-                                key={row.key}
-                                className={`rounded-[8px] border px-3 py-2 ${getSupabaseHealthStateClass(row.state)}`}
-                              >
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-[10px] font-black">{row.label}</span>
-                                  <span className="text-[9px] font-black uppercase">{row.state}</span>
-                                </div>
-                                <div className="mt-1 text-[9.5px] font-bold opacity-80 truncate">
-                                  {row.detail || 'Detay yok'}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-5 grid grid-cols-[1.2fr_0.8fr] gap-4">
-                        <div className="rounded-[8px] border border-[#edf0f4] bg-white p-4">
-                          <div className="text-[12px] font-black text-current">Yedekleme</div>
-                          <div className="mt-1 text-[10px] font-semibold text-[#7c8798] leading-4">
-                            Mevcut tarayıcı verisini JSON yedeği olarak indir veya panoya kopyala.
-                          </div>
-
-                          <div className="mt-4 flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={downloadCurrentDataSnapshot}
-                              className="h-9 px-4 rounded-full bg-[#45b978] text-white text-[10px] font-black hover:bg-[#38a86b] transition-all"
-                            >
-                              Yedeği İndir
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={copyCurrentDataSnapshot}
-                              className="h-9 px-4 rounded-full bg-[#ff3600] border border-[#ff3600] text-white text-[10px] font-black hover:bg-[#ff3600] hover:text-white transition-all"
-                            >
-                              Veriyi Kopyala
-                            </button>
-                          </div>
-
-                          <div className="mt-3 text-[9.5px] font-bold text-[#9aa3b1]">
-                            Son yedek: {profilePreferences.lastDataExportAt ? new Date(profilePreferences.lastDataExportAt).toLocaleString('tr-TR') : 'Henüz yok'}
-                          </div>
-                        </div>
-
-                        <div className="rounded-[8px] border border-[#edf0f4] bg-white p-4">
-                          <div className="text-[12px] font-black text-current">Geri Yükleme</div>
-                          <div className="mt-1 text-[10px] font-semibold text-[#7c8798] leading-4">
-                            Daha önce indirilen JSON yedeği mevcut verinin üzerine yazar.
-                          </div>
-
-                          <input
-                            ref={dataImportInputRef}
-                            type="file"
-                            accept="application/json,.json"
-                            onChange={handleDataImportFile}
-                            className="hidden"
-                          />
-
-                          <button
-                            type="button"
-                            onClick={() => dataImportInputRef.current?.click()}
-                            className="mt-4 h-9 px-4 rounded-full bg-[#f6f7fb] border border-[#dfe4ec] text-[#394150] text-[10px] font-black hover:border-[#b7d4ff] transition-all"
-                          >
-                            Yedeği Geri Yükle
-                          </button>
-
-                          <div className="mt-3 text-[9.5px] font-bold text-[#9aa3b1]">
-                            Son geri yükleme: {profilePreferences.lastDataImportAt ? new Date(profilePreferences.lastDataImportAt).toLocaleString('tr-TR') : 'Henüz yok'}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 rounded-[8px] border border-red-100 bg-red-50/60 p-4 flex items-center justify-between gap-4">
-                        <div>
-                          <div className="text-[12px] font-black text-red-600">Tehlikeli Bölge</div>
-                          <div className="mt-1 text-[10px] font-semibold text-red-500/80">
-                            Yerel veriyi sıfırlamak tarayıcıdaki proje, görev, müşteri, ekip ve mesajları temizler.
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={resetLocalApplicationData}
-                          className="h-9 px-4 rounded-full bg-white border border-red-200 text-red-500 text-[10px] font-black hover:bg-red-100 transition-all shrink-0"
-                        >
-                          Yerel Veriyi Sıfırla
-                        </button>
-                      </div>
-
-                      {currentAccountType !== 'Patron' && (
-                        <div className="mt-4 rounded-[8px] border border-amber-100 bg-amber-50 px-4 py-3 text-[10.5px] font-bold text-amber-700">
-                          Veri yönetimi işlemleri sadece Patron hesabında aktiftir.
-                        </div>
-                      )}
-                    </div>
-                  )}
+                                    {/* zrc-v523-block-activeprofiletab-veri-yonetimi */}
+                  <ZRCAppShellActiveProfileTabVeriYonetimiBlock
+                    currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
+                    activeProfileTab={typeof activeProfileTab !== 'undefined' ? activeProfileTab : undefined}
+                    Veri={typeof Veri !== 'undefined' ? Veri : undefined}
+                    flex={typeof flex !== 'undefined' ? flex : undefined}
+                    items={typeof items !== 'undefined' ? items : undefined}
+                    start={typeof start !== 'undefined' ? start : undefined}
+                    justify={typeof justify !== 'undefined' ? justify : undefined}
+                    between={typeof between !== 'undefined' ? between : undefined}
+                    gap={typeof gap !== 'undefined' ? gap : undefined}
+                    mb={typeof mb !== 'undefined' ? mb : undefined}
+                    text={typeof text !== 'undefined' ? text : undefined}
+                    font={typeof font !== 'undefined' ? font : undefined}
+                    black={typeof black !== 'undefined' ? black : undefined}
+                    current={typeof current !== 'undefined' ? current : undefined}
+                    mt={typeof mt !== 'undefined' ? mt : undefined}
+                    semibold={typeof semibold !== 'undefined' ? semibold : undefined}
+                    leading={typeof leading !== 'undefined' ? leading : undefined}
+                    Proje={typeof Proje !== 'undefined' ? Proje : undefined}
+                    ekip={typeof ekip !== 'undefined' ? ekip : undefined}
+                    ve={typeof ve !== 'undefined' ? ve : undefined}
+                    bildirim={typeof bildirim !== 'undefined' ? bildirim : undefined}
+                    verilerini={typeof verilerini !== 'undefined' ? verilerini : undefined}
+                    yedekle={typeof yedekle !== 'undefined' ? yedekle : undefined}
+                    veya={typeof veya !== 'undefined' ? veya : undefined}
+                    geri={typeof geri !== 'undefined' ? geri : undefined}
+                    h={typeof h !== 'undefined' ? h : undefined}
+                    px={typeof px !== 'undefined' ? px : undefined}
+                    rounded={typeof rounded !== 'undefined' ? rounded : undefined}
+                    full={typeof full !== 'undefined' ? full : undefined}
+                    bg={typeof bg !== 'undefined' ? bg : undefined}
+                    f6f7fb={typeof f6f7fb !== 'undefined' ? f6f7fb : undefined}
+                    border={typeof border !== 'undefined' ? border : undefined}
+                    e5e8ee={typeof e5e8ee !== 'undefined' ? e5e8ee : undefined}
+                    center={typeof center !== 'undefined' ? center : undefined}
+                    shrink={typeof shrink !== 'undefined' ? shrink : undefined}
+                    v={typeof v !== 'undefined' ? v : undefined}
+                    APP_DATA_VERSION={typeof APP_DATA_VERSION !== 'undefined' ? APP_DATA_VERSION : undefined}
+                    grid={typeof grid !== 'undefined' ? grid : undefined}
+                    dataManagementStats={typeof dataManagementStats !== 'undefined' ? dataManagementStats : undefined}
+                    data={typeof data !== 'undefined' ? data : undefined}
+                    management={typeof management !== 'undefined' ? management : undefined}
+                    edf0f4={typeof edf0f4 !== 'undefined' ? edf0f4 : undefined}
+                    fafbfc={typeof fafbfc !== 'undefined' ? fafbfc : undefined}
+                    py={typeof py !== 'undefined' ? py : undefined}
+                    uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
+                    tracking={typeof tracking !== 'undefined' ? tracking : undefined}
+                    Supabase={typeof Supabase !== 'undefined' ? Supabase : undefined}
+                    Kontrol={typeof Kontrol !== 'undefined' ? Kontrol : undefined}
+                    Merkezi={typeof Merkezi !== 'undefined' ? Merkezi : undefined}
+                    Storage={typeof Storage !== 'undefined' ? Storage : undefined}
+                    manuel={typeof manuel !== 'undefined' ? manuel : undefined}
+                    senkronu={typeof senkronu !== 'undefined' ? senkronu : undefined}
+                    tek={typeof tek !== 'undefined' ? tek : undefined}
+                    yerden={typeof yerden !== 'undefined' ? yerden : undefined}
+                    kontrol={typeof kontrol !== 'undefined' ? kontrol : undefined}
+                    et={typeof et !== 'undefined' ? et : undefined}
+                    wrap={typeof wrap !== 'undefined' ? wrap : undefined}
+                    end={typeof end !== 'undefined' ? end : undefined}
+                    runSupabaseHealthCheck={typeof runSupabaseHealthCheck !== 'undefined' ? runSupabaseHealthCheck : undefined}
+                    supabaseHealthLoading={typeof supabaseHealthLoading !== 'undefined' ? supabaseHealthLoading : undefined}
+                    supabaseBackupLoading={typeof supabaseBackupLoading !== 'undefined' ? supabaseBackupLoading : undefined}
+                    white={typeof white !== 'undefined' ? white : undefined}
+                    cursor={typeof cursor !== 'undefined' ? cursor : undefined}
+                    not={typeof not !== 'undefined' ? not : undefined}
+                    allowed={typeof allowed !== 'undefined' ? allowed : undefined}
+                    transition={typeof transition !== 'undefined' ? transition : undefined}
+                    all={typeof all !== 'undefined' ? all : undefined}
+                    runFullSupabaseRefresh={typeof runFullSupabaseRefresh !== 'undefined' ? runFullSupabaseRefresh : undefined}
+                    ff3600={typeof ff3600 !== 'undefined' ? ff3600 : undefined}
+                    Yenile={typeof Yenile !== 'undefined' ? Yenile : undefined}
+                    downloadSupabaseBackupSnapshot={typeof downloadSupabaseBackupSnapshot !== 'undefined' ? downloadSupabaseBackupSnapshot : undefined}
+                    Yedek={typeof Yedek !== 'undefined' ? Yedek : undefined}
+                    copySupabaseBackupSnapshot={typeof copySupabaseBackupSnapshot !== 'undefined' ? copySupabaseBackupSnapshot : undefined}
+                    dfe4ec={typeof dfe4ec !== 'undefined' ? dfe4ec : undefined}
+                    b7d4ff={typeof b7d4ff !== 'undefined' ? b7d4ff : undefined}
+                    Kopyala={typeof Kopyala !== 'undefined' ? Kopyala : undefined}
+                    migrateLocalDataToSupabase={typeof migrateLocalDataToSupabase !== 'undefined' ? migrateLocalDataToSupabase : undefined}
+                    eef6ff={typeof eef6ff !== 'undefined' ? eef6ff : undefined}
+                    cfe4ff={typeof cfe4ff !== 'undefined' ? cfe4ff : undefined}
+                    Yereli={typeof Yereli !== 'undefined' ? Yereli : undefined}
+                    e={typeof e !== 'undefined' ? e : undefined}
+                    Aktar={typeof Aktar !== 'undefined' ? Aktar : undefined}
+                    handleInstallPwa={typeof handleInstallPwa !== 'undefined' ? handleInstallPwa : undefined}
+                    Telefon={typeof Telefon !== 'undefined' ? Telefon : undefined}
+                    bilgisayara={typeof bilgisayara !== 'undefined' ? bilgisayara : undefined}
+                    uygulama={typeof uygulama !== 'undefined' ? uygulama : undefined}
+                    gibi={typeof gibi !== 'undefined' ? gibi : undefined}
+                    kur={typeof kur !== 'undefined' ? kur : undefined}
+                    pwaInstallStatus={typeof pwaInstallStatus !== 'undefined' ? pwaInstallStatus : undefined}
+                    installed={typeof installed !== 'undefined' ? installed : undefined}
+                    Kurulu={typeof Kurulu !== 'undefined' ? Kurulu : undefined}
+                    isIosDevice={typeof isIosDevice !== 'undefined' ? isIosDevice : undefined}
+                    iPhone={typeof iPhone !== 'undefined' ? iPhone : undefined}
+                    Kurulum={typeof Kurulum !== 'undefined' ? Kurulum : undefined}
+                    Mobil={typeof Mobil !== 'undefined' ? Mobil : undefined}
+                    getSupabaseHealthSummary={typeof getSupabaseHealthSummary !== 'undefined' ? getSupabaseHealthSummary : undefined}
+                    Son={typeof Son !== 'undefined' ? Son : undefined}
+                    toplu={typeof toplu !== 'undefined' ? toplu : undefined}
+                    supabaseLastFullRefreshAt={typeof supabaseLastFullRefreshAt !== 'undefined' ? supabaseLastFullRefreshAt : undefined}
+                    TR={typeof TR !== 'undefined' ? TR : undefined}
+                    yok={typeof yok !== 'undefined' ? yok : undefined}
+                    supabaseLastBackupAt={typeof supabaseLastBackupAt !== 'undefined' ? supabaseLastBackupAt : undefined}
+                    profilePreferences={typeof profilePreferences !== 'undefined' ? profilePreferences : undefined}
+                    Yerel={typeof Yerel !== 'undefined' ? Yerel : undefined}
+                    verisini={typeof verisini !== 'undefined' ? verisini : undefined}
+                    getSupabaseRealtimeClass={typeof getSupabaseRealtimeClass !== 'undefined' ? getSupabaseRealtimeClass : undefined}
+                    supabaseRealtimeStatus={typeof supabaseRealtimeStatus !== 'undefined' ? supabaseRealtimeStatus : undefined}
+                    supabaseLastRealtimeAt={typeof supabaseLastRealtimeAt !== 'undefined' ? supabaseLastRealtimeAt : undefined}
+                    getPwaInstallClass={typeof getPwaInstallClass !== 'undefined' ? getPwaInstallClass : undefined}
+                    PWA={typeof PWA !== 'undefined' ? PWA : undefined}
+                    kurulum={typeof kurulum !== 'undefined' ? kurulum : undefined}
+                    durumu={typeof durumu !== 'undefined' ? durumu : undefined}
+                    supabaseHealthReport={typeof supabaseHealthReport !== 'undefined' ? supabaseHealthReport : undefined}
+                    getSupabaseHealthStateClass={typeof getSupabaseHealthStateClass !== 'undefined' ? getSupabaseHealthStateClass : undefined}
+                    bold={typeof bold !== 'undefined' ? bold : undefined}
+                    truncate={typeof truncate !== 'undefined' ? truncate : undefined}
+                    Detay={typeof Detay !== 'undefined' ? Detay : undefined}
+                    Yedekleme={typeof Yedekleme !== 'undefined' ? Yedekleme : undefined}
+                    Mevcut={typeof Mevcut !== 'undefined' ? Mevcut : undefined}
+                    olarak={typeof olarak !== 'undefined' ? olarak : undefined}
+                    indir={typeof indir !== 'undefined' ? indir : undefined}
+                    panoya={typeof panoya !== 'undefined' ? panoya : undefined}
+                    kopyala={typeof kopyala !== 'undefined' ? kopyala : undefined}
+                    downloadCurrentDataSnapshot={typeof downloadCurrentDataSnapshot !== 'undefined' ? downloadCurrentDataSnapshot : undefined}
+                    copyCurrentDataSnapshot={typeof copyCurrentDataSnapshot !== 'undefined' ? copyCurrentDataSnapshot : undefined}
+                    Veriyi={typeof Veriyi !== 'undefined' ? Veriyi : undefined}
+                    Geri={typeof Geri !== 'undefined' ? Geri : undefined}
+                    Daha={typeof Daha !== 'undefined' ? Daha : undefined}
+                    indirilen={typeof indirilen !== 'undefined' ? indirilen : undefined}
+                    mevcut={typeof mevcut !== 'undefined' ? mevcut : undefined}
+                    verinin={typeof verinin !== 'undefined' ? verinin : undefined}
+                    yazar={typeof yazar !== 'undefined' ? yazar : undefined}
+                    ref={typeof ref !== 'undefined' ? ref : undefined}
+                    dataImportInputRef={typeof dataImportInputRef !== 'undefined' ? dataImportInputRef : undefined}
+                    file={typeof file !== 'undefined' ? file : undefined}
+                    accept={typeof accept !== 'undefined' ? accept : undefined}
+                    application={typeof application !== 'undefined' ? application : undefined}
+                    json={typeof json !== 'undefined' ? json : undefined}
+                    handleDataImportFile={typeof handleDataImportFile !== 'undefined' ? handleDataImportFile : undefined}
+                    hidden={typeof hidden !== 'undefined' ? hidden : undefined}
+                    red={typeof red !== 'undefined' ? red : undefined}
+                    Tehlikeli={typeof Tehlikeli !== 'undefined' ? Tehlikeli : undefined}
+                    veriyi={typeof veriyi !== 'undefined' ? veriyi : undefined}
+                    proje={typeof proje !== 'undefined' ? proje : undefined}
+                    temizler={typeof temizler !== 'undefined' ? temizler : undefined}
+                    resetLocalApplicationData={typeof resetLocalApplicationData !== 'undefined' ? resetLocalApplicationData : undefined}
+                    Patron={typeof Patron !== 'undefined' ? Patron : undefined}
+                    amber={typeof amber !== 'undefined' ? amber : undefined}
+                    sadece={typeof sadece !== 'undefined' ? sadece : undefined}
+                    aktiftir={typeof aktiftir !== 'undefined' ? aktiftir : undefined}
+                  />
 
                   {activeProfileTab === 'Oturumlar' && (
                     <div>

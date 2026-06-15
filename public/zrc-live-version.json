@@ -1,53 +1,91 @@
 {
-  "build": "v521-mega-active-tab-feature-split",
-  "note": "ZRCAppShell.jsx içindeki büyük activeTab feature panelleri src/features altında ayrı component dosyalarına taşındı.",
-  "shellLinesBefore": 19196,
-  "shellLinesAfter": 17961,
-  "movedTotalLinesApprox": 2141,
+  "build": "v523-mega-nested-condition-blocks-split",
+  "note": "Feature dosyaları ve shell içindeki büyük nested conditional JSX blokları blocks alt componentlerine taşındı.",
+  "movedTotalLinesApprox": 1097,
+  "componentCount": 10,
+  "shellLinesAfter": 17775,
   "components": [
     {
-      "tab": "Raporlar",
-      "component": "src/features/raporlar/RaporlarTabPanel.jsx",
-      "componentName": "RaporlarTabPanel",
-      "movedLines": 229,
-      "props": 101
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "activeProfileTab === 'Veri Yönetimi'",
+      "component": "src/app/blocks/ZRCAppShellActiveProfileTabVeriYonetimiBlock.jsx",
+      "componentName": "ZRCAppShellActiveProfileTabVeriYonetimiBlock",
+      "movedLines": 219,
+      "props": 150
     },
     {
-      "tab": "Gantt Çizelgesi",
-      "component": "src/features/gantt_cizelgesi/GanttCizelgesiTabPanel.jsx",
-      "componentName": "GanttCizelgesiTabPanel",
-      "movedLines": 244,
-      "props": 123
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "activeProfileTab === 'Hesap'",
+      "component": "src/app/blocks/ZRCAppShellActiveProfileTabHesapBlock.jsx",
+      "componentName": "ZRCAppShellActiveProfileTabHesapBlock",
+      "movedLines": 157,
+      "props": 83
     },
     {
-      "tab": "Dosyalar",
-      "component": "src/features/dosyalar/DosyalarTabPanel.jsx",
-      "componentName": "DosyalarTabPanel",
-      "movedLines": 332,
-      "props": 137
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "calendarView === 'Hafta'",
+      "component": "src/app/blocks/ZRCAppShellCalendarViewHaftaBlock.jsx",
+      "componentName": "ZRCAppShellCalendarViewHaftaBlock",
+      "movedLines": 94,
+      "props": 76
     },
     {
-      "tab": "Zaman Çizelgesi",
-      "component": "src/features/zaman_cizelgesi/ZamanCizelgesiTabPanel.jsx",
-      "componentName": "ZamanCizelgesiTabPanel",
-      "movedLines": 307,
-      "props": 153
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "calendarView === 'Ay'",
+      "component": "src/app/blocks/ZRCAppShellCalendarViewAyBlock.jsx",
+      "componentName": "ZRCAppShellCalendarViewAyBlock",
+      "movedLines": 82,
+      "props": 76
     },
     {
-      "tab": "Takvim",
-      "component": "src/features/takvim/TakvimTabPanel.jsx",
-      "componentName": "TakvimTabPanel",
-      "movedLines": 398,
-      "props": 145
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "calendarView === 'Gün'",
+      "component": "src/app/blocks/ZRCAppShellCalendarViewGunBlock.jsx",
+      "componentName": "ZRCAppShellCalendarViewGunBlock",
+      "movedLines": 77,
+      "props": 69
     },
     {
-      "tab": "Görevler",
-      "component": "src/features/gorevler/GorevlerTabPanel.jsx",
-      "componentName": "GorevlerTabPanel",
-      "movedLines": 631,
-      "props": 223
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "calendarView === 'Hafta'",
+      "component": "src/app/blocks/ZRCAppShellCalendarViewHaftaBlock2.jsx",
+      "componentName": "ZRCAppShellCalendarViewHaftaBlock2",
+      "movedLines": 98,
+      "props": 75
+    },
+    {
+      "source": "src/app/ZRCAppShell.jsx",
+      "condition": "calendarView === 'Ay'",
+      "component": "src/app/blocks/ZRCAppShellCalendarViewAyBlock2.jsx",
+      "componentName": "ZRCAppShellCalendarViewAyBlock2",
+      "movedLines": 90,
+      "props": 74
+    },
+    {
+      "source": "src/features/gorevler/GorevlerTabPanel.jsx",
+      "condition": "boardView === 'Arşiv'",
+      "component": "src/features/gorevler/blocks/GorevlerTabPanelBoardViewArsivBlock.jsx",
+      "componentName": "GorevlerTabPanelBoardViewArsivBlock",
+      "movedLines": 126,
+      "props": 86
+    },
+    {
+      "source": "src/features/takvim/TakvimTabPanel.jsx",
+      "condition": "calendarView === 'Gün'",
+      "component": "src/features/takvim/blocks/TakvimTabPanelCalendarViewGunBlock.jsx",
+      "componentName": "TakvimTabPanelCalendarViewGunBlock",
+      "movedLines": 70,
+      "props": 56
+    },
+    {
+      "source": "src/features/takvim/TakvimTabPanel.jsx",
+      "condition": "calendarView === 'Ay'",
+      "component": "src/features/takvim/blocks/TakvimTabPanelCalendarViewAyBlock.jsx",
+      "componentName": "TakvimTabPanelCalendarViewAyBlock",
+      "movedLines": 84,
+      "props": 57
     }
   ],
-  "commitBefore": "c7e0c20",
-  "createdAt": "2026-06-15T19:36:29.050622+00:00"
+  "commitBefore": "1eb5ed8",
+  "createdAt": "2026-06-15T19:51:00.960453+00:00"
 }
