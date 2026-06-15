@@ -7,6 +7,13 @@ import { ProfileSelect, SoftSelect } from './components/common/SelectControls';
 import { resolveMobileTaskCardAssignees } from './utils/mobileTaskAssignees';
 import { createAvatarFromName, renderProfileAvatar } from './utils/avatarHelpers';
 import {
+  isLegacyDemoCustomerRecord,
+  getDeletedCustomerMarkers,
+  buildDeletedCustomerMarker,
+  isCustomerMarkedDeleted,
+  rememberDeletedCustomer
+} from './utils/customerDeletionHelpers';
+import {
   teamRoleOptions,
   normalizeTeamRole,
   normalizeCredentialText,
@@ -101,7 +108,7 @@ const zrcV426bApplyDueDateColors = (value, ...args) => {
   return value;
 };
 
-const ZRC_APP_BUILD_LABEL = 'v507-local-zrc-helper-fallbacks';
+const ZRC_APP_BUILD_LABEL = 'v509-extract-customer-deletion-helpers';
 
 
 
@@ -219,51 +226,6 @@ const normalizeStorageArray = (value, fallbackValue = []) =>
 
 const normalizeStorageObject = (value, fallbackValue = {}) =>
   value && typeof value === 'object' && !Array.isArray(value) ? value : fallbackValue;
-
-const LEGACY_DEMO_CUSTOMER_NAME_KEYS = new Set(['orneksirket', 'afirmasi', 'bholding']);
-
-const isLegacyDemoCustomerRecord = (customer = {}) =>
-  LEGACY_DEMO_CUSTOMER_NAME_KEYS.has(normalizeCredentialText(customer.name));
-
-const getDeletedCustomerMarkers = () =>
-  normalizeStorageArray(readStorageValue('deletedCustomers', []), []);
-
-const buildDeletedCustomerMarker = (customer = {}) => ({
-  id: String(customer.supabaseId || customer.id || ''),
-  name: normalizeCredentialText(customer.name),
-  email: normalizeCredentialText(customer.email),
-  deletedAt: new Date().toISOString()
-});
-
-const isCustomerMarkedDeleted = (customer = {}, markers = getDeletedCustomerMarkers()) => {
-  const customerId = String(customer.supabaseId || customer.id || '');
-  const customerName = normalizeCredentialText(customer.name);
-  const customerEmail = normalizeCredentialText(customer.email);
-
-  return markers.some((marker) => {
-    if (marker.id && customerId && marker.id === customerId) return true;
-    if (!marker.id && marker.email && customerEmail && marker.email === customerEmail) return true;
-    if (!marker.id && !marker.email && marker.name && customerName && marker.name === customerName) return true;
-    return false;
-  });
-};
-
-const rememberDeletedCustomer = (customer = {}) => {
-  const marker = buildDeletedCustomerMarker(customer);
-
-  if (!marker.id && !marker.name && !marker.email) return;
-
-  const previousMarkers = getDeletedCustomerMarkers();
-  const alreadyExists = previousMarkers.some((item) =>
-    (marker.id && item.id === marker.id) ||
-    (!marker.id && marker.email && item.email === marker.email) ||
-    (!marker.id && !marker.email && marker.name && item.name === marker.name)
-  );
-
-  if (alreadyExists) return;
-
-  writeStorageValue('deletedCustomers', [marker, ...previousMarkers].slice(0, 250));
-};
 
 const createDataSnapshot = ({
   projects,

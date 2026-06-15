@@ -1,7 +1,12 @@
 {
-  "build": "v508-stable-after-refactor-fixes",
-  "note": "v501-v505 refactor ayrımları ve v507 zrc helper fallback fix sonrası çalışan sürüm stabil checkpoint olarak kilitlendi.",
-  "stableCommit": "e52eb26",
-  "appJsxLines": 19509,
-  "createdAt": "2026-06-15T08:36:50.113146+00:00"
+  "build": "v509-extract-customer-deletion-helpers",
+  "note": "Silinen müşteri marker/helper kodları App.jsx içinden src/utils/customerDeletionHelpers.js dosyasına taşındı. Storage/navigation/login tarafına dokunulmadı.",
+  "changed": [
+    "src/utils/customerDeletionHelpers.js oluşturuldu/güncellendi",
+    "Helper kendi localStorage okuma/yazmasını içeriyor; storageHelpers'a bağımlı değil",
+    "App.jsx'e customerDeletionHelpers importu eklendi",
+    "Silinen müşteri helper bloğu App.jsx içinden kaldırıldı: yaklaşık 46 satır"
+  ],
+  "commitBefore": "5e0e8b4",
+  "createdAt": "2026-06-15T08:48:58.143675+00:00"
 }
