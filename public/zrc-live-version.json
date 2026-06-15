@@ -1,12 +1,16 @@
 {
-  "build": "v504-extract-dashboard-helpers",
-  "note": "Tarih/takvim/zaman çizelgesi/bildirim arama/not helperları App.jsx içinden src/utils/dashboardHelpers.js dosyasına taşındı. Storage/navigation/login tarafına dokunulmadı.",
+  "build": "v505-extract-common-controls",
+  "note": "Proje varsayılanları, select kontrolleri ve clipboard helper App.jsx içinden ayrı dosyalara taşındı. createDataSnapshot App.jsx içinde bırakıldı.",
   "changed": [
-    "src/utils/dashboardHelpers.js oluşturuldu/güncellendi",
-    "App.jsx dışına taşınan helper sayısı: 34",
-    "App.jsx dışına taşınan helper satırı: yaklaşık 399",
-    "App.jsx'e dashboardHelpers importu eklendi"
+    "src/utils/projectDefaults.js oluşturuldu/güncellendi",
+    "Proje varsayılan/helper taşındı: 6 adet",
+    "App.jsx'e projectDefaults importu eklendi",
+    "src/components/common/SelectControls.jsx oluşturuldu/güncellendi",
+    "renderProfileSelect/renderSoftSelect App.jsx içinde kısa wrapper'a dönüştürüldü",
+    "App.jsx'e SelectControls importu eklendi",
+    "src/utils/clipboardHelpers.js oluşturuldu/güncellendi",
+    "App.jsx'e clipboardHelpers importu eklendi"
   ],
-  "commitBefore": "3f41e1d",
-  "createdAt": "2026-06-15T08:16:12.084231+00:00"
+  "commitBefore": "260d15d",
+  "createdAt": "2026-06-15T08:24:55.482802+00:00"
 }

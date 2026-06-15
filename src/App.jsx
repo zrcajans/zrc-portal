@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import Sidebar from './components/Layout/Sidebar';
 import MobileWorkspace from './components/mobile/MobileWorkspace';
 import ZRCErrorBoundary from './components/common/ZRCErrorBoundary';
+import { ProfileSelect, SoftSelect } from './components/common/SelectControls';
 import { resolveMobileTaskCardAssignees } from './utils/mobileTaskAssignees';
 import { createAvatarFromName, renderProfileAvatar } from './utils/avatarHelpers';
 import {
@@ -27,6 +28,15 @@ import TaskModal from './components/Modals/TaskModal';
 import StageModal from './components/Modals/StageModal';
 import TaskDetailModal from './components/Modals/TaskDetailModal';
 import { supabase } from './supabaseClient';
+import { copyTextToClipboard } from './utils/clipboardHelpers';
+import {
+  defaultBoardColumns,
+  normalizeColumnTitleForDisplay,
+  createDefaultProjectBoard,
+  createDefaultProjectSettings,
+  getZrcToastMessage,
+  showZrcUpdateToast
+} from './utils/projectDefaults';
 import {
   parseTaskDateValue,
   formatCalendarDate,
@@ -84,38 +94,15 @@ import {
   zrcV448PlayDesktopNotificationSound
 } from './utils/browserEnhancements';
 
-const ZRC_APP_BUILD_LABEL = 'v504-extract-dashboard-helpers';
+const ZRC_APP_BUILD_LABEL = 'v505-extract-common-controls';
 
-const defaultBoardColumns = [
-  { id: 'col-1', title: 'Yeni Görev', color: '#ffcb78', desc: 'Yeni oluşturulan görevler bu aşamada bekler.', tasks: [] },
-  { id: 'col-2', title: 'Aktif', color: '#083f1f', desc: 'Bu aşamada aktif/üzerinde çalışılan işler yer alır.', tasks: [] },
-  { id: 'col-3', title: 'Tamamlandı', color: '#bbcee4', desc: 'Bu aşamada tamamlanmış işler yer alır.', tasks: [] },
-  { id: 'col-4', title: 'Askıya Alındı', color: '#a594ed', desc: 'Bu aşamada askıya alınmış işler yer alır.', tasks: [] }
-];
 
-const normalizeColumnTitleForDisplay = (title = '') => {
-  const cleanTitle = String(title || '').trim();
-  return cleanTitle === 'Bekliyor' ? 'Yeni Görev' : cleanTitle;
-};
 
-const createDefaultProjectBoard = () => ({
-  columns: defaultBoardColumns.map((column) => ({
-    ...column,
-    tasks: []
-  })),
-  archivedTasks: []
-});
 
-const createDefaultProjectSettings = (projectName = '') => ({
-  title: projectName,
-  description: '',
-  customer: '',
-  customerId: '',
-  teamMemberIds: [],
-  teamHistory: [],
-  status: 'Aktif',
-  color: '#ff3600'
-});
+
+
+
+
 
 const APP_DATA_VERSION = 113;
 
@@ -309,29 +296,9 @@ const createDataSnapshot = ({
 });
 
 
-const getZrcToastMessage = (message = '', tone = 'saved') => {
-  const cleanMessage = String(message || '').trim();
 
-  if (tone === 'error') {
-    return cleanMessage || 'İşlem tamamlanamadı.';
-  }
 
-  if (/profil|tercih/i.test(cleanMessage)) return 'Profil güncellendi ve kaydedildi.';
-  if (/ekip|rol/i.test(cleanMessage)) return 'Ekip bilgileri güncellendi ve kaydedildi.';
-  if (/müşteri|musteri/i.test(cleanMessage)) return 'Müşteri bilgileri güncellendi ve kaydedildi.';
-  if (/proje/i.test(cleanMessage)) return 'Proje bilgileri güncellendi ve kaydedildi.';
-  if (/görev|gorev|durum/i.test(cleanMessage)) return 'Görev güncellendi ve kaydedildi.';
-  if (/not/i.test(cleanMessage)) return 'Not güncellendi ve kaydedildi.';
-  if (/mesaj|yazışma|yazisma/i.test(cleanMessage)) return 'Yazışma güncellendi ve kaydedildi.';
-  if (/dosya/i.test(cleanMessage)) return 'Dosya işlemi tamamlandı.';
-  if (/yedek/i.test(cleanMessage)) return 'Yedekleme işlemi tamamlandı.';
 
-  return cleanMessage || 'Güncellendi ve kaydedildi.';
-};
-
-const showZrcUpdateToast = () => {
-  return;
-};
 
 
 
@@ -12178,155 +12145,27 @@ function App() {
     event.target.value = '';
   };
 
-  const renderProfileSelect = ({ id, label, value, options, onChange, wrapperClassName = '' }) => (
-    <label className={`block relative ${wrapperClassName}`} onClick={(event) => event.stopPropagation()}>
-      <span className="block text-[10px] font-black text-[#a1aabb] mb-1.5">{label}</span>
-
-      <button
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          setOpenProfileDropdown((prev) => (prev === id ? null : id));
-        }}
-        className={`w-full h-8 rounded-[15px] border px-3 text-[10.5px] font-semibold flex items-center justify-between gap-2 transition-all ${
-          openProfileDropdown === id
-            ? 'border-[#9cc9ff] bg-white shadow-[0_0_0_3px_rgba(183,212,255,0.35)] text-current'
-            : 'border-[#e4e7ec] bg-white text-[#394150] hover:border-[#cfd6e1]'
-        }`}
-      >
-        <span className="truncate">{value}</span>
-        <svg
-          className={`w-3.5 h-3.5 text-[#9aa3b1] transition-transform ${openProfileDropdown === id ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {openProfileDropdown === id && (
-        <div className="absolute left-0 right-0 top-[58px] z-[720] rounded-[10px] border border-[#e0e5ee] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)] p-1.5 animate-fade-in">
-          {options.map((option) => {
-            const isSelected = option === value;
-
-            return (
-              <button
-                key={option}
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onChange(option);
-                  setOpenProfileDropdown(null);
-                }}
-                className={`w-full h-8 rounded-[8px] px-2.5 flex items-center justify-between text-left text-[10.5px] font-bold transition-all ${
-                  isSelected
-                    ? 'bg-[#eef5ff] text-[#2f66cf]'
-                    : 'text-[#4b5563] hover:bg-[#f7f9fc]'
-                }`}
-              >
-                <span className="truncate">{option}</span>
-                {isSelected && <span className="text-[#45b978] text-[11px]">✓</span>}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </label>
+  const renderProfileSelect = (props) => (
+    <ProfileSelect
+      {...props}
+      openProfileDropdown={openProfileDropdown}
+      setOpenProfileDropdown={setOpenProfileDropdown}
+    />
   );
 
-  const renderSoftSelect = ({
-    id,
-    label = '',
-    value,
-    options,
-    onChange,
-    wrapperClassName = '',
-    buttonClassName = 'h-10 rounded-[12px] bg-zinc-50 border border-zinc-200 px-3 text-[12px] font-bold text-zinc-700 hover:bg-white hover:border-zinc-300'
-  }) => (
-    <div className={`relative ${wrapperClassName}`} onClick={(event) => event.stopPropagation()}>
-      {label && (
-        <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-[0.08em] mb-1.5">
-          {label}
-        </span>
-      )}
-
-      <button
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          setOpenProfileDropdown((prev) => (prev === id ? null : id));
-        }}
-        className={`w-full flex items-center justify-between gap-3 transition-all ${
-          openProfileDropdown === id
-            ? `${buttonClassName} bg-white border-[#ff3600] shadow-[0_0_0_4px_rgba(255,54,0,0.06)]`
-            : buttonClassName
-        }`}
-      >
-        <span className="truncate">{value || 'Seçiniz'}</span>
-        <span className={`w-5 h-5 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 transition-transform ${openProfileDropdown === id ? 'rotate-180' : ''}`}>
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </span>
-      </button>
-
-      {openProfileDropdown === id && (
-        <div className={`absolute left-0 right-0 ${label ? 'top-[62px]' : 'top-[calc(100%+7px)]'} z-[900] rounded-[14px] border border-zinc-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.16)] p-1.5 animate-fade-in overflow-hidden`}>
-          {options.map((option) => {
-            const isSelected = option === value;
-
-            return (
-              <button
-                key={option}
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onChange(option);
-                  setOpenProfileDropdown(null);
-                }}
-                className={`w-full h-9 rounded-[10px] px-3 flex items-center justify-between text-left text-[11px] font-black transition-all ${
-                  isSelected
-                    ? 'bg-[#fff3ef] text-[#ff3600]'
-                    : 'text-zinc-600 hover:bg-zinc-50'
-                }`}
-              >
-                <span className="truncate">{option}</span>
-                {isSelected && (
-                  <span className="w-5 h-5 rounded-full bg-[#ff3600] text-white text-[10px] flex items-center justify-center">
-                    ✓
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
+  const renderSoftSelect = (props) => (
+    <SoftSelect
+      {...props}
+      openProfileDropdown={openProfileDropdown}
+      setOpenProfileDropdown={setOpenProfileDropdown}
+    />
   );
 
-  const copyTextToClipboard = async (text, successMessage = 'Kopyalandı.') => {
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.setAttribute('readonly', '');
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
 
-      alert(successMessage);
-    } catch {
-      alert('Kopyalama başarısız oldu. Bilgileri manuel kopyalayabilirsin.');
-    }
-  };
+
+
+
+
 
   const ensureCanManageLocalData = () => {
     if (currentAccountType !== 'Patron') {
