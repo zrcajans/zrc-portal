@@ -1,14 +1,36 @@
 {
-  "build": "v535-architecture-state-service-split",
-  "note": "ZRCAppShell içindeki temel state blokları src/app/state/useZRCAppStateLayer.js dosyasına taşındı. Service/shared klasör mimarisi açıldı.",
-  "shellLinesBefore": 16651,
+  "build": "v536b-feature-screen-wrapper-migration",
+  "note": "Ana feature TabPanel çağrıları Screen wrapper çağrılarına çevrildi. Router hazırlık dosyası oluşturuldu.",
+  "shellLinesBefore": 16228,
   "shellLinesAfter": 16228,
-  "shellNetReduction": 423,
-  "stateLayerLines": 480,
-  "coreStateNames": 231,
-  "boardStateNames": 4,
-  "selectionStateNames": 6,
-  "modalStateNames": 10,
-  "commitBefore": "8951cd6",
-  "createdAt": "2026-06-15T21:14:43.775835+00:00"
+  "shellLineDelta": 0,
+  "createdFiles": [
+    "src/features/gorevler/GorevlerScreen.jsx",
+    "src/features/takvim/TakvimScreen.jsx",
+    "src/features/dosyalar/DosyalarScreen.jsx",
+    "src/features/raporlar/RaporlarScreen.jsx",
+    "src/features/gantt_cizelgesi/GanttCizelgesiScreen.jsx",
+    "src/features/zaman_cizelgesi/ZamanCizelgesiScreen.jsx",
+    "src/app/ZRCAppRoutes.jsx"
+  ],
+  "replacedImports": [
+    "GorevlerTabPanel -> GorevlerScreen",
+    "TakvimTabPanel -> TakvimScreen",
+    "DosyalarTabPanel -> DosyalarScreen",
+    "RaporlarTabPanel -> RaporlarScreen",
+    "GanttCizelgesiTabPanel -> GanttCizelgesiScreen",
+    "ZamanCizelgesiTabPanel -> ZamanCizelgesiScreen"
+  ],
+  "replacedCalls": [
+    "GorevlerTabPanel -> GorevlerScreen (1 çağrı)",
+    "TakvimTabPanel -> TakvimScreen (1 çağrı)",
+    "DosyalarTabPanel -> DosyalarScreen (1 çağrı)",
+    "RaporlarTabPanel -> RaporlarScreen (1 çağrı)",
+    "GanttCizelgesiTabPanel -> GanttCizelgesiScreen (1 çağrı)",
+    "ZamanCizelgesiTabPanel -> ZamanCizelgesiScreen (1 çağrı)"
+  ],
+  "remainingPanelCallsInShell": [],
+  "routesNote": "ZRCAppRoutes oluşturuldu.",
+  "commitBefore": "bea6775",
+  "createdAt": "2026-06-16T07:50:15.954452+00:00"
 }

@@ -121,12 +121,12 @@ import {
   createDataSnapshot
 } from './ZRCAppTopLevel';
 
-import RaporlarTabPanel from '../features/raporlar/RaporlarTabPanel';
-import GanttCizelgesiTabPanel from '../features/gantt_cizelgesi/GanttCizelgesiTabPanel';
-import DosyalarTabPanel from '../features/dosyalar/DosyalarTabPanel';
-import ZamanCizelgesiTabPanel from '../features/zaman_cizelgesi/ZamanCizelgesiTabPanel';
-import TakvimTabPanel from '../features/takvim/TakvimTabPanel';
-import GorevlerTabPanel from '../features/gorevler/GorevlerTabPanel';
+import RaporlarScreen from '../features/raporlar/RaporlarScreen';
+import GanttCizelgesiScreen from '../features/gantt_cizelgesi/GanttCizelgesiScreen';
+import DosyalarScreen from '../features/dosyalar/DosyalarScreen';
+import ZamanCizelgesiScreen from '../features/zaman_cizelgesi/ZamanCizelgesiScreen';
+import TakvimScreen from '../features/takvim/TakvimScreen';
+import GorevlerScreen from '../features/gorevler/GorevlerScreen';
 import ZRCAppShellActiveProfileTabVeriYonetimiBlock from './blocks/ZRCAppShellActiveProfileTabVeriYonetimiBlock';
 import ZRCAppShellActiveProfileTabHesapBlock from './blocks/ZRCAppShellActiveProfileTabHesapBlock';
 import ZRCAppShellCalendarViewHaftaBlock from './blocks/ZRCAppShellCalendarViewHaftaBlock';
@@ -15103,28 +15103,28 @@ return (
 
               <div className="flex-1 min-h-0 bg-[#f5f6f8] flex flex-col overflow-hidden h-full">
                                 {/* zrc-v521-feature-gorevler */}
-                <GorevlerTabPanel {...zrcFeatureSpreadProps} />
+                <GorevlerScreen {...zrcFeatureSpreadProps} />
 
 
 
                                 {/* zrc-v521-feature-takvim */}
-                <TakvimTabPanel {...zrcFeatureSpreadProps} />
+                <TakvimScreen {...zrcFeatureSpreadProps} />
 
 
                                 {/* zrc-v521-feature-zaman_cizelgesi */}
-                <ZamanCizelgesiTabPanel {...zrcFeatureSpreadProps} />
+                <ZamanCizelgesiScreen {...zrcFeatureSpreadProps} />
 
                                 {/* zrc-v521-feature-dosyalar */}
-                <DosyalarTabPanel {...zrcFeatureSpreadProps} />
+                <DosyalarScreen {...zrcFeatureSpreadProps} />
 
 
 
                                 {/* zrc-v521-feature-gantt_cizelgesi */}
-                <GanttCizelgesiTabPanel {...zrcFeatureSpreadProps} />
+                <GanttCizelgesiScreen {...zrcFeatureSpreadProps} />
 
 
                                 {/* zrc-v521-feature-raporlar */}
-                <RaporlarTabPanel {...zrcFeatureSpreadProps} />
+                <RaporlarScreen {...zrcFeatureSpreadProps} />
 
                 {activeContentMenu === 'Diğer' && activeTab === 'Ekip' && showTeamManagementPage && (
                   <div className="zrc-team-center-page w-full h-full overflow-y-auto custom-scrollbar bg-[#f5f6f8] animate-fade-in">
