@@ -136,6 +136,7 @@ import {
   ZRCAppShellActiveProfileTabOturumlarBlock
 } from './blocks/ZRCAppShellActiveProfileTabSecondaryBlocks';
 import ZRCAppShellActiveProfileTabHesapBlock from './blocks/ZRCAppShellActiveProfileTabHesapBlock';
+import ZRCAppShellProfileTabButtonsBlock from './blocks/ZRCAppShellProfileTabButtonsBlock';
 import ZRCAppShellCalendarViewHaftaBlock from './blocks/ZRCAppShellCalendarViewHaftaBlock';
 import ZRCAppShellCalendarViewAyBlock from './blocks/ZRCAppShellCalendarViewAyBlock';
 import ZRCAppShellCalendarViewGunBlock from './blocks/ZRCAppShellCalendarViewGunBlock';
@@ -14503,26 +14504,11 @@ return (
               </div>
 
               <div className="zrc-profile-tab-card-safe-v328 bg-white border border-[#e5e8ee] rounded-[8px] shadow-[0_8px_24px_rgba(15,23,42,0.06)] overflow-hidden">
-                <div className="h-[46px] px-5 border-b border-[#e5e8ee] flex items-end">
-                  <div className="flex items-end gap-6 overflow-x-auto custom-scrollbar">
-                    {visibleProfileTabs.map((tab) => (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setActiveProfileTab(tab)}
-                        className={`relative h-[46px] px-1 text-[11.5px] font-bold transition-all whitespace-nowrap ${
-                          activeProfileTab === tab ? 'text-[#8e69e8]' : 'text-[#7c8798] hover:text-[#394150]'
-                        }`}
-                      >
-                        {tab}
-                        {activeProfileTab === tab && (
-                          <span className="absolute left-0 right-0 -bottom-px h-[4px] rounded-t-full bg-[#a98bf4]" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-
-                </div>
+                <ZRCAppShellProfileTabButtonsBlock
+                  visibleProfileTabs={visibleProfileTabs}
+                  activeProfileTab={activeProfileTab}
+                  setActiveProfileTab={setActiveProfileTab}
+                />
 
                 <div className="zrc-profile-tab-content-safe-v328 p-5">
                                     {/* zrc-v523-block-activeprofiletab-hesap */}
