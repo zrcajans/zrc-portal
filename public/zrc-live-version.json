@@ -1,82 +1,36 @@
 {
-  "build": "v537-final-action-handler-split",
-  "note": "ZRCAppShell içindeki büyük güvenli action/handler fonksiyonları src/app/actions/ZRCAppActionsLayer.js dosyasına taşındı.",
+  "build": "v536b-feature-screen-wrapper-migration",
+  "note": "Ana feature TabPanel çağrıları Screen wrapper çağrılarına çevrildi. Router hazırlık dosyası oluşturuldu.",
   "shellLinesBefore": 16228,
-  "shellLinesAfter": 15011,
-  "shellNetReduction": 1217,
-  "actionsLayerLines": 1253,
-  "movedFunctionCount": 8,
-  "movedLinesApprox": 1226,
-  "functions": [
-    {
-      "name": "handleSaveTask",
-      "action": "zrcHandleSaveTaskAction",
-      "lines": 188,
-      "params": [
-        "taskData",
-        "targetStatus"
-      ],
-      "freeVarCount": 24
-    },
-    {
-      "name": "saveTeamMemberEdit",
-      "action": "zrcSaveTeamMemberEditAction",
-      "lines": 179,
-      "params": [
-        "event"
-      ],
-      "freeVarCount": 22
-    },
-    {
-      "name": "handleSaveProjectSettings",
-      "action": "zrcHandleSaveProjectSettingsAction",
-      "lines": 163,
-      "params": [],
-      "freeVarCount": 18
-    },
-    {
-      "name": "loadWorkspaceStructureFromSupabase",
-      "action": "zrcLoadWorkspaceStructureFromSupabaseAction",
-      "lines": 151,
-      "params": [],
-      "freeVarCount": 21
-    },
-    {
-      "name": "createCustomerFromCenter",
-      "action": "zrcCreateCustomerFromCenterAction",
-      "lines": 147,
-      "params": [
-        "event"
-      ],
-      "freeVarCount": 18
-    },
-    {
-      "name": "saveCustomerEdit",
-      "action": "zrcSaveCustomerEditAction",
-      "lines": 141,
-      "params": [
-        "event"
-      ],
-      "freeVarCount": 15
-    },
-    {
-      "name": "saveTaskToSupabase",
-      "action": "zrcSaveTaskToSupabaseAction",
-      "lines": 131,
-      "params": [
-        "taskData",
-        "targetStatus"
-      ],
-      "freeVarCount": 20
-    },
-    {
-      "name": "loadSelectedProjectBoardFromSupabase",
-      "action": "zrcLoadSelectedProjectBoardFromSupabaseAction",
-      "lines": 126,
-      "params": [],
-      "freeVarCount": 7
-    }
+  "shellLinesAfter": 16228,
+  "shellLineDelta": 0,
+  "createdFiles": [
+    "src/features/gorevler/GorevlerScreen.jsx",
+    "src/features/takvim/TakvimScreen.jsx",
+    "src/features/dosyalar/DosyalarScreen.jsx",
+    "src/features/raporlar/RaporlarScreen.jsx",
+    "src/features/gantt_cizelgesi/GanttCizelgesiScreen.jsx",
+    "src/features/zaman_cizelgesi/ZamanCizelgesiScreen.jsx",
+    "src/app/ZRCAppRoutes.jsx"
   ],
-  "commitBefore": "48a4537",
-  "createdAt": "2026-06-16T07:57:36.999959+00:00"
+  "replacedImports": [
+    "GorevlerTabPanel -> GorevlerScreen",
+    "TakvimTabPanel -> TakvimScreen",
+    "DosyalarTabPanel -> DosyalarScreen",
+    "RaporlarTabPanel -> RaporlarScreen",
+    "GanttCizelgesiTabPanel -> GanttCizelgesiScreen",
+    "ZamanCizelgesiTabPanel -> ZamanCizelgesiScreen"
+  ],
+  "replacedCalls": [
+    "GorevlerTabPanel -> GorevlerScreen (1 çağrı)",
+    "TakvimTabPanel -> TakvimScreen (1 çağrı)",
+    "DosyalarTabPanel -> DosyalarScreen (1 çağrı)",
+    "RaporlarTabPanel -> RaporlarScreen (1 çağrı)",
+    "GanttCizelgesiTabPanel -> GanttCizelgesiScreen (1 çağrı)",
+    "ZamanCizelgesiTabPanel -> ZamanCizelgesiScreen (1 çağrı)"
+  ],
+  "remainingPanelCallsInShell": [],
+  "routesNote": "ZRCAppRoutes oluşturuldu.",
+  "commitBefore": "bea6775",
+  "createdAt": "2026-06-16T07:50:15.954452+00:00"
 }
