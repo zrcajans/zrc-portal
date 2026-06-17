@@ -86,26 +86,50 @@ export function createZRCMessageNotificationActions(deps) {
   };
 
   const markAllNotificationsAsRead = () => {
-    const supabaseNotificationIds = notificationItems
-      .map((item) => String(item.id || ''))
-      .filter((id) => id.startsWith('supabase-notification-'))
-      .map((id) => id.replace('supabase-notification-', ''))
+    const allNotificationIds = notificationItems.map((item) => item.id).filter(Boolean);
+
+    const supabaseNotificationIds = allNotificationIds
+      .filter((id) => String(id).startsWith('supabase-notification-'))
+      .map((id) => String(id).replace('supabase-notification-', ''))
       .filter(isSupabaseUuid);
 
-    if (supabaseNotificationIds.length > 0) {
+    if (supabaseNotificationIds.length > 0 && supabase) {
       supabase
         .from('notifications')
         .update({ is_read: true })
-        .eq('user_id', currentUserId)
         .in('id', supabaseNotificationIds)
-        .then(() => {});
+        .then(({ error }) => {
+          if (error) {
+            console.warn('[ZRC] Bildirimler Supabase tarafında okundu işaretlenemedi.', error);
+          }
+        });
     }
 
     setReadNotificationIds((prevIds) => {
-      const nextIds = Array.from(new Set([...prevIds, ...notificationItems.map((item) => item.id)]));
+      const nextIds = Array.from(new Set([...(prevIds || []), ...allNotificationIds]));
       saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
       return nextIds;
     });
+
+    if (typeof setActivityNotifications === 'function') {
+      setActivityNotifications((prevNotifications) => {
+        const visibleIds = new Set(allNotificationIds.map(String));
+
+        return (prevNotifications || []).filter((notification) => {
+          const id = String(notification?.id || '');
+          if (!id) return false;
+
+          if (visibleIds.has(id)) return false;
+          if (visibleIds.has(`supabase-notification-${id}`)) return false;
+
+          return true;
+        });
+      });
+    }
+
+    if (typeof setIsNotificationsOpen === 'function') {
+      setIsNotificationsOpen(false);
+    }
   };
 
   const handleNotificationClick = (notification) => {
