@@ -3953,48 +3953,7 @@ function App() {
     return query;
   };
 
-  const {
-    runSupabaseHealthCheck,
-    buildSupabaseBackupSnapshot,
-    downloadSupabaseBackupSnapshot,
-    copySupabaseBackupSnapshot,
-    ensureCanManageLocalData,
-    copyCurrentDataSnapshot,
-    downloadCurrentDataSnapshot,
-    restoreDataSnapshot,
-    handleDataImportFile
-  } = createZRCDataManagementActions({
-    getCurrentSupabaseWorkspaceId,
-    setSupabaseHealthLoading,
-    zrcSetSupabaseWriteInfo,
-    createSupabaseHealthRow,
-    setSupabaseHealthReport,
-    countSupabaseTableRows,
-    supabase,
-    supabaseRealtimeStatus,
-    pwaInstallStatus,
-    readSupabaseTableForBackup,
-    APP_DATA_VERSION,
-    currentUserId,
-    setSupabaseBackupLoading,
-    downloadJsonSnapshot,
-    setSupabaseLastBackupAt,
-    setProfilePreferences,
-    copyTextToClipboard,
-    currentAccountType,
-    showPermissionWarning,
-    getCurrentDataSnapshot,
-    normalizeStorageArray,
-    writeStorageValue,
-    createDefaultTeamMembers,
-    normalizeTeamMember,
-    createDefaultCustomers,
-    normalizeCustomerRecord,
-    isLegacyDemoCustomerRecord,
-    normalizeStorageObject,
-    profileDraft,
-    profilePreferences
-  });
+
 
 
   const runFullSupabaseRefresh = async () => {
@@ -5137,89 +5096,7 @@ function App() {
 
 
 
-  const {
-    openAddStageModal,
-    openEditStageModal,
-    handleMoveColumn,
-    handleSaveStage,
-    handleDeleteColumn,
-    handleCopyColumn,
-    handleArchiveColumnTasks,
-    handleArchiveColumn,
-    openTaskDetail,
-    closeTaskDetail,
-    editTaskFromDetail,
-    updateTaskFromDetail,
-    addTaskComment,
-    deleteTaskComment,
-    handleMoveTaskToColumn,
-    handleTaskAction,
-    handleBulkDelete,
-    handleBulkArchive,
-    handleRestoreArchivedTask,
-    handleDeleteArchivedTask,
-    handleDragStart,
-    handleDrop
-  } = createZRCBoardTaskActions({
-    requirePermission,
-    setEditingColumn,
-    setIsStageModalOpen,
-    setOpenMenuColumnId,
-    boardColumns,
-    setBoardColumns,
-    editingColumn,
-    normalizeColumnTitleForDisplay,
-    selectedProject,
-    normalizeStorageArray,
-    readStorageValue,
-    writeStorageValue,
-    setMobileActiveColumnId,
-    setZrcMobileColumnRefreshKey,
-    saveStageToSupabase,
-    setTimeout,
-    loadSelectedProjectBoardFromSupabase,
-    getCurrentSupabaseWorkspaceId,
-    zrcSetSupabaseWriteInfo,
-    ensureSupabaseProject,
-    supabase,
-    isSupabaseUuid,
-    currentActorName,
-    currentActorAvatar,
-    currentActorId,
-    setArchivedTasks,
-    archiveSupabaseTask,
-    isTaskAccessibleForCurrentUser,
-    showPermissionWarning,
-    setOpenTaskMenuId,
-    setDetailTaskInfo,
-    detailTaskInfo,
-    currentAccountType,
-    isCurrentUserProjectMember,
-    canCurrentUserModifyTask,
-    getProjectNameForTask,
-    setEditingTask,
-    setIsTaskModalOpen,
-    reportTasks,
-    createActivityNotification,
-    getProfileNameForRecord,
-    currentProfileName,
-    getProfileAvatarForRecord,
-    currentProfileAvatar,
-    getTaskAssigneeUserIdsForNotification,
-    isCurrentSupabaseUserId,
-    syncTaskDetailsToSupabase,
-    createHistoryEntry,
-    currentPermissions,
-    updateSupabaseTaskColumn,
-    ensureCanCreateTaskInSelectedProject,
-    normalizeAssigneesForCurrentAccountSave,
-    setSelectedTasks,
-    deleteSupabaseTask,
-    selectedTasks,
-    restoreSupabaseTask,
-    archivedTasks,
-    draggedTaskInfo
-  });
+
 
 
 
@@ -5936,7 +5813,51 @@ function App() {
     }
   }
 
-  const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.') => {
+  
+
+const {
+    runSupabaseHealthCheck,
+    buildSupabaseBackupSnapshot,
+    downloadSupabaseBackupSnapshot,
+    copySupabaseBackupSnapshot,
+    ensureCanManageLocalData,
+    copyCurrentDataSnapshot,
+    downloadCurrentDataSnapshot,
+    restoreDataSnapshot,
+    handleDataImportFile
+  } = createZRCDataManagementActions({
+    getCurrentSupabaseWorkspaceId,
+    setSupabaseHealthLoading,
+    zrcSetSupabaseWriteInfo,
+    createSupabaseHealthRow,
+    setSupabaseHealthReport,
+    countSupabaseTableRows,
+    supabase,
+    supabaseRealtimeStatus,
+    pwaInstallStatus,
+    readSupabaseTableForBackup,
+    APP_DATA_VERSION,
+    currentUserId,
+    setSupabaseBackupLoading,
+    downloadJsonSnapshot,
+    setSupabaseLastBackupAt,
+    setProfilePreferences,
+    copyTextToClipboard,
+    currentAccountType,
+    showPermissionWarning,
+    getCurrentDataSnapshot,
+    normalizeStorageArray,
+    writeStorageValue,
+    createDefaultTeamMembers,
+    normalizeTeamMember,
+    createDefaultCustomers,
+    normalizeCustomerRecord,
+    isLegacyDemoCustomerRecord,
+    normalizeStorageObject,
+    profileDraft,
+    profilePreferences
+  });
+const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.') => {
     if (currentPermissions[permissionKey]) return true;
 
     showPermissionWarning(message);
@@ -6164,36 +6085,7 @@ function App() {
 
 
 
-  const {
-    handleSaveProjectSettings,
-    handleArchiveProject,
-    handleDeleteProject
-  } = createZRCProjectSettingsActions({
-    requirePermission,
-    selectedProject,
-    projectSettingsDraft,
-    getCustomerByName,
-    createDefaultProjectSettings,
-    projectSettings,
-    projectTeamAssignableMembers,
-    getTeamMemberNameById,
-    createProjectTeamHistoryEntry,
-    projects,
-    setProjectSettings,
-    syncProjectTasksWithTeam,
-    createActivityNotification,
-    isCurrentSupabaseUserId,
-    setProjects,
-    setProjectBoards,
-    setSelectedProject,
-    saveProjectSettingsToSupabase,
-    loadWorkspaceStructureFromSupabase,
-    updateProjectStatusInSupabase,
-    setProjectSettingsDraft,
-    deleteProjectFromSupabase,
-    setActivityNotifications,
-    setActiveTab
-  });
+
 
   const getProjectFileSecondaryText = (file = {}) =>
     buildProjectFileSecondaryText(file, {
@@ -6572,42 +6464,7 @@ function App() {
       setSelectedProject
     });
 
-  const {
-    goToPreviousCalendarPeriod,
-    goToNextCalendarPeriod,
-    goToCurrentCalendarPeriod,
-    changeCalendarView,
-    handleCalendarDayClick,
-    handleCalendarGridClick,
-    changeCalendarTaskModalProject,
-    openTaskModalForCalendarDay,
-    closeCalendarQuickTaskCreator,
-    updateCalendarQuickTaskProject,
-    saveCalendarQuickTaskFromModal
-  } = createZRCCalendarActions({
-    calendarView,
-    calendarFocusedDate,
-    setCalendarFocusedDate,
-    setCalendarMonthDate,
-    setCalendarView,
-    setIsCalendarDisplayMenuOpen,
-    openCalendarQuickTaskCreator,
-    setSelectedProject,
-    setCalendarTaskModalContext,
-    setCalendarQuickTaskDraft,
-    setCalendarNewTaskDate,
-    getCalendarQuickTaskStatusOptions,
-    calendarQuickTaskDraft,
-    formatDateForTaskModal,
-    currentAccountType,
-    isCurrentUserProjectMember,
-    projectBoards,
-    createDefaultProjectBoard,
-    normalizeAssigneesForCurrentAccountSave,
-    setProjectBoards,
-    createActivityNotification,
-    saveTaskToSupabaseForProject
-  });
+
 
 
 
@@ -7718,7 +7575,39 @@ function App() {
     (member) => !isZrcAjansIdentityRecord(member)
   );
 
-  const selectedProjectSettings = projectSettings[selectedProject] || createDefaultProjectSettings(selectedProject);
+  
+
+const {
+    handleSaveProjectSettings,
+    handleArchiveProject,
+    handleDeleteProject
+  } = createZRCProjectSettingsActions({
+    requirePermission,
+    selectedProject,
+    projectSettingsDraft,
+    getCustomerByName,
+    createDefaultProjectSettings,
+    projectSettings,
+    projectTeamAssignableMembers,
+    getTeamMemberNameById,
+    createProjectTeamHistoryEntry,
+    projects,
+    setProjectSettings,
+    syncProjectTasksWithTeam,
+    createActivityNotification,
+    isCurrentSupabaseUserId,
+    setProjects,
+    setProjectBoards,
+    setSelectedProject,
+    saveProjectSettingsToSupabase,
+    loadWorkspaceStructureFromSupabase,
+    updateProjectStatusInSupabase,
+    setProjectSettingsDraft,
+    deleteProjectFromSupabase,
+    setActivityNotifications,
+    setActiveTab
+  });
+const selectedProjectSettings = projectSettings[selectedProject] || createDefaultProjectSettings(selectedProject);
   const draftProjectTeamMemberIds = Array.isArray(projectSettingsDraft?.teamMemberIds)
     ? projectSettingsDraft.teamMemberIds
     : selectedProjectSettings.teamMemberIds;
@@ -7813,7 +7702,130 @@ function App() {
     return uniqueTaskPeopleById(currentMember ? [currentMember] : []);
   };
 
-  const filterTaskFollowersForSave = (people = []) =>
+  
+
+
+
+const {
+    goToPreviousCalendarPeriod,
+    goToNextCalendarPeriod,
+    goToCurrentCalendarPeriod,
+    changeCalendarView,
+    handleCalendarDayClick,
+    handleCalendarGridClick,
+    changeCalendarTaskModalProject,
+    openTaskModalForCalendarDay,
+    closeCalendarQuickTaskCreator,
+    updateCalendarQuickTaskProject,
+    saveCalendarQuickTaskFromModal
+  } = createZRCCalendarActions({
+    calendarView,
+    calendarFocusedDate,
+    setCalendarFocusedDate,
+    setCalendarMonthDate,
+    setCalendarView,
+    setIsCalendarDisplayMenuOpen,
+    openCalendarQuickTaskCreator,
+    setSelectedProject,
+    setCalendarTaskModalContext,
+    setCalendarQuickTaskDraft,
+    setCalendarNewTaskDate,
+    getCalendarQuickTaskStatusOptions,
+    calendarQuickTaskDraft,
+    formatDateForTaskModal,
+    currentAccountType,
+    isCurrentUserProjectMember,
+    projectBoards,
+    createDefaultProjectBoard,
+    normalizeAssigneesForCurrentAccountSave,
+    setProjectBoards,
+    createActivityNotification,
+    saveTaskToSupabaseForProject
+  });
+const {
+    openAddStageModal,
+    openEditStageModal,
+    handleMoveColumn,
+    handleSaveStage,
+    handleDeleteColumn,
+    handleCopyColumn,
+    handleArchiveColumnTasks,
+    handleArchiveColumn,
+    openTaskDetail,
+    closeTaskDetail,
+    editTaskFromDetail,
+    updateTaskFromDetail,
+    addTaskComment,
+    deleteTaskComment,
+    handleMoveTaskToColumn,
+    handleTaskAction,
+    handleBulkDelete,
+    handleBulkArchive,
+    handleRestoreArchivedTask,
+    handleDeleteArchivedTask,
+    handleDragStart,
+    handleDrop
+  } = createZRCBoardTaskActions({
+    requirePermission,
+    setEditingColumn,
+    setIsStageModalOpen,
+    setOpenMenuColumnId,
+    boardColumns,
+    setBoardColumns,
+    editingColumn,
+    normalizeColumnTitleForDisplay,
+    selectedProject,
+    normalizeStorageArray,
+    readStorageValue,
+    writeStorageValue,
+    setMobileActiveColumnId,
+    setZrcMobileColumnRefreshKey,
+    saveStageToSupabase,
+    setTimeout,
+    loadSelectedProjectBoardFromSupabase,
+    getCurrentSupabaseWorkspaceId,
+    zrcSetSupabaseWriteInfo,
+    ensureSupabaseProject,
+    supabase,
+    isSupabaseUuid,
+    currentActorName,
+    currentActorAvatar,
+    currentActorId,
+    setArchivedTasks,
+    archiveSupabaseTask,
+    isTaskAccessibleForCurrentUser,
+    showPermissionWarning,
+    setOpenTaskMenuId,
+    setDetailTaskInfo,
+    detailTaskInfo,
+    currentAccountType,
+    isCurrentUserProjectMember,
+    canCurrentUserModifyTask,
+    getProjectNameForTask,
+    setEditingTask,
+    setIsTaskModalOpen,
+    reportTasks,
+    createActivityNotification,
+    getProfileNameForRecord,
+    currentProfileName,
+    getProfileAvatarForRecord,
+    currentProfileAvatar,
+    getTaskAssigneeUserIdsForNotification,
+    isCurrentSupabaseUserId,
+    syncTaskDetailsToSupabase,
+    createHistoryEntry,
+    currentPermissions,
+    updateSupabaseTaskColumn,
+    ensureCanCreateTaskInSelectedProject,
+    normalizeAssigneesForCurrentAccountSave,
+    setSelectedTasks,
+    deleteSupabaseTask,
+    selectedTasks,
+    restoreSupabaseTask,
+    archivedTasks,
+    draggedTaskInfo
+  });
+const filterTaskFollowersForSave = (people = []) =>
     uniqueTaskPeopleById(
       (people || [])
         .map((person) => {
