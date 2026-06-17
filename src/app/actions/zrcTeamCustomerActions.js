@@ -53,6 +53,42 @@ export function createZRCTeamCustomerActions(deps) {
 
 
 
+
+  // zrc-service-role-workspace-member-delete-v1
+  const deleteWorkspaceMemberFromDatabase = async (member = {}) => {
+    const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
+      ? getCurrentSupabaseWorkspaceId()
+      : '';
+
+    if (!workspaceId) {
+      throw new Error('workspaceId bulunamadı');
+    }
+
+    const response = await fetch('/api/delete-workspace-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workspaceId,
+        member,
+        userId: member.userId || member.user_id || member.authUserId || member.auth_user_id || member.supabaseUserId || member.supabase_user_id || member.profileId || member.profile_id || member.id || '',
+        username: member.username || member.email || member.name || '',
+        customerId: member.customerId || member.customer_id || ''
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok || !result.deletedCount) {
+      throw new Error(result?.error || 'Veritabanı silme işlemi doğrulanamadı');
+    }
+
+    if (typeof zrcSetSupabaseWriteInfo === 'function') {
+      zrcSetSupabaseWriteInfo('saved', 'Ekip üyesi veritabanından silindi.');
+    }
+
+    return result;
+  };
+
   // zrc-real-db-delete-sync-v1
   const deleteWorkspaceMemberFromSupabase = async (member = {}) => {
     const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
@@ -373,7 +409,7 @@ export function createZRCTeamCustomerActions(deps) {
 
     if (targetMember) {
       try {
-        await deleteWorkspaceMemberFromSupabase(targetMember);
+        await deleteWorkspaceMemberFromDatabase(targetMember);
       } catch (error) {
         alert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
