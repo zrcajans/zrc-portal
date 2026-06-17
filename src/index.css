@@ -1701,4 +1701,56 @@ body {
 }
 /* === ZRC DESKTOP SHADOW DESIGN LANGUAGE END === */
 
+/* === ZRC MOBILE BOTTOM WHITE OVERLAP FIX START === */
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    background: #eef0f3 !important;
+  }
 
+  body {
+    overscroll-behavior-y: none !important;
+  }
+
+  body .zrc-mobile-simple-workspace,
+  body .zrc-mobile-task-section,
+  body .zrc-mobile-task-section-with-column-capsule {
+    background: #eef0f3 !important;
+  }
+
+  body .zrc-mobile-task-section-with-column-capsule {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 148px) !important;
+  }
+
+  body .zrc-mobile-column-capsule {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 22px) !important;
+    z-index: 2147483000 !important;
+  }
+
+  body .zrc-mobile-column-capsule,
+  body .zrc-mobile-column-capsule * {
+    isolation: isolate !important;
+  }
+
+  body .zrc-mobile-task-move-toast {
+    z-index: 2147483001 !important;
+  }
+
+  body::after {
+    background: transparent !important;
+    pointer-events: none !important;
+  }
+
+  .zrc-mobile-bottom-safe-area,
+  .zrc-mobile-safe-area,
+  .zrc-mobile-footer-spacer,
+  .zrc-mobile-bottom-spacer,
+  [class*="mobile-bottom-safe"],
+  [class*="mobile-safe-area"],
+  [class*="bottom-spacer"] {
+    background: transparent !important;
+    pointer-events: none !important;
+  }
+}
+/* === ZRC MOBILE BOTTOM WHITE OVERLAP FIX END === */
