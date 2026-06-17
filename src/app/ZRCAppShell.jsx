@@ -12649,124 +12649,38 @@ return (
           allowed={typeof allowed !== 'undefined' ? allowed : undefined}
         />
 
-        {isNotificationsOpen && (
-          <div
-            onClick={(event) => event.stopPropagation()}
-            style={{ top: activeContentMenu === 'Projeler' ? 43 : 55 }}
-            className="zrc-notification-panel fixed left-1/2 -translate-x-1/2 z-[680] w-[360px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
-          >
-            <span className="absolute -top-1.5 left-[57%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
-            <div className="h-[54px] px-4 border-b border-zinc-100 flex items-center justify-between">
-              <div>
-                <div className="text-[13px] font-black text-zinc-800">Bildirimler</div>
-                <div className="mt-0.5 text-[10px] font-bold text-zinc-400">
-                  {notificationPanelSummary}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={loadActivityLogsFromSupabase}
-                  className="h-7 px-3 rounded-full bg-white border border-zinc-100 text-[9.5px] font-black text-zinc-500 hover:text-zinc-900 hover:border-zinc-200 transition-all"
-                >
-                  Yenile
-                </button>
-
-                {notificationItems.length > 0 && unreadNotificationCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={markAllNotificationsAsRead}
-                    className="h-7 px-3 rounded-full bg-zinc-900 border border-zinc-900 text-[9.5px] font-black text-white hover:bg-zinc-700 transition-all"
-                  >
-                    Tümünü okundu yap
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="max-h-[420px] overflow-y-auto custom-scrollbar p-2">
-              {notificationItems.length > 0 ? (
-                <div className="space-y-1.5">
-                  {notificationItems.map((notification) => {
-                    const isRead = readNotificationIds.includes(notification.id);
-
-                    return (
-                      <button
-                        key={notification.id}
-                        type="button"
-                        onClick={() => handleNotificationClick(notification)}
-                        className={`w-full text-left rounded-[10px] border p-3 transition-all ${
-                          isRead
-                            ? 'bg-white border-zinc-100 hover:bg-zinc-50'
-                            : 'bg-blue-50/45 border-blue-100 hover:bg-blue-50'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={`w-9 h-9 rounded-[10px] border flex items-center justify-center shrink-0 overflow-hidden ${getNotificationTone(notification.type)}`}>
-                            {notification.source === 'activity' && notification.avatar ? (
-                              renderProfileAvatar(notification.avatar, currentProfileInitials)
-                            ) : notification.type === 'comment' && notification.avatar ? (
-                              renderProfileAvatar(notification.avatar, currentProfileInitials)
-                            ) : notification.type === 'comment' ? (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm3.75 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm3.75 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12c0 4.556-4.03 8.25-9 8.25a9.76 9.76 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.924-.924 5.972 5.972 0 001.057-4.035A8.287 8.287 0 013 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-                              </svg>
-                            ) : notification.type === 'file' ? (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94a3 3 0 114.243 4.243L8.552 18.32a1.5 1.5 0 11-2.121-2.121l9.546-9.546" />
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2M12 21a9 9 0 100-18 9 9 0 000 18z" />
-                              </svg>
-                            )}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="text-[11.5px] font-black text-zinc-800 truncate">
-                                {notification.title}
-                              </div>
-
-                              {!isRead && (
-                                <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />
-                              )}
-                            </div>
-
-                            <div className="mt-0.5 text-[11px] font-bold text-zinc-600 truncate">
-                              {notification.text}
-                            </div>
-
-                            <div className="mt-1 text-[9.5px] font-bold text-zinc-400 truncate">
-                              {currentAccountType === 'Patron'
-                                ? notification.meta
-                                : notification.projectName || notification.meta}
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="h-[220px] flex flex-col items-center justify-center text-center">
-                  <div className="w-14 h-14 rounded-full bg-zinc-50 border border-zinc-100 text-zinc-300 flex items-center justify-center mb-3">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022 23.848 23.848 0 005.455 1.31m5.714 0a3 3 0 11-5.714 0" />
-                    </svg>
-                  </div>
-
-                  <div className="text-[12px] font-black text-zinc-600">Bildirim yok</div>
-                  <div className="mt-1 text-[10.5px] font-bold text-zinc-400">
-                    {notificationEmptyDescription}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        <ZRCAppShellAutoUiBlock01
+        Bildirim={typeof Bildirim !== 'undefined' ? Bildirim : undefined}
+        Bildirimler={typeof Bildirimler !== 'undefined' ? Bildirimler : undefined}
+        Yenile={typeof Yenile !== 'undefined' ? Yenile : undefined}
+        activeContentMenu={typeof activeContentMenu !== 'undefined' ? activeContentMenu : undefined}
+        currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
+        currentProfileInitials={typeof currentProfileInitials !== 'undefined' ? currentProfileInitials : undefined}
+        d={typeof d !== 'undefined' ? d : undefined}
+        event={typeof event !== 'undefined' ? event : undefined}
+        fill={typeof fill !== 'undefined' ? fill : undefined}
+        handleNotificationClick={typeof handleNotificationClick !== 'undefined' ? handleNotificationClick : undefined}
+        isNotificationsOpen={typeof isNotificationsOpen !== 'undefined' ? isNotificationsOpen : undefined}
+        isRead={typeof isRead !== 'undefined' ? isRead : undefined}
+        loadActivityLogsFromSupabase={typeof loadActivityLogsFromSupabase !== 'undefined' ? loadActivityLogsFromSupabase : undefined}
+        markAllNotificationsAsRead={typeof markAllNotificationsAsRead !== 'undefined' ? markAllNotificationsAsRead : undefined}
+        notification={typeof notification !== 'undefined' ? notification : undefined}
+        notificationEmptyDescription={typeof notificationEmptyDescription !== 'undefined' ? notificationEmptyDescription : undefined}
+        notificationItems={typeof notificationItems !== 'undefined' ? notificationItems : undefined}
+        notificationPanelSummary={typeof notificationPanelSummary !== 'undefined' ? notificationPanelSummary : undefined}
+        okundu={typeof okundu !== 'undefined' ? okundu : undefined}
+        onClick={typeof onClick !== 'undefined' ? onClick : undefined}
+        readNotificationIds={typeof readNotificationIds !== 'undefined' ? readNotificationIds : undefined}
+        renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
+        stroke={typeof stroke !== 'undefined' ? stroke : undefined}
+        strokeLinecap={typeof strokeLinecap !== 'undefined' ? strokeLinecap : undefined}
+        strokeLinejoin={typeof strokeLinejoin !== 'undefined' ? strokeLinejoin : undefined}
+        strokeWidth={typeof strokeWidth !== 'undefined' ? strokeWidth : undefined}
+        unreadNotificationCount={typeof unreadNotificationCount !== 'undefined' ? unreadNotificationCount : undefined}
+        viewBox={typeof viewBox !== 'undefined' ? viewBox : undefined}
+        yap={typeof yap !== 'undefined' ? yap : undefined}
+        yok={typeof yok !== 'undefined' ? yok : undefined}
+      />
 
         <ZRCAppShellGlobalSearchBlock
         isGlobalSearchOpen={isGlobalSearchOpen}
@@ -12916,85 +12830,29 @@ return (
                             </div>
                           )}
 
-                          {isQuickNoteComposerOpen && (
-                            <form
-                              onSubmit={createQuickNoteFromHome}
-                              className="zrc-note-composer-float absolute right-1 top-[-44px] z-[680] w-[382px] max-w-[calc(100vw-48px)] rounded-[18px] shadow-[0_28px_56px_rgba(55,81,145,0.22)] p-4 overflow-hidden"
-                              style={{
-                                backgroundColor: '#f7f4ea',
-                                backgroundImage:
-                                  'radial-gradient(circle at 14% 18%, rgba(47,102,207,0.13) 0 1px, transparent 1.2px), radial-gradient(circle at 82% 24%, rgba(255,54,0,0.11) 0 1px, transparent 1.3px), radial-gradient(circle at 38% 76%, rgba(41,50,65,0.08) 0 1px, transparent 1.3px), linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(238,247,255,0.92) 42%, rgba(255,245,235,0.95) 100%)',
-                                backgroundSize: '26px 26px, 31px 31px, 35px 35px, 100% 100%'
-                              }}
-                            >
-                              <div className="absolute -top-2 right-7 w-4 h-4 rotate-45 bg-[#f8f5ed]" />
-                              <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-[#5fb7ff]/22 blur-2xl" />
-                              <div className="absolute -bottom-12 -left-10 w-28 h-28 rounded-full bg-[#ff7a45]/14 blur-2xl" />
-                              <div className="absolute inset-0 opacity-[0.18] pointer-events-none bg-[linear-gradient(90deg,rgba(41,50,65,0.08)_1px,transparent_1px),linear-gradient(0deg,rgba(41,50,65,0.06)_1px,transparent_1px)] bg-[length:18px_18px]" />
-                              <div className="absolute top-3 right-4 w-11 h-2 rounded-full bg-white/80 shadow-[0_5px_14px_rgba(66,86,130,0.14)] rotate-[3deg]" />
-
-                              <div className="relative z-10 flex items-start gap-3">
-                                <div className="zrc-note-mini-float mt-1 w-9 h-9 rounded-[12px] bg-[#2f66cf] text-white shadow-[0_10px_22px_rgba(47,102,207,0.22)] flex items-center justify-center">
-                                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 4h10a2 2 0 0 1 2 2v12l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2Z" />
-                                  </svg>
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                  <div className="text-[10px] font-black text-[#778399] mb-2">
-                                    {editingQuickNoteId ? 'Notu düzenle' : 'Yeni hızlı not'}
-                                  </div>
-
-                                  <input
-                                    value={quickNoteTitleDraft}
-                                    onChange={(event) => setQuickNoteTitleDraft(event.target.value)}
-                                    placeholder="Başlık"
-                                    className="w-full h-[34px] bg-white/74 backdrop-blur rounded-[12px] px-3 text-[13px] font-black text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:bg-white/95 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]"
-                                  />
-
-                                  <textarea
-                                    value={quickNoteDraft}
-                                    onChange={(event) => setQuickNoteDraft(event.target.value)}
-                                    onKeyDown={(event) => {
-                                      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-                                        event.preventDefault();
-                                        createQuickNoteFromHome(event);
-                                      }
-                                    }}
-                                    placeholder="Detaylı açıklama yaz..."
-                                    rows={4}
-                                    className="mt-2 w-full resize-none bg-white/70 backdrop-blur rounded-[13px] px-3 py-2.5 text-[12.5px] font-semibold leading-5 text-[#334155] placeholder:text-[#9aa8bd] outline-none focus:bg-white/94 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]"
-                                  />
-
-                                  <div className="mt-3 flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-[#7b8799]">
-                                      {editingQuickNoteId ? 'Başlık + detay güncellenecek' : 'Başlık + detay olarak sabitlenecek'}
-                                    </span>
-
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          resetQuickNoteComposer();
-                                          setIsQuickNoteComposerOpen(false);
-                                        }}
-                                        className="h-[28px] px-3 rounded-full bg-white/70 text-[#7b8799] text-[10px] font-black hover:bg-white transition-all"
-                                      >
-                                        Vazgeç
-                                      </button>
-
-                                      <button
-                                        type="submit"
-                                        className="h-[28px] px-4 rounded-full bg-[#2f66cf] text-white text-[10px] font-black hover:bg-[#285cc0] active:scale-[0.98] transition-all shadow-[0_10px_18px_rgba(47,102,207,0.18)]"
-                                      >
-                                        {editingQuickNoteId ? 'Güncelle' : 'Sabitle'}
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </form>
-                          )}
+                          <ZRCAppShellAutoUiBlock03
+        createQuickNoteFromHome={typeof createQuickNoteFromHome !== 'undefined' ? createQuickNoteFromHome : undefined}
+        d={typeof d !== 'undefined' ? d : undefined}
+        editingQuickNoteId={typeof editingQuickNoteId !== 'undefined' ? editingQuickNoteId : undefined}
+        event={typeof event !== 'undefined' ? event : undefined}
+        fill={typeof fill !== 'undefined' ? fill : undefined}
+        isQuickNoteComposerOpen={typeof isQuickNoteComposerOpen !== 'undefined' ? isQuickNoteComposerOpen : undefined}
+        onChange={typeof onChange !== 'undefined' ? onChange : undefined}
+        onClick={typeof onClick !== 'undefined' ? onClick : undefined}
+        onKeyDown={typeof onKeyDown !== 'undefined' ? onKeyDown : undefined}
+        onSubmit={typeof onSubmit !== 'undefined' ? onSubmit : undefined}
+        quickNoteDraft={typeof quickNoteDraft !== 'undefined' ? quickNoteDraft : undefined}
+        quickNoteTitleDraft={typeof quickNoteTitleDraft !== 'undefined' ? quickNoteTitleDraft : undefined}
+        resetQuickNoteComposer={typeof resetQuickNoteComposer !== 'undefined' ? resetQuickNoteComposer : undefined}
+        setIsQuickNoteComposerOpen={typeof setIsQuickNoteComposerOpen !== 'undefined' ? setIsQuickNoteComposerOpen : undefined}
+        setQuickNoteDraft={typeof setQuickNoteDraft !== 'undefined' ? setQuickNoteDraft : undefined}
+        setQuickNoteTitleDraft={typeof setQuickNoteTitleDraft !== 'undefined' ? setQuickNoteTitleDraft : undefined}
+        stroke={typeof stroke !== 'undefined' ? stroke : undefined}
+        strokeLinecap={typeof strokeLinecap !== 'undefined' ? strokeLinecap : undefined}
+        strokeLinejoin={typeof strokeLinejoin !== 'undefined' ? strokeLinejoin : undefined}
+        strokeWidth={typeof strokeWidth !== 'undefined' ? strokeWidth : undefined}
+        viewBox={typeof viewBox !== 'undefined' ? viewBox : undefined}
+      />
                         </div>
                       )}
 
@@ -13535,105 +13393,31 @@ return (
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M6 12h12M10 20h4" />
                   </svg>
 
-                  {isMenuCalendarFilterOpen && (
-                    <div
-                      onClick={(filterEvent) => filterEvent.stopPropagation()}
-                      className="absolute right-0 top-[34px] z-[650] w-[300px] rounded-[4px] bg-white border border-[#e1e5eb] shadow-[0_18px_45px_rgba(15,23,42,0.16)] text-left overflow-visible"
-                    >
-                      <div className="p-3">
-                        <div className="text-[12px] font-black text-[#374151]">Filtreler</div>
-
-                        <div className="mt-3 text-[10px] font-black text-[#7f8a9b]">Gösterim Şekli</div>
-
-                        <div className="mt-2 space-y-2">
-                          {[
-                            {
-                              label: 'Uzun Süreli Görevleri Gizle',
-                              checked: calendarDisplayOptions.hideLongTasks,
-                              keyName: 'hideLongTasks'
-                            },
-                            {
-                              label: 'Tamamlanmış Görevleri Gizle',
-                              checked: calendarDisplayOptions.hideCompletedTasks,
-                              keyName: 'hideCompletedTasks'
-                            },
-                            {
-                              label: 'Arşivlenmiş Görevleri Gizle',
-                              checked: calendarDisplayOptions.hideArchivedTasks,
-                              keyName: 'hideArchivedTasks'
-                            }
-                          ].map((option) => (
-                            <button
-                              key={option.keyName}
-                              type="button"
-                              onClick={() =>
-                                setCalendarDisplayOptions((prev) => ({
-                                  ...prev,
-                                  [option.keyName]: !prev[option.keyName]
-                                }))
-                              }
-                              className="w-full h-6 flex items-center gap-2 text-[10.5px] font-bold text-[#667085] hover:text-[#374151]"
-                            >
-                              <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                option.checked
-                                  ? 'bg-[#4fbd7d] border-[#4fbd7d] text-white'
-                                  : 'bg-white border-[#cbd2dc] text-transparent'
-                              }`}>
-                                ✓
-                              </span>
-                              {option.label}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="mt-3 text-[10px] font-black text-[#7f8a9b]">Durumlar</div>
-
-                        <div className="relative mt-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setIsMenuCalendarStatusOpen((prev) => !prev)}
-                            className="w-full h-8 rounded-[14px] bg-white border border-[#dfe3ea] px-3 flex items-center justify-between text-[10px] font-bold text-[#555f70]"
-                          >
-                            {menuCalendarStatusFilter}
-                            <svg className="w-3 h-3 text-[#98a1b2]" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-
-                          {isMenuCalendarStatusOpen && (
-                            <div className="absolute left-0 right-0 top-[34px] z-[670] bg-white border border-[#dfe3ea] rounded-[4px] shadow-[0_14px_32px_rgba(15,23,42,0.14)] overflow-hidden">
-                              {menuCalendarStatusOptions.map((status) => (
-                                <button
-                                  key={status}
-                                  type="button"
-                                  onClick={() => {
-                                    setMenuCalendarStatusFilter(status);
-                                    setIsMenuCalendarStatusOpen(false);
-                                  }}
-                                  className={`w-full h-8 px-3 text-left text-[10px] font-bold hover:bg-[#f7f8fa] ${
-                                    menuCalendarStatusFilter === status ? 'text-[#2f66cf]' : 'text-[#555f70]'
-                                  }`}
-                                >
-                                  {status}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="mt-4 text-[10px] font-black text-[#7f8a9b]">İlgili</div>
-
-                        <div className="mt-2 space-y-2">
-                          {projects.slice(0, 5).map((projectName) => (
-                            <div key={`calendar-filter-project-${projectName}`} className="h-6 flex items-center gap-2 text-[10.5px] font-bold text-[#667085]">
-                              <span className="w-4 h-4 rounded-full bg-[#4fbd7d] text-white flex items-center justify-center text-[9px]">✓</span>
-                              <span className="truncate">{projectName}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <ZRCAppShellAutoUiBlock02
+        Durumlar={typeof Durumlar !== 'undefined' ? Durumlar : undefined}
+        Filtreler={typeof Filtreler !== 'undefined' ? Filtreler : undefined}
+        calendarDisplayOptions={typeof calendarDisplayOptions !== 'undefined' ? calendarDisplayOptions : undefined}
+        d={typeof d !== 'undefined' ? d : undefined}
+        fill={typeof fill !== 'undefined' ? fill : undefined}
+        filterEvent={typeof filterEvent !== 'undefined' ? filterEvent : undefined}
+        isMenuCalendarFilterOpen={typeof isMenuCalendarFilterOpen !== 'undefined' ? isMenuCalendarFilterOpen : undefined}
+        isMenuCalendarStatusOpen={typeof isMenuCalendarStatusOpen !== 'undefined' ? isMenuCalendarStatusOpen : undefined}
+        menuCalendarStatusFilter={typeof menuCalendarStatusFilter !== 'undefined' ? menuCalendarStatusFilter : undefined}
+        menuCalendarStatusOptions={typeof menuCalendarStatusOptions !== 'undefined' ? menuCalendarStatusOptions : undefined}
+        onClick={typeof onClick !== 'undefined' ? onClick : undefined}
+        prev={typeof prev !== 'undefined' ? prev : undefined}
+        projectName={typeof projectName !== 'undefined' ? projectName : undefined}
+        projects={typeof projects !== 'undefined' ? projects : undefined}
+        setCalendarDisplayOptions={typeof setCalendarDisplayOptions !== 'undefined' ? setCalendarDisplayOptions : undefined}
+        setIsMenuCalendarStatusOpen={typeof setIsMenuCalendarStatusOpen !== 'undefined' ? setIsMenuCalendarStatusOpen : undefined}
+        setMenuCalendarStatusFilter={typeof setMenuCalendarStatusFilter !== 'undefined' ? setMenuCalendarStatusFilter : undefined}
+        status={typeof status !== 'undefined' ? status : undefined}
+        stroke={typeof stroke !== 'undefined' ? stroke : undefined}
+        strokeLinecap={typeof strokeLinecap !== 'undefined' ? strokeLinecap : undefined}
+        strokeLinejoin={typeof strokeLinejoin !== 'undefined' ? strokeLinejoin : undefined}
+        strokeWidth={typeof strokeWidth !== 'undefined' ? strokeWidth : undefined}
+        viewBox={typeof viewBox !== 'undefined' ? viewBox : undefined}
+      />
                 </button>
               </div>
 
@@ -14195,68 +13979,23 @@ return (
               </div>
             </div>
 
-            {isChatGroupModalOpen && canCreateChatGroups && (
-              <div className="fixed inset-0 z-[760] bg-zinc-950/45 flex items-start justify-center pt-[115px]" onClick={() => setIsChatGroupModalOpen(false)}>
-                <form
-                  onSubmit={createChatGroupFromPage}
-                  onClick={(event) => event.stopPropagation()}
-                  className="w-[390px] bg-white rounded-[15px] shadow-[0_28px_90px_rgba(15,23,42,0.24)] overflow-hidden"
-                >
-                  <div className="h-12 px-5 flex items-center justify-center relative">
-                    <div className="text-[12px] font-black text-current flex items-center gap-1.5">
-                      <span className="text-[#7d8795]">⌕</span>
-                      Yazışma Grubu
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsChatGroupModalOpen(false)}
-                      className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#eef0f4] text-[#778293] hover:bg-white hover:text-current transition-all shadow-sm"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <div className="px-5 pb-5">
-                    <label className="block text-[10px] font-black text-[#677282] mb-1.5">Grup Adı</label>
-                    <input
-                      value={chatGroupDraft}
-                      onChange={(event) => setChatGroupDraft(event.target.value)}
-                      placeholder="Grup adını girin..."
-                      autoFocus
-                      className="w-full h-8 rounded-[8px] border border-[#8bbcff] px-3 text-[10px] font-semibold text-[#394150] placeholder:text-[#aab3c0] focus:outline-none focus:ring-2 focus:ring-[#dcebff]"
-                    />
-
-                    <div className="mt-4 text-[10px] font-black text-[#677282] mb-1.5">Grup Üyeleri</div>
-                    <button
-                      type="button"
-                      className="w-8 h-8 rounded-full bg-[#45b978] text-white text-[18px] leading-none font-bold hover:bg-[#38a86b] transition-all flex items-center justify-center"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <div className="h-[50px] px-5 bg-[#f8f9fb] border-t border-[#edf0f4] flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setIsChatGroupModalOpen(false)}
-                      className="h-8 px-4 rounded-full bg-[#eef0f4] text-[10px] font-black text-[#667085] hover:bg-[#e3e7ee] transition-all flex items-center gap-3"
-                    >
-                      Kapat
-                      <span>×</span>
-                    </button>
-
-                    <button
-                      type="submit"
-                      className="h-8 px-4 rounded-full bg-[#45b978] text-white text-[10px] font-black hover:bg-[#38a86b] transition-all flex items-center gap-3"
-                    >
-                      Kaydet
-                      <span>▣</span>
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
+            <ZRCAppShellAutoUiBlock04
+        Grubu={typeof Grubu !== 'undefined' ? Grubu : undefined}
+        Grup={typeof Grup !== 'undefined' ? Grup : undefined}
+        Kapat={typeof Kapat !== 'undefined' ? Kapat : undefined}
+        Kaydet={typeof Kaydet !== 'undefined' ? Kaydet : undefined}
+        autoFocus={typeof autoFocus !== 'undefined' ? autoFocus : undefined}
+        canCreateChatGroups={typeof canCreateChatGroups !== 'undefined' ? canCreateChatGroups : undefined}
+        chatGroupDraft={typeof chatGroupDraft !== 'undefined' ? chatGroupDraft : undefined}
+        createChatGroupFromPage={typeof createChatGroupFromPage !== 'undefined' ? createChatGroupFromPage : undefined}
+        event={typeof event !== 'undefined' ? event : undefined}
+        isChatGroupModalOpen={typeof isChatGroupModalOpen !== 'undefined' ? isChatGroupModalOpen : undefined}
+        onChange={typeof onChange !== 'undefined' ? onChange : undefined}
+        onClick={typeof onClick !== 'undefined' ? onClick : undefined}
+        onSubmit={typeof onSubmit !== 'undefined' ? onSubmit : undefined}
+        setChatGroupDraft={typeof setChatGroupDraft !== 'undefined' ? setChatGroupDraft : undefined}
+        setIsChatGroupModalOpen={typeof setIsChatGroupModalOpen !== 'undefined' ? setIsChatGroupModalOpen : undefined}
+      />
           </div>
         ) : activeContentMenu === 'Profil' ? (
           <div className="zrc-profile-page-safe-v326 zrc-profile-page-safe-v328 w-full h-full min-h-0 bg-[#f2f3f5] overflow-y-auto custom-scrollbar animate-fade-in">
