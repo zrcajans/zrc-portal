@@ -1007,6 +1007,67 @@ export function createZRCTeamCustomerActions(deps) {
     if (deletedCustomer) {
       rememberDeletedCustomer(deletedCustomer);
 
+      // zrc-customer-guest-auth-delete-v1
+      const customerGuestAuthDeleteMember = {
+        id:
+          deletedCustomer.accountUserId ||
+          deletedCustomer.account_user_id ||
+          deletedCustomer.userId ||
+          deletedCustomer.user_id ||
+          deletedCustomer.authUserId ||
+          deletedCustomer.auth_user_id ||
+          deletedCustomer.supabaseUserId ||
+          deletedCustomer.supabase_user_id ||
+          '',
+        userId:
+          deletedCustomer.accountUserId ||
+          deletedCustomer.account_user_id ||
+          deletedCustomer.userId ||
+          deletedCustomer.user_id ||
+          deletedCustomer.authUserId ||
+          deletedCustomer.auth_user_id ||
+          deletedCustomer.supabaseUserId ||
+          deletedCustomer.supabase_user_id ||
+          '',
+        authUserId:
+          deletedCustomer.accountUserId ||
+          deletedCustomer.account_user_id ||
+          deletedCustomer.authUserId ||
+          deletedCustomer.auth_user_id ||
+          '',
+        username:
+          deletedCustomer.username ||
+          deletedCustomer.userName ||
+          deletedCustomer.email ||
+          deletedCustomer.mail ||
+          deletedCustomer.name ||
+          deletedCustomer.title ||
+          '',
+        email:
+          deletedCustomer.email ||
+          deletedCustomer.mail ||
+          deletedCustomer.username ||
+          deletedCustomer.userName ||
+          '',
+        name:
+          deletedCustomer.name ||
+          deletedCustomer.title ||
+          deletedCustomer.customerName ||
+          deletedCustomer.fullName ||
+          deletedCustomer.full_name ||
+          '',
+        customerId,
+        customer_id: customerId,
+        role: 'Müşteri/Misafir'
+      };
+
+      try {
+        await deleteWorkspaceMemberFromDatabase(customerGuestAuthDeleteMember);
+      } catch (error) {
+        alert(`Müşteri/Misafir auth hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        return;
+      }
+
       try {
         if (typeof deleteCustomerFromSupabase === 'function') {
           await deleteCustomerFromSupabase(deletedCustomer);

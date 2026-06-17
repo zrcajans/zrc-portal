@@ -65,6 +65,7 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
   const member = body.member || {};
+  const customer = body.customer || {}; // zrc-customer-body-candidates-v1
   const workspaceId = String(body.workspaceId || '').trim();
 
   const idCandidates = unique([
@@ -77,7 +78,16 @@ export default async function handler(req, res) {
     member.supabase_user_id,
     member.profileId,
     member.profile_id,
-    member.id
+    member.id,
+    customer.accountUserId,
+    customer.account_user_id,
+    customer.userId,
+    customer.user_id,
+    customer.authUserId,
+    customer.auth_user_id,
+    customer.supabaseUserId,
+    customer.supabase_user_id,
+    customer.id
   ]).filter(isUuid);
 
   const rawTextCandidates = unique([
@@ -86,7 +96,16 @@ export default async function handler(req, res) {
     member.email,
     member.name,
     member.fullName,
-    member.full_name
+    member.full_name,
+    customer.username,
+    customer.userName,
+    customer.email,
+    customer.mail,
+    customer.name,
+    customer.title,
+    customer.customerName,
+    customer.fullName,
+    customer.full_name
   ]);
 
   const usernameCandidates = unique([
@@ -107,7 +126,10 @@ export default async function handler(req, res) {
   const customerCandidates = unique([
     body.customerId,
     member.customerId,
-    member.customer_id
+    member.customer_id,
+    customer.id,
+    customer.customerId,
+    customer.customer_id
   ]);
 
   const deletedRows = [];
