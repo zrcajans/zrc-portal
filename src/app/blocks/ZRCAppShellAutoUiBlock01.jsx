@@ -1,5 +1,65 @@
 import { getNotificationTone } from '../../utils/dashboardHelpers.js';
 
+
+const ZRC_CLEARED_NOTIFICATION_IDS_KEY = 'zrcClearedNotificationIds';
+const ZRC_CLEARED_NOTIFICATION_KEYS_KEY = 'zrcClearedNotificationKeys';
+
+const zrcNotificationFingerprint = (notification = {}) =>
+  [
+    notification.id,
+    notification.type,
+    notification.title,
+    notification.text,
+    notification.meta,
+    notification.projectName,
+    notification.chatGroupId,
+    notification.task?.id,
+    notification.task?.title,
+    notification.createdAt,
+    notification.updatedAt,
+    notification.time
+  ]
+    .map((value) => String(value || '').trim().toLowerCase())
+    .join('|');
+
+const zrcNotificationIdVariants = (notification = {}) => {
+  const rawId = String(notification?.id || '').trim();
+  const ids = new Set();
+
+  if (rawId) {
+    ids.add(rawId);
+
+    if (rawId.startsWith('supabase-notification-')) {
+      const cleanId = rawId.replace('supabase-notification-', '');
+      if (cleanId) ids.add(cleanId);
+    } else {
+      ids.add(`supabase-notification-${rawId}`);
+    }
+  }
+
+  return Array.from(ids);
+};
+
+const zrcReadJsonArray = (storageKey) => {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    const parsed = JSON.parse(window.localStorage.getItem(storageKey) || '[]');
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+};
+
+const zrcWriteJsonArray = (storageKey, values) => {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    window.localStorage.setItem(storageKey, JSON.stringify(Array.from(new Set((values || []).map(String)))));
+  } catch (error) {
+    console.warn('[ZRC] Bildirim temizleme bilgisi kaydedilemedi.', error);
+  }
+};
+
+
 function zrcSafeNotificationTone(type) {
   const raw = String(type || '').toLowerCase();
 
@@ -55,6 +115,28 @@ export default function ZRCAppShellAutoUiBlock01({
   yap,
   yok,
 }) {
+  const zrcClearedNotificationIds = new Set(zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY));
+  const zrcClearedNotificationKeys = new Set(zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY));
+
+  const zrcVisibleNotificationItems = (Array.isArray(notificationItems) ? notificationItems : []).filter((item) => {
+    const variants = zrcNotificationIdVariants(item);
+    const fingerprint = zrcNotificationFingerprint(item);
+
+    if (variants.some((id) => zrcClearedNotificationIds.has(String(id)))) return false;
+    if (zrcClearedNotificationKeys.has(String(fingerprint))) return false;
+
+    return true;
+  });
+
+  const zrcVisibleUnreadNotificationCount = zrcVisibleNotificationItems.filter(
+    (item) => !(readNotificationIds || []).includes(item.id)
+  ).length;
+
+  const zrcNotificationPanelSummary =
+    zrcVisibleNotificationItems.length > 0
+      ? `${zrcVisibleNotificationItems.length} bildirim`
+      : 'Bildirim yok';
+
   return (
     <>
       {isNotificationsOpen && (
@@ -68,7 +150,7 @@ export default function ZRCAppShellAutoUiBlock01({
                     <div>
                       <div className="text-[12.5px] font-black text-zinc-800">Bildirimler</div>
                       <div className="mt-0.5 text-[9.5px] font-bold text-zinc-400">
-                        {notificationPanelSummary}
+                        {zrcNotificationPanelSummary}
                       </div>
                     </div>
       
@@ -81,7 +163,7 @@ export default function ZRCAppShellAutoUiBlock01({
                         Yenile
                       </button>
       
-                      {notificationItems.length > 0 && unreadNotificationCount > 0 && (
+                      {zrcVisibleNotificationItems.length > 0 && (
                         <button
                           type="button"
                           onClick={markAllNotificationsAsRead}
@@ -94,9 +176,9 @@ export default function ZRCAppShellAutoUiBlock01({
                   </div>
       
                   <div className="max-h-[330px] overflow-y-auto custom-scrollbar p-1.5">
-                    {notificationItems.length > 0 ? (
+                    {zrcVisibleNotificationItems.length > 0 ? (
                       <div className="space-y-1.5">
-                        {notificationItems.map((notification) => {
+                        {zrcVisibleNotificationItems.map((notification) => {
                           const isRead = readNotificationIds.includes(notification.id);
       
                           return (

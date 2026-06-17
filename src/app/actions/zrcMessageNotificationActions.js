@@ -1,3 +1,63 @@
+
+const ZRC_CLEARED_NOTIFICATION_IDS_KEY = 'zrcClearedNotificationIds';
+const ZRC_CLEARED_NOTIFICATION_KEYS_KEY = 'zrcClearedNotificationKeys';
+
+const zrcNotificationFingerprint = (notification = {}) =>
+  [
+    notification.id,
+    notification.type,
+    notification.title,
+    notification.text,
+    notification.meta,
+    notification.projectName,
+    notification.chatGroupId,
+    notification.task?.id,
+    notification.task?.title,
+    notification.createdAt,
+    notification.updatedAt,
+    notification.time
+  ]
+    .map((value) => String(value || '').trim().toLowerCase())
+    .join('|');
+
+const zrcNotificationIdVariants = (notification = {}) => {
+  const rawId = String(notification?.id || '').trim();
+  const ids = new Set();
+
+  if (rawId) {
+    ids.add(rawId);
+
+    if (rawId.startsWith('supabase-notification-')) {
+      const cleanId = rawId.replace('supabase-notification-', '');
+      if (cleanId) ids.add(cleanId);
+    } else {
+      ids.add(`supabase-notification-${rawId}`);
+    }
+  }
+
+  return Array.from(ids);
+};
+
+const zrcReadJsonArray = (storageKey) => {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    const parsed = JSON.parse(window.localStorage.getItem(storageKey) || '[]');
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+};
+
+const zrcWriteJsonArray = (storageKey, values) => {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    window.localStorage.setItem(storageKey, JSON.stringify(Array.from(new Set((values || []).map(String)))));
+  } catch (error) {
+    console.warn('[ZRC] Bildirim temizleme bilgisi kaydedilemedi.', error);
+  }
+};
+
+
 export function createZRCMessageNotificationActions(deps) {
   const {
     isSupabaseUuid,
@@ -86,11 +146,23 @@ export function createZRCMessageNotificationActions(deps) {
   };
 
   const markAllNotificationsAsRead = () => {
-    const allNotificationIds = notificationItems.map((item) => item.id).filter(Boolean);
+    const visibleNotifications = Array.isArray(notificationItems) ? notificationItems : [];
 
-    const supabaseNotificationIds = allNotificationIds
-      .filter((id) => String(id).startsWith('supabase-notification-'))
-      .map((id) => String(id).replace('supabase-notification-', ''))
+    const clearIds = visibleNotifications.flatMap(zrcNotificationIdVariants).filter(Boolean);
+    const clearKeys = visibleNotifications.map(zrcNotificationFingerprint).filter(Boolean);
+
+    zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY, [
+      ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY),
+      ...clearIds
+    ]);
+
+    zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY, [
+      ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY),
+      ...clearKeys
+    ]);
+
+    const supabaseNotificationIds = clearIds
+      .filter((id) => !String(id).startsWith('supabase-notification-'))
       .filter(isSupabaseUuid);
 
     if (supabaseNotificationIds.length > 0 && supabase) {
@@ -106,25 +178,26 @@ export function createZRCMessageNotificationActions(deps) {
     }
 
     setReadNotificationIds((prevIds) => {
-      const nextIds = Array.from(new Set([...(prevIds || []), ...allNotificationIds]));
+      const nextIds = Array.from(new Set([...(prevIds || []), ...clearIds]));
       saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
       return nextIds;
     });
 
     if (typeof setActivityNotifications === 'function') {
-      setActivityNotifications((prevNotifications) => {
-        const visibleIds = new Set(allNotificationIds.map(String));
+      const clearIdSet = new Set(clearIds.map(String));
+      const clearKeySet = new Set(clearKeys.map(String));
 
-        return (prevNotifications || []).filter((notification) => {
-          const id = String(notification?.id || '');
-          if (!id) return false;
+      setActivityNotifications((prevNotifications) =>
+        (prevNotifications || []).filter((notification) => {
+          const variants = zrcNotificationIdVariants(notification);
+          const fingerprint = zrcNotificationFingerprint(notification);
 
-          if (visibleIds.has(id)) return false;
-          if (visibleIds.has(`supabase-notification-${id}`)) return false;
+          if (variants.some((id) => clearIdSet.has(String(id)))) return false;
+          if (clearKeySet.has(String(fingerprint))) return false;
 
           return true;
-        });
-      });
+        })
+      );
     }
 
     if (typeof setIsNotificationsOpen === 'function') {
