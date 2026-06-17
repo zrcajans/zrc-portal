@@ -5930,11 +5930,11 @@ function App() {
 
   const shouldShowPermissionWarnings = currentAccountType === 'Patron';
 
-  const showPermissionWarning = (message = 'Bu işlem için yetkin yok.') => {
+  function showPermissionWarning(message = 'Bu işlem için yetkin yok.') {
     if (shouldShowPermissionWarnings) {
       alert(message);
     }
-  };
+  }
 
   const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.') => {
     if (currentPermissions[permissionKey]) return true;
