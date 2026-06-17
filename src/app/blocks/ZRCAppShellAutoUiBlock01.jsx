@@ -60,14 +60,14 @@ export default function ZRCAppShellAutoUiBlock01({
       {isNotificationsOpen && (
                 <div
                   onClick={(event) => event.stopPropagation()}
-                  style={{ top: activeContentMenu === 'Projeler' ? 43 : 55 }}
-                  className="zrc-notification-panel fixed left-1/2 -translate-x-1/2 z-[680] w-[360px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
+                  style={{ top: activeContentMenu === 'Projeler' ? 42 : 52, left: 'calc(50% + 54px)' }}
+                  className="zrc-notification-panel fixed -translate-x-1/2 z-[680] w-[318px] bg-white/95 backdrop-blur-xl border border-zinc-200/55 rounded-[12px] shadow-[0_18px_46px_rgba(15,23,42,0.14)] overflow-hidden animate-fade-in"
                 >
-                  <span className="absolute -top-1.5 left-[57%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
-                  <div className="h-[54px] px-4 border-b border-zinc-100 flex items-center justify-between">
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 bg-white border-l border-t border-zinc-200/60" />
+                  <div className="h-[46px] px-3 border-b border-zinc-100/80 flex items-center justify-between">
                     <div>
-                      <div className="text-[13px] font-black text-zinc-800">Bildirimler</div>
-                      <div className="mt-0.5 text-[10px] font-bold text-zinc-400">
+                      <div className="text-[12.5px] font-black text-zinc-800">Bildirimler</div>
+                      <div className="mt-0.5 text-[9.5px] font-bold text-zinc-400">
                         {notificationPanelSummary}
                       </div>
                     </div>
@@ -76,7 +76,7 @@ export default function ZRCAppShellAutoUiBlock01({
                       <button
                         type="button"
                         onClick={loadActivityLogsFromSupabase}
-                        className="h-7 px-3 rounded-full bg-white border border-zinc-100 text-[9.5px] font-black text-zinc-500 hover:text-zinc-900 hover:border-zinc-200 transition-all"
+                        className="h-6 px-2.5 rounded-full bg-zinc-50 border border-zinc-100 text-[9px] font-black text-zinc-500 hover:text-zinc-900 hover:border-zinc-200 transition-all"
                       >
                         Yenile
                       </button>
@@ -85,7 +85,7 @@ export default function ZRCAppShellAutoUiBlock01({
                         <button
                           type="button"
                           onClick={markAllNotificationsAsRead}
-                          className="h-7 px-3 rounded-full bg-zinc-900 border border-zinc-900 text-[9.5px] font-black text-white hover:bg-zinc-700 transition-all"
+                          className="h-6 px-2.5 rounded-full bg-zinc-900 border border-zinc-900 text-[9px] font-black text-white hover:bg-zinc-700 transition-all"
                         >
                           Tümünü okundu yap
                         </button>
@@ -93,7 +93,7 @@ export default function ZRCAppShellAutoUiBlock01({
                     </div>
                   </div>
       
-                  <div className="max-h-[420px] overflow-y-auto custom-scrollbar p-2">
+                  <div className="max-h-[330px] overflow-y-auto custom-scrollbar p-1.5">
                     {notificationItems.length > 0 ? (
                       <div className="space-y-1.5">
                         {notificationItems.map((notification) => {
@@ -104,14 +104,14 @@ export default function ZRCAppShellAutoUiBlock01({
                               key={notification.id}
                               type="button"
                               onClick={() => handleNotificationClick(notification)}
-                              className={`w-full text-left rounded-[10px] border p-3 transition-all ${
+                              className={`w-full text-left rounded-[10px] border p-2.5 transition-all ${
                                 isRead
                                   ? 'bg-white border-zinc-100 hover:bg-zinc-50'
                                   : 'bg-blue-50/45 border-blue-100 hover:bg-blue-50'
                               }`}
                             >
-                              <div className="flex items-start gap-3">
-                                <div className={`w-9 h-9 rounded-[10px] border flex items-center justify-center shrink-0 overflow-hidden ${zrcSafeNotificationTone(notification.type)}`}>
+                              <div className="flex items-start gap-2.5">
+                                <div className={`w-8 h-8 rounded-[9px] border flex items-center justify-center shrink-0 overflow-hidden ${zrcSafeNotificationTone(notification.type)}`}>
                                   {notification.source === 'activity' && notification.avatar ? (
                                     renderProfileAvatar(notification.avatar, currentProfileInitials)
                                   ) : notification.type === 'comment' && notification.avatar ? (
@@ -134,7 +134,7 @@ export default function ZRCAppShellAutoUiBlock01({
       
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-start justify-between gap-2">
-                                    <div className="text-[11.5px] font-black text-zinc-800 truncate">
+                                    <div className="text-[11px] font-black text-zinc-800 truncate">
                                       {notification.title}
                                     </div>
       
@@ -143,7 +143,7 @@ export default function ZRCAppShellAutoUiBlock01({
                                     )}
                                   </div>
       
-                                  <div className="mt-0.5 text-[11px] font-bold text-zinc-600 truncate">
+                                  <div className="mt-0.5 text-[10.5px] font-bold text-zinc-600 truncate">
                                     {notification.text}
                                   </div>
       
@@ -159,7 +159,7 @@ export default function ZRCAppShellAutoUiBlock01({
                         })}
                       </div>
                     ) : (
-                      <div className="h-[220px] flex flex-col items-center justify-center text-center">
+                      <div className="h-[170px] flex flex-col items-center justify-center text-center">
                         <div className="w-14 h-14 rounded-full bg-zinc-50 border border-zinc-100 text-zinc-300 flex items-center justify-center mb-3">
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022 23.848 23.848 0 005.455 1.31m5.714 0a3 3 0 11-5.714 0" />

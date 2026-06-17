@@ -120,14 +120,14 @@ export default function ZRCAppShellIsMessagesOpenSection(props) {
 
             <div
               onClick={(event) => event.stopPropagation()}
-              style={{ top: activeContentMenu === 'Projeler' ? 43 : 55 }}
-              className="fixed left-1/2 -translate-x-1/2 z-[681] w-[390px] bg-white border border-zinc-200 rounded-[14px] shadow-[0_24px_70px_rgba(15,23,42,0.20)] overflow-hidden animate-fade-in"
+              style={{ top: activeContentMenu === 'Projeler' ? 42 : 52, left: 'calc(50% - 54px)' }}
+              className="zrc-message-panel fixed -translate-x-1/2 z-[681] w-[318px] bg-white/95 backdrop-blur-xl border border-zinc-200/55 rounded-[10px] shadow-[0_18px_46px_rgba(15,23,42,0.14)] overflow-hidden animate-fade-in"
             >
-            <span className="absolute -top-1.5 left-[43%] -translate-x-1/2 w-3 h-3 rotate-45 bg-white border-l border-t border-zinc-200" />
+            <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 bg-white border-l border-t border-zinc-200/60" />
 
-            <div className="h-[54px] px-4 border-b border-zinc-100 flex items-center justify-between">
+            <div className="h-[46px] px-3 border-b border-zinc-100/80 flex items-center justify-between">
               <div>
-                <div className="text-[13px] font-black text-zinc-800">Mesajlar</div>
+                <div className="text-[12.5px] font-black text-zinc-800">Mesajlar</div>
                 <div className="mt-0.5 text-[10px] font-bold text-zinc-400">
                   {unreadMessageCount > 0 ? `${unreadMessageCount} okunmamış mesaj` : 'Tüm mesajlar okundu'}
                 </div>
@@ -153,20 +153,20 @@ export default function ZRCAppShellIsMessagesOpenSection(props) {
                         key={message.id}
                         type="button"
                         onClick={() => handleMessageClick(message)}
-                        className={`w-full text-left rounded-[11px] border p-3 transition-all ${
+                        className={`w-full text-left rounded-[11px] border p-2.5 transition-all ${
                           isRead
                             ? 'bg-white border-zinc-100 hover:bg-zinc-50'
                             : 'bg-blue-50/45 border-blue-100 hover:bg-blue-50'
                         }`}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#8c5220] text-white text-[8px] font-black flex items-center justify-center shrink-0 overflow-hidden">
+                        <div className="flex items-start gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-[#8c5220] text-white text-[8px] font-black flex items-center justify-center shrink-0 overflow-hidden">
                             {renderProfileAvatar(message.avatar, currentProfileInitials)}
                           </div>
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
-                              <div className="text-[11.5px] font-black text-zinc-800 truncate">
+                              <div className="text-[11px] font-black text-zinc-800 truncate">
                                 {message.title || message.sender || 'Mesaj'}
                               </div>
 
@@ -210,7 +210,7 @@ export default function ZRCAppShellIsMessagesOpenSection(props) {
               )}
             </div>
 
-            <form onSubmit={handleSendProjectMessage} className="p-3 border-t border-zinc-100 bg-white">
+            <form onSubmit={handleSendProjectMessage} className="p-2.5 border-t border-zinc-100 bg-white">
               <div className="relative mb-2">
                 <button
                   type="button"
