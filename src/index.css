@@ -750,3 +750,60 @@ body {
   }
 }
 /* === ZRC FORCE MOBILE ORANGE ARROW V5 END === */
+
+/* === ZRC MOBILE PROJECT PANEL CONTINUITY FIX START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 8 !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-btn,
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-btn.zrc-mobile-project-picker-soft-v2 {
+    position: relative !important;
+    z-index: 10 !important;
+    overflow: visible !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-panel {
+    position: relative !important;
+    z-index: 6 !important;
+
+    margin-top: -26px !important;
+    padding: 62px 14px 14px !important;
+
+    background: #ececec !important;
+    border: 1px solid #dddddd !important;
+    border-top: 0 !important;
+    border-bottom: 2px solid #d2d2d2 !important;
+
+    border-radius: 0 0 28px 28px !important;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08) !important;
+
+    overflow: hidden !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-panel::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 34px !important;
+    background: #ececec !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-option {
+    position: relative !important;
+    z-index: 2 !important;
+    border-radius: 18px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-option.is-active {
+    border-color: rgba(88, 131, 104, 0.55) !important;
+  }
+}
+/* === ZRC MOBILE PROJECT PANEL CONTINUITY FIX END === */
