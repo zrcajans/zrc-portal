@@ -146,6 +146,8 @@ import ZRCAppShellProjectSettingsControlsBlock from './blocks/ZRCAppShellProject
 import ZRCAppShellEditModalsBlock from './blocks/ZRCAppShellEditModalsBlock';
 import ZRCAppShellTeamManagementPageBlock from './blocks/ZRCAppShellTeamManagementPageBlock';
 import ZRCAppShellGlobalSearchBlock from './blocks/ZRCAppShellGlobalSearchBlock';
+import ZRCAppShellAutoUiBlock05 from './blocks/ZRCAppShellAutoUiBlock05';
+import ZRCAppShellAutoUiBlock06 from './blocks/ZRCAppShellAutoUiBlock06';
 import ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection from './sections/ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection';
 import ZRCAppShellIsMessagesOpenSection from './sections/ZRCAppShellIsMessagesOpenSection';
 import { useZRCAppCoreState, useZRCBoardStateLayer, useZRCTaskSelectionState, useZRCModalState } from './state/useZRCAppStateLayer';
@@ -12989,59 +12991,21 @@ return (
                         </svg>
                       </button>
 
-                      {isCalendarDisplayMenuOpen && (
-                        <div
-                          onClick={(menuEvent) => menuEvent.stopPropagation()}
-                          className="absolute right-0 top-[40px] z-[620] w-[248px] rounded-[10px] bg-white border border-[#e6e9ee] shadow-[0_18px_38px_rgba(15,23,42,0.14)] px-4 py-3"
-                        >
-                          <div className="absolute -top-2 right-[72px] w-4 h-4 rotate-45 bg-white border-l border-t border-[#e6e9ee]" />
-
-                          <div className="space-y-2.5 relative z-10">
-                            {[
-                              {
-                                label: 'Uzun Süreli Görevleri Gizle',
-                                checked: calendarDisplayOptions.hideLongTasks,
-                                keyName: 'hideLongTasks'
-                              },
-                              {
-                                label: 'Tamamlanmış Görevleri Gizle',
-                                checked: calendarDisplayOptions.hideCompletedTasks,
-                                keyName: 'hideCompletedTasks'
-                              },
-                              {
-                                label: 'Arşivlenmiş Görevleri Gizle',
-                                checked: calendarDisplayOptions.hideArchivedTasks,
-                                keyName: 'hideArchivedTasks'
-                              }
-                            ].map((option) => (
-                              <button
-                                key={`home-display-option-${option.keyName}`}
-                                type="button"
-                                onClick={() =>
-                                  setCalendarDisplayOptions((prev) => ({
-                                    ...prev,
-                                    [option.keyName]: !prev[option.keyName]
-                                  }))
-                                }
-                                className="w-full flex items-center gap-2.5 text-left text-[13px] font-bold text-[#7a8495] hover:text-[#4b5563] transition-all"
-                              >
-                                <span
-                                  className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 ${
-                                    option.checked
-                                      ? 'bg-[#4fbd7d] border-[#4fbd7d] text-white'
-                                      : 'bg-white border-[#c4ccd7] text-transparent'
-                                  }`}
-                                >
-                                  <svg className="w-[12px] h-[12px]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </span>
-                                {option.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <ZRCAppShellAutoUiBlock06
+        calendarDisplayOptions={typeof calendarDisplayOptions !== 'undefined' ? calendarDisplayOptions : undefined}
+        d={typeof d !== 'undefined' ? d : undefined}
+        fill={typeof fill !== 'undefined' ? fill : undefined}
+        isCalendarDisplayMenuOpen={typeof isCalendarDisplayMenuOpen !== 'undefined' ? isCalendarDisplayMenuOpen : undefined}
+        menuEvent={typeof menuEvent !== 'undefined' ? menuEvent : undefined}
+        onClick={typeof onClick !== 'undefined' ? onClick : undefined}
+        prev={typeof prev !== 'undefined' ? prev : undefined}
+        setCalendarDisplayOptions={typeof setCalendarDisplayOptions !== 'undefined' ? setCalendarDisplayOptions : undefined}
+        stroke={typeof stroke !== 'undefined' ? stroke : undefined}
+        strokeLinecap={typeof strokeLinecap !== 'undefined' ? strokeLinecap : undefined}
+        strokeLinejoin={typeof strokeLinejoin !== 'undefined' ? strokeLinejoin : undefined}
+        strokeWidth={typeof strokeWidth !== 'undefined' ? strokeWidth : undefined}
+        viewBox={typeof viewBox !== 'undefined' ? viewBox : undefined}
+      />
                     </div>
                   </div>
 
@@ -13635,61 +13599,24 @@ return (
                   formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
                 />
 
-                {calendarView === 'Gün' && (
-                  <div className="bg-white">
-                    <div className="h-[36px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4]">
-                      <div className="border-r border-[#edf0f4]" />
-                      <div className="flex items-center justify-center text-[10px] font-black text-[#9aa3b1]">
-                        {formatCalendarWeekday(calendarFocusedDate)}
-                      </div>
-                    </div>
-
-                    <div className="h-[32px] grid grid-cols-[54px_1fr] border-b border-[#edf0f4]">
-                      <div className="px-2 flex items-center text-[10px] font-bold text-[#4b5563] border-r border-[#edf0f4]">
-                        Tüm Gün
-                      </div>
-                      <div className="px-2 flex items-center bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_6px,#f6f6f6_6px,#f6f6f6_12px)]">
-                        {getMenuCalendarHolidayLabel(calendarFocusedDate) && (
-                          <span className="text-[10px] font-black text-[#374151]">
-                            {getMenuCalendarHolidayLabel(calendarFocusedDate)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="max-h-[560px] overflow-y-auto custom-scrollbar">
-                      {menuCalendarHours.map((hour) => {
-                        const hourTasks = getMenuCalendarTasksForHour(calendarFocusedDate, hour);
-
-                        return (
-                          <div key={`day-hour-${hour}`} className="grid grid-cols-[54px_1fr] h-[48px] border-b border-[#edf0f4]">
-                            <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
-                              {hour}:00
-                            </div>
-                            <div className="relative bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)]">
-                              {hourTasks.map((task) => (
-                                <button
-                                  key={`day-task-${task.projectName}-${task.id}`}
-                                  type="button"
-                                  data-calendar-task-button="true"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openMenuCalendarTask(task);
-                                  }}
-                                  className="absolute left-1 right-6 top-1 min-h-[32px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_8px_18px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_22px_rgba(15,23,42,0.08)] transition-all"
-                                  style={getPremiumCalendarTaskStyle(task)}
-                                >
-                                  <div className="opacity-80">{formatMenuCalendarTaskTime(task)}</div>
-                                  <div className="truncate">{task.title}</div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                <ZRCAppShellAutoUiBlock05
+        calendar={typeof calendar !== 'undefined' ? calendar : undefined}
+        calendarFocusedDate={typeof calendarFocusedDate !== 'undefined' ? calendarFocusedDate : undefined}
+        calendarView={typeof calendarView !== 'undefined' ? calendarView : undefined}
+        data={typeof data !== 'undefined' ? data : undefined}
+        event={typeof event !== 'undefined' ? event : undefined}
+        formatCalendarWeekday={typeof formatCalendarWeekday !== 'undefined' ? formatCalendarWeekday : undefined}
+        formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
+        getMenuCalendarHolidayLabel={typeof getMenuCalendarHolidayLabel !== 'undefined' ? getMenuCalendarHolidayLabel : undefined}
+        getMenuCalendarTasksForHour={typeof getMenuCalendarTasksForHour !== 'undefined' ? getMenuCalendarTasksForHour : undefined}
+        getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+        hour={typeof hour !== 'undefined' ? hour : undefined}
+        hourTasks={typeof hourTasks !== 'undefined' ? hourTasks : undefined}
+        menuCalendarHours={typeof menuCalendarHours !== 'undefined' ? menuCalendarHours : undefined}
+        onClick={typeof onClick !== 'undefined' ? onClick : undefined}
+        openMenuCalendarTask={typeof openMenuCalendarTask !== 'undefined' ? openMenuCalendarTask : undefined}
+        task={typeof task !== 'undefined' ? task : undefined}
+      />
 
                 {calendarView === 'Liste' && (
                   <div className="bg-white min-h-[560px]">
