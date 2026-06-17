@@ -389,173 +389,153 @@ body {
   }
 }
 
-/* === ZRC PREMIUM TEAM CUSTOMER PANEL START === */
-/* zrc-v520-premium-team-customer-panels */
+/* === ZRC CLEAN TEAM CUSTOMER PANEL START === */
+/* zrc-v521-clean-team-customer-panels - Ana Sayfa diline yakın, arka plan eski */
 
 .zrc-team-center-page,
 .zrc-customer-center-page {
+  background: #f5f6f8 !important;
   position: relative;
   isolation: isolate;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(255, 54, 0, 0.105), transparent 28%),
-    radial-gradient(circle at 84% 14%, rgba(17, 24, 39, 0.075), transparent 31%),
-    linear-gradient(135deg, #f7f8fb 0%, #f2f4f7 43%, #ffffff 100%) !important;
 }
 
 .zrc-team-center-page::before,
 .zrc-customer-center-page::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  background-image:
-    linear-gradient(rgba(17, 24, 39, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(17, 24, 39, 0.035) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(circle at 50% 24%, black 0%, transparent 66%);
-  opacity: 0.55;
+  display: none !important;
+  content: none !important;
 }
 
 .zrc-team-center-page .zrc-center-card,
 .zrc-customer-center-page .zrc-center-card {
-  position: relative;
-  max-width: 1220px !important;
-  padding-top: 28px !important;
-  animation: zrcPremiumPanelEnter 520ms cubic-bezier(.16, 1, .3, 1) both;
+  max-width: 1180px !important;
+  padding-top: 26px !important;
+  animation: zrcPanelSoftEnter 360ms ease both;
 }
 
+/* Üst başlık kutusu: arka planı değil, nesneyi premiumlaştır */
 .zrc-team-center-page .zrc-center-card > div:first-child,
 .zrc-customer-center-page .zrc-center-card > div:first-child {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.72) !important;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.74)),
-    radial-gradient(circle at 90% 0%, rgba(255,54,0,0.16), transparent 30%) !important;
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-radius: 26px !important;
   box-shadow:
-    0 24px 70px rgba(15, 23, 42, 0.075),
-    0 1px 0 rgba(255,255,255,0.78) inset !important;
-  backdrop-filter: blur(18px);
+    0 22px 54px rgba(15, 23, 42, 0.075),
+    0 1px 0 rgba(255,255,255,0.9) inset !important;
+  overflow: hidden;
 }
 
 .zrc-team-center-page .zrc-center-card > div:first-child::before,
 .zrc-customer-center-page .zrc-center-card > div:first-child::before {
-  content: "";
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  top: 0;
-  height: 3px;
-  border-radius: 0 0 999px 999px;
-  background: linear-gradient(90deg, transparent, #ff3600, rgba(255, 54, 0, 0.18), transparent);
-  animation: zrcPremiumLightSweep 3.2s ease-in-out infinite;
+  display: none !important;
+  content: none !important;
 }
 
 .zrc-team-center-page .zrc-center-card > div:first-child h1,
 .zrc-customer-center-page .zrc-center-card > div:first-child h1 {
   letter-spacing: -0.055em !important;
+  color: #171717 !important;
 }
 
 .zrc-team-center-page .zrc-center-card > div:first-child p,
 .zrc-customer-center-page .zrc-center-card > div:first-child p {
-  color: rgba(63, 63, 70, 0.54) !important;
+  color: rgba(63,63,70,.48) !important;
 }
 
+/* Sayaç kartları: kontursuz, soft */
 .zrc-team-center-page .zrc-center-card > div:first-child .shrink-0 > div,
 .zrc-customer-center-page .zrc-center-card > div:first-child .shrink-0 > div {
-  position: relative;
-  overflow: hidden;
-  border-radius: 18px !important;
-  border-color: rgba(255,255,255,0.78) !important;
-  background: rgba(255,255,255,0.78) !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
   box-shadow:
-    0 16px 36px rgba(15, 23, 42, 0.08),
-    0 1px 0 rgba(255,255,255,0.9) inset !important;
-  transform: translateZ(0);
-  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+    0 14px 34px rgba(15,23,42,.07),
+    0 1px 0 rgba(255,255,255,.95) inset !important;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
 .zrc-team-center-page .zrc-center-card > div:first-child .shrink-0 > div:hover,
 .zrc-customer-center-page .zrc-center-card > div:first-child .shrink-0 > div:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 22px 52px rgba(15, 23, 42, 0.115),
-    0 1px 0 rgba(255,255,255,0.92) inset !important;
+  box-shadow: 0 20px 46px rgba(15,23,42,.10) !important;
 }
 
-.zrc-team-center-page .zrc-center-card > div:first-child .shrink-0 > div:first-child,
-.zrc-customer-center-page .zrc-center-card > div:first-child .shrink-0 > div:first-child {
-  border: 1px solid rgba(255,54,0,0.24) !important;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,243,239,0.92)) !important;
+/* Rol bilgi kartları */
+.zrc-team-center-page .zrc-center-card > .grid.grid-cols-3 > div,
+.zrc-customer-center-page .zrc-center-card > .grid.grid-cols-3 > div {
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.95) !important;
+  box-shadow: 0 14px 36px rgba(15,23,42,.055) !important;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
-.zrc-team-center-page .zrc-center-card > .grid > div,
-.zrc-customer-center-page .zrc-center-card > .grid > div,
+.zrc-team-center-page .zrc-center-card > .grid.grid-cols-3 > div:hover,
+.zrc-customer-center-page .zrc-center-card > .grid.grid-cols-3 > div:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 46px rgba(15,23,42,.08) !important;
+}
+
+/* Form ve liste ana kutuları */
 .zrc-team-center-page form,
 .zrc-customer-center-page form,
 .zrc-team-center-page form + div,
 .zrc-customer-center-page form + div,
 .zrc-customer-center-page .space-y-4 > div {
-  border-color: rgba(228, 228, 231, 0.72) !important;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.76)) !important;
+  border: 0 !important;
+  border-radius: 26px !important;
+  background: rgba(255,255,255,.96) !important;
   box-shadow:
-    0 18px 55px rgba(15, 23, 42, 0.064),
-    0 1px 0 rgba(255,255,255,0.8) inset !important;
-  backdrop-filter: blur(14px);
-  transition:
-    transform .24s cubic-bezier(.16, 1, .3, 1),
-    box-shadow .24s cubic-bezier(.16, 1, .3, 1),
-    border-color .24s ease,
-    background .24s ease;
+    0 24px 60px rgba(15,23,42,.075),
+    0 1px 0 rgba(255,255,255,.95) inset !important;
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
-.zrc-team-center-page .zrc-center-card > .grid > div:hover,
-.zrc-customer-center-page .zrc-center-card > .grid > div:hover,
 .zrc-team-center-page form:hover,
 .zrc-customer-center-page form:hover,
 .zrc-team-center-page form + div:hover,
 .zrc-customer-center-page form + div:hover,
 .zrc-customer-center-page .space-y-4 > div:hover {
   transform: translateY(-2px);
-  border-color: rgba(255,54,0,0.18) !important;
   box-shadow:
-    0 24px 70px rgba(15, 23, 42, 0.09),
-    0 1px 0 rgba(255,255,255,0.86) inset !important;
+    0 30px 74px rgba(15,23,42,.10),
+    0 1px 0 rgba(255,255,255,.95) inset !important;
 }
 
+/* Liste başlığı çizgisiz */
+.zrc-team-center-page form + div > div:first-child,
+.zrc-customer-center-page form + div > div:first-child {
+  border-bottom: 0 !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,250,250,.92)) !important;
+}
+
+/* Inputlar: kontur değil, soft zemin */
 .zrc-team-center-page input,
 .zrc-team-center-page textarea,
 .zrc-customer-center-page input,
 .zrc-customer-center-page textarea {
-  border-color: rgba(228, 228, 231, 0.85) !important;
-  background: rgba(248, 250, 252, 0.84) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset !important;
-  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .18s ease;
+  border: 0 !important;
+  background: #f4f5f7 !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 0 0 1px rgba(15,23,42,.045) !important;
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
 .zrc-team-center-page input:focus,
 .zrc-team-center-page textarea:focus,
 .zrc-customer-center-page input:focus,
 .zrc-customer-center-page textarea:focus {
-  background: rgba(255,255,255,0.98) !important;
-  border-color: rgba(255,54,0,0.62) !important;
+  background: #ffffff !important;
   box-shadow:
-    0 0 0 4px rgba(255,54,0,0.085),
-    0 1px 0 rgba(255,255,255,0.95) inset !important;
+    inset 0 0 0 1px rgba(255,54,0,.42),
+    0 0 0 5px rgba(255,54,0,.07) !important;
   transform: translateY(-1px);
 }
 
+/* Ana butonlar: daha premium, daha temiz */
 .zrc-team-center-page button,
 .zrc-customer-center-page button {
-  transition:
-    transform .18s cubic-bezier(.16, 1, .3, 1),
-    box-shadow .18s ease,
-    background .18s ease,
-    border-color .18s ease,
-    color .18s ease !important;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease, opacity .16s ease !important;
 }
 
 .zrc-team-center-page button:hover,
@@ -565,89 +545,79 @@ body {
 
 .zrc-team-center-page button[type="submit"],
 .zrc-customer-center-page button[type="submit"] {
-  position: relative;
-  overflow: hidden;
+  border-radius: 17px !important;
   background: linear-gradient(135deg, #ff3600, #ff5a22) !important;
-  box-shadow:
-    0 14px 28px rgba(255,54,0,0.24),
-    0 1px 0 rgba(255,255,255,0.24) inset !important;
+  box-shadow: 0 16px 34px rgba(255,54,0,.22) !important;
 }
 
-.zrc-team-center-page button[type="submit"]::after,
-.zrc-customer-center-page button[type="submit"]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-120%);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.32), transparent);
-  transition: transform .58s ease;
+.zrc-team-center-page button[type="submit"]:active,
+.zrc-customer-center-page button[type="submit"]:active {
+  transform: scale(.985) !important;
 }
 
-.zrc-team-center-page button[type="submit"]:hover::after,
-.zrc-customer-center-page button[type="submit"]:hover::after {
-  transform: translateX(120%);
-}
-
+/* Liste satırları: kontur hissi azaltıldı */
 .zrc-team-center-page [class*="cursor-pointer"],
 .zrc-customer-center-page [class*="cursor-pointer"] {
-  transition:
-    transform .20s cubic-bezier(.16, 1, .3, 1),
-    box-shadow .20s ease,
-    border-color .20s ease,
-    background .20s ease !important;
+  border-color: transparent !important;
 }
 
-.zrc-team-center-page [class*="cursor-pointer"]:hover,
-.zrc-customer-center-page [class*="cursor-pointer"]:hover {
+.zrc-team-center-page [class*="cursor-pointer"][class*="rounded"],
+.zrc-customer-center-page [class*="cursor-pointer"][class*="rounded"] {
+  border-radius: 18px !important;
+}
+
+.zrc-team-center-page .p-2\.5 > div,
+.zrc-customer-center-page .p-2\.5 > div,
+.zrc-customer-center-page .space-y-2 > div {
+  border: 0 !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 28px rgba(15,23,42,.045) !important;
+}
+
+.zrc-team-center-page .p-2\.5 > div:hover,
+.zrc-customer-center-page .p-2\.5 > div:hover,
+.zrc-customer-center-page .space-y-2 > div:hover {
   transform: translateX(3px);
-  box-shadow: 0 12px 34px rgba(15,23,42,0.075) !important;
+  box-shadow: 0 16px 38px rgba(15,23,42,.075) !important;
 }
 
-.zrc-team-center-page .custom-scrollbar::-webkit-scrollbar,
-.zrc-customer-center-page .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+/* Chip / rozetleri daha yuvarlak ve sade yap */
+.zrc-team-center-page span[class*="rounded"],
+.zrc-customer-center-page span[class*="rounded"],
+.zrc-team-center-page div[class*="rounded-full"],
+.zrc-customer-center-page div[class*="rounded-full"] {
+  border-width: 0 !important;
 }
 
-.zrc-team-center-page .custom-scrollbar::-webkit-scrollbar-thumb,
-.zrc-customer-center-page .custom-scrollbar::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(255, 54, 0, 0.22);
+/* Küçük ikon kutuları */
+.zrc-team-center-page form .w-11,
+.zrc-customer-center-page form .w-9 {
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #ff3600, #ff5a22) !important;
+  box-shadow: 0 14px 30px rgba(255,54,0,.22) !important;
 }
 
-.zrc-team-center-page .custom-scrollbar::-webkit-scrollbar-track,
-.zrc-customer-center-page .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+/* Eski turuncu kontur hissini kır */
+.zrc-team-center-page .border-\[\#ff3600\],
+.zrc-customer-center-page .border-\[\#ff3600\] {
+  border-color: transparent !important;
 }
 
-@keyframes zrcPremiumPanelEnter {
+.zrc-team-center-page .bg-\[\#fff8f5\],
+.zrc-customer-center-page .bg-\[\#fff8f5\],
+.zrc-team-center-page .bg-\[\#fff3ef\],
+.zrc-customer-center-page .bg-\[\#fff3ef\] {
+  background: linear-gradient(135deg, #fff7f3, #ffffff) !important;
+}
+
+@keyframes zrcPanelSoftEnter {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(.992);
-    filter: blur(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes zrcPremiumLightSweep {
-  0%, 100% {
-    opacity: .48;
-    transform: translateX(-12%);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(12%);
-  }
-}
-
-@media (max-width: 980px) {
-  .zrc-team-center-page .zrc-center-card,
-  .zrc-customer-center-page .zrc-center-card {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+    transform: translateY(0);
   }
 }
 
@@ -658,4 +628,4 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
-/* === ZRC PREMIUM TEAM CUSTOMER PANEL END === */
+/* === ZRC CLEAN TEAM CUSTOMER PANEL END === */
