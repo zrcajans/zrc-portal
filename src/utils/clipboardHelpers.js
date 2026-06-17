@@ -14,8 +14,8 @@ export const copyTextToClipboard = async (text, successMessage = 'Kopyalandı.')
         document.body.removeChild(textarea);
       }
 
-      alert(successMessage);
+      await window.zrcAlert(successMessage);
     } catch {
-      alert('Kopyalama başarısız oldu. Bilgileri manuel kopyalayabilirsin.');
+      await window.zrcAlert('Kopyalama başarısız oldu. Bilgileri manuel kopyalayabilirsin.');
     }
   };

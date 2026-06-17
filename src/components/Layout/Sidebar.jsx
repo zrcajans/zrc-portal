@@ -111,19 +111,19 @@ function Sidebar({
     }
   };
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!canCreateProject) {
-      alert('Müşteri/Misafir hesabı proje oluşturamaz.');
+      await window.zrcAlert('Müşteri/Misafir hesabı proje oluşturamaz.');
       return;
     }
 
-    const projectName = prompt('Yeni Proje Adını Girin:');
+    const projectName = await window.zrcPrompt('Yeni Proje Adını Girin:');
     const cleanName = projectName?.trim();
 
     if (!cleanName) return;
 
     if (projects.some((project) => project.toLowerCase() === cleanName.toLowerCase())) {
-      alert('Bu isimde bir proje zaten var.');
+      await window.zrcAlert('Bu isimde bir proje zaten var.');
       return;
     }
 

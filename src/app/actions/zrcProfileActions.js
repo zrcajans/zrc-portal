@@ -166,7 +166,7 @@ export function createZRCProfileActions(deps) {
     });
   };
 
-  const addProfileEmailAccount = (event) => {
+  const addProfileEmailAccount = async (event) => {
     event.preventDefault();
 
     const cleanEmail = emailAccountDraft.trim();
@@ -174,12 +174,12 @@ export function createZRCProfileActions(deps) {
     if (!cleanEmail) return;
 
     if (!cleanEmail.includes('@')) {
-      alert('Geçerli bir e-posta adresi yaz.');
+      await window.zrcAlert('Geçerli bir e-posta adresi yaz.');
       return;
     }
 
     if (profilePreferences.emailAccounts.some((account) => account.email.toLocaleLowerCase('tr-TR') === cleanEmail.toLocaleLowerCase('tr-TR'))) {
-      alert('Bu e-posta hesabı zaten ekli.');
+      await window.zrcAlert('Bu e-posta hesabı zaten ekli.');
       return;
     }
 
@@ -243,13 +243,13 @@ export function createZRCProfileActions(deps) {
     });
   };
 
-  const handleProfileAvatarChange = (event) => {
+  const handleProfileAvatarChange = async (event) => {
     const file = event.target.files?.[0];
 
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Lütfen bir görsel dosyası seç.');
+      await window.zrcAlert('Lütfen bir görsel dosyası seç.');
       return;
     }
 

@@ -156,17 +156,17 @@ export function createZRCCalendarActions(deps) {
     const taskDate = calendarQuickTaskDraft.date || formatDateForTaskModal(new Date());
 
     if (!projectName) {
-      alert('Lütfen görev için bir proje seç.');
+      await window.zrcAlert('Lütfen görev için bir proje seç.');
       return;
     }
 
     if (!title) {
-      alert('Lütfen görev başlığı yaz.');
+      await window.zrcAlert('Lütfen görev başlığı yaz.');
       return;
     }
 
     if (currentAccountType === 'Ekip Üyesi' && !isCurrentUserProjectMember(projectName)) {
-      alert('Bu projede görev oluşturmak için önce Proje Ayarları > Proje Ekibi alanına eklenmelisin.');
+      await window.zrcAlert('Bu projede görev oluşturmak için önce Proje Ayarları > Proje Ekibi alanına eklenmelisin.');
       return;
     }
 

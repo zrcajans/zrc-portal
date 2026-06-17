@@ -34,7 +34,7 @@ export function createZRCProjectSettingsActions(deps) {
     const cleanTitle = projectSettingsDraft.title.trim();
 
     if (!cleanTitle) {
-      alert('Proje adı boş olamaz.');
+      await window.zrcAlert('Proje adı boş olamaz.');
       return;
     }
 
@@ -90,7 +90,7 @@ export function createZRCProjectSettingsActions(deps) {
     ];
 
     if (isRenaming && projects.includes(cleanTitle)) {
-      alert('Bu isimde başka bir proje zaten var.');
+      await window.zrcAlert('Bu isimde başka bir proje zaten var.');
       return;
     }
 
@@ -177,13 +177,13 @@ export function createZRCProjectSettingsActions(deps) {
 
     if (!projectSettingsSupabaseSaved) {
       await loadWorkspaceStructureFromSupabase();
-      alert('Proje ayarları veritabanına kaydedilemedi. Ekran veritabanındaki son sağlam hale geri senkronlandı.');
+      await window.zrcAlert('Proje ayarları veritabanına kaydedilemedi. Ekran veritabanındaki son sağlam hale geri senkronlandı.');
       return;
     }
 
     await loadWorkspaceStructureFromSupabase();
 
-    alert(
+    await window.zrcAlert(
       removedTeamMemberIds.length > 0
         ? 'Proje ayarları kaydedildi. Çıkarılan kişiler görevli/takipçi listelerinden temizlendi.'
         : 'Proje ayarları kaydedildi.'
@@ -200,7 +200,7 @@ export function createZRCProjectSettingsActions(deps) {
     const didArchiveProject = await updateProjectStatusInSupabase(projectNameToArchive, 'Arşiv');
 
     if (!didArchiveProject) {
-      alert('Proje arşivlenemedi. Veritabanı kaydı tamamlanmadığı için ekranda değişiklik yapılmadı.');
+      await window.zrcAlert('Proje arşivlenemedi. Veritabanı kaydı tamamlanmadığı için ekranda değişiklik yapılmadı.');
       return;
     }
 
@@ -226,13 +226,13 @@ export function createZRCProjectSettingsActions(deps) {
 
     const projectNameToDelete = selectedProject;
 
-    const confirmed = window.confirm(`"${projectNameToDelete}" projesi silinsin mi? Bu işlem projedeki görevleri de kaldırır.`);
+    const confirmed = await window.zrcConfirm(`"${projectNameToDelete}" projesi silinsin mi? Bu işlem projedeki görevleri de kaldırır.`);
     if (!confirmed) return;
 
     const didDeleteProject = await deleteProjectFromSupabase(projectNameToDelete);
 
     if (!didDeleteProject) {
-      alert('Proje veritabanından silinemedi. Ekranda değişiklik yapılmadı.');
+      await window.zrcAlert('Proje veritabanından silinemedi. Ekranda değişiklik yapılmadı.');
       return;
     }
 

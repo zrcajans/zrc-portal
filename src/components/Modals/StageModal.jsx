@@ -39,13 +39,13 @@ function StageModal({ isOpen, onClose, onSave, columnData }) {
 
   const isNewColumn = !columnData?.title;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const cleanTitle = formData.title.trim();
 
     if (!cleanTitle) {
-      alert('Kolon adı boş olamaz.');
+      await window.zrcAlert('Kolon adı boş olamaz.');
       return;
     }
 

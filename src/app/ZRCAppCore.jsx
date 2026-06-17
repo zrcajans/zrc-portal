@@ -125,6 +125,8 @@ import { createZRCMessageNotificationActions } from './actions/zrcMessageNotific
 import { createZRCProjectSettingsActions } from './actions/zrcProjectSettingsActions';
 import { createZRCCalendarActions } from './actions/zrcCalendarActions';
 import { createZRCHomeActions } from './actions/zrcHomeActions';
+import { installZRCPremiumDialogRuntime } from './utils/zrcPremiumDialogRuntime';
+
 import {
   formatDateStringShort,
   getTaskCardDateParts,
@@ -151,6 +153,11 @@ import {
   getReportPriorityStyle
 } from './utils/zrcCorePureHelpers';
 function App() {
+  // zrc-premium-dialog-install-v1
+  useEffect(() => {
+    installZRCPremiumDialogRuntime();
+  }, []);
+
 
   const zrcSetSupabaseWriteInfo = (status, message) => {
     setSupabaseWriteInfo(status, message);
@@ -232,7 +239,7 @@ function App() {
         await window.navigator.clipboard.writeText(text);
         showToast('Teknik bilgi kopyalandı');
       } catch (error) {
-        window.prompt('ZRC teknik bilgi:', text);
+        await window.zrcPrompt('ZRC teknik bilgi:', text);
       }
     };
 
@@ -686,7 +693,7 @@ function App() {
           badge.textContent = `ZRC ${zrcBuildShortLabel}`;
         }, 1400);
       } catch (error) {
-        window.prompt('PWA kurtarma adresi:', recoveryUrl);
+        await window.zrcPrompt('PWA kurtarma adresi:', recoveryUrl);
       }
     });
 
@@ -2321,7 +2328,7 @@ function App() {
 
   const downloadTaskFileFromSupabase = async (file) => {
     if (!file?.storagePath) {
-      window.alert('Bu dosyanın Supabase yükleme yolu bulunamadı. Eski metadata kaydı olabilir.');
+      await window.zrcAlert('Bu dosyanın Supabase yükleme yolu bulunamadı. Eski metadata kaydı olabilir.');
       return;
     }
 
@@ -3330,7 +3337,7 @@ function App() {
 
     if (safeApiResult?.blocked) {
       zrcSetSupabaseWriteInfo('error', safeApiResult.message || 'Bu profil ayarı için yetkin yok');
-      alert(safeApiResult.message || 'Bu profil ayarı için yetkin yok.');
+      await window.zrcAlert(safeApiResult.message || 'Bu profil ayarı için yetkin yok.');
       return false;
     }
 
@@ -4177,7 +4184,7 @@ function App() {
       return;
     }
 
-    const confirmed = window.confirm(
+    const confirmed = await window.zrcConfirm(
       'Yerel tarayıcı verilerini Supabase’e aktaracağız. Bu işlem mevcut Supabase verilerini silmez; eksik/veritabanına geçmemiş kayıtları ekler veya günceller. Devam edilsin mi?'
     );
 
@@ -4452,7 +4459,7 @@ function App() {
         label: 'iPhone: Safari > Paylaş > Ana Ekrana Ekle'
       });
 
-      window.alert(iosInstallMessage);
+      await window.zrcAlert(iosInstallMessage);
       return;
     }
 
@@ -4462,7 +4469,7 @@ function App() {
         label: 'Kurulum hazır değil: sayfayı yenileyip tekrar dene'
       });
 
-      window.alert('Kurulum penceresi şu an hazır değil. Chrome/Edge kullanıyorsan sayfayı bir kez yenileyip tekrar dene. iPhone kullanıyorsan Safari > Paylaş > Ana Ekrana Ekle yolunu kullan.');
+      await window.zrcAlert('Kurulum penceresi şu an hazır değil. Chrome/Edge kullanıyorsan sayfayı bir kez yenileyip tekrar dene. iPhone kullanıyorsan Safari > Paylaş > Ana Ekrana Ekle yolunu kullan.');
       return;
     }
 
@@ -5080,7 +5087,7 @@ function App() {
     if (didSaveToSupabase) {
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 1500);
     } else if (existingSupabaseTaskId) {
-      alert('Görev yerelde güncellendi ama Supabase kaydı tamamlanamadı. Sağ alttaki hata mesajını kontrol et.');
+      await window.zrcAlert('Görev yerelde güncellendi ama Supabase kaydı tamamlanamadı. Sağ alttaki hata mesajını kontrol et.');
       return;
     }
 
@@ -5467,7 +5474,7 @@ function App() {
     );
 
     if (!activeColumn) {
-      alert('Aktif kolonu bulunamadı.');
+      await window.zrcAlert('Aktif kolonu bulunamadı.');
       return;
     }
 
@@ -5669,21 +5676,21 @@ function App() {
     }
   }, [activeProfileTab, visibleProfileTabs.join('|')]);
 
-  const ensureCanCreateTaskInSelectedProject = (permissionMessage = 'Bu rol görev oluşturamaz.') => {
+  const ensureCanCreateTaskInSelectedProject = async (permissionMessage = 'Bu rol görev oluşturamaz.') => {
     if (!requirePermission('createTasks', permissionMessage)) return false;
 
     if (!selectedProject) {
-      alert('Görev oluşturmak için önce proje seçmelisin.');
+      await window.zrcAlert('Görev oluşturmak için önce proje seçmelisin.');
       return false;
     }
 
     if (currentAccountType === 'Ekip Üyesi' && !isCurrentUserProjectMember(selectedProject)) {
-      alert('Bu projede görev oluşturmak için önce Proje Ayarları > Proje Ekibi alanına eklenmelisin.');
+      await window.zrcAlert('Bu projede görev oluşturmak için önce Proje Ayarları > Proje Ekibi alanına eklenmelisin.');
       return false;
     }
 
     if (currentAccountType === 'Müşteri') {
-      alert('Müşteri/Misafir hesabı görev oluşturamaz.');
+      await window.zrcAlert('Müşteri/Misafir hesabı görev oluşturamaz.');
       return false;
     }
 
@@ -5807,9 +5814,9 @@ function App() {
 
   const shouldShowPermissionWarnings = currentAccountType === 'Patron';
 
-  function showPermissionWarning(message = 'Bu işlem için yetkin yok.') {
+  async function showPermissionWarning(message = 'Bu işlem için yetkin yok.') {
     if (shouldShowPermissionWarnings) {
-      alert(message);
+      await window.zrcAlert(message);
     }
   }
 
@@ -8530,16 +8537,16 @@ const filterTaskFollowersForSave = (people = []) =>
 
 
 
-  const resetLocalApplicationData = () => {
+  const resetLocalApplicationData = async () => {
     if (!ensureCanManageLocalData()) return;
 
-    const confirmed = window.confirm('Tüm yerel veriler sıfırlansın mı? Bu işlem geri alınamaz.');
+    const confirmed = await window.zrcConfirm('Tüm yerel veriler sıfırlansın mı? Bu işlem geri alınamaz.');
 
     if (!confirmed) return;
 
     Object.keys(STORAGE_KEYS).forEach((key) => removeStorageValue(key));
 
-    alert('Yerel veri sıfırlandı. Sayfa şimdi yenilenecek.');
+    await window.zrcAlert('Yerel veri sıfırlandı. Sayfa şimdi yenilenecek.');
     window.location.reload();
   };
 
@@ -8574,11 +8581,11 @@ const filterTaskFollowersForSave = (people = []) =>
     );
   };
 
-  const copyCredentialTextForCustomer = (customer) => {
+  const copyCredentialTextForCustomer = async (customer) => {
     const linkedAccount = getCustomerLinkedAccount(customer);
 
     if (!linkedAccount) {
-      alert('Bu müşteriye bağlı giriş hesabı yok.');
+      await window.zrcAlert('Bu müşteriye bağlı giriş hesabı yok.');
       return;
     }
 

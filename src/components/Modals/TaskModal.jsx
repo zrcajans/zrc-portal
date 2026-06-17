@@ -777,11 +777,11 @@ export default function TaskModal({
     setPendingRemoveUser(removeKey);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!form.title.trim()) {
-      alert('Görev adı boş olamaz.');
+      await window.zrcAlert('Görev adı boş olamaz.');
       return;
     }
 

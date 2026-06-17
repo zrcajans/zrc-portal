@@ -340,11 +340,11 @@ export function createZRCDataManagementActions(deps) {
     }));
   };
 
-  const restoreDataSnapshot = (snapshot) => {
+  const restoreDataSnapshot = async (snapshot) => {
     const data = snapshot?.data || snapshot;
 
     if (!data || typeof data !== 'object') {
-      alert('Yedek dosyası okunamadı.');
+      await window.zrcAlert('Yedek dosyası okunamadı.');
       return;
     }
 
@@ -374,11 +374,11 @@ export function createZRCDataManagementActions(deps) {
     });
     writeStorageValue('dataVersion', snapshot?.version || APP_DATA_VERSION);
 
-    alert('Yedek geri yüklendi. Sayfa şimdi yenilenecek.');
+    await window.zrcAlert('Yedek geri yüklendi. Sayfa şimdi yenilenecek.');
     window.location.reload();
   };
 
-  const handleDataImportFile = (event) => {
+  const handleDataImportFile = async (event) => {
     if (!ensureCanManageLocalData()) {
       event.target.value = '';
       return;
@@ -390,23 +390,23 @@ export function createZRCDataManagementActions(deps) {
 
     const reader = new FileReader();
 
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const snapshot = JSON.parse(String(reader.result || '{}'));
-        const confirmed = window.confirm('Bu yedek dosyası mevcut yerel verilerin üzerine yazılacak. Devam edilsin mi?');
+        const confirmed = await window.zrcConfirm('Bu yedek dosyası mevcut yerel verilerin üzerine yazılacak. Devam edilsin mi?');
 
         if (!confirmed) return;
 
         restoreDataSnapshot(snapshot);
       } catch {
-        alert('Yedek dosyası geçerli JSON formatında değil.');
+        await window.zrcAlert('Yedek dosyası geçerli JSON formatında değil.');
       } finally {
         event.target.value = '';
       }
     };
 
-    reader.onerror = () => {
-      alert('Yedek dosyası okunamadı.');
+    reader.onerror = async () => {
+      await window.zrcAlert('Yedek dosyası okunamadı.');
       event.target.value = '';
     };
 

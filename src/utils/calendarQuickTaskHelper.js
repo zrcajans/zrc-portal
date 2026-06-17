@@ -2,7 +2,7 @@
 // Bu dosya v515 ile App.jsx içinden ayrıldı.
 // App içindeki state setterları zrcContext ile gönderilir.
 
-export const openCalendarQuickTaskCreatorHelper = (date, event = null, zrcContext = {}) => {
+export const openCalendarQuickTaskCreatorHelper = async (date, event = null, zrcContext = {}) => {
   const {
     currentAccountType,
     projectBoards,
@@ -36,12 +36,12 @@ export const openCalendarQuickTaskCreatorHelper = (date, event = null, zrcContex
       '';
 
     if (!fallbackProjectName) {
-      alert('Görev oluşturmak için önce proje oluşturmalısın.');
+      await window.zrcAlert('Görev oluşturmak için önce proje oluşturmalısın.');
       return;
     }
 
     if (currentAccountType === 'Müşteri') {
-      alert('Müşteri/Misafir hesabı görev oluşturamaz.');
+      await window.zrcAlert('Müşteri/Misafir hesabı görev oluşturamaz.');
       return;
     }
 

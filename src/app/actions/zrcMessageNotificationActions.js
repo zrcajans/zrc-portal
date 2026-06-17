@@ -326,7 +326,7 @@ export function createZRCMessageNotificationActions(deps) {
     );
 
     if (alreadyExists) {
-      alert('Bu isimde bir yazışma grubu zaten var.');
+      await window.zrcAlert('Bu isimde bir yazışma grubu zaten var.');
       return;
     }
 

@@ -247,22 +247,22 @@ export function createZRCTeamCustomerActions(deps) {
     const password = String(teamMemberDraft.password || '').trim();
 
     if (role === 'Müşteri/Misafir' && !customerId) {
-      alert('Müşteri/Misafir hesabı için bağlı müşteri seçmelisin.');
+      await window.zrcAlert('Müşteri/Misafir hesabı için bağlı müşteri seçmelisin.');
       return;
     }
 
     if (!name) {
-      alert(role === 'Müşteri/Misafir' ? 'Bağlı müşteri kaydı bulunamadı.' : 'Ad Soyad boş olamaz.');
+      await window.zrcAlert(role === 'Müşteri/Misafir' ? 'Bağlı müşteri kaydı bulunamadı.' : 'Ad Soyad boş olamaz.');
       return;
     }
 
     if (!username) {
-      alert('Kullanıcı adı boş olamaz.');
+      await window.zrcAlert('Kullanıcı adı boş olamaz.');
       return;
     }
 
     if (password.length < 4) {
-      alert('Şifre en az 4 karakter olmalı.');
+      await window.zrcAlert('Şifre en az 4 karakter olmalı.');
       return;
     }
 
@@ -272,7 +272,7 @@ export function createZRCTeamCustomerActions(deps) {
       : false;
 
     if (isCustomerAlreadyLinked) {
-      alert('Bu müşteri zaten başka bir giriş hesabına bağlı.');
+      await window.zrcAlert('Bu müşteri zaten başka bir giriş hesabına bağlı.');
       return;
     }
 
@@ -281,14 +281,14 @@ export function createZRCTeamCustomerActions(deps) {
     );
 
     if (hasDuplicateUsername) {
-      alert('Bu kullanıcı adı zaten kullanılıyor.');
+      await window.zrcAlert('Bu kullanıcı adı zaten kullanılıyor.');
       return;
     }
 
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (!workspaceId) {
-      alert('Workspace bilgisi alınamadı. Önce ZRC AJANS hesabıyla yeniden giriş yap.');
+      await window.zrcAlert('Workspace bilgisi alınamadı. Önce ZRC AJANS hesabıyla yeniden giriş yap.');
       return;
     }
 
@@ -299,7 +299,7 @@ export function createZRCTeamCustomerActions(deps) {
       const accessToken = sessionData?.session?.access_token || '';
 
       if (!accessToken) {
-        alert('Yönetici oturumu bulunamadı. Çıkış yapıp ZRC AJANS hesabıyla tekrar giriş yap.');
+        await window.zrcAlert('Yönetici oturumu bulunamadı. Çıkış yapıp ZRC AJANS hesabıyla tekrar giriş yap.');
         zrcSetSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
         return;
       }
@@ -351,7 +351,7 @@ export function createZRCTeamCustomerActions(deps) {
       zrcSetSupabaseWriteInfo('saved', 'Merkezi ekip hesabı oluşturuldu');
     } catch (error) {
       const errorMessage = error?.message || 'Merkezi ekip hesabı oluşturulamadı.';
-      alert(errorMessage);
+      await window.zrcAlert(errorMessage);
       zrcSetSupabaseWriteInfo('error', errorMessage);
     }
   };
@@ -402,7 +402,7 @@ export function createZRCTeamCustomerActions(deps) {
       try {
         await deleteTeamMemberFromSupabase(targetMember);
       } catch (error) {
-        alert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        await window.zrcAlert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
       }
     }
@@ -411,7 +411,7 @@ export function createZRCTeamCustomerActions(deps) {
       try {
         await deleteWorkspaceMemberFromDatabase(targetMember);
       } catch (error) {
-        alert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        await window.zrcAlert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
       }
     }
@@ -495,22 +495,22 @@ export function createZRCTeamCustomerActions(deps) {
     const password = String(teamMemberEditDraft.password || '').trim();
 
     if (role === 'Müşteri/Misafir' && !customerId) {
-      alert('Müşteri/Misafir hesabı için bağlı müşteri seçmelisin.');
+      await window.zrcAlert('Müşteri/Misafir hesabı için bağlı müşteri seçmelisin.');
       return;
     }
 
     if (!name) {
-      alert(role === 'Müşteri/Misafir' ? 'Bağlı müşteri kaydı bulunamadı.' : 'Kişi adı boş olamaz.');
+      await window.zrcAlert(role === 'Müşteri/Misafir' ? 'Bağlı müşteri kaydı bulunamadı.' : 'Kişi adı boş olamaz.');
       return;
     }
 
     if (!username) {
-      alert('Kullanıcı adı boş olamaz.');
+      await window.zrcAlert('Kullanıcı adı boş olamaz.');
       return;
     }
 
     if (password.length < 4) {
-      alert('Şifre en az 4 karakter olmalı.');
+      await window.zrcAlert('Şifre en az 4 karakter olmalı.');
       return;
     }
 
@@ -529,7 +529,7 @@ export function createZRCTeamCustomerActions(deps) {
       : false;
 
     if (isCustomerLinkedToAnotherAccount) {
-      alert('Bu müşteri zaten başka bir giriş hesabına bağlı.');
+      await window.zrcAlert('Bu müşteri zaten başka bir giriş hesabına bağlı.');
       return;
     }
 
@@ -542,7 +542,7 @@ export function createZRCTeamCustomerActions(deps) {
       );
 
     if (hasDuplicate) {
-      alert('Bu isimde başka bir ekip üyesi zaten var.');
+      await window.zrcAlert('Bu isimde başka bir ekip üyesi zaten var.');
       return;
     }
 
@@ -553,7 +553,7 @@ export function createZRCTeamCustomerActions(deps) {
     );
 
     if (hasDuplicateUsername) {
-      alert('Bu kullanıcı adı zaten kullanılıyor.');
+      await window.zrcAlert('Bu kullanıcı adı zaten kullanılıyor.');
       return;
     }
 
@@ -606,7 +606,7 @@ export function createZRCTeamCustomerActions(deps) {
       } catch (error) {
         const message = error?.message || 'Ekip rolü güncellenemedi.';
         zrcSetSupabaseWriteInfo('error', message);
-        alert(message);
+        await window.zrcAlert(message);
         return;
       }
     }
@@ -669,22 +669,22 @@ export function createZRCTeamCustomerActions(deps) {
     const wantsLoginAccount = Boolean(accountUsername || accountPassword);
 
     if (!name) {
-      alert('Müşteri adı boş olamaz.');
+      await window.zrcAlert('Müşteri adı boş olamaz.');
       return;
     }
 
     if (customers.some((customer) => customer.name.toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR'))) {
-      alert('Bu isimde bir müşteri zaten var.');
+      await window.zrcAlert('Bu isimde bir müşteri zaten var.');
       return;
     }
 
     if (wantsLoginAccount && !accountUsername) {
-      alert('Müşteri giriş hesabı için kullanıcı adı yazmalısın.');
+      await window.zrcAlert('Müşteri giriş hesabı için kullanıcı adı yazmalısın.');
       return;
     }
 
     if (wantsLoginAccount && accountPassword.length < 4) {
-      alert('Müşteri giriş şifresi en az 4 karakter olmalı.');
+      await window.zrcAlert('Müşteri giriş şifresi en az 4 karakter olmalı.');
       return;
     }
 
@@ -692,7 +692,7 @@ export function createZRCTeamCustomerActions(deps) {
       wantsLoginAccount &&
       teamMembers.some((member) => normalizeCredentialText(member.username) === accountUsername)
     ) {
-      alert('Bu kullanıcı adı zaten kullanılıyor.');
+      await window.zrcAlert('Bu kullanıcı adı zaten kullanılıyor.');
       return;
     }
 
@@ -718,7 +718,7 @@ export function createZRCTeamCustomerActions(deps) {
       const workspaceId = getCurrentSupabaseWorkspaceId();
 
       if (!workspaceId) {
-        alert('Müşteri oluşturuldu ama giriş hesabı için workspace bilgisi alınamadı. Çıkış yapıp tekrar giriş yap.');
+        await window.zrcAlert('Müşteri oluşturuldu ama giriş hesabı için workspace bilgisi alınamadı. Çıkış yapıp tekrar giriş yap.');
         return;
       }
 
@@ -729,7 +729,7 @@ export function createZRCTeamCustomerActions(deps) {
         const accessToken = sessionData?.session?.access_token || '';
 
         if (!accessToken) {
-          alert('Müşteri oluşturuldu ama yönetici oturumu bulunamadığı için giriş hesabı açılamadı.');
+          await window.zrcAlert('Müşteri oluşturuldu ama yönetici oturumu bulunamadığı için giriş hesabı açılamadı.');
           zrcSetSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
           return;
         }
@@ -785,7 +785,7 @@ export function createZRCTeamCustomerActions(deps) {
         zrcSetSupabaseWriteInfo('saved', 'Müşteri ve giriş hesabı oluşturuldu');
       } catch (error) {
         const errorMessage = error?.message || 'Müşteri giriş hesabı oluşturulamadı.';
-        alert(`Müşteri oluşturuldu ama giriş hesabı açılamadı: ${errorMessage}`);
+        await window.zrcAlert(`Müşteri oluşturuldu ama giriş hesabı açılamadı: ${errorMessage}`);
         zrcSetSupabaseWriteInfo('error', errorMessage);
       }
     }
@@ -866,7 +866,7 @@ export function createZRCTeamCustomerActions(deps) {
     const accountUserId = editingCustomer.accountUserId || '';
 
     if (!name) {
-      alert('Müşteri adı boş olamaz.');
+      await window.zrcAlert('Müşteri adı boş olamaz.');
       return;
     }
 
@@ -877,7 +877,7 @@ export function createZRCTeamCustomerActions(deps) {
     );
 
     if (hasDuplicate) {
-      alert('Bu isimde başka bir müşteri zaten var.');
+      await window.zrcAlert('Bu isimde başka bir müşteri zaten var.');
       return;
     }
 
@@ -896,7 +896,7 @@ export function createZRCTeamCustomerActions(deps) {
       : false;
 
     if (accountAlreadyLinked) {
-      alert('Bu müşteri hesabı zaten başka bir müşteri kartına bağlı.');
+      await window.zrcAlert('Bu müşteri hesabı zaten başka bir müşteri kartına bağlı.');
       return;
     }
 
@@ -914,7 +914,7 @@ export function createZRCTeamCustomerActions(deps) {
     const savedCustomerResult = await saveCustomerToSupabase(nextCustomer);
 
     if (!savedCustomerResult) {
-      alert('Müşteri bilgileri veritabanına kaydedilemedi. Lütfen tekrar dene.');
+      await window.zrcAlert('Müşteri bilgileri veritabanına kaydedilemedi. Lütfen tekrar dene.');
       return;
     }
 
@@ -1064,7 +1064,7 @@ export function createZRCTeamCustomerActions(deps) {
       try {
         await deleteWorkspaceMemberFromDatabase(customerGuestAuthDeleteMember);
       } catch (error) {
-        alert(`Müşteri/Misafir auth hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        await window.zrcAlert(`Müşteri/Misafir auth hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
       }
 
@@ -1073,7 +1073,7 @@ export function createZRCTeamCustomerActions(deps) {
           await deleteCustomerFromSupabase(deletedCustomer);
         }
       } catch (error) {
-        alert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        await window.zrcAlert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
       }
     }
@@ -1100,7 +1100,7 @@ export function createZRCTeamCustomerActions(deps) {
           await deleteTeamMemberFromSupabase(member);
         }
       } catch (error) {
-        alert(`Bağlı müşteri hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        await window.zrcAlert(`Bağlı müşteri hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
       }
     }

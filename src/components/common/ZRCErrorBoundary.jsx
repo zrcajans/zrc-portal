@@ -66,7 +66,7 @@ class ZRCErrorBoundary extends React.Component {
       await navigator.clipboard.writeText(text);
       this.setState({ copied: true });
     } catch (error) {
-      window.prompt('Hata metnini kopyala:', text);
+      await window.zrcPrompt('Hata metnini kopyala:', text);
     }
   };
 
@@ -84,8 +84,8 @@ class ZRCErrorBoundary extends React.Component {
     window.location.reload();
   };
 
-  clearLocalCacheAndReload = () => {
-    const confirmed = window.confirm(
+  clearLocalCacheAndReload = async () => {
+    const confirmed = await window.zrcConfirm(
       'Bu işlem sadece tarayıcıdaki yerel ZRC önbelleğini temizler. Supabase verilerine dokunmaz. Devam edilsin mi?'
     );
 
@@ -103,7 +103,7 @@ class ZRCErrorBoundary extends React.Component {
   };
 
   resetPwaCacheAndReload = async () => {
-    const confirmed = window.confirm(
+    const confirmed = await window.zrcConfirm(
       'Bu işlem ZRC Portal’ın tarayıcıdaki PWA/service worker önbelleğini temizler. Supabase verilerine dokunmaz. Devam edilsin mi?'
     );
 

@@ -157,7 +157,7 @@ export function createZRCBoardTaskActions(deps) {
     if (!requirePermission('manageColumns', 'Kolon silme yetkisi sadece Yönetici rolünde var.')) return;
 
     const columnToDelete = boardColumns.find((column) => column.id === columnId);
-    const confirmed = window.confirm('Bu kolonu ve içindeki tüm görevleri kalıcı olarak silmek istediğine emin misin?');
+    const confirmed = await window.zrcConfirm('Bu kolonu ve içindeki tüm görevleri kalıcı olarak silmek istediğine emin misin?');
     if (!confirmed) return;
 
     const deletedColumnTitleKey = normalizeColumnTitleForDisplay(columnToDelete?.title || '');
@@ -298,18 +298,18 @@ export function createZRCBoardTaskActions(deps) {
     setOpenMenuColumnId(null);
   };
 
-  const handleArchiveColumnTasks = (column) => {
+  const handleArchiveColumnTasks = async (column) => {
     if (!requirePermission('deleteTasks', 'Kolondaki görevleri arşivleme yetkisi sadece Yönetici rolünde var.')) return;
 
     const tasksToArchive = column.tasks || [];
 
     if (tasksToArchive.length === 0) {
-      alert('Bu kolonda arşivlenecek görev yok.');
+      await window.zrcAlert('Bu kolonda arşivlenecek görev yok.');
       setOpenMenuColumnId(null);
       return;
     }
 
-    const confirmed = window.confirm(`${column.title} kolonundaki tüm görevleri arşivlemek istediğine emin misin?`);
+    const confirmed = await window.zrcConfirm(`${column.title} kolonundaki tüm görevleri arşivlemek istediğine emin misin?`);
     if (!confirmed) return;
 
     setArchivedTasks((prev) => [
@@ -340,7 +340,7 @@ export function createZRCBoardTaskActions(deps) {
   const handleArchiveColumn = async (column) => {
     if (!requirePermission('manageColumns', 'Kolon arşivleme yetkisi sadece Yönetici rolünde var.')) return;
 
-    const confirmed = window.confirm(`${column.title} kolonunu arşivlemek istediğine emin misin? Kolondaki görevler de Arşiv sekmesine taşınır.`);
+    const confirmed = await window.zrcConfirm(`${column.title} kolonunu arşivlemek istediğine emin misin? Kolondaki görevler de Arşiv sekmesine taşınır.`);
     if (!confirmed) return;
 
     const tasksToArchive = column.tasks || [];
@@ -633,7 +633,7 @@ export function createZRCBoardTaskActions(deps) {
     updateSupabaseTaskColumn(movedTask, targetColumn);
   };
 
-  const handleTaskAction = (action, columnId, task) => {
+  const handleTaskAction = async (action, columnId, task) => {
     setOpenTaskMenuId(null);
 
     const columnTitle = boardColumns.find((column) => column.id === columnId)?.title || task.status || 'Yeni Görev';
@@ -723,7 +723,7 @@ export function createZRCBoardTaskActions(deps) {
     if (action === 'sil') {
       if (!requirePermission('deleteTasks', 'Görev silme yetkisi sadece Yönetici rolünde var.')) return;
 
-      const confirmed = window.confirm('Bu görevi silmek istediğine emin misin?');
+      const confirmed = await window.zrcConfirm('Bu görevi silmek istediğine emin misin?');
       if (!confirmed) return;
 
       setBoardColumns((prev) =>
@@ -741,10 +741,10 @@ export function createZRCBoardTaskActions(deps) {
     }
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (!requirePermission('deleteTasks', 'Toplu görev silme yetkisi sadece Yönetici rolünde var.')) return;
 
-    if (window.confirm(`${selectedTasks.length} görevi silmek istediğinize emin misiniz?`)) {
+    if (await window.zrcConfirm(`${selectedTasks.length} görevi silmek istediğinize emin misiniz?`)) {
       const tasksToDelete = [];
 
       boardColumns.forEach((col) => {
@@ -768,7 +768,7 @@ export function createZRCBoardTaskActions(deps) {
     }
   };
 
-  const handleBulkArchive = () => {
+  const handleBulkArchive = async () => {
     if (!requirePermission('deleteTasks', 'Toplu görev arşivleme yetkisi sadece Yönetici rolünde var.')) return;
 
     const tasksToArchive = [];
@@ -798,7 +798,7 @@ export function createZRCBoardTaskActions(deps) {
     );
 
     setSelectedTasks([]);
-    alert(`${tasksToArchive.length} görev arşivlendi.`);
+    await window.zrcAlert(`${tasksToArchive.length} görev arşivlendi.`);
   };
 
   const handleRestoreArchivedTask = (task) => {
@@ -826,8 +826,8 @@ export function createZRCBoardTaskActions(deps) {
     });
   };
 
-  const handleDeleteArchivedTask = (taskId) => {
-    const confirmed = window.confirm('Bu arşiv kaydını kalıcı olarak silmek istediğine emin misin?');
+  const handleDeleteArchivedTask = async (taskId) => {
+    const confirmed = await window.zrcConfirm('Bu arşiv kaydını kalıcı olarak silmek istediğine emin misin?');
     if (!confirmed) return;
 
     const archivedTask = archivedTasks.find((task) => task.id === taskId);
