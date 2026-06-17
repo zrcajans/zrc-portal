@@ -844,20 +844,23 @@ body {
     bottom: calc(env(safe-area-inset-bottom, 0px) + 18px) !important;
     transform: translateX(-50%) !important;
 
-    width: min(calc(100vw - 36px), 520px) !important;
-    min-height: 72px !important;
+    width: min(calc(100vw - 34px), 540px) !important;
+    min-height: 74px !important;
     padding: 9px !important;
 
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
 
-    background: rgba(20, 20, 20, 0.92) !important;
-    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    background: rgba(255, 255, 255, 0.20) !important;
+    border: 1px solid rgba(255, 255, 255, 0.26) !important;
     border-radius: 999px !important;
-    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.26) !important;
-    backdrop-filter: blur(18px) !important;
-    -webkit-backdrop-filter: blur(18px) !important;
+    box-shadow:
+      0 18px 46px rgba(15, 23, 42, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+
+    backdrop-filter: blur(22px) saturate(165%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(165%) !important;
 
     overflow-x: auto !important;
     overflow-y: hidden !important;
@@ -878,19 +881,24 @@ body {
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 2px !important;
+    gap: 3px !important;
 
     border: 0 !important;
     outline: 0 !important;
     border-radius: 999px !important;
-    background: transparent !important;
-    color: rgba(255, 255, 255, 0.72) !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: rgba(31, 41, 55, 0.82) !important;
 
     font-family: inherit !important;
     text-align: center !important;
     white-space: nowrap !important;
 
-    transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+    transition:
+      transform 160ms ease,
+      background 160ms ease,
+      color 160ms ease,
+      box-shadow 160ms ease !important;
   }
 
   body .zrc-mobile-column-capsule-item:active {
@@ -898,9 +906,11 @@ body {
   }
 
   body .zrc-mobile-column-capsule-item.is-active {
-    background: #ff3600 !important;
+    background: rgba(255, 90, 31, 0.96) !important;
     color: #ffffff !important;
-    box-shadow: 0 12px 28px rgba(255, 54, 0, 0.30) !important;
+    box-shadow:
+      0 12px 28px rgba(255, 90, 31, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
   }
 
   body .zrc-mobile-column-capsule-title {
@@ -925,7 +935,7 @@ body {
     justify-content: center !important;
 
     border-radius: 999px !important;
-    background: rgba(255, 255, 255, 0.13) !important;
+    background: rgba(31, 41, 55, 0.10) !important;
 
     font-size: 10px !important;
     line-height: 1 !important;
@@ -933,7 +943,7 @@ body {
   }
 
   body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-count {
-    background: rgba(255, 255, 255, 0.22) !important;
+    background: rgba(255, 255, 255, 0.20) !important;
   }
 }
 /* === ZRC MOBILE COLUMN CAPSULE END === */
