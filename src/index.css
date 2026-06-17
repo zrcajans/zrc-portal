@@ -1754,3 +1754,33 @@ body {
   }
 }
 /* === ZRC MOBILE BOTTOM WHITE OVERLAP FIX END === */
+
+/* === ZRC LIFT MOBILE CAPSULE ABOVE BOTTOM BAND START === */
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    background-color: #eef0f3 !important;
+  }
+
+  body .zrc-mobile-task-section-with-column-capsule {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 220px) !important;
+  }
+
+  body .zrc-mobile-column-capsule {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+    z-index: 2147483640 !important;
+    transform: translateX(-50%) !important;
+  }
+
+  body .zrc-mobile-column-capsule,
+  body .zrc-mobile-column-capsule * {
+    pointer-events: auto !important;
+  }
+
+  body .zrc-mobile-task-move-toast {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 176px) !important;
+    z-index: 2147483641 !important;
+  }
+}
+/* === ZRC LIFT MOBILE CAPSULE ABOVE BOTTOM BAND END === */
