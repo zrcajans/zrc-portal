@@ -23,7 +23,7 @@ export default function MobileProjectPicker({
           <small>Proje seçimi</small>
           <strong>{projectLabel}</strong>
         </div>
-        <span>{isOpen ? '⌃' : '⌄'}</span>
+        <span className="zrc-mobile-project-picker-arrow-gray-v3">{isOpen ? '⌃' : '⌄'}</span>
       </button>
 
       {isOpen && (
