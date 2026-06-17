@@ -1648,3 +1648,46 @@ body {
   }
 }
 /* === ZRC MOBILE MOVE MENU FLIP SCROLL END === */
+
+/* === ZRC MOBILE TOP HORIZONTAL LOGO START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-simple-workspace {
+    position: relative !important;
+  }
+
+  body .zrc-mobile-simple-workspace::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 78px !important;
+    left: 52px !important;
+    width: 255px !important;
+    height: 70px !important;
+
+    background-image: url("/zrc-mobile-yatay-logo.png") !important;
+    background-repeat: no-repeat !important;
+    background-position: left center !important;
+    background-size: contain !important;
+
+    z-index: 22 !important;
+    pointer-events: none !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-logo,
+  body .zrc-mobile-simple-workspace .zrc-mobile-brand-logo,
+  body .zrc-mobile-simple-workspace .zrc-mobile-header-logo,
+  body .zrc-mobile-simple-workspace .zrc-mobile-logo-text,
+  body .zrc-mobile-simple-workspace img[alt*="ZRC"],
+  body .zrc-mobile-simple-workspace img[src*="logo"] {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+}
+
+@media (max-width: 390px) {
+  body .zrc-mobile-simple-workspace::before {
+    left: 42px !important;
+    width: 230px !important;
+    height: 64px !important;
+  }
+}
+/* === ZRC MOBILE TOP HORIZONTAL LOGO END === */
