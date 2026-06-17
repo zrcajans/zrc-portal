@@ -1592,3 +1592,111 @@ body {
   }
 }
 /* === ZRC MOBILE TASK MOVE TOAST SMALLER END === */
+
+/* === ZRC DESKTOP SHADOW DESIGN LANGUAGE START === */
+@media (min-width: 769px) {
+  /*
+    Masaüstü görsel dili:
+    - Sert/siyah kontur yok
+    - Objeyi konturla değil yumuşak gölgeyle öne çıkar
+    - Kırmızı/silme/tehlikeli butonlara dokunma
+    - Mobil özel sınıflara dokunma
+  */
+
+  body button:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="bg-red"]):not([class*="border-red"]):not([class*="from-red"]):not([class*="to-red"]):not([aria-label*="Sil"]):not([title*="Sil"]) {
+    transition:
+      transform 160ms ease,
+      box-shadow 160ms ease,
+      background 160ms ease,
+      border-color 160ms ease,
+      opacity 160ms ease !important;
+  }
+
+  body button:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="bg-red"]):not([class*="border-red"]):not([class*="from-red"]):not([class*="to-red"]):not([aria-label*="Sil"]):not([title*="Sil"]):active {
+    transform: scale(0.975) !important;
+  }
+
+  /* Turuncu / ana aksiyon butonları */
+  body button[class*="bg-[#ff3600]"]:not([class*="zrc-mobile"]),
+  body button[class*="bg-orange"]:not([class*="zrc-mobile"]),
+  body button[class*="from-[#ff3600]"]:not([class*="zrc-mobile"]),
+  body button[class*="to-[#ff3600]"]:not([class*="zrc-mobile"]),
+  body button[class*="from-orange"]:not([class*="zrc-mobile"]),
+  body button[class*="to-orange"]:not([class*="zrc-mobile"]) {
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow:
+      0 14px 30px rgba(255, 54, 0, 0.22),
+      0 5px 12px rgba(255, 54, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.20) !important;
+  }
+
+  body button[class*="bg-[#ff3600]"]:not([class*="zrc-mobile"]):hover,
+  body button[class*="bg-orange"]:not([class*="zrc-mobile"]):hover,
+  body button[class*="from-[#ff3600]"]:not([class*="zrc-mobile"]):hover,
+  body button[class*="to-[#ff3600]"]:not([class*="zrc-mobile"]):hover,
+  body button[class*="from-orange"]:not([class*="zrc-mobile"]):hover,
+  body button[class*="to-orange"]:not([class*="zrc-mobile"]):hover {
+    box-shadow:
+      0 18px 38px rgba(255, 54, 0, 0.26),
+      0 7px 16px rgba(255, 54, 0, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  /* Beyaz / nötr pill butonlar */
+  body button[class*="bg-white"][class*="rounded"]:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="border-red"]),
+  body button[class*="bg-zinc-50"][class*="rounded"]:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="border-red"]),
+  body button[class*="bg-slate-50"][class*="rounded"]:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="border-red"]),
+  body button[class*="bg-gray-50"][class*="rounded"]:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="border-red"]) {
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow:
+      0 10px 24px rgba(15, 23, 42, 0.08),
+      0 3px 8px rgba(15, 23, 42, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+  }
+
+  body button[class*="bg-white"][class*="rounded"]:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="border-red"]):hover,
+  body button[class*="bg-zinc-50"][class*="rounded"]:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="border-red"]):hover,
+  body button[class*="bg-slate-50"][class*="rounded"]:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="border-red"]):hover,
+  body button[class*="bg-gray-50"][class*="rounded"]:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="border-red"]):hover {
+    box-shadow:
+      0 14px 30px rgba(15, 23, 42, 0.11),
+      0 5px 12px rgba(15, 23, 42, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.90) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  /* Panel içi yumuşak kartlar / aksiyon kutuları */
+  body .zrc-desktop-shadow-soft,
+  body [class*="zrc-panel"] button:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="bg-red"]):not([class*="border-red"]),
+  body [class*="zrc-card"] button:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="bg-red"]):not([class*="border-red"]) {
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow:
+      0 10px 24px rgba(15, 23, 42, 0.08),
+      0 3px 9px rgba(15, 23, 42, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.64) !important;
+  }
+
+  /* Çok küçük ikon butonlarda abartılı gölgeyi engelle */
+  body button[class*="w-8"][class*="h-8"]:not([class*="zrc-mobile"]),
+  body button[class*="w-9"][class*="h-9"]:not([class*="zrc-mobile"]),
+  body button[class*="h-8"][class*="px-0"]:not([class*="zrc-mobile"]),
+  body button[class*="h-9"][class*="px-0"]:not([class*="zrc-mobile"]) {
+    box-shadow:
+      0 5px 12px rgba(15, 23, 42, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
+  }
+
+  /* Focus halinde de kontur yerine zarif ışık */
+  body button:not([class*="zrc-mobile"]):not([class*="text-red"]):not([class*="bg-red"]):not([class*="border-red"]):focus-visible {
+    outline: none !important;
+    box-shadow:
+      0 0 0 4px rgba(255, 54, 0, 0.12),
+      0 12px 28px rgba(15, 23, 42, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.74) !important;
+  }
+}
+/* === ZRC DESKTOP SHADOW DESIGN LANGUAGE END === */
