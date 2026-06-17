@@ -35,10 +35,6 @@ export default function MobileTaskSection({
   return (
     <div className="zrc-mobile-task-section">
       <div className="zrc-mobile-task-section-head">
-        <div>
-          <small>Seçili proje</small>
-          <h2>{projectLabel}</h2>
-        </div>
 
         <button
           type="button"
