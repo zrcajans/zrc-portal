@@ -1319,3 +1319,161 @@ body {
   }
 }
 /* === ZRC FIX MOBILE TASK MOVE BUTTON STYLE END === */
+
+/* === ZRC REFINE MOBILE TASK MOVE BUTTON CLOSE START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-task-card {
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  body .zrc-mobile-task-column-dropdown {
+    position: absolute !important;
+    top: 17px !important;
+    right: 17px !important;
+    margin: 0 !important;
+    z-index: 42 !important;
+    display: block !important;
+    width: auto !important;
+  }
+
+  body .zrc-mobile-task-column-dropdown.is-open {
+    z-index: 160 !important;
+  }
+
+  body .zrc-mobile-task-move-btn,
+  body .zrc-mobile-task-active-btn {
+    height: 32px !important;
+    min-width: 74px !important;
+    width: auto !important;
+    padding: 0 11px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+
+    border: none !important;
+    outline: none !important;
+    border-radius: 999px !important;
+
+    background: linear-gradient(180deg, #f3f4f6, #e7e9ed) !important;
+    color: #374151 !important;
+
+    font-size: 11.5px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    letter-spacing: -0.02em !important;
+
+    box-shadow:
+      0 12px 26px rgba(15, 23, 42, 0.16),
+      0 4px 10px rgba(15, 23, 42, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+  }
+
+  body .zrc-mobile-task-move-btn svg {
+    width: 12.5px !important;
+    height: 12.5px !important;
+    color: #4b5563 !important;
+  }
+
+  body .zrc-mobile-task-column-menu {
+    position: absolute !important;
+    top: 39px !important;
+    right: 0 !important;
+
+    width: 136px !important;
+    padding: 6px !important;
+
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.64) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+
+    box-shadow:
+      0 15px 34px rgba(15, 23, 42, 0.18),
+      0 4px 12px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
+
+    backdrop-filter: blur(11px) saturate(132%) !important;
+    -webkit-backdrop-filter: blur(11px) saturate(132%) !important;
+
+    z-index: 180 !important;
+  }
+
+  body .zrc-mobile-task-column-menu-head {
+    height: 22px !important;
+    padding: 0 2px 5px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  body .zrc-mobile-task-column-menu-head small {
+    display: block !important;
+    min-width: 0 !important;
+    color: #8b95a1 !important;
+    font-size: 8.5px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    white-space: nowrap !important;
+  }
+
+  body .zrc-mobile-task-column-menu-close {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    padding: 0 !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border: none !important;
+    border-radius: 999px !important;
+    background: #eef0f3 !important;
+    color: #6b7280 !important;
+
+    font-size: 15px !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+  }
+
+  body .zrc-mobile-task-column-menu-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+
+  body .zrc-mobile-task-column-menu-item {
+    height: 30px !important;
+    padding: 0 8px !important;
+
+    border-radius: 10px !important;
+    border: none !important;
+    background: rgba(245, 247, 250, 0.96) !important;
+    color: #1f2937 !important;
+
+    font-size: 9.8px !important;
+    font-weight: 950 !important;
+  }
+
+  body .zrc-mobile-task-column-menu-item span {
+    gap: 5px !important;
+  }
+
+  body .zrc-mobile-task-column-menu-item i {
+    width: 6px !important;
+    height: 6px !important;
+    min-width: 6px !important;
+  }
+
+  body .zrc-mobile-task-column-menu-item em {
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
+    font-size: 8px !important;
+  }
+}
+/* === ZRC REFINE MOBILE TASK MOVE BUTTON CLOSE END === */

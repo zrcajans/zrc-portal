@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export default function MobileTaskCard({
   task,
@@ -11,6 +11,33 @@ export default function MobileTaskCard({
   setMobileActiveColumnId
 }) {
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const columnDropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!isColumnMenuOpen) return undefined;
+
+    const closeOnOutsideTap = (event) => {
+      if (!columnDropdownRef.current) return;
+
+      if (!columnDropdownRef.current.contains(event.target)) {
+        setIsColumnMenuOpen(false);
+      }
+    };
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsColumnMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsideTap);
+    document.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideTap);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isColumnMenuOpen]);
 
   const normalizeTitle =
     typeof normalizeColumnTitleForDisplay === 'function'
@@ -88,7 +115,10 @@ export default function MobileTaskCard({
       )}
 
       {columnOptions.length > 0 && (
-        <div className={`zrc-mobile-task-action-row zrc-mobile-task-column-dropdown ${isColumnMenuOpen ? 'is-open' : ''}`}>
+        <div
+          ref={columnDropdownRef}
+          className={`zrc-mobile-task-action-row zrc-mobile-task-column-dropdown ${isColumnMenuOpen ? 'is-open' : ''}`}
+        >
           <button
             type="button"
             className="zrc-mobile-task-move-btn"
@@ -111,7 +141,20 @@ export default function MobileTaskCard({
 
           {isColumnMenuOpen && (
             <div className="zrc-mobile-task-column-menu" onClick={(event) => event.stopPropagation()}>
-              <small>Kolona aktar</small>
+              <div className="zrc-mobile-task-column-menu-head">
+                <small>Kolona aktar</small>
+                <button
+                  type="button"
+                  className="zrc-mobile-task-column-menu-close"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsColumnMenuOpen(false);
+                  }}
+                  aria-label="Kapat"
+                >
+                  ×
+                </button>
+              </div>
 
               <div className="zrc-mobile-task-column-menu-list">
                 {columnOptions.map((column) => {
