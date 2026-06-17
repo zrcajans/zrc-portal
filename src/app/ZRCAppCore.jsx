@@ -154,6 +154,9 @@ import ZRCAppHomeDashboardSection from './sections/ZRCAppHomeDashboardSection';
 import ZRCAppMenuCalendarSection from './sections/ZRCAppMenuCalendarSection';
 import ZRCAppMessagesPageSection from './sections/ZRCAppMessagesPageSection';
 import ZRCAppProfilePageSection from './sections/ZRCAppProfilePageSection';
+import ZRCAppProjectWorkspaceSection from './sections/ZRCAppProjectWorkspaceSection';
+import ZRCAppBulkTaskActionsBar from './sections/ZRCAppBulkTaskActionsBar';
+import ZRCAppModalLayer from './sections/ZRCAppModalLayer';
 import { useZRCAppCoreState, useZRCBoardStateLayer, useZRCTaskSelectionState, useZRCModalState } from './state/useZRCAppStateLayer';
 function App() {
 
@@ -12840,265 +12843,135 @@ return (
             visibleProfileTabs={visibleProfileTabs}
           />
         ) : (activeContentMenu === 'Projeler' || activeContentMenu === 'Diğer') ? (
-          selectedProject ? (
-            <div className="zrc-project-board-page w-full h-full min-h-0 bg-white animate-fade-in flex flex-col flex-1 overflow-hidden">
-                            {activeContentMenu === 'Projeler' && (
-<div className="w-full px-7 flex items-end justify-center shrink-0 h-[56px] bg-white relative z-20 border-b border-[#f5f6f8]">
-                <div className="flex items-end justify-center gap-1">
-                  {visibleProjectTabs.map((tab) => {
-                    const tabWidths = {
-                      'Görevler': 'min-w-[86px]',
-                      'Dosyalar': 'min-w-[94px]',
-                      'Gantt Çizelgesi': 'min-w-[128px]',
-                      'Zaman Çizelgesi': 'min-w-[138px]',
-                      'Takvim': 'min-w-[82px]',
-                      'Raporlar': 'min-w-[90px]',
-                      'Ayarlar': 'min-w-[84px]'
-                    };
-
-                    return (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`${tabWidths[tab]} h-[36px] px-3.5 text-[12px] font-extrabold tracking-tight rounded-t-xl rounded-b-none focus:outline-none select-none transition-all border border-b-0 ${
-                          activeTab === tab
-                            ? 'bg-[#f5f6f8] text-[#ff3600] border-[#f5f6f8] border-b-[#f5f6f8] shadow-none'
-                            : 'bg-white text-zinc-400 border-[#f5f6f8] hover:text-zinc-700 hover:bg-zinc-50 hover:border-[#f5f6f8]'
-                        }`}
-                      >
-                        <span className="relative inline-flex items-center justify-center">
-                          {tab}
-                          {activeTab === tab && (
-                            <span className="absolute left-1/2 -translate-x-1/2 top-[calc(100%+5px)] w-1.5 h-1.5 rounded-full bg-[#ff3600]" />
-                          )}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              )}
-
-              <div className="flex-1 min-h-0 bg-[#f5f6f8] flex flex-col overflow-hidden h-full">
-                                {/* zrc-v521-feature-gorevler */}
-                <GorevlerScreen {...zrcFeatureSpreadProps} />
-
-
-
-                                {/* zrc-v521-feature-takvim */}
-                <TakvimScreen {...zrcFeatureSpreadProps} />
-
-
-                                {/* zrc-v521-feature-zaman_cizelgesi */}
-                <ZamanCizelgesiScreen {...zrcFeatureSpreadProps} />
-
-                                {/* zrc-v521-feature-dosyalar */}
-                <DosyalarScreen {...zrcFeatureSpreadProps} />
-
-
-
-                                {/* zrc-v521-feature-gantt_cizelgesi */}
-                <GanttCizelgesiScreen {...zrcFeatureSpreadProps} />
-
-
-                                {/* zrc-v521-feature-raporlar */}
-                <RaporlarScreen {...zrcFeatureSpreadProps} />
-
-                <ZRCAppShellTeamManagementPageBlock
-                  activeContentMenu={activeContentMenu}
-                  activeTab={activeTab}
-                  showTeamManagementPage={showTeamManagementPage}
-                  teamMembers={teamMembers}
-                  activeTeamMembers={activeTeamMembers}
-                  passiveTeamMembers={passiveTeamMembers}
-                  currentUserRole={currentUserRole}
-                  getTeamRoleTone={getTeamRoleTone}
-                  currentPermissions={currentPermissions}
-                  createTeamMemberFromCenter={createTeamMemberFromCenter}
-                  teamMemberDraft={teamMemberDraft}
-                  setTeamMemberDraft={setTeamMemberDraft}
-                  normalizeCredentialText={normalizeCredentialText}
-                  getCustomerNameById={getCustomerNameById}
-                  renderSoftSelect={renderSoftSelect}
-                  teamRoleOptions={teamRoleOptions}
-                  customerLinkNoneLabel={customerLinkNoneLabel}
-                  customerLinkOptions={customerLinkOptions}
-                  getCustomerIdByName={getCustomerIdByName}
-                  getCustomerById={getCustomerById}
-                  selectedTeamMemberId={selectedTeamMemberId}
-                  pendingTeamDeleteId={pendingTeamDeleteId}
-                  setSelectedTeamMemberId={setSelectedTeamMemberId}
-                  copyCredentialTextForMember={copyCredentialTextForMember}
-                  openTeamMemberEditModal={openTeamMemberEditModal}
-                  toggleTeamMemberStatus={toggleTeamMemberStatus}
-                  deleteTeamMemberFromCenter={deleteTeamMemberFromCenter}
-                  renderProfileAvatar={renderProfileAvatar}
-                  createAvatarFromName={createAvatarFromName}
-                  normalizeTeamRole={normalizeTeamRole}
-                  getMemberLinkedCustomer={getMemberLinkedCustomer}
-                  getAccountTypeFromRole={getAccountTypeFromRole}
-                  createUsernameFromMember={createUsernameFromMember}
-                />
-
-                                {/* zrc-v526-section-activecontentmenu-diger-activetab-musteriler-showcustomermanagementpage */}
-                <ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection
-                  activeTab={activeTab}
-                  activeContentMenu={activeContentMenu}
-                  showCustomerManagementPage={showCustomerManagementPage}
-                  customers={customers}
-                  customerPageItems={customerPageItems}
-                  createCustomerFromCenter={createCustomerFromCenter}
-                  customerDraft={customerDraft}
-                  setCustomerDraft={setCustomerDraft}
-                  normalizeCredentialText={normalizeCredentialText}
-                  selectedCustomer={selectedCustomer}
-                  copyCredentialTextForCustomer={copyCredentialTextForCustomer}
-                  createAvatarFromName={createAvatarFromName}
-                  pendingCustomerDeleteId={pendingCustomerDeleteId}
-                  setSelectedCustomerId={setSelectedCustomerId}
-                  getCustomerLinkedAccount={getCustomerLinkedAccount}
-                  openCustomerEditModal={openCustomerEditModal}
-                  deleteCustomerFromCenter={deleteCustomerFromCenter}
-                />
-
-                <ZRCAppShellProjectSettingsControlsBlock
-                  activeTab={activeTab}
-                  showProjectSettingsControls={showProjectSettingsControls}
-                  projectSettingsDraft={projectSettingsDraft}
-                  setProjectSettingsDraft={setProjectSettingsDraft}
-                  selectedProjectTeamMembers={selectedProjectTeamMembers}
-                  availableProjectTeamMembers={availableProjectTeamMembers}
-                  isProjectTeamPickerOpen={isProjectTeamPickerOpen}
-                  setIsProjectTeamPickerOpen={setIsProjectTeamPickerOpen}
-                  currentPermissions={currentPermissions}
-                  customers={customers}
-                  boardColumns={boardColumns}
-                  archivedTasks={archivedTasks}
-                  renderSoftSelect={renderSoftSelect}
-                  getCustomerByName={getCustomerByName}
-                  renderProfileAvatar={renderProfileAvatar}
-                  createAvatarFromName={createAvatarFromName}
-                  createUsernameFromMember={createUsernameFromMember}
-                  handleArchiveProject={handleArchiveProject}
-                  handleDeleteProject={handleDeleteProject}
-                  handleSaveProjectSettings={handleSaveProjectSettings}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="w-full min-h-screen flex flex-col items-center justify-center text-center animate-fade-in p-8">
-              <h2 className="text-[15px] font-black text-zinc-700 tracking-tight">Görüntülenecek Proje Seçilmedi</h2>
-            </div>
-          )
+          <ZRCAppProjectWorkspaceSection
+            activeContentMenu={activeContentMenu}
+            activeTab={activeTab}
+            activeTeamMembers={activeTeamMembers}
+            archivedTasks={archivedTasks}
+            availableProjectTeamMembers={availableProjectTeamMembers}
+            boardColumns={boardColumns}
+            copyCredentialTextForCustomer={copyCredentialTextForCustomer}
+            copyCredentialTextForMember={copyCredentialTextForMember}
+            createCustomerFromCenter={createCustomerFromCenter}
+            createTeamMemberFromCenter={createTeamMemberFromCenter}
+            currentPermissions={currentPermissions}
+            currentUserRole={currentUserRole}
+            customerDraft={customerDraft}
+            customerLinkNoneLabel={customerLinkNoneLabel}
+            customerLinkOptions={customerLinkOptions}
+            customerPageItems={customerPageItems}
+            customers={customers}
+            deleteCustomerFromCenter={deleteCustomerFromCenter}
+            deleteTeamMemberFromCenter={deleteTeamMemberFromCenter}
+            getCustomerById={getCustomerById}
+            getCustomerByName={getCustomerByName}
+            getCustomerIdByName={getCustomerIdByName}
+            getCustomerLinkedAccount={getCustomerLinkedAccount}
+            getCustomerNameById={getCustomerNameById}
+            getMemberLinkedCustomer={getMemberLinkedCustomer}
+            handleArchiveProject={handleArchiveProject}
+            handleDeleteProject={handleDeleteProject}
+            handleSaveProjectSettings={handleSaveProjectSettings}
+            isProjectTeamPickerOpen={isProjectTeamPickerOpen}
+            openCustomerEditModal={openCustomerEditModal}
+            openTeamMemberEditModal={openTeamMemberEditModal}
+            passiveTeamMembers={passiveTeamMembers}
+            pendingCustomerDeleteId={pendingCustomerDeleteId}
+            pendingTeamDeleteId={pendingTeamDeleteId}
+            projectSettingsDraft={projectSettingsDraft}
+            renderSoftSelect={renderSoftSelect}
+            selectedCustomer={selectedCustomer}
+            selectedProject={selectedProject}
+            selectedProjectTeamMembers={selectedProjectTeamMembers}
+            selectedTeamMemberId={selectedTeamMemberId}
+            setActiveTab={setActiveTab}
+            setCustomerDraft={setCustomerDraft}
+            setIsProjectTeamPickerOpen={setIsProjectTeamPickerOpen}
+            setProjectSettingsDraft={setProjectSettingsDraft}
+            setSelectedCustomerId={setSelectedCustomerId}
+            setSelectedTeamMemberId={setSelectedTeamMemberId}
+            setTeamMemberDraft={setTeamMemberDraft}
+            showCustomerManagementPage={showCustomerManagementPage}
+            showProjectSettingsControls={showProjectSettingsControls}
+            showTeamManagementPage={showTeamManagementPage}
+            teamMemberDraft={teamMemberDraft}
+            teamMembers={teamMembers}
+            toggleTeamMemberStatus={toggleTeamMemberStatus}
+            visibleProjectTabs={visibleProjectTabs}
+            zrcFeatureSpreadProps={zrcFeatureSpreadProps}
+          />
         ) : (
           <div className="w-full min-h-screen flex flex-col items-center justify-center text-center animate-fade-in p-8 bg-[#f5f6f8]">
             <h2 className="text-[15px] font-black text-zinc-700 tracking-tight select-none">Bu Sayfa Boş</h2>
           </div>
         )}
 
-        {selectedTasks.length > 0 && currentPermissions.deleteTasks && boardView === 'Tüm Görevler' && activeContentMenu === 'Projeler' && (
-          <div className="fixed bottom-6 right-6 bg-white border border-zinc-200 shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-xl p-5 w-[380px] z-[90] animate-modal">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="text-[13px] font-black text-zinc-800">{selectedTasks.length} Görev Seçildi</h4>
-
-              <button onClick={() => setSelectedTasks([])} className="text-zinc-400 hover:text-zinc-700 transition-colors">
-                ×
-              </button>
-            </div>
-
-            <div className="flex items-center space-x-2 mt-4">
-              <button onClick={handleBulkArchive} className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-3.5 py-1.5 rounded-md text-[10.5px] font-bold shadow-sm">
-                Arşivle
-              </button>
-
-              <button onClick={handleBulkDelete} className="bg-[#ef4444] hover:bg-[#dc2626] text-white px-3.5 py-1.5 rounded-md text-[10.5px] font-bold shadow-sm">
-                Sil
-              </button>
-            </div>
-          </div>
-        )}
+          <ZRCAppBulkTaskActionsBar
+            activeContentMenu={activeContentMenu}
+            boardView={boardView}
+            currentPermissions={currentPermissions}
+            handleBulkArchive={handleBulkArchive}
+            handleBulkDelete={handleBulkDelete}
+            selectedTasks={selectedTasks}
+            setSelectedTasks={setSelectedTasks}
+          />
       </main>
 
-      <ZRCAppShellEditModalsBlock
-        editingTeamMember={editingTeamMember}
-        closeTeamMemberEditModal={closeTeamMemberEditModal}
-        saveTeamMemberEdit={saveTeamMemberEdit}
-        teamMemberEditDraft={teamMemberEditDraft}
-        setTeamMemberEditDraft={setTeamMemberEditDraft}
-        normalizeCredentialText={normalizeCredentialText}
-        renderSoftSelect={renderSoftSelect}
-        teamRoleOptions={teamRoleOptions}
-        getCustomerNameById={getCustomerNameById}
-        customerLinkNoneLabel={customerLinkNoneLabel}
-        customerLinkOptions={customerLinkOptions}
-        getCustomerIdByName={getCustomerIdByName}
-        getCustomerById={getCustomerById}
-        editingCustomer={editingCustomer}
-        closeCustomerEditModal={closeCustomerEditModal}
-        saveCustomerEdit={saveCustomerEdit}
-        customerEditDraft={customerEditDraft}
-        setCustomerEditDraft={setCustomerEditDraft}
-      />
-
-      <TaskDetailModal
-        isOpen={Boolean(detailTaskInfo)}
-        task={detailTaskInfo?.task}
-        columnTitle={detailTaskInfo?.columnTitle}
-        onClose={closeTaskDetail}
-        onEdit={editTaskFromDetail}
-        onUpdate={updateTaskFromDetail}
-        onAddComment={addTaskComment}
-        onDeleteComment={deleteTaskComment}
-        canEditTask={Boolean(currentPermissions.editTasks && detailTaskInfo?.task && canCurrentUserModifyTask(detailTaskInfo.task, getProjectNameForTask(detailTaskInfo.task) || selectedProject))}
-        canManageFiles={Boolean(currentPermissions.manageFiles && detailTaskInfo?.task && canCurrentUserModifyTask(detailTaskInfo.task, getProjectNameForTask(detailTaskInfo.task) || selectedProject))}
-        canComment={Boolean(currentPermissions.comment && detailTaskInfo?.task && canCurrentUserModifyTask(detailTaskInfo.task, getProjectNameForTask(detailTaskInfo.task) || selectedProject))}
-        currentAccountType={currentAccountType}
-        currentActorId={currentActorId}
-        currentActorName={currentActorName}
-        currentActorAvatar={currentActorAvatar}
-        onUploadFiles={uploadTaskFilesToSupabase}
-        onDownloadFile={downloadTaskFileFromSupabase}
-        onDeleteFile={deleteTaskStoredFileFromSupabase}
-      />
-
-      <TaskModal
-        isOpen={isTaskModalOpen}
-        onClose={() => {
-          setIsTaskModalOpen(false);
-          setEditingTask(null);
-          setCalendarNewTaskDate(null);
-          setCalendarTaskModalContext({
-            isOpen: false,
-            pendingOpen: false,
-            projectName: '',
-            date: ''
-          });
-        }}
-        onSave={handleSaveTask}
-        initialData={editingTask}
-        calendarDefaultDate={calendarNewTaskDate}
-        projectName={calendarTaskModalContext.isOpen ? calendarTaskModalContext.projectName : selectedProject}
-        projectOptions={visibleProjectNames}
-        canChangeProject={Boolean(calendarTaskModalContext.isOpen && !editingTask)}
-        onProjectChange={changeCalendarTaskModalProject}
-        statusOptions={boardColumns.map((column) => ({
-          label: column.title,
-          bg: column.color,
-          text: getReadableColumnColor(column.color)
-        }))}
-        teamMembers={taskModalTeamMembers}
-        customers={currentAccountType === 'Müşteri' ? customers.filter((customer) => currentCustomerKeys.includes(normalizeCredentialText(customer.id)) || currentCustomerKeys.includes(normalizeCredentialText(customer.name))) : customers}
-      />
-
-      <StageModal
-        isOpen={isStageModalOpen}
-        onClose={() => {
-          setIsStageModalOpen(false);
-          setEditingColumn(null);
-        }}
-        onSave={handleSaveStage}
-        columnData={editingColumn}
-      />
+          <ZRCAppModalLayer
+            addTaskComment={addTaskComment}
+            boardColumns={boardColumns}
+            calendarNewTaskDate={calendarNewTaskDate}
+            calendarTaskModalContext={calendarTaskModalContext}
+            canCurrentUserModifyTask={canCurrentUserModifyTask}
+            changeCalendarTaskModalProject={changeCalendarTaskModalProject}
+            closeCustomerEditModal={closeCustomerEditModal}
+            closeTaskDetail={closeTaskDetail}
+            closeTeamMemberEditModal={closeTeamMemberEditModal}
+            currentAccountType={currentAccountType}
+            currentActorAvatar={currentActorAvatar}
+            currentActorId={currentActorId}
+            currentActorName={currentActorName}
+            currentCustomerKeys={currentCustomerKeys}
+            currentPermissions={currentPermissions}
+            customerEditDraft={customerEditDraft}
+            customerLinkNoneLabel={customerLinkNoneLabel}
+            customerLinkOptions={customerLinkOptions}
+            customers={customers}
+            deleteTaskComment={deleteTaskComment}
+            deleteTaskStoredFileFromSupabase={deleteTaskStoredFileFromSupabase}
+            detailTaskInfo={detailTaskInfo}
+            downloadTaskFileFromSupabase={downloadTaskFileFromSupabase}
+            editTaskFromDetail={editTaskFromDetail}
+            editingColumn={editingColumn}
+            editingCustomer={editingCustomer}
+            editingTask={editingTask}
+            editingTeamMember={editingTeamMember}
+            getCustomerById={getCustomerById}
+            getCustomerIdByName={getCustomerIdByName}
+            getCustomerNameById={getCustomerNameById}
+            getProjectNameForTask={getProjectNameForTask}
+            handleSaveStage={handleSaveStage}
+            handleSaveTask={handleSaveTask}
+            isStageModalOpen={isStageModalOpen}
+            isTaskModalOpen={isTaskModalOpen}
+            renderSoftSelect={renderSoftSelect}
+            saveCustomerEdit={saveCustomerEdit}
+            saveTeamMemberEdit={saveTeamMemberEdit}
+            selectedProject={selectedProject}
+            setCalendarNewTaskDate={setCalendarNewTaskDate}
+            setCalendarTaskModalContext={setCalendarTaskModalContext}
+            setCustomerEditDraft={setCustomerEditDraft}
+            setEditingColumn={setEditingColumn}
+            setEditingTask={setEditingTask}
+            setIsStageModalOpen={setIsStageModalOpen}
+            setIsTaskModalOpen={setIsTaskModalOpen}
+            setTeamMemberEditDraft={setTeamMemberEditDraft}
+            taskModalTeamMembers={taskModalTeamMembers}
+            teamMemberEditDraft={teamMemberEditDraft}
+            updateTaskFromDetail={updateTaskFromDetail}
+            uploadTaskFilesToSupabase={uploadTaskFilesToSupabase}
+            visibleProjectNames={visibleProjectNames}
+          />
     </div>
   );
 }
