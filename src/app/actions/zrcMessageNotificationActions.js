@@ -1,6 +1,8 @@
 
 const ZRC_CLEARED_NOTIFICATION_IDS_KEY = 'zrcClearedNotificationIds';
 const ZRC_CLEARED_NOTIFICATION_KEYS_KEY = 'zrcClearedNotificationKeys';
+const ZRC_CLEARED_NOTIFICATION_TOKEN_PREFIX = 'cleared:';
+const ZRC_CLEARED_NOTIFICATION_KEY_PREFIX = 'cleared-key:';
 
 const zrcNotificationFingerprint = (notification = {}) =>
   [
@@ -55,6 +57,20 @@ const zrcWriteJsonArray = (storageKey, values) => {
   } catch (error) {
     console.warn('[ZRC] Bildirim temizleme bilgisi kaydedilemedi.', error);
   }
+};
+
+const zrcClearedNotificationTokensFromItems = (notifications = []) => {
+  const ids = notifications.flatMap(zrcNotificationIdVariants).filter(Boolean);
+  const keys = notifications.map(zrcNotificationFingerprint).filter(Boolean);
+
+  return {
+    ids,
+    keys,
+    tokens: [
+      ...ids.map((id) => `${ZRC_CLEARED_NOTIFICATION_TOKEN_PREFIX}${id}`),
+      ...keys.map((key) => `${ZRC_CLEARED_NOTIFICATION_KEY_PREFIX}${key}`)
+    ]
+  };
 };
 
 
@@ -147,21 +163,19 @@ export function createZRCMessageNotificationActions(deps) {
 
   const markAllNotificationsAsRead = () => {
     const visibleNotifications = Array.isArray(notificationItems) ? notificationItems : [];
-
-    const clearIds = visibleNotifications.flatMap(zrcNotificationIdVariants).filter(Boolean);
-    const clearKeys = visibleNotifications.map(zrcNotificationFingerprint).filter(Boolean);
+    const clearState = zrcClearedNotificationTokensFromItems(visibleNotifications);
 
     zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY, [
       ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY),
-      ...clearIds
+      ...clearState.ids
     ]);
 
     zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY, [
       ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY),
-      ...clearKeys
+      ...clearState.keys
     ]);
 
-    const supabaseNotificationIds = clearIds
+    const supabaseNotificationIds = clearState.ids
       .filter((id) => !String(id).startsWith('supabase-notification-'))
       .filter(isSupabaseUuid);
 
@@ -178,14 +192,19 @@ export function createZRCMessageNotificationActions(deps) {
     }
 
     setReadNotificationIds((prevIds) => {
-      const nextIds = Array.from(new Set([...(prevIds || []), ...clearIds]));
+      const nextIds = Array.from(new Set([
+        ...(prevIds || []),
+        ...clearState.ids,
+        ...clearState.tokens
+      ]));
+
       saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
       return nextIds;
     });
 
     if (typeof setActivityNotifications === 'function') {
-      const clearIdSet = new Set(clearIds.map(String));
-      const clearKeySet = new Set(clearKeys.map(String));
+      const clearIdSet = new Set(clearState.ids.map(String));
+      const clearKeySet = new Set(clearState.keys.map(String));
 
       setActivityNotifications((prevNotifications) =>
         (prevNotifications || []).filter((notification) => {
