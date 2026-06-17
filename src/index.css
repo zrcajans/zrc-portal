@@ -1659,17 +1659,18 @@ body {
     content: "" !important;
     position: absolute !important;
 
-    top: 104px !important;
-    left: 46px !important;
-    width: 158px !important;
-    height: 42px !important;
+    /* Beyaz üst alan: proje seçimi butonunun üstünde kalır */
+    top: -28px !important;
+    left: 48px !important;
+    width: 210px !important;
+    height: 56px !important;
 
     background-image: url("/zrc-mobile-yatay-logo.png") !important;
     background-repeat: no-repeat !important;
     background-position: left center !important;
     background-size: contain !important;
 
-    z-index: 22 !important;
+    z-index: 12 !important;
     pointer-events: none !important;
   }
 
@@ -1686,10 +1687,10 @@ body {
 
 @media (max-width: 390px) {
   body .zrc-mobile-simple-workspace::before {
-    top: 104px !important;
-    left: 38px !important;
-    width: 146px !important;
-    height: 39px !important;
+    top: -28px !important;
+    left: 40px !important;
+    width: 190px !important;
+    height: 50px !important;
   }
 }
 /* === ZRC MOBILE TOP HORIZONTAL LOGO END === */
