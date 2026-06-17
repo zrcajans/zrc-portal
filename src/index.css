@@ -417,7 +417,7 @@ body {
 .zrc-customer-center-page .zrc-center-card > div:first-child {
   border: 0 !important;
   background: rgba(255, 255, 255, 0.96) !important;
-  border-radius: 26px !important;
+  border-radius: 14px !important;
   box-shadow:
     0 22px 54px rgba(15, 23, 42, 0.075),
     0 1px 0 rgba(255,255,255,0.9) inset !important;
@@ -445,7 +445,7 @@ body {
 .zrc-team-center-page .zrc-center-card > div:first-child .shrink-0 > div,
 .zrc-customer-center-page .zrc-center-card > div:first-child .shrink-0 > div {
   border: 0 !important;
-  border-radius: 20px !important;
+  border-radius: 15px !important;
   background: #ffffff !important;
   box-shadow:
     0 14px 34px rgba(15,23,42,.07),
@@ -463,7 +463,7 @@ body {
 .zrc-team-center-page .zrc-center-card > .grid.grid-cols-3 > div,
 .zrc-customer-center-page .zrc-center-card > .grid.grid-cols-3 > div {
   border: 0 !important;
-  border-radius: 22px !important;
+  border-radius: 12px !important;
   background: rgba(255,255,255,.95) !important;
   box-shadow: 0 14px 36px rgba(15,23,42,.055) !important;
   transition: transform .18s ease, box-shadow .18s ease;
@@ -482,7 +482,7 @@ body {
 .zrc-customer-center-page form + div,
 .zrc-customer-center-page .space-y-4 > div {
   border: 0 !important;
-  border-radius: 26px !important;
+  border-radius: 14px !important;
   background: rgba(255,255,255,.96) !important;
   box-shadow:
     0 24px 60px rgba(15,23,42,.075),
@@ -516,7 +516,7 @@ body {
 .zrc-customer-center-page textarea {
   border: 0 !important;
   background: #f4f5f7 !important;
-  border-radius: 16px !important;
+  border-radius: 12px !important;
   box-shadow: inset 0 0 0 1px rgba(15,23,42,.045) !important;
   transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
 }
@@ -545,7 +545,7 @@ body {
 
 .zrc-team-center-page button[type="submit"],
 .zrc-customer-center-page button[type="submit"] {
-  border-radius: 17px !important;
+  border-radius: 13px !important;
   background: linear-gradient(135deg, #ff3600, #ff5a22) !important;
   box-shadow: 0 16px 34px rgba(255,54,0,.22) !important;
 }
@@ -563,7 +563,7 @@ body {
 
 .zrc-team-center-page [class*="cursor-pointer"][class*="rounded"],
 .zrc-customer-center-page [class*="cursor-pointer"][class*="rounded"] {
-  border-radius: 18px !important;
+  border-radius: 14px !important;
 }
 
 .zrc-team-center-page .p-2\.5 > div,
@@ -592,7 +592,7 @@ body {
 /* Küçük ikon kutuları */
 .zrc-team-center-page form .w-11,
 .zrc-customer-center-page form .w-9 {
-  border-radius: 18px !important;
+  border-radius: 14px !important;
   background: linear-gradient(135deg, #ff3600, #ff5a22) !important;
   box-shadow: 0 14px 30px rgba(255,54,0,.22) !important;
 }
