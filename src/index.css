@@ -1085,3 +1085,63 @@ body {
   }
 }
 /* === ZRC MOBILE CAPSULE INSTAGRAM ACTIVE END === */
+
+
+/* === ZRC MOBILE CAPSULE DARKER GLASS BACKGROUND START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-column-capsule {
+    background:
+      linear-gradient(135deg, rgba(38, 42, 48, 0.46), rgba(22, 24, 28, 0.34)) !important;
+
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+
+    backdrop-filter: blur(10px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(130%) !important;
+
+    box-shadow:
+      0 26px 62px rgba(15, 23, 42, 0.30),
+      0 10px 26px rgba(15, 23, 42, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.26),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.10) !important;
+  }
+
+  body .zrc-mobile-column-capsule::before {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.02)) !important;
+  }
+
+  body .zrc-mobile-column-capsule-item:not(.is-active) {
+    background: rgba(255, 255, 255, 0.13) !important;
+    color: rgba(255, 255, 255, 0.78) !important;
+  }
+
+  body .zrc-mobile-column-capsule-item:not(.is-active) .zrc-mobile-column-capsule-title {
+    color: rgba(255, 255, 255, 0.78) !important;
+  }
+
+  body .zrc-mobile-column-capsule-item:not(.is-active) .zrc-mobile-column-capsule-count {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: rgba(255, 255, 255, 0.82) !important;
+  }
+
+  body .zrc-mobile-column-capsule-item.is-active {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(242, 243, 245, 0.82)) !important;
+    color: #20242c !important;
+    border: 1px solid rgba(255, 255, 255, 0.62) !important;
+    box-shadow:
+      0 12px 28px rgba(15, 23, 42, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.78),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.04) !important;
+  }
+
+  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-title {
+    color: #20242c !important;
+  }
+
+  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-count {
+    background: rgba(15, 23, 42, 0.10) !important;
+    color: #374151 !important;
+  }
+}
+/* === ZRC MOBILE CAPSULE DARKER GLASS BACKGROUND END === */
