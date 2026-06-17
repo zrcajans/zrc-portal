@@ -12,6 +12,7 @@ const normalizeText = (value = '') =>
 
 const normalizeUsername = (value = '') => {
   const raw = normalizeText(value);
+
   return raw
     .replace(/ğ/g, 'g')
     .replace(/ü/g, 'u')
@@ -31,6 +32,20 @@ const unique = (arr) =>
     .map((value) => String(value || '').trim())
     .filter(Boolean)
     .filter((value, index, list) => list.indexOf(value) === index);
+
+const isProtectedAccount = (member = {}, value = '') => {
+  const role = normalizeText(member.role || member.type || '');
+  const email = normalizeText(member.email || value);
+  const username = normalizeText(member.username || value);
+  const name = normalizeText(member.name || member.fullName || member.full_name || '');
+
+  if (role.includes('yönetici') || role.includes('yonetici') || role.includes('admin')) return true;
+  if (email === 'info@zrcajans.com') return true;
+  if (username === 'info@zrcajans.com') return true;
+  if (name.includes('zrc babaa')) return true;
+
+  return false;
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -87,6 +102,8 @@ export default async function handler(req, res) {
     })
   ]);
 
+  const emailCandidates = usernameCandidates.filter((value) => value.includes('@'));
+
   const customerCandidates = unique([
     body.customerId,
     member.customerId,
@@ -94,10 +111,12 @@ export default async function handler(req, res) {
   ]);
 
   const deletedRows = [];
+  const deletedAuthUsers = [];
   const attempts = [];
 
   const ignoreMissingColumn = (error) => {
     const msg = String(error?.message || '').toLowerCase();
+
     return (
       msg.includes('column') ||
       msg.includes('schema cache') ||
@@ -129,6 +148,56 @@ export default async function handler(req, res) {
     }
   };
 
+  const findAuthUsersByEmail = async () => {
+    const matches = [];
+    const emailSet = new Set(emailCandidates.map(normalizeText));
+
+    if (emailSet.size === 0) return matches;
+
+    for (let page = 1; page <= 20; page += 1) {
+      const { data, error } = await admin.auth.admin.listUsers({
+        page,
+        perPage: 1000
+      });
+
+      if (error) {
+        throw new Error(`Auth kullanıcı listesi okunamadı: ${error.message}`);
+      }
+
+      const users = data?.users || [];
+
+      for (const user of users) {
+        const email = normalizeText(user.email || '');
+        if (email && emailSet.has(email)) {
+          matches.push(user);
+        }
+      }
+
+      if (users.length < 1000) break;
+    }
+
+    return matches;
+  };
+
+  const deleteAuthUserById = async (userId, source = 'id') => {
+    if (!userId || !isUuid(userId)) return;
+
+    if (isProtectedAccount(member, userId)) {
+      attempts.push(`auth.users:${userId}:protected-skipped`);
+      return;
+    }
+
+    attempts.push(`auth.users.${source}:${userId}`);
+
+    const { error } = await admin.auth.admin.deleteUser(userId, false);
+
+    if (error) {
+      throw new Error(`Auth kullanıcısı silinemedi (${userId}): ${error.message}`);
+    }
+
+    deletedAuthUsers.push(userId);
+  };
+
   try {
     for (const id of idCandidates) {
       await deleteFrom('workspace_members', 'user_id', id, true);
@@ -150,14 +219,46 @@ export default async function handler(req, res) {
       await deleteFrom('workspace_members', 'customer_id', customerId, true);
     }
 
+    const authIdsFromDeletedRows = unique(
+      deletedRows.flatMap((row) => [
+        row.user_id,
+        row.id,
+        row.auth_user_id,
+        row.supabase_user_id,
+        row.profile_id
+      ])
+    ).filter(isUuid);
+
+    const authIds = unique([...idCandidates, ...authIdsFromDeletedRows]).filter(isUuid);
+
+    for (const authId of authIds) {
+      await deleteAuthUserById(authId, 'id');
+    }
+
+    const authUsersByEmail = await findAuthUsersByEmail();
+
+    for (const user of authUsersByEmail) {
+      if (isProtectedAccount(member, user.email)) {
+        attempts.push(`auth.users.email:${user.email}:protected-skipped`);
+        continue;
+      }
+
+      await deleteAuthUserById(user.id, 'email');
+    }
+
     return res.status(200).json({
       ok: true,
       deletedCount: deletedRows.length,
+      deletedAuthUserCount: deletedAuthUsers.length,
       deletedRows,
+      deletedAuthUsers,
       attempts,
-      note: deletedRows.length
-        ? 'Veritabanı kaydı silindi.'
-        : 'Veritabanında eşleşen kayıt bulunamadı; UI/local silmeye izin verildi.'
+      note:
+        deletedAuthUsers.length > 0
+          ? 'Portal kaydı ve Supabase Auth kullanıcısı silindi.'
+          : deletedRows.length > 0
+            ? 'Portal kaydı silindi. Eşleşen Auth kullanıcısı bulunamadı.'
+            : 'Veritabanında eşleşen kayıt bulunamadı; UI/local silmeye izin verildi.'
     });
   } catch (error) {
     return res.status(500).json({
