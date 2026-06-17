@@ -1,4 +1,28 @@
 import { getNotificationTone } from '../../utils/dashboardHelpers.js';
+
+function zrcSafeNotificationTone(type) {
+  const raw = String(type || '').toLowerCase();
+
+  if (raw.includes('comment') || raw.includes('yorum') || raw.includes('message') || raw.includes('mesaj')) {
+    return 'bg-blue-50 text-blue-600 border-blue-100';
+  }
+
+  if (raw.includes('file') || raw.includes('dosya')) {
+    return 'bg-purple-50 text-purple-600 border-purple-100';
+  }
+
+  if (raw.includes('task') || raw.includes('görev') || raw.includes('gorev')) {
+    return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+  }
+
+  if (raw.includes('error') || raw.includes('hata') || raw.includes('delete') || raw.includes('sil')) {
+    return 'bg-red-50 text-red-600 border-red-100';
+  }
+
+  return 'bg-[#fff3ef] text-[#ff3600] border-orange-100';
+}
+
+
 export default function ZRCAppShellAutoUiBlock01({
   Bildirim,
   Bildirimler,
@@ -87,7 +111,7 @@ export default function ZRCAppShellAutoUiBlock01({
                               }`}
                             >
                               <div className="flex items-start gap-3">
-                                <div className={`w-9 h-9 rounded-[10px] border flex items-center justify-center shrink-0 overflow-hidden ${getNotificationTone(notification.type)}`}>
+                                <div className={`w-9 h-9 rounded-[10px] border flex items-center justify-center shrink-0 overflow-hidden ${zrcSafeNotificationTone(notification.type)}`}>
                                   {notification.source === 'activity' && notification.avatar ? (
                                     renderProfileAvatar(notification.avatar, currentProfileInitials)
                                   ) : notification.type === 'comment' && notification.avatar ? (
