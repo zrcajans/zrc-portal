@@ -832,10 +832,10 @@ body {
 }
 /* === ZRC CENTER MOBILE PROJECT OPTIONS END === */
 
-/* === ZRC MOBILE COLUMN CAPSULE START === */
+/* === ZRC MOBILE COLUMN CAPSULE FINAL CLEAN START === */
 @media (max-width: 768px) {
   body .zrc-mobile-task-section-with-column-capsule {
-    padding-bottom: 120px !important;
+    padding-bottom: 124px !important;
   }
 
   body .zrc-mobile-column-capsule {
@@ -844,23 +844,26 @@ body {
     bottom: calc(env(safe-area-inset-bottom, 0px) + 18px) !important;
     transform: translateX(-50%) !important;
 
-    width: min(calc(100vw - 34px), 540px) !important;
-    min-height: 74px !important;
-    padding: 9px !important;
+    width: min(calc(100vw - 36px), 520px) !important;
+    min-height: 72px !important;
+    padding: 8px !important;
 
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
 
-    background: rgba(255, 255, 255, 0.20) !important;
-    border: 1px solid rgba(255, 255, 255, 0.26) !important;
+    background: rgba(226, 229, 234, 0.76) !important;
+    border: 1px solid rgba(255, 255, 255, 0.58) !important;
     border-radius: 999px !important;
-    box-shadow:
-      0 18px 46px rgba(15, 23, 42, 0.16),
-      inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
 
-    backdrop-filter: blur(22px) saturate(165%) !important;
-    -webkit-backdrop-filter: blur(22px) saturate(165%) !important;
+    box-shadow:
+      0 18px 46px rgba(15, 23, 42, 0.18),
+      0 6px 16px rgba(15, 23, 42, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.52),
+      inset 0 -1px 0 rgba(15, 23, 42, 0.06) !important;
+
+    backdrop-filter: blur(8px) saturate(122%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(122%) !important;
 
     overflow-x: auto !important;
     overflow-y: hidden !important;
@@ -873,108 +876,72 @@ body {
   }
 
   body .zrc-mobile-column-capsule-item {
+    position: relative !important;
+
     min-width: 96px !important;
     height: 54px !important;
-    padding: 0 14px !important;
+    padding: 0 16px !important;
 
     display: flex !important;
-    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 3px !important;
 
-    border: 0 !important;
-    outline: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    outline: none !important;
     border-radius: 999px !important;
-    background: rgba(255, 255, 255, 0.14) !important;
-    color: rgba(31, 41, 55, 0.82) !important;
+
+    background: rgba(255, 255, 255, 0.24) !important;
+    color: #4b5563 !important;
 
     font-family: inherit !important;
     text-align: center !important;
     white-space: nowrap !important;
 
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
     transition:
       transform 160ms ease,
       background 160ms ease,
       color 160ms ease,
-      box-shadow 160ms ease !important;
+      box-shadow 160ms ease,
+      border-color 160ms ease !important;
   }
 
   body .zrc-mobile-column-capsule-item:active {
-    transform: scale(0.96) !important;
+    transform: scale(0.97) !important;
   }
 
   body .zrc-mobile-column-capsule-item.is-active {
-    background: rgba(255, 90, 31, 0.96) !important;
-    color: #ffffff !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 247, 249, 0.90)) !important;
+    color: #111827 !important;
+    border-color: rgba(255, 255, 255, 0.78) !important;
+
     box-shadow:
-      0 12px 28px rgba(255, 90, 31, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+      0 9px 24px rgba(15, 23, 42, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.90),
+      inset 0 -1px 0 rgba(15, 23, 42, 0.05) !important;
+
+    transform: translateY(-1px) !important;
   }
 
   body .zrc-mobile-column-capsule-title {
-    display: block !important;
+    width: 100% !important;
     max-width: 92px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-
-    font-size: 11px !important;
-    line-height: 1.1 !important;
-    font-weight: 950 !important;
-    letter-spacing: -0.02em !important;
-  }
-
-  body .zrc-mobile-column-capsule-count {
-    min-width: 18px !important;
-    height: 18px !important;
-    padding: 0 6px !important;
-
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    border-radius: 999px !important;
-    background: rgba(31, 41, 55, 0.10) !important;
-
-    font-size: 10px !important;
-    line-height: 1 !important;
-    font-weight: 950 !important;
-  }
-
-  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-count {
-    background: rgba(255, 255, 255, 0.20) !important;
-  }
-}
-/* === ZRC MOBILE COLUMN CAPSULE END === */
-
-/* === ZRC MOBILE COLUMN CAPSULE CENTER SHADOW START === */
-@media (max-width: 768px) {
-  body .zrc-mobile-column-capsule {
-    box-shadow:
-      0 24px 58px rgba(15, 23, 42, 0.24),
-      0 8px 22px rgba(15, 23, 42, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.34) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item {
-    position: relative !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 0 16px !important;
-    gap: 0 !important;
-  }
-
-  body .zrc-mobile-column-capsule-title {
-    height: 100% !important;
     min-height: 54px !important;
+
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    text-align: center !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    color: inherit !important;
+    font-size: 11px !important;
     line-height: 1.05 !important;
+    font-weight: 950 !important;
+    letter-spacing: -0.02em !important;
+    text-align: center !important;
   }
 
   body .zrc-mobile-column-capsule-count {
@@ -982,166 +949,26 @@ body {
     top: 6px !important;
     right: 8px !important;
 
-    min-width: 17px !important;
-    height: 17px !important;
+    min-width: 18px !important;
+    height: 18px !important;
     padding: 0 5px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.46) !important;
+    color: #6b7280 !important;
 
     font-size: 9px !important;
     line-height: 1 !important;
-    opacity: 0.86 !important;
-  }
-}
-/* === ZRC MOBILE COLUMN CAPSULE CENTER SHADOW END === */
-
-/* === ZRC MOBILE COLUMN CAPSULE DYNAMIC GLASS START === */
-@media (max-width: 768px) {
-  body .zrc-mobile-column-capsule {
-    background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.16)) !important;
-
-    backdrop-filter: blur(12px) saturate(135%) !important;
-    -webkit-backdrop-filter: blur(12px) saturate(135%) !important;
-
-    border: 1px solid rgba(255, 255, 255, 0.30) !important;
-
-    box-shadow:
-      0 22px 52px rgba(15, 23, 42, 0.22),
-      0 8px 20px rgba(15, 23, 42, 0.10),
-      inset 0 1px 0 rgba(255, 255, 255, 0.38),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
-
-    transform: translateX(-50%) translateY(-2px) !important;
-    animation: zrcMobileColumnCapsuleFloat 4.5s ease-in-out infinite !important;
-  }
-
-  body .zrc-mobile-column-capsule::before {
-    content: "" !important;
-    position: absolute !important;
-    inset: 1px !important;
-    border-radius: 999px !important;
-    background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.03)) !important;
-    pointer-events: none !important;
-  }
-
-  body .zrc-mobile-column-capsule-item {
-    position: relative !important;
-    z-index: 2 !important;
-    background: rgba(255, 255, 255, 0.18) !important;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      0 2px 8px rgba(15, 23, 42, 0.04) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item.is-active {
-    background: linear-gradient(135deg, #ff3600, #ff6a2a) !important;
-    box-shadow:
-      0 13px 30px rgba(255, 54, 0, 0.30),
-      inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
-    transform: translateY(-1px) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item.is-active:active {
-    transform: scale(0.97) translateY(0) !important;
-  }
-
-  @keyframes zrcMobileColumnCapsuleFloat {
-    0%, 100% {
-      transform: translateX(-50%) translateY(-2px);
-    }
-
-    50% {
-      transform: translateX(-50%) translateY(-5px);
-    }
-  }
-}
-/* === ZRC MOBILE COLUMN CAPSULE DYNAMIC GLASS END === */
-
-/* === ZRC MOBILE CAPSULE INSTAGRAM ACTIVE START === */
-@media (max-width: 768px) {
-  body .zrc-mobile-column-capsule-item.is-active {
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 245, 245, 0.78)) !important;
-    color: #202020 !important;
-    box-shadow:
-      0 10px 24px rgba(15, 23, 42, 0.13),
-      inset 0 1px 0 rgba(255, 255, 255, 0.80),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.04) !important;
-    border: 1px solid rgba(255, 255, 255, 0.62) !important;
-    transform: translateY(-1px) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-title {
-    color: #202020 !important;
     font-weight: 950 !important;
   }
 
   body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-count {
-    background: rgba(0, 0, 0, 0.08) !important;
-    color: #202020 !important;
-  }
-
-  body .zrc-mobile-column-capsule-item.is-active:active {
-    transform: scale(0.97) translateY(0) !important;
-  }
-}
-/* === ZRC MOBILE CAPSULE INSTAGRAM ACTIVE END === */
-
-
-/* === ZRC MOBILE CAPSULE DARKER GLASS BACKGROUND START === */
-@media (max-width: 768px) {
-  body .zrc-mobile-column-capsule {
-    background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.26), rgba(210, 214, 220, 0.18)) !important;
-
-    border: 1px solid rgba(255, 255, 255, 0.24) !important;
-
-    backdrop-filter: blur(10px) saturate(130%) !important;
-    -webkit-backdrop-filter: blur(10px) saturate(130%) !important;
-
-    box-shadow:
-      0 22px 50px rgba(15, 23, 42, 0.22),
-      0 8px 22px rgba(15, 23, 42, 0.10),
-      inset 0 1px 0 rgba(255, 255, 255, 0.30),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.06) !important;
-  }
-
-  body .zrc-mobile-column-capsule::before {
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.03)) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item:not(.is-active) {
-    background: rgba(255, 255, 255, 0.16) !important;
-    color: rgba(255, 255, 255, 0.80) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item:not(.is-active) .zrc-mobile-column-capsule-title {
-    color: rgba(255, 255, 255, 0.80) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item:not(.is-active) .zrc-mobile-column-capsule-count {
-    background: rgba(255, 255, 255, 0.20) !important;
-    color: rgba(255, 255, 255, 0.84) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item.is-active {
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(242, 243, 245, 0.82)) !important;
-    color: #20242c !important;
-    border: 1px solid rgba(255, 255, 255, 0.62) !important;
-    box-shadow:
-      0 12px 28px rgba(15, 23, 42, 0.16),
-      inset 0 1px 0 rgba(255, 255, 255, 0.78),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.04) !important;
-  }
-
-  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-title {
-    color: #20242c !important;
-  }
-
-  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-count {
-    background: rgba(15, 23, 42, 0.10) !important;
+    background: rgba(15, 23, 42, 0.09) !important;
     color: #374151 !important;
   }
 }
-/* === ZRC MOBILE CAPSULE DARKER GLASS BACKGROUND END === */
+/* === ZRC MOBILE COLUMN CAPSULE FINAL CLEAN END === */
