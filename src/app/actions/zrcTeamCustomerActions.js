@@ -52,6 +52,67 @@ export function createZRCTeamCustomerActions(deps) {
   } = deps;
 
 
+
+  // zrc-real-db-delete-sync-v1
+  const deleteWorkspaceMemberFromSupabase = async (member = {}) => {
+    const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
+      ? getCurrentSupabaseWorkspaceId()
+      : '';
+
+    if (!supabase || !workspaceId || !member) return false;
+
+    const normalizeValue = (value) => String(value || '').trim();
+    const username = typeof normalizeCredentialText === 'function'
+      ? normalizeCredentialText(member.username || member.name)
+      : normalizeValue(member.username || member.name).toLowerCase();
+
+    const possibleUserIds = [
+      member.userId,
+      member.user_id,
+      member.authUserId,
+      member.auth_user_id,
+      member.supabaseUserId,
+      member.supabase_user_id,
+      member.profileId,
+      member.profile_id,
+      member.id
+    ]
+      .map(normalizeValue)
+      .filter(Boolean)
+      .filter((value, index, arr) => arr.indexOf(value) === index)
+      .filter((value) =>
+        typeof isSupabaseUuid === 'function'
+          ? isSupabaseUuid(value)
+          : /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+      );
+
+    let attempted = false;
+
+    for (const userId of possibleUserIds) {
+      attempted = true;
+      const { error } = await supabase
+        .from('workspace_members')
+        .delete()
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    }
+
+    if (username) {
+      attempted = true;
+      const { error } = await supabase
+        .from('workspace_members')
+        .delete()
+        .eq('workspace_id', workspaceId)
+        .eq('username', username);
+
+      if (error) throw error;
+    }
+
+    return attempted;
+  };
+
   // zrc-db-delete-team-member-from-supabase
   const deleteTeamMemberFromSupabase = async (member = {}) => {
     const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
@@ -304,6 +365,15 @@ export function createZRCTeamCustomerActions(deps) {
     if (targetMember) {
       try {
         await deleteTeamMemberFromSupabase(targetMember);
+      } catch (error) {
+        alert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        return;
+      }
+    }
+
+    if (targetMember) {
+      try {
+        await deleteWorkspaceMemberFromSupabase(targetMember);
       } catch (error) {
         alert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
