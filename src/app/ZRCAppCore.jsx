@@ -1,11 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import Sidebar from '../components/Layout/Sidebar';
-import MobileWorkspace from '../components/mobile/MobileWorkspace';
 import MobileTaskMoveButtons from '../components/mobile/MobileTaskMoveButtons';
 import ZRCErrorBoundary from '../components/common/ZRCErrorBoundary';
 import { ProfileSelect, SoftSelect } from '../components/common/SelectControls';
-import { resolveMobileTaskCardAssignees } from '../utils/mobileTaskAssignees';
 import { createAvatarFromName, renderProfileAvatar } from '../utils/avatarHelpers';
 import {
   getSupabaseSafeDate
@@ -34,10 +31,6 @@ import {
   createDefaultCustomers
 } from '../utils/teamHelpers';
 import '../zrc-mobile.css';
-import TopNavbar from '../components/Layout/TopNavbar';
-import TaskModal from '../components/Modals/TaskModal';
-import StageModal from '../components/Modals/StageModal';
-import TaskDetailModal from '../components/Modals/TaskDetailModal';
 import { supabase } from '../supabaseClient';
 import { copyTextToClipboard } from '../utils/clipboardHelpers';
 import {
@@ -121,43 +114,34 @@ import {
   createDataSnapshot
 } from './ZRCAppTopLevel';
 
-import RaporlarScreen from '../features/raporlar/RaporlarScreen';
-import GanttCizelgesiScreen from '../features/gantt_cizelgesi/GanttCizelgesiScreen';
-import DosyalarScreen from '../features/dosyalar/DosyalarScreen';
-import ZamanCizelgesiScreen from '../features/zaman_cizelgesi/ZamanCizelgesiScreen';
-import TakvimScreen from '../features/takvim/TakvimScreen';
-import GorevlerScreen from '../features/gorevler/GorevlerScreen';
-import ZRCAppShellActiveProfileTabVeriYonetimiBlock from './blocks/ZRCAppShellActiveProfileTabVeriYonetimiBlock';
-import {
-  ZRCAppShellActiveProfileTabEPostaBildirimiBlock,
-  ZRCAppShellActiveProfileTabTarayiciBildirimiBlock,
-  ZRCAppShellActiveProfileTabEPostaKutusuBlock,
-  ZRCAppShellActiveProfileTabOzellestirmelerBlock,
-  ZRCAppShellActiveProfileTabOturumlarBlock
-} from './blocks/ZRCAppShellActiveProfileTabSecondaryBlocks';
-import ZRCAppShellProfileTabButtonsBlock from './blocks/ZRCAppShellProfileTabButtonsBlock';
-import ZRCAppShellTeamMemberListBlock from './blocks/ZRCAppShellTeamMemberListBlock';
-import ZRCAppShellCalendarViewHaftaBlock from './blocks/ZRCAppShellCalendarViewHaftaBlock';
-import ZRCAppShellCalendarViewAyBlock from './blocks/ZRCAppShellCalendarViewAyBlock';
-import ZRCAppShellCalendarViewGunBlock from './blocks/ZRCAppShellCalendarViewGunBlock';
-import ZRCAppShellCalendarViewHaftaBlock2 from './blocks/ZRCAppShellCalendarViewHaftaBlock2';
-import ZRCAppShellCalendarViewAyBlock2 from './blocks/ZRCAppShellCalendarViewAyBlock2';
-import ZRCAppShellProjectSettingsControlsBlock from './blocks/ZRCAppShellProjectSettingsControlsBlock';
-import ZRCAppShellEditModalsBlock from './blocks/ZRCAppShellEditModalsBlock';
-import ZRCAppShellTeamManagementPageBlock from './blocks/ZRCAppShellTeamManagementPageBlock';
-import ZRCAppShellGlobalSearchBlock from './blocks/ZRCAppShellGlobalSearchBlock';
-import ZRCAppShellAutoUiBlock05 from './blocks/ZRCAppShellAutoUiBlock05';
-import ZRCAppShellAutoUiBlock06 from './blocks/ZRCAppShellAutoUiBlock06';
-import ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection from './sections/ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection';
-import ZRCAppShellIsMessagesOpenSection from './sections/ZRCAppShellIsMessagesOpenSection';
-import ZRCAppHomeDashboardSection from './sections/ZRCAppHomeDashboardSection';
-import ZRCAppMenuCalendarSection from './sections/ZRCAppMenuCalendarSection';
-import ZRCAppMessagesPageSection from './sections/ZRCAppMessagesPageSection';
-import ZRCAppProfilePageSection from './sections/ZRCAppProfilePageSection';
-import ZRCAppProjectWorkspaceSection from './sections/ZRCAppProjectWorkspaceSection';
-import ZRCAppBulkTaskActionsBar from './sections/ZRCAppBulkTaskActionsBar';
-import ZRCAppModalLayer from './sections/ZRCAppModalLayer';
 import { useZRCAppCoreState, useZRCBoardStateLayer, useZRCTaskSelectionState, useZRCModalState } from './state/useZRCAppStateLayer';
+import ZRCAppLoginScreen from './sections/ZRCAppLoginScreen';
+import ZRCAppAuthenticatedShell from './sections/ZRCAppAuthenticatedShell';
+import {
+  formatDateStringShort,
+  getTaskCardDateParts,
+  isSupabaseUuid,
+  getSafeSupabasePriority,
+  getPlainTaskDescription,
+  formatSupabaseDateTimeParts,
+  mapSupabaseStepToLocalStep,
+  getSupabaseFileTypeLabel,
+  sanitizeStorageFileName,
+  mapSupabaseCustomerToLocal,
+  mapSupabaseWorkspaceMemberToLocal,
+  normalizeProjectNameList,
+  mergeUniqueByKey,
+  sanitizeProfileDraftForSafeApi,
+  sanitizeProfilePreferencesForSafeApi,
+  mapSupabaseQuickNoteToLocal,
+  createSupabaseHealthRow,
+  getSupabaseHealthStateClass,
+  formatSupabaseDateForLocalTask,
+  getIdentityValuesFromRecord,
+  getActivityDateLabel,
+  isReportTaskCompleted,
+  getReportPriorityStyle
+} from './utils/zrcCorePureHelpers';
 function App() {
 
   const zrcSetSupabaseWriteInfo = (status, message) => {
@@ -1541,93 +1525,10 @@ function App() {
   ];
 
   // --- YARDIMCI FONKSİYONLAR ---
-  const formatDateStringShort = (dateStr) => {
-    if (!dateStr) return '';
 
-    if (
-      dateStr.includes('Ocak') ||
-      dateStr.includes('Şubat') ||
-      dateStr.includes('Mart') ||
-      dateStr.includes('Nisan') ||
-      dateStr.includes('Mayıs') ||
-      dateStr.includes('Haziran') ||
-      dateStr.includes('Temmuz') ||
-      dateStr.includes('Ağustos') ||
-      dateStr.includes('Eylül') ||
-      dateStr.includes('Ekim') ||
-      dateStr.includes('Kasım') ||
-      dateStr.includes('Aralık')
-    ) {
-      return dateStr;
-    }
-
-    return dateStr;
-  };
-
-  const getTaskCardDateParts = (task = {}) => {
-    const startDate = formatDateStringShort(task.startDate || task.start || task.baslangicTarihi || '');
-    const endDate = formatDateStringShort(
-      task.endDate ||
-      task.dueDate ||
-      task.deadline ||
-      task.bitisTarihi ||
-      task.date ||
-      ''
-    );
-
-    return {
-      startDate,
-      endDate,
-      hasAnyDate: Boolean(startDate || endDate)
-    };
-  };
 
   // --- STİLLER ---
-  const customStyles = (
-    <style>
-      {`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700;800;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f5f6f8; overflow: hidden; }
-        .apple-dock-effect { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s, color 0.25s, box-shadow 0.3s, border-color 0.25s ease; }
-        .hover-grow:hover { transform: scale(1.12); }
-        .apple-dock-btn:hover:not(.active-menu-btn) { background-color: transparent !important; color: #ffffff !important; }
-        .active-menu-btn:hover { background-color: #ffffff !important; color: #ff3600 !important; }
-        .mac-genie-panel { transform-origin: 0% 30%; transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.15, 1), opacity 0.3s; }
-        .genie-collapsed { transform: perspective(1000px) scaleX(0) scaleY(0.01) skewY(8deg); opacity: 0; visibility: hidden; }
-        .genie-expanded { transform: perspective(1000px) scaleX(1) scaleY(1) skewY(0deg); opacity: 1; visibility: visible; }
-        @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes overlayFadeOut { from { opacity: 1; } to { opacity: 0; } }
-        .animate-overlay-in { animation: overlayFadeIn 0.2s ease-out forwards; }
-        .animate-overlay-out { animation: overlayFadeOut 0.2s ease-in forwards; }
-        @keyframes modalScaleIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        @keyframes modalScaleOut { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.95) translateY(10px); } }
-        .animate-modal { animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-modal-out { animation: modalScaleOut 0.2s ease-in forwards; }
-        @keyframes premiumFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: premiumFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes zrcNotePop { from { opacity: 0; transform: translateY(-10px) scale(0.96) rotate(-1.5deg); } to { opacity: 1; transform: translateY(0) scale(1) rotate(-1deg); } }
-        @keyframes zrcSoftFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-        .zrc-home-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
-        .zrc-home-card:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(30,43,70,0.085); }
-        .zrc-note-composer-float { animation: zrcNotePop 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .zrc-note-mini-float { animation: zrcSoftFloat 2.8s ease-in-out infinite; }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); border-radius: 4px; }
-        .task-menu-item { display: flex; align-items: center; padding: 10px 14px; cursor: pointer; transition: background-color 0.15s ease; color: #3f3f46; font-size: 13px; font-weight: 500; gap: 10px; width: 100%; user-select: none; }
-        .task-menu-item:hover { background-color: #f4f4f5; }
-        .task-menu-item svg { color: #71717a; flex-shrink: 0; }
-        .task-menu-item.danger { color: #dc2626; border-top: 1px solid #f3f4f6; }
-        .task-menu-item.danger:hover { background-color: #fef2f2; }
-        .task-menu-item.danger svg { color: #dc2626; }
-        .rte-btn { padding: 4px 8px; border-radius: 4px; color: #4b5563; font-weight: bold; font-size: 11.5px; transition: background-color 0.15s; cursor: pointer; }
-        .rte-btn:hover { background-color: #e5e7eb; }
-        [contenteditable=true]:empty:before { content: attr(placeholder); color: #9ca3af; pointer-events: none; display: block; }
-      `}
-    </style>
-  );
 
-  const isSupabaseUuid = (value = '') =>
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
   const getCurrentSupabaseWorkspaceId = () =>
     supabaseWorkspaceId || currentRoleMember?.workspaceId || '';
@@ -1636,41 +1537,7 @@ function App() {
     setSupabaseWriteStatus({ state, label });
   };
 
-  const getSafeSupabasePriority = (priority = '') => {
-    const cleanPriority = String(priority || '').trim();
-    return ['Düşük', 'Normal', 'Yüksek', 'Acil'].includes(cleanPriority) ? cleanPriority : 'Normal';
-  };
 
-  const getPlainTaskDescription = (value) => {
-    if (!value) return '';
-
-    if (typeof value === 'string') {
-      return value === '[object Object]' ? '' : value;
-    }
-
-    if (Array.isArray(value)) {
-      return value.map(getPlainTaskDescription).filter(Boolean).join('\n');
-    }
-
-    if (typeof value === 'object') {
-      if (typeof value.text === 'string') return value.text;
-      if (typeof value.plainText === 'string') return value.plainText;
-      if (typeof value.description === 'string') return value.description;
-      if (typeof value.content === 'string') return value.content;
-
-      if (Array.isArray(value.blocks)) {
-        return value.blocks.map(getPlainTaskDescription).filter(Boolean).join('\n');
-      }
-
-      if (Array.isArray(value.children)) {
-        return value.children.map(getPlainTaskDescription).filter(Boolean).join('\n');
-      }
-
-      return '';
-    }
-
-    return '';
-  };
 
 
 
@@ -2236,14 +2103,6 @@ function App() {
     return data?.project_id || null;
   };
 
-  const formatSupabaseDateTimeParts = (value = '') => {
-    const date = value ? new Date(value) : new Date();
-
-    return {
-      date: `${date.getDate()} ${date.toLocaleString('tr-TR', { month: 'long' })} ${date.getFullYear()}`,
-      time: date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-    };
-  };
 
   const mapSupabaseCommentToLocalComment = (comment = {}) => {
     const parts = formatSupabaseDateTimeParts(comment.created_at);
@@ -2261,12 +2120,6 @@ function App() {
     };
   };
 
-  const mapSupabaseStepToLocalStep = (step = {}) => ({
-    id: `supabase-step-${step.id}`,
-    supabaseId: step.id,
-    text: step.text || '',
-    completed: step.is_completed === true
-  });
 
   const mapSupabaseFileToLocalFile = (file = {}) => {
     const parts = formatSupabaseDateTimeParts(file.created_at);
@@ -2404,39 +2257,7 @@ function App() {
     }
   };
 
-  const getSupabaseFileTypeLabel = (fileName = '') => {
-    const extension = String(fileName || '').split('.').pop()?.toLowerCase();
 
-    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension)) return 'Görsel';
-    if (['mp4', 'mov', 'avi', 'mkv'].includes(extension)) return 'Video';
-    if (['pdf'].includes(extension)) return 'PDF';
-    if (['doc', 'docx'].includes(extension)) return 'Word';
-    if (['xls', 'xlsx'].includes(extension)) return 'Excel';
-    if (['ppt', 'pptx'].includes(extension)) return 'Sunum';
-
-    return extension ? extension.toUpperCase() : 'Dosya';
-  };
-
-  const sanitizeStorageFileName = (fileName = 'dosya') =>
-    String(fileName || 'dosya')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/ı/g, 'i')
-      .replace(/İ/g, 'I')
-      .replace(/ğ/g, 'g')
-      .replace(/Ğ/g, 'G')
-      .replace(/ü/g, 'u')
-      .replace(/Ü/g, 'U')
-      .replace(/ş/g, 's')
-      .replace(/Ş/g, 'S')
-      .replace(/ö/g, 'o')
-      .replace(/Ö/g, 'O')
-      .replace(/ç/g, 'c')
-      .replace(/Ç/g, 'C')
-      .replace(/[^a-zA-Z0-9._-]+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 140) || 'dosya';
 
   const uploadTaskFilesToSupabase = async (task, selectedFiles = [], getFileTypeLabel = getSupabaseFileTypeLabel) => {
     const taskSupabaseId = getSupabaseTaskIdFromLocalTask(task);
@@ -2555,18 +2376,6 @@ function App() {
     return '';
   };
 
-  const mapSupabaseCustomerToLocal = (customer = {}) =>
-    normalizeCustomerRecord({
-      id: customer.id,
-      supabaseId: customer.id,
-      name: customer.name || 'Müşteri',
-      contact: customer.contact_name || '',
-      email: customer.email || '',
-      phone: customer.phone || '',
-      note: customer.note || '',
-      status: customer.status || 'Aktif',
-      accountUserId: customer.account_user_id || ''
-    });
 
   const mergeSupabaseCustomersIntoLocalState = (dbCustomers = []) => {
     if (!Array.isArray(dbCustomers)) return;
@@ -2729,23 +2538,6 @@ function App() {
     }
   };
 
-  const mapSupabaseWorkspaceMemberToLocal = (member = {}) => {
-    const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
-    const memberName = profile?.display_name || member.username || profile?.email || 'Kullanıcı';
-
-    return normalizeTeamMember({
-      id: member.user_id,
-      workspaceId: member.workspace_id,
-      name: memberName,
-      email: profile?.email || '',
-      username: member.username || profile?.email || '',
-      password: '',
-      role: member.role || 'Ekip Üyesi',
-      customerId: member.customer_id || '',
-      avatar: profile?.avatar_url || createAvatarFromName(memberName),
-      status: member.status || 'Aktif'
-    });
-  };
 
   const mergeSupabaseWorkspaceMembersIntoLocalState = (dbMembers = []) => {
     if (!Array.isArray(dbMembers) || dbMembers.length === 0) return;
@@ -2982,14 +2774,6 @@ function App() {
     }
   };
 
-  const normalizeProjectNameList = (projectList = []) =>
-    Array.from(
-      new Set(
-        (Array.isArray(projectList) ? projectList : [])
-          .map((projectName) => String(projectName || '').trim())
-          .filter(Boolean)
-      )
-    );
 
   const createSupabaseProjectWithDefaultColumns = async (projectName = '') => {
     const cleanProjectName = String(projectName || '').trim();
@@ -3240,21 +3024,6 @@ function App() {
     loadWorkspaceStructureFromSupabase();
   }, [supabaseWorkspaceId, currentUserId, authSessionLoading]);
 
-  const mergeUniqueByKey = (existingItems = [], incomingItems = [], getKey = (item) => item?.id) => {
-    const seenKeys = new Set();
-    const result = [];
-
-    [...incomingItems, ...existingItems].forEach((item) => {
-      const key = getKey(item) || item?.id || JSON.stringify(item);
-
-      if (seenKeys.has(key)) return;
-
-      seenKeys.add(key);
-      result.push(item);
-    });
-
-    return result;
-  };
 
   const getSupabaseProjectIdForName = async (projectName = selectedProject, createIfMissing = false) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
@@ -3457,36 +3226,7 @@ function App() {
   };
 
   // zrc-profile-settings-safe-api-client-v325
-  const sanitizeProfileDraftForSafeApi = (draft = {}) => ({
-    ...draft,
-    firstName: String(draft.firstName || '').trim(),
-    lastName: String(draft.lastName || '').trim(),
-    email: String(draft.email || '').trim(),
-    title: String(draft.title || '').trim(),
-    language: draft.language || 'Türkçe',
-    status: draft.status || 'Hiçbiri',
-    dateFormat: draft.dateFormat || 'DD/MM/YYYY (30/05/2026)',
-    timeFormat: draft.timeFormat || '24-Saat Formatı (02:21)',
-    timezone: draft.timezone || 'UTC+03:00',
-    password: '',
-    currentPassword: '',
-    newPassword: '',
-    repeatPassword: ''
-  });
 
-  const sanitizeProfilePreferencesForSafeApi = (preferences = {}) => {
-    const clone = { ...(preferences || {}) };
-
-    delete clone.password;
-    delete clone.currentPassword;
-    delete clone.newPassword;
-    delete clone.repeatPassword;
-    delete clone.token;
-    delete clone.secret;
-    delete clone.serviceRoleKey;
-
-    return clone;
-  };
 
   const saveProfileSettingsWithSafeApi = async ({
     profileDraft: nextProfileDraft = profileDraft,
@@ -3617,12 +3357,6 @@ function App() {
     }
   };
 
-  const mapSupabaseQuickNoteToLocal = (note = {}) => ({
-    id: `supabase-note-${note.id}`,
-    supabaseId: note.id,
-    text: note.text || '',
-    createdAt: note.created_at || new Date().toISOString()
-  });
 
   const saveQuickNoteToSupabase = async (note = {}) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
@@ -4195,21 +3929,7 @@ function App() {
     loadChatsAndMessagesFromSupabase();
   }, [supabaseWorkspaceId, currentUserId, authSessionLoading]);
 
-  const createSupabaseHealthRow = (key, label, state, detail = '') => ({
-    key,
-    label,
-    state,
-    detail,
-    checkedAt: new Date().toISOString()
-  });
 
-  const getSupabaseHealthStateClass = (state = 'idle') => {
-    if (state === 'ok') return 'bg-emerald-50 border-emerald-100 text-emerald-700';
-    if (state === 'warning') return 'bg-zinc-100 border-zinc-200 text-zinc-700';
-    if (state === 'error') return 'bg-red-50 border-red-100 text-red-600';
-
-    return 'bg-slate-50 border-slate-100 text-slate-600';
-  };
 
   const countSupabaseTableRows = async (tableName, filterColumn = 'workspace_id', filterValue = getCurrentSupabaseWorkspaceId()) => {
     if (!filterValue) return { count: 0, error: { message: 'workspace bulunamadı' } };
@@ -5059,21 +4779,6 @@ function App() {
     };
   }, []);
 
-  const formatSupabaseDateForLocalTask = (value = '') => {
-    const cleanValue = String(value || '').trim();
-
-    if (!cleanValue) return '';
-
-    const [year, month, day] = cleanValue.split('-').map(Number);
-
-    if (!year || !month || !day) return cleanValue;
-
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    }).format(new Date(year, month - 1, day));
-  };
 
   const mapSupabaseTaskUserLinkToLocalPerson = (link = {}) => {
     const userId = String(link.user_id || link.userId || link.id || '').trim();
@@ -6043,25 +5748,6 @@ function App() {
     };
   }, [currentAccountType, currentUserId, supabaseAuthUserId, authSessionLoading, supabaseLastRealtimeAt]);
 
-  const getIdentityValuesFromRecord = (record = {}) =>
-    [
-      record.id,
-      record.userId,
-      record.senderId,
-      record.ownerId,
-      record.creatorId,
-      record.createdById,
-      record.memberId,
-      record.name,
-      record.fullName,
-      record.author,
-      record.sender,
-      record.actor,
-      record.email,
-      record.username
-    ]
-      .filter(Boolean)
-      .map((value) => normalizeCredentialText(value));
 
   const currentIdentityValues = [
     currentUserId,
@@ -6759,18 +6445,6 @@ function App() {
 
   const isCurrentProfileInUsers = (users = []) => isPeopleListLinkedToCurrentUser(users);
 
-  const getActivityDateLabel = (createdAt) => {
-    const date = createdAt ? new Date(createdAt) : new Date();
-
-    if (Number.isNaN(date.getTime())) return 'Şimdi';
-
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
 
 
     const createActivityNotification = ({
@@ -8309,10 +7983,6 @@ function App() {
     }))
   );
 
-  const isReportTaskCompleted = (task) => {
-    const statusText = String(task.status || '').toLocaleLowerCase('tr-TR');
-    return task.completed === true || statusText.includes('tamam');
-  };
 
 
 
@@ -8396,13 +8066,6 @@ function App() {
     .sort((firstTask, secondTask) => firstTask.reportDate.getTime() - secondTask.reportDate.getTime())
     .slice(0, 5);
 
-  const getReportPriorityStyle = (priority) => {
-    if (priority === 'Acil') return 'bg-red-50 text-red-600 border-red-100';
-    if (priority === 'Yüksek') return 'bg-zinc-100 text-zinc-700 border-orange-100';
-    if (priority === 'Düşük') return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-
-    return 'bg-zinc-100 text-zinc-700 border-blue-100';
-  };
 
   const reportSummaryCards = [
     {
@@ -12256,724 +11919,23 @@ function App() {
 
   if (!isLoggedIn) {
     return (
-      <div className="relative min-h-screen overflow-hidden bg-[#f4f6fb] font-[Inter] flex items-center justify-center p-6">
-        {customStyles}
-        {renderSupabaseConnectionBadge()}
-
-        <style>{`
-          @keyframes loginLightFastOne {
-            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(58px, 34px, 0) scale(1.12); }
-          }
-
-          @keyframes loginLightFastTwo {
-            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(-52px, 38px, 0) scale(1.10); }
-          }
-
-          @keyframes loginLightFastThree {
-            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(42px, -38px, 0) scale(1.08); }
-          }
-
-          @keyframes loginPanelGlowOrbit {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-
-          @keyframes loginPanelGlowBreathe {
-            0%, 100% { opacity: .78; filter: blur(32px); }
-            50% { opacity: .95; filter: blur(38px); }
-          }
-
-          .login-input:focus,
-          .login-input:focus-visible {
-            outline: none !important;
-            box-shadow: none !important;
-          }
-        `}</style>
-
-        <div className="absolute inset-0">
-          <div className="absolute -top-28 -left-24 w-[470px] h-[470px] rounded-full bg-[#ff3600]/34 blur-[82px]" style={{ animation: 'loginLightFastOne 4.2s ease-in-out infinite' }} />
-          <div className="absolute top-[14%] -right-24 w-[520px] h-[520px] rounded-full bg-[#5b7cfa]/30 blur-[88px]" style={{ animation: 'loginLightFastTwo 4.8s ease-in-out infinite' }} />
-          <div className="absolute -bottom-28 left-[28%] w-[560px] h-[560px] rounded-full bg-[#22c55e]/22 blur-[105px]" style={{ animation: 'loginLightFastThree 5.4s ease-in-out infinite' }} />
-          <div className="absolute top-[46%] left-[8%] w-[310px] h-[310px] rounded-full bg-[#f59e0b]/18 blur-[78px]" style={{ animation: 'loginLightFastTwo 5.2s ease-in-out infinite reverse' }} />
-          <div className="absolute inset-0 opacity-[0.46] bg-[linear-gradient(to_right,#c7cfdf_1px,transparent_1px),linear-gradient(to_bottom,#c7cfdf_1px,transparent_1px)] bg-[size:40px_40px]" />
-          <div className="absolute inset-0 opacity-[0.22] bg-[linear-gradient(to_right,#9ca8bd_1px,transparent_1px),linear-gradient(to_bottom,#9ca8bd_1px,transparent_1px)] bg-[size:160px_160px]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02)_0%,rgba(244,246,251,0.42)_56%,rgba(244,246,251,0.90)_100%)]" />
-        </div>
-
-        <div className="relative w-full max-w-[380px]">
-          <div className="pointer-events-none absolute -inset-10 rounded-[54px]" style={{ animation: 'loginPanelGlowOrbit 10s linear infinite' }}>
-            <div className="absolute -top-3 left-10 w-44 h-44 rounded-full bg-[#ff3600]/48" style={{ animation: 'loginPanelGlowBreathe 4.8s ease-in-out infinite' }} />
-            <div className="absolute -bottom-4 right-10 w-48 h-48 rounded-full bg-[#5b7cfa]/44" style={{ animation: 'loginPanelGlowBreathe 5.4s ease-in-out infinite reverse' }} />
-          </div>
-          <div className="pointer-events-none absolute -inset-8 rounded-[50px]" style={{ animation: 'loginPanelGlowOrbit 14s linear infinite reverse' }}>
-            <div className="absolute top-12 -right-3 w-28 h-28 rounded-full bg-[#ff3600]/24 blur-[28px]" />
-            <div className="absolute bottom-10 -left-2 w-32 h-32 rounded-full bg-[#5b7cfa]/24 blur-[30px]" />
-          </div>
-          <div className="absolute -inset-[1px] rounded-[31px] bg-gradient-to-br from-[#ff3600]/34 via-white/70 to-[#5b7cfa]/32" />
-
-          <form
-            onSubmit={handleCredentialLogin}
-            noValidate
-            className="relative rounded-[30px] border border-white/90 bg-white/90 backdrop-blur-2xl shadow-[0_30px_90px_rgba(15,23,42,0.18)] p-7"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-[17px] bg-[#ff3600] text-white flex items-center justify-center text-[13px] font-black shadow-[0_14px_30px_rgba(255,54,0,0.25)]">
-                ZRC
-              </div>
-
-              <div className="h-8 px-3 rounded-full bg-zinc-100 border border-zinc-200 text-[10px] font-black text-zinc-500 flex items-center">
-                Giriş Paneli
-              </div>
-            </div>
-
-            <div className="mt-7">
-              <h1 className="text-[26px] font-black text-zinc-950 tracking-[-0.06em]">
-                Hoş geldin
-              </h1>
-              <p className="mt-1 text-[11px] font-bold text-zinc-400">
-                Kullanıcı adı veya e-posta ile giriş yap.
-              </p>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              <input
-                type="text"
-                value={loginDraft.username}
-                onChange={(event) => {
-                  setLoginDraft((prev) => ({ ...prev, username: event.target.value }));
-                  setLoginError('');
-                }}
-                placeholder="Kullanıcı adı veya e-posta"
-                autoComplete="username"
-                className="login-input w-full h-12 rounded-[16px] border border-zinc-200 bg-zinc-50 px-4 text-[13px] font-bold text-zinc-800 placeholder:text-zinc-300 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-[#ff3600]/45 focus:bg-white transition-all"
-              />
-
-              <input
-                type="password"
-                value={loginDraft.password}
-                onChange={(event) => {
-                  setLoginDraft((prev) => ({ ...prev, password: event.target.value }));
-                  setLoginError('');
-                }}
-                placeholder="Şifre"
-                autoComplete="current-password"
-                className="login-input w-full h-12 rounded-[16px] border border-zinc-200 bg-zinc-50 px-4 text-[13px] font-bold text-zinc-800 placeholder:text-zinc-300 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-[#ff3600]/45 focus:bg-white transition-all"
-              />
-
-              {loginError && (
-                <div className="h-10 rounded-[14px] bg-red-50 border border-red-100 text-red-600 text-[11px] font-black flex items-center px-3">
-                  {loginError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={authLoginLoading || authSessionLoading}
-                className="w-full h-12 rounded-[16px] bg-[#ff3600] text-white text-[12px] font-black hover:bg-[#e03000] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-[0_16px_32px_rgba(255,54,0,0.24)]"
-              >
-                {authSessionLoading ? 'Oturum kontrol ediliyor...' : authLoginLoading ? 'Giriş kontrol ediliyor...' : 'Giriş Yap'}
-              </button>
-            </div>
-
-            <div className="mt-5 flex items-center justify-between text-[10px] font-black text-zinc-400">
-              <span>Ekip hesabı / Yönetici girişi</span>
-              <span>Kullanıcı adı veya e-posta</span>
-            </div>
-          </form>
-        </div>
-      </div>
+      <ZRCAppLoginScreen
+        renderSupabaseConnectionBadge={renderSupabaseConnectionBadge}
+        handleCredentialLogin={handleCredentialLogin}
+        loginDraft={loginDraft}
+        setLoginDraft={setLoginDraft}
+        setLoginError={setLoginError}
+        loginError={loginError}
+        authLoginLoading={authLoginLoading}
+        authSessionLoading={authSessionLoading}
+      />
     );
   }
 
-  const getMobileTaskCardAssignees = (task = {}) =>
-    resolveMobileTaskCardAssignees(task, teamMembers, createAvatarFromName);
 
-return (
-    <div className="min-h-screen flex bg-[#f5f6f8] antialiased selection:bg-[#ff3600] overflow-x-hidden relative font-[Inter]">
-      {customStyles}
-      {renderSupabaseConnectionBadge()}
+  const zrcAuthenticatedShellProps = {teamMembers: typeof teamMembers !== 'undefined' ? teamMembers : undefined, createAvatarFromName: typeof createAvatarFromName !== 'undefined' ? createAvatarFromName : undefined, renderSupabaseConnectionBadge: typeof renderSupabaseConnectionBadge !== 'undefined' ? renderSupabaseConnectionBadge : undefined, activeMenu: typeof activeMenu !== 'undefined' ? activeMenu : undefined, setActiveMenu: typeof setActiveMenu !== 'undefined' ? setActiveMenu : undefined, isPanelOpen: typeof isPanelOpen !== 'undefined' ? isPanelOpen : undefined, setIsPanelOpen: typeof setIsPanelOpen !== 'undefined' ? setIsPanelOpen : undefined, projects: typeof projects !== 'undefined' ? projects : undefined, visibleProjectNames: typeof visibleProjectNames !== 'undefined' ? visibleProjectNames : undefined, projectSettings: typeof projectSettings !== 'undefined' ? projectSettings : undefined, handleSidebarProjectsChange: typeof handleSidebarProjectsChange !== 'undefined' ? handleSidebarProjectsChange : undefined, setSelectedProject: typeof setSelectedProject !== 'undefined' ? setSelectedProject : undefined, setActiveContentMenu: typeof setActiveContentMenu !== 'undefined' ? setActiveContentMenu : undefined, setActiveTab: typeof setActiveTab !== 'undefined' ? setActiveTab : undefined, setPendingTeamDeleteId: typeof setPendingTeamDeleteId !== 'undefined' ? setPendingTeamDeleteId : undefined, setPendingCustomerDeleteId: typeof setPendingCustomerDeleteId !== 'undefined' ? setPendingCustomerDeleteId : undefined, openGlobalSearch: typeof openGlobalSearch !== 'undefined' ? openGlobalSearch : undefined, setTeamMembers: typeof setTeamMembers !== 'undefined' ? setTeamMembers : undefined, profileDraft: typeof profileDraft !== 'undefined' ? profileDraft : undefined, currentPermissions: typeof currentPermissions !== 'undefined' ? currentPermissions : undefined, currentUserRole: typeof currentUserRole !== 'undefined' ? currentUserRole : undefined, currentAccountType: typeof currentAccountType !== 'undefined' ? currentAccountType : undefined, currentUserId: typeof currentUserId !== 'undefined' ? currentUserId : undefined, setIsNotificationsOpen: typeof setIsNotificationsOpen !== 'undefined' ? setIsNotificationsOpen : undefined, setIsMessagesOpen: typeof setIsMessagesOpen !== 'undefined' ? setIsMessagesOpen : undefined, setIsGlobalSearchOpen: typeof setIsGlobalSearchOpen !== 'undefined' ? setIsGlobalSearchOpen : undefined, handleMainClick: typeof handleMainClick !== 'undefined' ? handleMainClick : undefined, unreadNotificationCount: typeof unreadNotificationCount !== 'undefined' ? unreadNotificationCount : undefined, isNotificationsOpen: typeof isNotificationsOpen !== 'undefined' ? isNotificationsOpen : undefined, loadActivityLogsFromSupabase: typeof loadActivityLogsFromSupabase !== 'undefined' ? loadActivityLogsFromSupabase : undefined, unreadMessageCount: typeof unreadMessageCount !== 'undefined' ? unreadMessageCount : undefined, isMessagesOpen: typeof isMessagesOpen !== 'undefined' ? isMessagesOpen : undefined, activeContentMenu: typeof activeContentMenu !== 'undefined' ? activeContentMenu : undefined, openMessagesPanel: typeof openMessagesPanel !== 'undefined' ? openMessagesPanel : undefined, handleLogout: typeof handleLogout !== 'undefined' ? handleLogout : undefined, selectedProject: typeof selectedProject !== 'undefined' ? selectedProject : undefined, isMobileProjectPickerOpen: typeof isMobileProjectPickerOpen !== 'undefined' ? isMobileProjectPickerOpen : undefined, setIsMobileProjectPickerOpen: typeof setIsMobileProjectPickerOpen !== 'undefined' ? setIsMobileProjectPickerOpen : undefined, boardColumns: typeof boardColumns !== 'undefined' ? boardColumns : undefined, normalizeColumnTitleForDisplay: typeof normalizeColumnTitleForDisplay !== 'undefined' ? normalizeColumnTitleForDisplay : undefined, renderProfileAvatar: typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined, moveMobileTaskToActiveColumn: typeof moveMobileTaskToActiveColumn !== 'undefined' ? moveMobileTaskToActiveColumn : undefined, setMobileTaskWizardData: typeof setMobileTaskWizardData !== 'undefined' ? setMobileTaskWizardData : undefined, setMobileTaskWizardStep: typeof setMobileTaskWizardStep !== 'undefined' ? setMobileTaskWizardStep : undefined, setIsMobileTaskWizardOpen: typeof setIsMobileTaskWizardOpen !== 'undefined' ? setIsMobileTaskWizardOpen : undefined, isMobileTaskWizardOpen: typeof isMobileTaskWizardOpen !== 'undefined' ? isMobileTaskWizardOpen : undefined, mobileTaskWizardStep: typeof mobileTaskWizardStep !== 'undefined' ? mobileTaskWizardStep : undefined, mobileTaskWizardData: typeof mobileTaskWizardData !== 'undefined' ? mobileTaskWizardData : undefined, activeTeamMembers: typeof activeTeamMembers !== 'undefined' ? activeTeamMembers : undefined, normalizeTeamRole: typeof normalizeTeamRole !== 'undefined' ? normalizeTeamRole : undefined, handleSaveTask: typeof handleSaveTask !== 'undefined' ? handleSaveTask : undefined, fixed: typeof fixed !== 'undefined' ? fixed : undefined, inset: typeof inset !== 'undefined' ? inset : undefined, z: typeof z !== 'undefined' ? z : undefined, setIsMessageTaskPickerOpen: typeof setIsMessageTaskPickerOpen !== 'undefined' ? setIsMessageTaskPickerOpen : undefined, Projeler: typeof Projeler !== 'undefined' ? Projeler : undefined, left: typeof left !== 'undefined' ? left : undefined, translate: typeof translate !== 'undefined' ? translate : undefined, w: typeof w !== 'undefined' ? w : undefined, bg: typeof bg !== 'undefined' ? bg : undefined, white: typeof white !== 'undefined' ? white : undefined, border: typeof border !== 'undefined' ? border : undefined, zinc: typeof zinc !== 'undefined' ? zinc : undefined, rounded: typeof rounded !== 'undefined' ? rounded : undefined, shadow: typeof shadow !== 'undefined' ? shadow : undefined, overflow: typeof overflow !== 'undefined' ? overflow : undefined, hidden: typeof hidden !== 'undefined' ? hidden : undefined, animate: typeof animate !== 'undefined' ? animate : undefined, fade: typeof fade !== 'undefined' ? fade : undefined, absolute: typeof absolute !== 'undefined' ? absolute : undefined, top: typeof top !== 'undefined' ? top : undefined, h: typeof h !== 'undefined' ? h : undefined, rotate: typeof rotate !== 'undefined' ? rotate : undefined, l: typeof l !== 'undefined' ? l : undefined, t: typeof t !== 'undefined' ? t : undefined, px: typeof px !== 'undefined' ? px : undefined, b: typeof b !== 'undefined' ? b : undefined, flex: typeof flex !== 'undefined' ? flex : undefined, items: typeof items !== 'undefined' ? items : undefined, center: typeof center !== 'undefined' ? center : undefined, justify: typeof justify !== 'undefined' ? justify : undefined, between: typeof between !== 'undefined' ? between : undefined, text: typeof text !== 'undefined' ? text : undefined, font: typeof font !== 'undefined' ? font : undefined, black: typeof black !== 'undefined' ? black : undefined, Mesajlar: typeof Mesajlar !== 'undefined' ? Mesajlar : undefined, mt: typeof mt !== 'undefined' ? mt : undefined, bold: typeof bold !== 'undefined' ? bold : undefined, mesaj: typeof mesaj !== 'undefined' ? mesaj : undefined, mesajlar: typeof mesajlar !== 'undefined' ? mesajlar : undefined, okundu: typeof okundu !== 'undefined' ? okundu : undefined, markAllMessagesAsRead: typeof markAllMessagesAsRead !== 'undefined' ? markAllMessagesAsRead : undefined, full: typeof full !== 'undefined' ? full : undefined, transition: typeof transition !== 'undefined' ? transition : undefined, all: typeof all !== 'undefined' ? all : undefined, Okundu: typeof Okundu !== 'undefined' ? Okundu : undefined, Yap: typeof Yap !== 'undefined' ? Yap : undefined, max: typeof max !== 'undefined' ? max : undefined, auto: typeof auto !== 'undefined' ? auto : undefined, custom: typeof custom !== 'undefined' ? custom : undefined, scrollbar: typeof scrollbar !== 'undefined' ? scrollbar : undefined, fbfcfd: typeof fbfcfd !== 'undefined' ? fbfcfd : undefined, messageItems: typeof messageItems !== 'undefined' ? messageItems : undefined, space: typeof space !== 'undefined' ? space : undefined, readMessageIds: typeof readMessageIds !== 'undefined' ? readMessageIds : undefined, handleMessageClick: typeof handleMessageClick !== 'undefined' ? handleMessageClick : undefined, blue: typeof blue !== 'undefined' ? blue : undefined, start: typeof start !== 'undefined' ? start : undefined, gap: typeof gap !== 'undefined' ? gap : undefined, shrink: typeof shrink !== 'undefined' ? shrink : undefined, currentProfileInitials: typeof currentProfileInitials !== 'undefined' ? currentProfileInitials : undefined, min: typeof min !== 'undefined' ? min : undefined, truncate: typeof truncate !== 'undefined' ? truncate : undefined, Mesaj: typeof Mesaj !== 'undefined' ? Mesaj : undefined, clamp: typeof clamp !== 'undefined' ? clamp : undefined, getProjectMessageDateLabel: typeof getProjectMessageDateLabel !== 'undefined' ? getProjectMessageDateLabel : undefined, col: typeof col !== 'undefined' ? col : undefined, mb: typeof mb !== 'undefined' ? mb : undefined, none: typeof none !== 'undefined' ? none : undefined, currentColor: typeof currentColor !== 'undefined' ? currentColor : undefined, round: typeof round !== 'undefined' ? round : undefined, M8: typeof M8 !== 'undefined' ? M8 : undefined, M21: typeof M21 !== 'undefined' ? M21 : undefined, yok: typeof yok !== 'undefined' ? yok : undefined, proje: typeof proje !== 'undefined' ? proje : undefined, yaz: typeof yaz !== 'undefined' ? yaz : undefined, handleSendProjectMessage: typeof handleSendProjectMessage !== 'undefined' ? handleSendProjectMessage : undefined, relative: typeof relative !== 'undefined' ? relative : undefined, selectedMessageTask: typeof selectedMessageTask !== 'undefined' ? selectedMessageTask : undefined, Genel: typeof Genel !== 'undefined' ? Genel : undefined, M6: typeof M6 !== 'undefined' ? M6 : undefined, isMessageTaskPickerOpen: typeof isMessageTaskPickerOpen !== 'undefined' ? isMessageTaskPickerOpen : undefined, right: typeof right !== 'undefined' ? right : undefined, bottom: typeof bottom !== 'undefined' ? bottom : undefined, setMessageLinkedTaskId: typeof setMessageLinkedTaskId !== 'undefined' ? setMessageLinkedTaskId : undefined, messageLinkedTaskId: typeof messageLinkedTaskId !== 'undefined' ? messageLinkedTaskId : undefined, messageTaskOptions: typeof messageTaskOptions !== 'undefined' ? messageTaskOptions : undefined, end: typeof end !== 'undefined' ? end : undefined, messageDraft: typeof messageDraft !== 'undefined' ? messageDraft : undefined, setMessageDraft: typeof setMessageDraft !== 'undefined' ? setMessageDraft : undefined, Enter: typeof Enter !== 'undefined' ? Enter : undefined, Proje: typeof Proje !== 'undefined' ? Proje : undefined, resize: typeof resize !== 'undefined' ? resize : undefined, py: typeof py !== 'undefined' ? py : undefined, outline: typeof outline !== 'undefined' ? outline : undefined, submit: typeof submit !== 'undefined' ? submit : undefined, cursor: typeof cursor !== 'undefined' ? cursor : undefined, not: typeof not !== 'undefined' ? not : undefined, allowed: typeof allowed !== 'undefined' ? allowed : undefined, Bildirim: typeof Bildirim !== 'undefined' ? Bildirim : undefined, Bildirimler: typeof Bildirimler !== 'undefined' ? Bildirimler : undefined, Yenile: typeof Yenile !== 'undefined' ? Yenile : undefined, d: typeof d !== 'undefined' ? d : undefined, event: typeof event !== 'undefined' ? event : undefined, fill: typeof fill !== 'undefined' ? fill : undefined, handleNotificationClick: typeof handleNotificationClick !== 'undefined' ? handleNotificationClick : undefined, isRead: typeof isRead !== 'undefined' ? isRead : undefined, markAllNotificationsAsRead: typeof markAllNotificationsAsRead !== 'undefined' ? markAllNotificationsAsRead : undefined, notification: typeof notification !== 'undefined' ? notification : undefined, notificationEmptyDescription: typeof notificationEmptyDescription !== 'undefined' ? notificationEmptyDescription : undefined, notificationItems: typeof notificationItems !== 'undefined' ? notificationItems : undefined, notificationPanelSummary: typeof notificationPanelSummary !== 'undefined' ? notificationPanelSummary : undefined, onClick: typeof onClick !== 'undefined' ? onClick : undefined, readNotificationIds: typeof readNotificationIds !== 'undefined' ? readNotificationIds : undefined, stroke: typeof stroke !== 'undefined' ? stroke : undefined, strokeLinecap: typeof strokeLinecap !== 'undefined' ? strokeLinecap : undefined, strokeLinejoin: typeof strokeLinejoin !== 'undefined' ? strokeLinejoin : undefined, strokeWidth: typeof strokeWidth !== 'undefined' ? strokeWidth : undefined, viewBox: typeof viewBox !== 'undefined' ? viewBox : undefined, yap: typeof yap !== 'undefined' ? yap : undefined, isGlobalSearchOpen: typeof isGlobalSearchOpen !== 'undefined' ? isGlobalSearchOpen : undefined, globalSearchQuery: typeof globalSearchQuery !== 'undefined' ? globalSearchQuery : undefined, setGlobalSearchQuery: typeof setGlobalSearchQuery !== 'undefined' ? setGlobalSearchQuery : undefined, globalSearchResults: typeof globalSearchResults !== 'undefined' ? globalSearchResults : undefined, navigateGlobalSearchResult: typeof navigateGlobalSearchResult !== 'undefined' ? navigateGlobalSearchResult : undefined, calendarDisplayOptions: typeof calendarDisplayOptions !== 'undefined' ? calendarDisplayOptions : undefined, calendarFocusedDate: typeof calendarFocusedDate !== 'undefined' ? calendarFocusedDate : undefined, calendarGridDays: typeof calendarGridDays !== 'undefined' ? calendarGridDays : undefined, calendarHeaderTitle: typeof calendarHeaderTitle !== 'undefined' ? calendarHeaderTitle : undefined, calendarMonthDate: typeof calendarMonthDate !== 'undefined' ? calendarMonthDate : undefined, calendarView: typeof calendarView !== 'undefined' ? calendarView : undefined, calendarWeekDays: typeof calendarWeekDays !== 'undefined' ? calendarWeekDays : undefined, changeCalendarView: typeof changeCalendarView !== 'undefined' ? changeCalendarView : undefined, createQuickNoteFromHome: typeof createQuickNoteFromHome !== 'undefined' ? createQuickNoteFromHome : undefined, deleteQuickNoteFromHome: typeof deleteQuickNoteFromHome !== 'undefined' ? deleteQuickNoteFromHome : undefined, editingQuickNoteId: typeof editingQuickNoteId !== 'undefined' ? editingQuickNoteId : undefined, formatMenuCalendarTaskTime: typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined, formatMenuCalendarWeekHeader: typeof formatMenuCalendarWeekHeader !== 'undefined' ? formatMenuCalendarWeekHeader : undefined, getMenuCalendarAllDayTasks: typeof getMenuCalendarAllDayTasks !== 'undefined' ? getMenuCalendarAllDayTasks : undefined, getMenuCalendarTasksForDay: typeof getMenuCalendarTasksForDay !== 'undefined' ? getMenuCalendarTasksForDay : undefined, getMenuCalendarTasksForHour: typeof getMenuCalendarTasksForHour !== 'undefined' ? getMenuCalendarTasksForHour : undefined, getPremiumCalendarDotStyle: typeof getPremiumCalendarDotStyle !== 'undefined' ? getPremiumCalendarDotStyle : undefined, getPremiumCalendarTaskStyle: typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined, goToNextCalendarPeriod: typeof goToNextCalendarPeriod !== 'undefined' ? goToNextCalendarPeriod : undefined, goToPreviousCalendarPeriod: typeof goToPreviousCalendarPeriod !== 'undefined' ? goToPreviousCalendarPeriod : undefined, homeAssignedTasks: typeof homeAssignedTasks !== 'undefined' ? homeAssignedTasks : undefined, isCalendarDisplayMenuOpen: typeof isCalendarDisplayMenuOpen !== 'undefined' ? isCalendarDisplayMenuOpen : undefined, isQuickNoteComposerOpen: typeof isQuickNoteComposerOpen !== 'undefined' ? isQuickNoteComposerOpen : undefined, isQuickNoteSearchOpen: typeof isQuickNoteSearchOpen !== 'undefined' ? isQuickNoteSearchOpen : undefined, isSameCalendarDay: typeof isSameCalendarDay !== 'undefined' ? isSameCalendarDay : undefined, menuCalendarHours: typeof menuCalendarHours !== 'undefined' ? menuCalendarHours : undefined, menuCalendarListGroups: typeof menuCalendarListGroups !== 'undefined' ? menuCalendarListGroups : undefined, openHomeCalendarQuickTaskForDate: typeof openHomeCalendarQuickTaskForDate !== 'undefined' ? openHomeCalendarQuickTaskForDate : undefined, openHomeTaskDetail: typeof openHomeTaskDetail !== 'undefined' ? openHomeTaskDetail : undefined, openMenuCalendarTask: typeof openMenuCalendarTask !== 'undefined' ? openMenuCalendarTask : undefined, openQuickNoteComposerForEdit: typeof openQuickNoteComposerForEdit !== 'undefined' ? openQuickNoteComposerForEdit : undefined, pendingDeleteQuickNoteId: typeof pendingDeleteQuickNoteId !== 'undefined' ? pendingDeleteQuickNoteId : undefined, quickNoteDraft: typeof quickNoteDraft !== 'undefined' ? quickNoteDraft : undefined, quickNoteSearch: typeof quickNoteSearch !== 'undefined' ? quickNoteSearch : undefined, quickNoteTitleDraft: typeof quickNoteTitleDraft !== 'undefined' ? quickNoteTitleDraft : undefined, quickNotes: typeof quickNotes !== 'undefined' ? quickNotes : undefined, resetQuickNoteComposer: typeof resetQuickNoteComposer !== 'undefined' ? resetQuickNoteComposer : undefined, setCalendarDisplayOptions: typeof setCalendarDisplayOptions !== 'undefined' ? setCalendarDisplayOptions : undefined, setIsCalendarDisplayMenuOpen: typeof setIsCalendarDisplayMenuOpen !== 'undefined' ? setIsCalendarDisplayMenuOpen : undefined, setIsQuickNoteComposerOpen: typeof setIsQuickNoteComposerOpen !== 'undefined' ? setIsQuickNoteComposerOpen : undefined, setIsQuickNoteSearchOpen: typeof setIsQuickNoteSearchOpen !== 'undefined' ? setIsQuickNoteSearchOpen : undefined, setPendingDeleteQuickNoteId: typeof setPendingDeleteQuickNoteId !== 'undefined' ? setPendingDeleteQuickNoteId : undefined, setQuickNoteDraft: typeof setQuickNoteDraft !== 'undefined' ? setQuickNoteDraft : undefined, setQuickNoteSearch: typeof setQuickNoteSearch !== 'undefined' ? setQuickNoteSearch : undefined, setQuickNoteTitleDraft: typeof setQuickNoteTitleDraft !== 'undefined' ? setQuickNoteTitleDraft : undefined, todayStart: typeof todayStart !== 'undefined' ? todayStart : undefined, getMenuCalendarHolidayLabel: typeof getMenuCalendarHolidayLabel !== 'undefined' ? getMenuCalendarHolidayLabel : undefined, handleCalendarDayClick: typeof handleCalendarDayClick !== 'undefined' ? handleCalendarDayClick : undefined, isMenuCalendarFilterOpen: typeof isMenuCalendarFilterOpen !== 'undefined' ? isMenuCalendarFilterOpen : undefined, isMenuCalendarStatusOpen: typeof isMenuCalendarStatusOpen !== 'undefined' ? isMenuCalendarStatusOpen : undefined, menuCalendarStatusFilter: typeof menuCalendarStatusFilter !== 'undefined' ? menuCalendarStatusFilter : undefined, menuCalendarStatusOptions: typeof menuCalendarStatusOptions !== 'undefined' ? menuCalendarStatusOptions : undefined, openMenuCalendarQuickTask: typeof openMenuCalendarQuickTask !== 'undefined' ? openMenuCalendarQuickTask : undefined, setCalendarFocusedDate: typeof setCalendarFocusedDate !== 'undefined' ? setCalendarFocusedDate : undefined, setCalendarMonthDate: typeof setCalendarMonthDate !== 'undefined' ? setCalendarMonthDate : undefined, setCalendarView: typeof setCalendarView !== 'undefined' ? setCalendarView : undefined, setIsMenuCalendarFilterOpen: typeof setIsMenuCalendarFilterOpen !== 'undefined' ? setIsMenuCalendarFilterOpen : undefined, setIsMenuCalendarStatusOpen: typeof setIsMenuCalendarStatusOpen !== 'undefined' ? setIsMenuCalendarStatusOpen : undefined, setMenuCalendarStatusFilter: typeof setMenuCalendarStatusFilter !== 'undefined' ? setMenuCalendarStatusFilter : undefined, canCreateChatGroups: typeof canCreateChatGroups !== 'undefined' ? canCreateChatGroups : undefined, canSendSelectedChatMessage: typeof canSendSelectedChatMessage !== 'undefined' ? canSendSelectedChatMessage : undefined, chatGroupDraft: typeof chatGroupDraft !== 'undefined' ? chatGroupDraft : undefined, chatGroupSearch: typeof chatGroupSearch !== 'undefined' ? chatGroupSearch : undefined, chatPageDraft: typeof chatPageDraft !== 'undefined' ? chatPageDraft : undefined, createChatGroupFromPage: typeof createChatGroupFromPage !== 'undefined' ? createChatGroupFromPage : undefined, filteredChatGroups: typeof filteredChatGroups !== 'undefined' ? filteredChatGroups : undefined, handleSendChatPageMessage: typeof handleSendChatPageMessage !== 'undefined' ? handleSendChatPageMessage : undefined, isChatActionMenuOpen: typeof isChatActionMenuOpen !== 'undefined' ? isChatActionMenuOpen : undefined, isChatGroupModalOpen: typeof isChatGroupModalOpen !== 'undefined' ? isChatGroupModalOpen : undefined, isCurrentProfileRecord: typeof isCurrentProfileRecord !== 'undefined' ? isCurrentProfileRecord : undefined, isProjectMessageVisibleForCurrentUser: typeof isProjectMessageVisibleForCurrentUser !== 'undefined' ? isProjectMessageVisibleForCurrentUser : undefined, projectMessages: typeof projectMessages !== 'undefined' ? projectMessages : undefined, selectedChatGroup: typeof selectedChatGroup !== 'undefined' ? selectedChatGroup : undefined, selectedChatGroupId: typeof selectedChatGroupId !== 'undefined' ? selectedChatGroupId : undefined, selectedChatMessages: typeof selectedChatMessages !== 'undefined' ? selectedChatMessages : undefined, setChatGroupDraft: typeof setChatGroupDraft !== 'undefined' ? setChatGroupDraft : undefined, setChatGroupSearch: typeof setChatGroupSearch !== 'undefined' ? setChatGroupSearch : undefined, setChatPageDraft: typeof setChatPageDraft !== 'undefined' ? setChatPageDraft : undefined, setIsChatActionMenuOpen: typeof setIsChatActionMenuOpen !== 'undefined' ? setIsChatActionMenuOpen : undefined, setIsChatGroupModalOpen: typeof setIsChatGroupModalOpen !== 'undefined' ? setIsChatGroupModalOpen : undefined, setSelectedChatGroupId: typeof setSelectedChatGroupId !== 'undefined' ? setSelectedChatGroupId : undefined, activeProfileTab: typeof activeProfileTab !== 'undefined' ? activeProfileTab : undefined, addProfileEmailAccount: typeof addProfileEmailAccount !== 'undefined' ? addProfileEmailAccount : undefined, emailAccountDraft: typeof emailAccountDraft !== 'undefined' ? emailAccountDraft : undefined, handleProfileAvatarChange: typeof handleProfileAvatarChange !== 'undefined' ? handleProfileAvatarChange : undefined, markSuspiciousEventAsMine: typeof markSuspiciousEventAsMine !== 'undefined' ? markSuspiciousEventAsMine : undefined, pendingProfileDelete: typeof pendingProfileDelete !== 'undefined' ? pendingProfileDelete : undefined, profileAvatarInputRef: typeof profileAvatarInputRef !== 'undefined' ? profileAvatarInputRef : undefined, profilePreferences: typeof profilePreferences !== 'undefined' ? profilePreferences : undefined, removeProfileEmailAccount: typeof removeProfileEmailAccount !== 'undefined' ? removeProfileEmailAccount : undefined, removeProfileSession: typeof removeProfileSession !== 'undefined' ? removeProfileSession : undefined, renderProfileSelect: typeof renderProfileSelect !== 'undefined' ? renderProfileSelect : undefined, saveProfileSection: typeof saveProfileSection !== 'undefined' ? saveProfileSection : undefined, setActiveProfileTab: typeof setActiveProfileTab !== 'undefined' ? setActiveProfileTab : undefined, setEmailAccountDraft: typeof setEmailAccountDraft !== 'undefined' ? setEmailAccountDraft : undefined, setPendingProfileDelete: typeof setPendingProfileDelete !== 'undefined' ? setPendingProfileDelete : undefined, setProfileDraft: typeof setProfileDraft !== 'undefined' ? setProfileDraft : undefined, setProfilePreferences: typeof setProfilePreferences !== 'undefined' ? setProfilePreferences : undefined, toggleProfilePreference: typeof toggleProfilePreference !== 'undefined' ? toggleProfilePreference : undefined, visibleProfileTabs: typeof visibleProfileTabs !== 'undefined' ? visibleProfileTabs : undefined, activeTab: typeof activeTab !== 'undefined' ? activeTab : undefined, archivedTasks: typeof archivedTasks !== 'undefined' ? archivedTasks : undefined, availableProjectTeamMembers: typeof availableProjectTeamMembers !== 'undefined' ? availableProjectTeamMembers : undefined, copyCredentialTextForCustomer: typeof copyCredentialTextForCustomer !== 'undefined' ? copyCredentialTextForCustomer : undefined, copyCredentialTextForMember: typeof copyCredentialTextForMember !== 'undefined' ? copyCredentialTextForMember : undefined, createCustomerFromCenter: typeof createCustomerFromCenter !== 'undefined' ? createCustomerFromCenter : undefined, createTeamMemberFromCenter: typeof createTeamMemberFromCenter !== 'undefined' ? createTeamMemberFromCenter : undefined, customerDraft: typeof customerDraft !== 'undefined' ? customerDraft : undefined, customerLinkNoneLabel: typeof customerLinkNoneLabel !== 'undefined' ? customerLinkNoneLabel : undefined, customerLinkOptions: typeof customerLinkOptions !== 'undefined' ? customerLinkOptions : undefined, customerPageItems: typeof customerPageItems !== 'undefined' ? customerPageItems : undefined, customers: typeof customers !== 'undefined' ? customers : undefined, deleteCustomerFromCenter: typeof deleteCustomerFromCenter !== 'undefined' ? deleteCustomerFromCenter : undefined, deleteTeamMemberFromCenter: typeof deleteTeamMemberFromCenter !== 'undefined' ? deleteTeamMemberFromCenter : undefined, getCustomerById: typeof getCustomerById !== 'undefined' ? getCustomerById : undefined, getCustomerByName: typeof getCustomerByName !== 'undefined' ? getCustomerByName : undefined, getCustomerIdByName: typeof getCustomerIdByName !== 'undefined' ? getCustomerIdByName : undefined, getCustomerLinkedAccount: typeof getCustomerLinkedAccount !== 'undefined' ? getCustomerLinkedAccount : undefined, getCustomerNameById: typeof getCustomerNameById !== 'undefined' ? getCustomerNameById : undefined, getMemberLinkedCustomer: typeof getMemberLinkedCustomer !== 'undefined' ? getMemberLinkedCustomer : undefined, handleArchiveProject: typeof handleArchiveProject !== 'undefined' ? handleArchiveProject : undefined, handleDeleteProject: typeof handleDeleteProject !== 'undefined' ? handleDeleteProject : undefined, handleSaveProjectSettings: typeof handleSaveProjectSettings !== 'undefined' ? handleSaveProjectSettings : undefined, isProjectTeamPickerOpen: typeof isProjectTeamPickerOpen !== 'undefined' ? isProjectTeamPickerOpen : undefined, openCustomerEditModal: typeof openCustomerEditModal !== 'undefined' ? openCustomerEditModal : undefined, openTeamMemberEditModal: typeof openTeamMemberEditModal !== 'undefined' ? openTeamMemberEditModal : undefined, passiveTeamMembers: typeof passiveTeamMembers !== 'undefined' ? passiveTeamMembers : undefined, pendingCustomerDeleteId: typeof pendingCustomerDeleteId !== 'undefined' ? pendingCustomerDeleteId : undefined, pendingTeamDeleteId: typeof pendingTeamDeleteId !== 'undefined' ? pendingTeamDeleteId : undefined, projectSettingsDraft: typeof projectSettingsDraft !== 'undefined' ? projectSettingsDraft : undefined, renderSoftSelect: typeof renderSoftSelect !== 'undefined' ? renderSoftSelect : undefined, selectedCustomer: typeof selectedCustomer !== 'undefined' ? selectedCustomer : undefined, selectedProjectTeamMembers: typeof selectedProjectTeamMembers !== 'undefined' ? selectedProjectTeamMembers : undefined, selectedTeamMemberId: typeof selectedTeamMemberId !== 'undefined' ? selectedTeamMemberId : undefined, setCustomerDraft: typeof setCustomerDraft !== 'undefined' ? setCustomerDraft : undefined, setIsProjectTeamPickerOpen: typeof setIsProjectTeamPickerOpen !== 'undefined' ? setIsProjectTeamPickerOpen : undefined, setProjectSettingsDraft: typeof setProjectSettingsDraft !== 'undefined' ? setProjectSettingsDraft : undefined, setSelectedCustomerId: typeof setSelectedCustomerId !== 'undefined' ? setSelectedCustomerId : undefined, setSelectedTeamMemberId: typeof setSelectedTeamMemberId !== 'undefined' ? setSelectedTeamMemberId : undefined, setTeamMemberDraft: typeof setTeamMemberDraft !== 'undefined' ? setTeamMemberDraft : undefined, showCustomerManagementPage: typeof showCustomerManagementPage !== 'undefined' ? showCustomerManagementPage : undefined, showProjectSettingsControls: typeof showProjectSettingsControls !== 'undefined' ? showProjectSettingsControls : undefined, showTeamManagementPage: typeof showTeamManagementPage !== 'undefined' ? showTeamManagementPage : undefined, teamMemberDraft: typeof teamMemberDraft !== 'undefined' ? teamMemberDraft : undefined, toggleTeamMemberStatus: typeof toggleTeamMemberStatus !== 'undefined' ? toggleTeamMemberStatus : undefined, visibleProjectTabs: typeof visibleProjectTabs !== 'undefined' ? visibleProjectTabs : undefined, zrcFeatureSpreadProps: typeof zrcFeatureSpreadProps !== 'undefined' ? zrcFeatureSpreadProps : undefined, boardView: typeof boardView !== 'undefined' ? boardView : undefined, handleBulkArchive: typeof handleBulkArchive !== 'undefined' ? handleBulkArchive : undefined, handleBulkDelete: typeof handleBulkDelete !== 'undefined' ? handleBulkDelete : undefined, selectedTasks: typeof selectedTasks !== 'undefined' ? selectedTasks : undefined, setSelectedTasks: typeof setSelectedTasks !== 'undefined' ? setSelectedTasks : undefined, addTaskComment: typeof addTaskComment !== 'undefined' ? addTaskComment : undefined, calendarNewTaskDate: typeof calendarNewTaskDate !== 'undefined' ? calendarNewTaskDate : undefined, calendarTaskModalContext: typeof calendarTaskModalContext !== 'undefined' ? calendarTaskModalContext : undefined, canCurrentUserModifyTask: typeof canCurrentUserModifyTask !== 'undefined' ? canCurrentUserModifyTask : undefined, changeCalendarTaskModalProject: typeof changeCalendarTaskModalProject !== 'undefined' ? changeCalendarTaskModalProject : undefined, closeCustomerEditModal: typeof closeCustomerEditModal !== 'undefined' ? closeCustomerEditModal : undefined, closeTaskDetail: typeof closeTaskDetail !== 'undefined' ? closeTaskDetail : undefined, closeTeamMemberEditModal: typeof closeTeamMemberEditModal !== 'undefined' ? closeTeamMemberEditModal : undefined, currentActorAvatar: typeof currentActorAvatar !== 'undefined' ? currentActorAvatar : undefined, currentActorId: typeof currentActorId !== 'undefined' ? currentActorId : undefined, currentActorName: typeof currentActorName !== 'undefined' ? currentActorName : undefined, currentCustomerKeys: typeof currentCustomerKeys !== 'undefined' ? currentCustomerKeys : undefined, customerEditDraft: typeof customerEditDraft !== 'undefined' ? customerEditDraft : undefined, deleteTaskComment: typeof deleteTaskComment !== 'undefined' ? deleteTaskComment : undefined, deleteTaskStoredFileFromSupabase: typeof deleteTaskStoredFileFromSupabase !== 'undefined' ? deleteTaskStoredFileFromSupabase : undefined, detailTaskInfo: typeof detailTaskInfo !== 'undefined' ? detailTaskInfo : undefined, downloadTaskFileFromSupabase: typeof downloadTaskFileFromSupabase !== 'undefined' ? downloadTaskFileFromSupabase : undefined, editTaskFromDetail: typeof editTaskFromDetail !== 'undefined' ? editTaskFromDetail : undefined, editingColumn: typeof editingColumn !== 'undefined' ? editingColumn : undefined, editingCustomer: typeof editingCustomer !== 'undefined' ? editingCustomer : undefined, editingTask: typeof editingTask !== 'undefined' ? editingTask : undefined, editingTeamMember: typeof editingTeamMember !== 'undefined' ? editingTeamMember : undefined, getProjectNameForTask: typeof getProjectNameForTask !== 'undefined' ? getProjectNameForTask : undefined, handleSaveStage: typeof handleSaveStage !== 'undefined' ? handleSaveStage : undefined, isStageModalOpen: typeof isStageModalOpen !== 'undefined' ? isStageModalOpen : undefined, isTaskModalOpen: typeof isTaskModalOpen !== 'undefined' ? isTaskModalOpen : undefined, saveCustomerEdit: typeof saveCustomerEdit !== 'undefined' ? saveCustomerEdit : undefined, saveTeamMemberEdit: typeof saveTeamMemberEdit !== 'undefined' ? saveTeamMemberEdit : undefined, setCalendarNewTaskDate: typeof setCalendarNewTaskDate !== 'undefined' ? setCalendarNewTaskDate : undefined, setCalendarTaskModalContext: typeof setCalendarTaskModalContext !== 'undefined' ? setCalendarTaskModalContext : undefined, setCustomerEditDraft: typeof setCustomerEditDraft !== 'undefined' ? setCustomerEditDraft : undefined, setEditingColumn: typeof setEditingColumn !== 'undefined' ? setEditingColumn : undefined, setEditingTask: typeof setEditingTask !== 'undefined' ? setEditingTask : undefined, setIsStageModalOpen: typeof setIsStageModalOpen !== 'undefined' ? setIsStageModalOpen : undefined, setIsTaskModalOpen: typeof setIsTaskModalOpen !== 'undefined' ? setIsTaskModalOpen : undefined, setTeamMemberEditDraft: typeof setTeamMemberEditDraft !== 'undefined' ? setTeamMemberEditDraft : undefined, taskModalTeamMembers: typeof taskModalTeamMembers !== 'undefined' ? taskModalTeamMembers : undefined, teamMemberEditDraft: typeof teamMemberEditDraft !== 'undefined' ? teamMemberEditDraft : undefined, updateTaskFromDetail: typeof updateTaskFromDetail !== 'undefined' ? updateTaskFromDetail : undefined, uploadTaskFilesToSupabase: typeof uploadTaskFilesToSupabase !== 'undefined' ? uploadTaskFilesToSupabase : undefined};
 
-      <style>{`
-        .zrc-main-shell > div:not([class*="fixed"]) {
-          padding-left: 44px;
-          box-sizing: border-box;
-        }
-
-        .zrc-project-board-page,
-        .zrc-team-center-page,
-        .zrc-customer-center-page {
-          padding-left: 0 !important;
-          box-sizing: border-box;
-        }
-
-        .zrc-project-board-page > div:not([class*="fixed"]) {
-          padding-left: 44px !important;
-          box-sizing: border-box;
-        }
-
-        .zrc-team-center-page,
-        .zrc-customer-center-page {
-          width: 100%;
-        }
-
-        .zrc-team-center-page > .zrc-center-card,
-        .zrc-customer-center-page > .zrc-center-card {
-          margin-left: auto !important;
-          margin-right: auto !important;
-        }
-      `}</style>
-
-      <Sidebar
-        activeMenu={activeMenu}
-        setActiveMenu={setActiveMenu}
-        isPanelOpen={isPanelOpen}
-        setIsPanelOpen={setIsPanelOpen}
-        projects={projects}
-        visibleProjects={visibleProjectNames}
-        projectSettings={projectSettings}
-        setProjects={handleSidebarProjectsChange}
-        setSelectedProject={(project) => {
-          setSelectedProject(project);
-          setActiveContentMenu('Projeler');
-          setActiveTab('Görevler');
-          setPendingTeamDeleteId(null);
-          setPendingCustomerDeleteId(null);
-        }}
-        onSearchClick={openGlobalSearch}
-        teamMembers={teamMembers}
-        setTeamMembers={setTeamMembers}
-        profileDraft={profileDraft}
-        permissions={currentPermissions}
-        currentUserRole={currentUserRole}
-        currentAccountType={currentAccountType}
-        currentUserId={currentUserId}
-        onProfileSelect={() => {
-          setActiveMenu('Profil');
-          setActiveContentMenu('Profil');
-          setActiveTab('Görevler');
-          setIsPanelOpen(false);
-          setIsNotificationsOpen(false);
-          setIsMessagesOpen(false);
-          setIsGlobalSearchOpen(false);
-          setPendingTeamDeleteId(null);
-          setPendingCustomerDeleteId(null);
-        }}
-        onProjectMenuSelect={() => {
-          setPendingTeamDeleteId(null);
-          setPendingCustomerDeleteId(null);
-        }}
-        onSimpleMenuSelect={(menuId) => {
-          setActiveContentMenu(menuId);
-          setActiveTab('Görevler');
-          setIsPanelOpen(false);
-          setIsNotificationsOpen(false);
-          setIsMessagesOpen(false);
-          setIsGlobalSearchOpen(false);
-          setPendingTeamDeleteId(null);
-          setPendingCustomerDeleteId(null);
-        }}
-        onOtherSectionSelect={(section) => {
-          setActiveContentMenu('Diğer');
-          setActiveTab(section);
-          setIsPanelOpen(false);
-          setIsNotificationsOpen(false);
-          setIsMessagesOpen(false);
-          setIsGlobalSearchOpen(false);
-          setPendingTeamDeleteId(null);
-          setPendingCustomerDeleteId(null);
-        }}
-      />
-
-      <main onClick={handleMainClick} className="zrc-main-shell flex-1 pl-[68px] min-h-screen bg-white transition-colors duration-300 flex flex-col overflow-hidden">
-        <TopNavbar
-          unreadNotificationCount={unreadNotificationCount}
-          isNotificationsOpen={isNotificationsOpen}
-          onToggleNotifications={(event) => {
-            event.stopPropagation();
-            setIsMessagesOpen(false);
-            setIsNotificationsOpen((prev) => {
-              const nextState = !prev;
-
-              if (nextState) {
-                loadActivityLogsFromSupabase();
-              }
-
-              return nextState;
-            });
-          }}
-          unreadMessageCount={unreadMessageCount}
-          isMessagesOpen={isMessagesOpen}
-          activeContentMenu={activeContentMenu}
-          onToggleMessages={(event) => {
-            event.stopPropagation();
-            openMessagesPanel();
-          }}
-          onLogout={handleLogout}
-        />
-
-
-        
-        
-        <MobileWorkspace
-          unreadNotificationCount={unreadNotificationCount}
-          loadActivityLogsFromSupabase={loadActivityLogsFromSupabase}
-          selectedProject={selectedProject}
-          setSelectedProject={setSelectedProject}
-          visibleProjectNames={visibleProjectNames}
-          projects={projects}
-          isMobileProjectPickerOpen={isMobileProjectPickerOpen}
-          setIsMobileProjectPickerOpen={setIsMobileProjectPickerOpen}
-          boardColumns={boardColumns}
-          normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
-          renderProfileAvatar={renderProfileAvatar}
-          createAvatarFromName={createAvatarFromName}
-          getMobileTaskCardAssignees={getMobileTaskCardAssignees}
-          moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
-          setMobileTaskWizardData={setMobileTaskWizardData}
-          setMobileTaskWizardStep={setMobileTaskWizardStep}
-          setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}
-          isMobileTaskWizardOpen={isMobileTaskWizardOpen}
-          mobileTaskWizardStep={mobileTaskWizardStep}
-          mobileTaskWizardData={mobileTaskWizardData}
-          activeTeamMembers={activeTeamMembers}
-          teamMembers={teamMembers}
-          normalizeTeamRole={normalizeTeamRole}
-          handleSaveTask={handleSaveTask}
-          setActiveMenu={setActiveMenu}
-          setActiveContentMenu={setActiveContentMenu}
-          setActiveTab={setActiveTab}
-          setIsPanelOpen={setIsPanelOpen}
-          setIsMessagesOpen={setIsMessagesOpen}
-          setIsNotificationsOpen={setIsNotificationsOpen}
-          setIsGlobalSearchOpen={setIsGlobalSearchOpen}
-        />
-
-                {/* zrc-v526-section-ismessagesopen */}
-        <ZRCAppShellIsMessagesOpenSection
-          isMessagesOpen={typeof isMessagesOpen !== 'undefined' ? isMessagesOpen : undefined}
-          fixed={typeof fixed !== 'undefined' ? fixed : undefined}
-          inset={typeof inset !== 'undefined' ? inset : undefined}
-          z={typeof z !== 'undefined' ? z : undefined}
-          setIsMessagesOpen={typeof setIsMessagesOpen !== 'undefined' ? setIsMessagesOpen : undefined}
-          setIsMessageTaskPickerOpen={typeof setIsMessageTaskPickerOpen !== 'undefined' ? setIsMessageTaskPickerOpen : undefined}
-          activeContentMenu={typeof activeContentMenu !== 'undefined' ? activeContentMenu : undefined}
-          Projeler={typeof Projeler !== 'undefined' ? Projeler : undefined}
-          left={typeof left !== 'undefined' ? left : undefined}
-          translate={typeof translate !== 'undefined' ? translate : undefined}
-          w={typeof w !== 'undefined' ? w : undefined}
-          bg={typeof bg !== 'undefined' ? bg : undefined}
-          white={typeof white !== 'undefined' ? white : undefined}
-          border={typeof border !== 'undefined' ? border : undefined}
-          zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-          rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-          shadow={typeof shadow !== 'undefined' ? shadow : undefined}
-          overflow={typeof overflow !== 'undefined' ? overflow : undefined}
-          hidden={typeof hidden !== 'undefined' ? hidden : undefined}
-          animate={typeof animate !== 'undefined' ? animate : undefined}
-          fade={typeof fade !== 'undefined' ? fade : undefined}
-          absolute={typeof absolute !== 'undefined' ? absolute : undefined}
-          top={typeof top !== 'undefined' ? top : undefined}
-          h={typeof h !== 'undefined' ? h : undefined}
-          rotate={typeof rotate !== 'undefined' ? rotate : undefined}
-          l={typeof l !== 'undefined' ? l : undefined}
-          t={typeof t !== 'undefined' ? t : undefined}
-          px={typeof px !== 'undefined' ? px : undefined}
-          b={typeof b !== 'undefined' ? b : undefined}
-          flex={typeof flex !== 'undefined' ? flex : undefined}
-          items={typeof items !== 'undefined' ? items : undefined}
-          center={typeof center !== 'undefined' ? center : undefined}
-          justify={typeof justify !== 'undefined' ? justify : undefined}
-          between={typeof between !== 'undefined' ? between : undefined}
-          text={typeof text !== 'undefined' ? text : undefined}
-          font={typeof font !== 'undefined' ? font : undefined}
-          black={typeof black !== 'undefined' ? black : undefined}
-          Mesajlar={typeof Mesajlar !== 'undefined' ? Mesajlar : undefined}
-          mt={typeof mt !== 'undefined' ? mt : undefined}
-          bold={typeof bold !== 'undefined' ? bold : undefined}
-          unreadMessageCount={typeof unreadMessageCount !== 'undefined' ? unreadMessageCount : undefined}
-          mesaj={typeof mesaj !== 'undefined' ? mesaj : undefined}
-          mesajlar={typeof mesajlar !== 'undefined' ? mesajlar : undefined}
-          okundu={typeof okundu !== 'undefined' ? okundu : undefined}
-          markAllMessagesAsRead={typeof markAllMessagesAsRead !== 'undefined' ? markAllMessagesAsRead : undefined}
-          full={typeof full !== 'undefined' ? full : undefined}
-          transition={typeof transition !== 'undefined' ? transition : undefined}
-          all={typeof all !== 'undefined' ? all : undefined}
-          Okundu={typeof Okundu !== 'undefined' ? Okundu : undefined}
-          Yap={typeof Yap !== 'undefined' ? Yap : undefined}
-          max={typeof max !== 'undefined' ? max : undefined}
-          auto={typeof auto !== 'undefined' ? auto : undefined}
-          custom={typeof custom !== 'undefined' ? custom : undefined}
-          scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
-          fbfcfd={typeof fbfcfd !== 'undefined' ? fbfcfd : undefined}
-          messageItems={typeof messageItems !== 'undefined' ? messageItems : undefined}
-          space={typeof space !== 'undefined' ? space : undefined}
-          readMessageIds={typeof readMessageIds !== 'undefined' ? readMessageIds : undefined}
-          handleMessageClick={typeof handleMessageClick !== 'undefined' ? handleMessageClick : undefined}
-          blue={typeof blue !== 'undefined' ? blue : undefined}
-          start={typeof start !== 'undefined' ? start : undefined}
-          gap={typeof gap !== 'undefined' ? gap : undefined}
-          shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-          renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
-          currentProfileInitials={typeof currentProfileInitials !== 'undefined' ? currentProfileInitials : undefined}
-          min={typeof min !== 'undefined' ? min : undefined}
-          truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-          Mesaj={typeof Mesaj !== 'undefined' ? Mesaj : undefined}
-          clamp={typeof clamp !== 'undefined' ? clamp : undefined}
-          getProjectMessageDateLabel={typeof getProjectMessageDateLabel !== 'undefined' ? getProjectMessageDateLabel : undefined}
-          col={typeof col !== 'undefined' ? col : undefined}
-          mb={typeof mb !== 'undefined' ? mb : undefined}
-          none={typeof none !== 'undefined' ? none : undefined}
-          currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
-          round={typeof round !== 'undefined' ? round : undefined}
-          M8={typeof M8 !== 'undefined' ? M8 : undefined}
-          M21={typeof M21 !== 'undefined' ? M21 : undefined}
-          yok={typeof yok !== 'undefined' ? yok : undefined}
-          proje={typeof proje !== 'undefined' ? proje : undefined}
-          yaz={typeof yaz !== 'undefined' ? yaz : undefined}
-          handleSendProjectMessage={typeof handleSendProjectMessage !== 'undefined' ? handleSendProjectMessage : undefined}
-          relative={typeof relative !== 'undefined' ? relative : undefined}
-          selectedMessageTask={typeof selectedMessageTask !== 'undefined' ? selectedMessageTask : undefined}
-          Genel={typeof Genel !== 'undefined' ? Genel : undefined}
-          M6={typeof M6 !== 'undefined' ? M6 : undefined}
-          isMessageTaskPickerOpen={typeof isMessageTaskPickerOpen !== 'undefined' ? isMessageTaskPickerOpen : undefined}
-          right={typeof right !== 'undefined' ? right : undefined}
-          bottom={typeof bottom !== 'undefined' ? bottom : undefined}
-          setMessageLinkedTaskId={typeof setMessageLinkedTaskId !== 'undefined' ? setMessageLinkedTaskId : undefined}
-          messageLinkedTaskId={typeof messageLinkedTaskId !== 'undefined' ? messageLinkedTaskId : undefined}
-          messageTaskOptions={typeof messageTaskOptions !== 'undefined' ? messageTaskOptions : undefined}
-          end={typeof end !== 'undefined' ? end : undefined}
-          messageDraft={typeof messageDraft !== 'undefined' ? messageDraft : undefined}
-          setMessageDraft={typeof setMessageDraft !== 'undefined' ? setMessageDraft : undefined}
-          Enter={typeof Enter !== 'undefined' ? Enter : undefined}
-          Proje={typeof Proje !== 'undefined' ? Proje : undefined}
-          resize={typeof resize !== 'undefined' ? resize : undefined}
-          py={typeof py !== 'undefined' ? py : undefined}
-          outline={typeof outline !== 'undefined' ? outline : undefined}
-          submit={typeof submit !== 'undefined' ? submit : undefined}
-          cursor={typeof cursor !== 'undefined' ? cursor : undefined}
-          not={typeof not !== 'undefined' ? not : undefined}
-          allowed={typeof allowed !== 'undefined' ? allowed : undefined}
-        />
-
-        <ZRCAppShellAutoUiBlock01
-        Bildirim={typeof Bildirim !== 'undefined' ? Bildirim : undefined}
-        Bildirimler={typeof Bildirimler !== 'undefined' ? Bildirimler : undefined}
-        Yenile={typeof Yenile !== 'undefined' ? Yenile : undefined}
-        activeContentMenu={typeof activeContentMenu !== 'undefined' ? activeContentMenu : undefined}
-        currentAccountType={typeof currentAccountType !== 'undefined' ? currentAccountType : undefined}
-        currentProfileInitials={typeof currentProfileInitials !== 'undefined' ? currentProfileInitials : undefined}
-        d={typeof d !== 'undefined' ? d : undefined}
-        event={typeof event !== 'undefined' ? event : undefined}
-        fill={typeof fill !== 'undefined' ? fill : undefined}
-        handleNotificationClick={typeof handleNotificationClick !== 'undefined' ? handleNotificationClick : undefined}
-        isNotificationsOpen={typeof isNotificationsOpen !== 'undefined' ? isNotificationsOpen : undefined}
-        isRead={typeof isRead !== 'undefined' ? isRead : undefined}
-        loadActivityLogsFromSupabase={typeof loadActivityLogsFromSupabase !== 'undefined' ? loadActivityLogsFromSupabase : undefined}
-        markAllNotificationsAsRead={typeof markAllNotificationsAsRead !== 'undefined' ? markAllNotificationsAsRead : undefined}
-        notification={typeof notification !== 'undefined' ? notification : undefined}
-        notificationEmptyDescription={typeof notificationEmptyDescription !== 'undefined' ? notificationEmptyDescription : undefined}
-        notificationItems={typeof notificationItems !== 'undefined' ? notificationItems : undefined}
-        notificationPanelSummary={typeof notificationPanelSummary !== 'undefined' ? notificationPanelSummary : undefined}
-        okundu={typeof okundu !== 'undefined' ? okundu : undefined}
-        onClick={typeof onClick !== 'undefined' ? onClick : undefined}
-        readNotificationIds={typeof readNotificationIds !== 'undefined' ? readNotificationIds : undefined}
-        renderProfileAvatar={typeof renderProfileAvatar !== 'undefined' ? renderProfileAvatar : undefined}
-        stroke={typeof stroke !== 'undefined' ? stroke : undefined}
-        strokeLinecap={typeof strokeLinecap !== 'undefined' ? strokeLinecap : undefined}
-        strokeLinejoin={typeof strokeLinejoin !== 'undefined' ? strokeLinejoin : undefined}
-        strokeWidth={typeof strokeWidth !== 'undefined' ? strokeWidth : undefined}
-        unreadNotificationCount={typeof unreadNotificationCount !== 'undefined' ? unreadNotificationCount : undefined}
-        viewBox={typeof viewBox !== 'undefined' ? viewBox : undefined}
-        yap={typeof yap !== 'undefined' ? yap : undefined}
-        yok={typeof yok !== 'undefined' ? yok : undefined}
-      />
-
-        <ZRCAppShellGlobalSearchBlock
-        isGlobalSearchOpen={isGlobalSearchOpen}
-        setIsGlobalSearchOpen={setIsGlobalSearchOpen}
-        globalSearchQuery={globalSearchQuery}
-        setGlobalSearchQuery={setGlobalSearchQuery}
-        globalSearchResults={globalSearchResults}
-        navigateGlobalSearchResult={navigateGlobalSearchResult}
-      />
-
-        {activeContentMenu === 'Ana Sayfa' ? (
-          <ZRCAppHomeDashboardSection
-            calendarDisplayOptions={calendarDisplayOptions}
-            calendarFocusedDate={calendarFocusedDate}
-            calendarGridDays={calendarGridDays}
-            calendarHeaderTitle={calendarHeaderTitle}
-            calendarMonthDate={calendarMonthDate}
-            calendarView={calendarView}
-            calendarWeekDays={calendarWeekDays}
-            changeCalendarView={changeCalendarView}
-            createQuickNoteFromHome={createQuickNoteFromHome}
-            deleteQuickNoteFromHome={deleteQuickNoteFromHome}
-            editingQuickNoteId={editingQuickNoteId}
-            formatMenuCalendarTaskTime={formatMenuCalendarTaskTime}
-            formatMenuCalendarWeekHeader={formatMenuCalendarWeekHeader}
-            getMenuCalendarAllDayTasks={getMenuCalendarAllDayTasks}
-            getMenuCalendarTasksForDay={getMenuCalendarTasksForDay}
-            getMenuCalendarTasksForHour={getMenuCalendarTasksForHour}
-            getPremiumCalendarDotStyle={getPremiumCalendarDotStyle}
-            getPremiumCalendarTaskStyle={getPremiumCalendarTaskStyle}
-            goToNextCalendarPeriod={goToNextCalendarPeriod}
-            goToPreviousCalendarPeriod={goToPreviousCalendarPeriod}
-            homeAssignedTasks={homeAssignedTasks}
-            isCalendarDisplayMenuOpen={isCalendarDisplayMenuOpen}
-            isQuickNoteComposerOpen={isQuickNoteComposerOpen}
-            isQuickNoteSearchOpen={isQuickNoteSearchOpen}
-            isSameCalendarDay={isSameCalendarDay}
-            menuCalendarHours={menuCalendarHours}
-            menuCalendarListGroups={menuCalendarListGroups}
-            openHomeCalendarQuickTaskForDate={openHomeCalendarQuickTaskForDate}
-            openHomeTaskDetail={openHomeTaskDetail}
-            openMenuCalendarTask={openMenuCalendarTask}
-            openQuickNoteComposerForEdit={openQuickNoteComposerForEdit}
-            pendingDeleteQuickNoteId={pendingDeleteQuickNoteId}
-            quickNoteDraft={quickNoteDraft}
-            quickNoteSearch={quickNoteSearch}
-            quickNoteTitleDraft={quickNoteTitleDraft}
-            quickNotes={quickNotes}
-            resetQuickNoteComposer={resetQuickNoteComposer}
-            setActiveContentMenu={setActiveContentMenu}
-            setActiveMenu={setActiveMenu}
-            setActiveTab={setActiveTab}
-            setCalendarDisplayOptions={setCalendarDisplayOptions}
-            setIsCalendarDisplayMenuOpen={setIsCalendarDisplayMenuOpen}
-            setIsQuickNoteComposerOpen={setIsQuickNoteComposerOpen}
-            setIsQuickNoteSearchOpen={setIsQuickNoteSearchOpen}
-            setPendingDeleteQuickNoteId={setPendingDeleteQuickNoteId}
-            setQuickNoteDraft={setQuickNoteDraft}
-            setQuickNoteSearch={setQuickNoteSearch}
-            setQuickNoteTitleDraft={setQuickNoteTitleDraft}
-            todayStart={todayStart}
-          />
-        ) : activeContentMenu === 'Takvimim' ? (
-          <ZRCAppMenuCalendarSection
-            calendarDisplayOptions={calendarDisplayOptions}
-            calendarFocusedDate={calendarFocusedDate}
-            calendarGridDays={calendarGridDays}
-            calendarHeaderTitle={calendarHeaderTitle}
-            calendarMonthDate={calendarMonthDate}
-            calendarView={calendarView}
-            calendarWeekDays={calendarWeekDays}
-            formatMenuCalendarTaskTime={formatMenuCalendarTaskTime}
-            formatMenuCalendarWeekHeader={formatMenuCalendarWeekHeader}
-            getMenuCalendarAllDayTasks={getMenuCalendarAllDayTasks}
-            getMenuCalendarHolidayLabel={getMenuCalendarHolidayLabel}
-            getMenuCalendarTasksForDay={getMenuCalendarTasksForDay}
-            getMenuCalendarTasksForHour={getMenuCalendarTasksForHour}
-            getPremiumCalendarDotStyle={getPremiumCalendarDotStyle}
-            getPremiumCalendarTaskStyle={getPremiumCalendarTaskStyle}
-            goToNextCalendarPeriod={goToNextCalendarPeriod}
-            goToPreviousCalendarPeriod={goToPreviousCalendarPeriod}
-            handleCalendarDayClick={handleCalendarDayClick}
-            isMenuCalendarFilterOpen={isMenuCalendarFilterOpen}
-            isMenuCalendarStatusOpen={isMenuCalendarStatusOpen}
-            isSameCalendarDay={isSameCalendarDay}
-            menuCalendarHours={menuCalendarHours}
-            menuCalendarListGroups={menuCalendarListGroups}
-            menuCalendarStatusFilter={menuCalendarStatusFilter}
-            menuCalendarStatusOptions={menuCalendarStatusOptions}
-            openHomeCalendarQuickTaskForDate={openHomeCalendarQuickTaskForDate}
-            openMenuCalendarQuickTask={openMenuCalendarQuickTask}
-            openMenuCalendarTask={openMenuCalendarTask}
-            projects={projects}
-            setCalendarDisplayOptions={setCalendarDisplayOptions}
-            setCalendarFocusedDate={setCalendarFocusedDate}
-            setCalendarMonthDate={setCalendarMonthDate}
-            setCalendarView={setCalendarView}
-            setIsMenuCalendarFilterOpen={setIsMenuCalendarFilterOpen}
-            setIsMenuCalendarStatusOpen={setIsMenuCalendarStatusOpen}
-            setMenuCalendarStatusFilter={setMenuCalendarStatusFilter}
-            todayStart={todayStart}
-          />
-        ) : activeContentMenu === 'Yazışmalar' ? (
-          <ZRCAppMessagesPageSection
-            canCreateChatGroups={canCreateChatGroups}
-            canSendSelectedChatMessage={canSendSelectedChatMessage}
-            chatGroupDraft={chatGroupDraft}
-            chatGroupSearch={chatGroupSearch}
-            chatPageDraft={chatPageDraft}
-            createChatGroupFromPage={createChatGroupFromPage}
-            filteredChatGroups={filteredChatGroups}
-            getProjectMessageDateLabel={getProjectMessageDateLabel}
-            handleSendChatPageMessage={handleSendChatPageMessage}
-            isChatActionMenuOpen={isChatActionMenuOpen}
-            isChatGroupModalOpen={isChatGroupModalOpen}
-            isCurrentProfileRecord={isCurrentProfileRecord}
-            isProjectMessageVisibleForCurrentUser={isProjectMessageVisibleForCurrentUser}
-            projectMessages={projectMessages}
-            selectedChatGroup={selectedChatGroup}
-            selectedChatGroupId={selectedChatGroupId}
-            selectedChatMessages={selectedChatMessages}
-            setChatGroupDraft={setChatGroupDraft}
-            setChatGroupSearch={setChatGroupSearch}
-            setChatPageDraft={setChatPageDraft}
-            setIsChatActionMenuOpen={setIsChatActionMenuOpen}
-            setIsChatGroupModalOpen={setIsChatGroupModalOpen}
-            setSelectedChatGroupId={setSelectedChatGroupId}
-          />
-        ) : activeContentMenu === 'Profil' ? (
-          <ZRCAppProfilePageSection
-            activeProfileTab={activeProfileTab}
-            addProfileEmailAccount={addProfileEmailAccount}
-            emailAccountDraft={emailAccountDraft}
-            handleLogout={handleLogout}
-            handleProfileAvatarChange={handleProfileAvatarChange}
-            markSuspiciousEventAsMine={markSuspiciousEventAsMine}
-            pendingProfileDelete={pendingProfileDelete}
-            profileAvatarInputRef={profileAvatarInputRef}
-            profileDraft={profileDraft}
-            profilePreferences={profilePreferences}
-            removeProfileEmailAccount={removeProfileEmailAccount}
-            removeProfileSession={removeProfileSession}
-            renderProfileSelect={renderProfileSelect}
-            saveProfileSection={saveProfileSection}
-            setActiveProfileTab={setActiveProfileTab}
-            setEmailAccountDraft={setEmailAccountDraft}
-            setPendingProfileDelete={setPendingProfileDelete}
-            setProfileDraft={setProfileDraft}
-            setProfilePreferences={setProfilePreferences}
-            toggleProfilePreference={toggleProfilePreference}
-            visibleProfileTabs={visibleProfileTabs}
-          />
-        ) : (activeContentMenu === 'Projeler' || activeContentMenu === 'Diğer') ? (
-          <ZRCAppProjectWorkspaceSection
-            activeContentMenu={activeContentMenu}
-            activeTab={activeTab}
-            activeTeamMembers={activeTeamMembers}
-            archivedTasks={archivedTasks}
-            availableProjectTeamMembers={availableProjectTeamMembers}
-            boardColumns={boardColumns}
-            copyCredentialTextForCustomer={copyCredentialTextForCustomer}
-            copyCredentialTextForMember={copyCredentialTextForMember}
-            createCustomerFromCenter={createCustomerFromCenter}
-            createTeamMemberFromCenter={createTeamMemberFromCenter}
-            currentPermissions={currentPermissions}
-            currentUserRole={currentUserRole}
-            customerDraft={customerDraft}
-            customerLinkNoneLabel={customerLinkNoneLabel}
-            customerLinkOptions={customerLinkOptions}
-            customerPageItems={customerPageItems}
-            customers={customers}
-            deleteCustomerFromCenter={deleteCustomerFromCenter}
-            deleteTeamMemberFromCenter={deleteTeamMemberFromCenter}
-            getCustomerById={getCustomerById}
-            getCustomerByName={getCustomerByName}
-            getCustomerIdByName={getCustomerIdByName}
-            getCustomerLinkedAccount={getCustomerLinkedAccount}
-            getCustomerNameById={getCustomerNameById}
-            getMemberLinkedCustomer={getMemberLinkedCustomer}
-            handleArchiveProject={handleArchiveProject}
-            handleDeleteProject={handleDeleteProject}
-            handleSaveProjectSettings={handleSaveProjectSettings}
-            isProjectTeamPickerOpen={isProjectTeamPickerOpen}
-            openCustomerEditModal={openCustomerEditModal}
-            openTeamMemberEditModal={openTeamMemberEditModal}
-            passiveTeamMembers={passiveTeamMembers}
-            pendingCustomerDeleteId={pendingCustomerDeleteId}
-            pendingTeamDeleteId={pendingTeamDeleteId}
-            projectSettingsDraft={projectSettingsDraft}
-            renderSoftSelect={renderSoftSelect}
-            selectedCustomer={selectedCustomer}
-            selectedProject={selectedProject}
-            selectedProjectTeamMembers={selectedProjectTeamMembers}
-            selectedTeamMemberId={selectedTeamMemberId}
-            setActiveTab={setActiveTab}
-            setCustomerDraft={setCustomerDraft}
-            setIsProjectTeamPickerOpen={setIsProjectTeamPickerOpen}
-            setProjectSettingsDraft={setProjectSettingsDraft}
-            setSelectedCustomerId={setSelectedCustomerId}
-            setSelectedTeamMemberId={setSelectedTeamMemberId}
-            setTeamMemberDraft={setTeamMemberDraft}
-            showCustomerManagementPage={showCustomerManagementPage}
-            showProjectSettingsControls={showProjectSettingsControls}
-            showTeamManagementPage={showTeamManagementPage}
-            teamMemberDraft={teamMemberDraft}
-            teamMembers={teamMembers}
-            toggleTeamMemberStatus={toggleTeamMemberStatus}
-            visibleProjectTabs={visibleProjectTabs}
-            zrcFeatureSpreadProps={zrcFeatureSpreadProps}
-          />
-        ) : (
-          <div className="w-full min-h-screen flex flex-col items-center justify-center text-center animate-fade-in p-8 bg-[#f5f6f8]">
-            <h2 className="text-[15px] font-black text-zinc-700 tracking-tight select-none">Bu Sayfa Boş</h2>
-          </div>
-        )}
-
-          <ZRCAppBulkTaskActionsBar
-            activeContentMenu={activeContentMenu}
-            boardView={boardView}
-            currentPermissions={currentPermissions}
-            handleBulkArchive={handleBulkArchive}
-            handleBulkDelete={handleBulkDelete}
-            selectedTasks={selectedTasks}
-            setSelectedTasks={setSelectedTasks}
-          />
-      </main>
-
-          <ZRCAppModalLayer
-            addTaskComment={addTaskComment}
-            boardColumns={boardColumns}
-            calendarNewTaskDate={calendarNewTaskDate}
-            calendarTaskModalContext={calendarTaskModalContext}
-            canCurrentUserModifyTask={canCurrentUserModifyTask}
-            changeCalendarTaskModalProject={changeCalendarTaskModalProject}
-            closeCustomerEditModal={closeCustomerEditModal}
-            closeTaskDetail={closeTaskDetail}
-            closeTeamMemberEditModal={closeTeamMemberEditModal}
-            currentAccountType={currentAccountType}
-            currentActorAvatar={currentActorAvatar}
-            currentActorId={currentActorId}
-            currentActorName={currentActorName}
-            currentCustomerKeys={currentCustomerKeys}
-            currentPermissions={currentPermissions}
-            customerEditDraft={customerEditDraft}
-            customerLinkNoneLabel={customerLinkNoneLabel}
-            customerLinkOptions={customerLinkOptions}
-            customers={customers}
-            deleteTaskComment={deleteTaskComment}
-            deleteTaskStoredFileFromSupabase={deleteTaskStoredFileFromSupabase}
-            detailTaskInfo={detailTaskInfo}
-            downloadTaskFileFromSupabase={downloadTaskFileFromSupabase}
-            editTaskFromDetail={editTaskFromDetail}
-            editingColumn={editingColumn}
-            editingCustomer={editingCustomer}
-            editingTask={editingTask}
-            editingTeamMember={editingTeamMember}
-            getCustomerById={getCustomerById}
-            getCustomerIdByName={getCustomerIdByName}
-            getCustomerNameById={getCustomerNameById}
-            getProjectNameForTask={getProjectNameForTask}
-            handleSaveStage={handleSaveStage}
-            handleSaveTask={handleSaveTask}
-            isStageModalOpen={isStageModalOpen}
-            isTaskModalOpen={isTaskModalOpen}
-            renderSoftSelect={renderSoftSelect}
-            saveCustomerEdit={saveCustomerEdit}
-            saveTeamMemberEdit={saveTeamMemberEdit}
-            selectedProject={selectedProject}
-            setCalendarNewTaskDate={setCalendarNewTaskDate}
-            setCalendarTaskModalContext={setCalendarTaskModalContext}
-            setCustomerEditDraft={setCustomerEditDraft}
-            setEditingColumn={setEditingColumn}
-            setEditingTask={setEditingTask}
-            setIsStageModalOpen={setIsStageModalOpen}
-            setIsTaskModalOpen={setIsTaskModalOpen}
-            setTeamMemberEditDraft={setTeamMemberEditDraft}
-            taskModalTeamMembers={taskModalTeamMembers}
-            teamMemberEditDraft={teamMemberEditDraft}
-            updateTaskFromDetail={updateTaskFromDetail}
-            uploadTaskFilesToSupabase={uploadTaskFilesToSupabase}
-            visibleProjectNames={visibleProjectNames}
-          />
-    </div>
-  );
+  return <ZRCAppAuthenticatedShell {...zrcAuthenticatedShellProps} />;
 }
 
 function ZRCAppShell() {
