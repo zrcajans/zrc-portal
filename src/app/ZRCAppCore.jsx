@@ -121,6 +121,7 @@ import { createZRCTeamCustomerActions } from './actions/zrcTeamCustomerActions';
 import { createZRCBoardTaskActions } from './actions/zrcBoardTaskActions';
 import { createZRCDataManagementActions } from './actions/zrcDataManagementActions';
 import { createZRCProfileActions } from './actions/zrcProfileActions';
+import { createZRCMessageNotificationActions } from './actions/zrcMessageNotificationActions';
 import {
   formatDateStringShort,
   getTaskCardDateParts,
@@ -7829,88 +7830,6 @@ function App() {
         ? 'Tüm bildirimler okundu'
         : 'Size ait yeni bildirim yok';
 
-  const markNotificationAsRead = (notificationId) => {
-    if (String(notificationId || '').startsWith('supabase-notification-')) {
-      const supabaseNotificationId = String(notificationId).replace('supabase-notification-', '');
-
-      if (isSupabaseUuid(supabaseNotificationId)) {
-        supabase
-          .from('notifications')
-          .update({ is_read: true })
-          .eq('id', supabaseNotificationId)
-          .eq('user_id', currentUserId)
-          .then(() => {});
-      }
-    }
-
-    setReadNotificationIds((prevIds) => {
-      if (prevIds.includes(notificationId)) return prevIds;
-
-      const nextIds = [...prevIds, notificationId];
-      saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
-      return nextIds;
-    });
-  };
-
-  const markAllNotificationsAsRead = () => {
-    const supabaseNotificationIds = notificationItems
-      .map((item) => String(item.id || ''))
-      .filter((id) => id.startsWith('supabase-notification-'))
-      .map((id) => id.replace('supabase-notification-', ''))
-      .filter(isSupabaseUuid);
-
-    if (supabaseNotificationIds.length > 0) {
-      supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', currentUserId)
-        .in('id', supabaseNotificationIds)
-        .then(() => {});
-    }
-
-    setReadNotificationIds((prevIds) => {
-      const nextIds = Array.from(new Set([...prevIds, ...notificationItems.map((item) => item.id)]));
-      saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
-      return nextIds;
-    });
-  };
-
-  const handleNotificationClick = (notification) => {
-    if (!isNotificationVisibleForCurrentUser(notification)) {
-      showPermissionWarning('Bu bildirimin bağlı olduğu projeye artık erişimin yok.');
-      return;
-    }
-
-    markNotificationAsRead(notification.id);
-    setIsNotificationsOpen(false);
-
-    const notificationProjectName = getProjectNameForNotification(notification);
-
-    if (notificationProjectName && !guardProjectAccess(notificationProjectName, 'Bu bildirimin projesine erişim yetkin yok.')) {
-      return;
-    }
-
-    if (notification.chatGroupId) {
-      if (!isChatGroupIdVisibleForCurrentUser(notification.chatGroupId)) {
-        showPermissionWarning('Bu yazışmayı görüntüleme yetkin yok.');
-        return;
-      }
-
-      setActiveMenu('Yazışmalar');
-      setActiveContentMenu('Yazışmalar');
-      setSelectedChatGroupId(notification.chatGroupId);
-      return;
-    }
-
-    if (notificationProjectName) {
-      setSelectedProject(notificationProjectName);
-    }
-
-    if (notification.task) {
-      openTaskDetail(notification.task, notification.columnTitle);
-    }
-  };
-
   const getProjectMessageDateLabel = (createdAt) => {
     if (!createdAt) return 'Şimdi';
 
@@ -7997,111 +7916,6 @@ function App() {
     .slice(0, 28);
 
   const unreadMessageCount = messageItems.filter((message) => !readMessageIds.includes(message.id)).length;
-
-  const markMessageAsRead = (messageId) => {
-    setReadMessageIds((prevIds) => {
-      if (prevIds.includes(messageId)) return prevIds;
-
-      const nextIds = [...prevIds, messageId];
-      saveUserPreferencesToSupabase({ readMessageIds: nextIds });
-      return nextIds;
-    });
-  };
-
-  const markAllMessagesAsRead = () => {
-    setReadMessageIds((prevIds) => {
-      const nextIds = Array.from(new Set([...prevIds, ...messageItems.map((message) => message.id)]));
-      saveUserPreferencesToSupabase({ readMessageIds: nextIds });
-      return nextIds;
-    });
-  };
-
-  const handleMessageClick = (message) => {
-    if (!isProjectMessageVisibleForCurrentUser(message)) {
-      showPermissionWarning('Bu mesajın bağlı olduğu projeye artık erişimin yok.');
-      return;
-    }
-
-    markMessageAsRead(message.id);
-    setIsMessagesOpen(false);
-    setIsMessageTaskPickerOpen(false);
-
-    const messageProjectName = getProjectNameForMessage(message);
-
-    if (messageProjectName) {
-      setSelectedProject(messageProjectName);
-    }
-
-    if (message.task) {
-      openTaskDetail(message.task, message.columnTitle);
-    }
-  };
-
-  const handleSendProjectMessage = async (event) => {
-    event.preventDefault();
-
-    if (!currentPermissions.message) {
-      showPermissionWarning('Bu rol mesaj gönderemez.');
-      return;
-    }
-
-    const text = messageDraft.trim();
-    if (!text) return;
-
-    const messageProjectName = selectedMessageTask ? getProjectNameForTask(selectedMessageTask) : selectedProject;
-
-    if (!guardProjectAccess(messageProjectName, 'Bu projeye mesaj gönderme yetkin yok.')) return;
-
-    if (selectedMessageTask && !isTaskAccessibleForCurrentUser(selectedMessageTask)) {
-      showPermissionWarning('Bu göreve mesaj bağlama yetkin yok.');
-      return;
-    }
-
-    const id = `project-message-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    const nextMessage = {
-      id,
-      senderId: currentActorId,
-      sender: currentProfileName,
-      avatar: currentProfileAvatar,
-      text,
-      projectName: messageProjectName,
-      taskId: messageLinkedTaskId || null,
-      createdAt: new Date().toISOString()
-    };
-
-    setProjectMessages((prevMessages) => [nextMessage, ...prevMessages]);
-    setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, id])));
-    await saveProjectMessageToSupabase(nextMessage);
-
-    createActivityNotification({
-      type: 'message',
-      title: 'Yeni mesaj',
-      text,
-      meta: selectedMessageTask ? selectedMessageTask.title : 'Genel proje mesajı',
-      task: selectedMessageTask,
-      projectName: messageProjectName,
-      columnTitle: selectedMessageTask?.columnTitle || '',
-      messageId: id,
-      sortWeight: 760
-    });
-
-    setMessageDraft('');
-    setIsMessageTaskPickerOpen(false);
-  };
-
-  const openMessagesPanel = () => {
-    setOpenMenuColumnId(null);
-    setOpenTaskMenuId(null);
-    setIsPanelOpen(false);
-    setIsNotificationsOpen(false);
-    setIsMessagesOpen(false);
-    setIsMessageTaskPickerOpen(false);
-    setIsGlobalSearchOpen(false);
-    setIsMessagesOpen((prev) => !prev);
-  };
-
-
 
   const globalSearchPlaceholder =
     currentAccountType === 'Patron'
@@ -8225,67 +8039,6 @@ function App() {
     .slice(0, globalSearchQuery.trim() ? 30 : 10);
 
 
-
-  const closeGlobalSearch = () => {
-    setIsGlobalSearchOpen(false);
-    setGlobalSearchQuery('');
-    setGlobalSearchFilter('Tümü');
-  };
-
-  const openGlobalSearch = () => {
-    setOpenMenuColumnId(null);
-    setOpenTaskMenuId(null);
-    setIsPanelOpen(false);
-    setIsNotificationsOpen(false);
-    setIsMessagesOpen(false);
-    setIsGlobalSearchOpen(true);
-  };
-
-  const handleGlobalSearchItemClick = (item) => {
-    const itemProjectName = item.projectName || item.file?.projectName || getProjectNameForTask(item.task);
-
-    if (itemProjectName && !guardProjectAccess(itemProjectName, 'Bu arama sonucunun projesine erişim yetkin yok.')) {
-      closeGlobalSearch();
-      return;
-    }
-
-    if (item.task && !isTaskAccessibleForCurrentUser(item.task)) {
-      showPermissionWarning('Bu arama sonucundaki görevi görüntüleme yetkin yok.');
-      closeGlobalSearch();
-      return;
-    }
-
-    if (item.type === 'Dosya' && item.file) {
-      if (!isProjectFileVisibleForCurrentUser(item.file)) {
-        showPermissionWarning('Bu dosyayı görüntüleme yetkin yok.');
-        closeGlobalSearch();
-        return;
-      }
-
-      if (itemProjectName) {
-        setSelectedProject(itemProjectName);
-      }
-
-      setActiveContentMenu('Projeler');
-      setActiveMenu('Projeler');
-      setActiveTab('Dosyalar');
-      setSelectedProjectFileKey(item.file.fileKey);
-      closeGlobalSearch();
-      return;
-    }
-
-    if (item.task) {
-      if (itemProjectName) {
-        setSelectedProject(itemProjectName);
-      }
-
-      setActiveContentMenu('Projeler');
-      setActiveMenu('Projeler');
-      openTaskDetail(item.task, item.columnTitle);
-    }
-
-    closeGlobalSearch();
-  };
 
   const activeTeamMembers = teamMembers.filter((member) => member.status !== 'Pasif');
   const passiveTeamMembers = teamMembers.filter((member) => member.status === 'Pasif');
@@ -9111,96 +8864,82 @@ function App() {
       isChatGroupVisibleForCurrentUser(selectedChatGroup)
   );
 
-  const createChatGroupFromPage = async (event) => {
-    event.preventDefault();
-
-    if (!canCreateChatGroups) {
-      setIsChatGroupModalOpen(false);
-      setIsChatActionMenuOpen(false);
-      return;
-    }
-
-    const name = chatGroupDraft.trim();
-
-    if (!name) return;
-
-    const alreadyExists = allChatGroups.some(
-      (group) => group.name.toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR')
-    );
-
-    if (alreadyExists) {
-      alert('Bu isimde bir yazışma grubu zaten var.');
-      return;
-    }
-
-    const nextGroup = {
-      id: `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      type: 'custom',
-      name,
-      avatar: createAvatarFromName(name),
-      members: [currentProfileName],
-      createdAt: new Date().toISOString()
-    };
-
-    setChatGroups((prevGroups) => [nextGroup, ...prevGroups]);
-    await saveChatGroupToSupabase(nextGroup);
-    setSelectedChatGroupId(nextGroup.id);
-    setChatGroupDraft('');
-    setIsChatGroupModalOpen(false);
-    setIsChatActionMenuOpen(false);
-  };
-
-  const handleSendChatPageMessage = async (event) => {
-    event.preventDefault();
-
-    if (!currentPermissions.message) {
-      showPermissionWarning('Bu rol mesaj gönderemez.');
-      return;
-    }
-
-    const text = chatPageDraft.trim();
-
-    if (!text || !selectedChatGroup) return;
-
-    if (!isChatGroupVisibleForCurrentUser(selectedChatGroup)) {
-      showPermissionWarning('Bu yazışmaya mesaj gönderme yetkin yok.');
-      return;
-    }
-
-    const messageProjectName = getProjectNameFromChatGroupId(selectedChatGroup.id) || selectedChatGroup.projectName || '';
-
-    if (messageProjectName && !guardProjectAccess(messageProjectName, 'Bu projeye mesaj gönderme yetkin yok.')) return;
-
-    const id = `chat-message-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    const nextMessage = {
-      id,
-      senderId: currentActorId,
-      sender: currentProfileName,
-      avatar: currentProfileAvatar,
-      text,
-      projectName: messageProjectName,
-      chatGroupId: selectedChatGroup.id,
-      createdAt: new Date().toISOString()
-    };
-
-    setProjectMessages((prevMessages) => [...prevMessages, nextMessage]);
-    setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, id])));
-    await saveProjectMessageToSupabase(nextMessage);
-
-    createActivityNotification({
-      type: 'message',
-      title: 'Yazışmaya mesaj eklendi',
-      text,
-      meta: selectedChatGroup.name,
-      projectName: messageProjectName,
-      chatGroupId: selectedChatGroup.id,
-      messageId: id,
-      sortWeight: 760
-    });
-
-    setChatPageDraft('');
-  };
+  const {
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    handleNotificationClick,
+    markMessageAsRead,
+    markAllMessagesAsRead,
+    handleMessageClick,
+    handleSendProjectMessage,
+    openMessagesPanel,
+    closeGlobalSearch,
+    openGlobalSearch,
+    handleGlobalSearchItemClick,
+    createChatGroupFromPage,
+    handleSendChatPageMessage
+  } = createZRCMessageNotificationActions({
+    isSupabaseUuid,
+    supabase,
+    currentUserId,
+    setReadNotificationIds,
+    saveUserPreferencesToSupabase,
+    notificationItems,
+    isNotificationVisibleForCurrentUser,
+    showPermissionWarning,
+    setIsNotificationsOpen,
+    getProjectNameForNotification,
+    guardProjectAccess,
+    isChatGroupIdVisibleForCurrentUser,
+    setActiveMenu,
+    setActiveContentMenu,
+    setSelectedChatGroupId,
+    setSelectedProject,
+    openTaskDetail,
+    setReadMessageIds,
+    messageItems,
+    isProjectMessageVisibleForCurrentUser,
+    setIsMessagesOpen,
+    setIsMessageTaskPickerOpen,
+    getProjectNameForMessage,
+    currentPermissions,
+    messageDraft,
+    selectedMessageTask,
+    getProjectNameForTask,
+    selectedProject,
+    isTaskAccessibleForCurrentUser,
+    messageLinkedTaskId,
+    currentActorId,
+    currentProfileName,
+    currentProfileAvatar,
+    setProjectMessages,
+    saveProjectMessageToSupabase,
+    createActivityNotification,
+    setMessageDraft,
+    setOpenMenuColumnId,
+    setOpenTaskMenuId,
+    setIsPanelOpen,
+    setIsGlobalSearchOpen,
+    setGlobalSearchQuery,
+    setGlobalSearchFilter,
+    isProjectFileVisibleForCurrentUser,
+    setActiveTab,
+    setSelectedProjectFileKey,
+    canCreateChatGroups,
+    setIsChatGroupModalOpen,
+    setIsChatActionMenuOpen,
+    chatGroupDraft,
+    allChatGroups,
+    createAvatarFromName,
+    setChatGroups,
+    saveChatGroupToSupabase,
+    setChatGroupDraft,
+    chatPageDraft,
+    selectedChatGroup,
+    isChatGroupVisibleForCurrentUser,
+    getProjectNameFromChatGroupId,
+    setChatPageDraft
+  });
 
   const {
     saveProfileSection,
