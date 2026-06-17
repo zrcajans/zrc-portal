@@ -8,7 +8,8 @@ export default function MobileTaskCard({
   getMobileTaskCardAssignees,
   moveMobileTaskToActiveColumn,
   allBoardColumns,
-  setMobileActiveColumnId
+  setMobileActiveColumnId,
+  onMobileTaskMoveToast
 }) {
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
   const columnDropdownRef = useRef(null);
@@ -61,6 +62,8 @@ export default function MobileTaskCard({
 
     if (!targetColumn?.id) return;
 
+    const targetTitle = normalizeTitle(targetColumn.title || 'Kolon');
+
     if (typeof moveMobileTaskToActiveColumn === 'function') {
       await moveMobileTaskToActiveColumn(task, targetColumn.id);
     }
@@ -70,6 +73,10 @@ export default function MobileTaskCard({
     }
 
     setIsColumnMenuOpen(false);
+
+    if (typeof onMobileTaskMoveToast === 'function') {
+      onMobileTaskMoveToast(`Görev ${targetTitle} kolonuna aktarıldı.`);
+    }
   };
 
   return (
@@ -143,17 +150,6 @@ export default function MobileTaskCard({
             <div className="zrc-mobile-task-column-menu" onClick={(event) => event.stopPropagation()}>
               <div className="zrc-mobile-task-column-menu-head">
                 <small>Kolona aktar</small>
-                <button
-                  type="button"
-                  className="zrc-mobile-task-column-menu-close"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setIsColumnMenuOpen(false);
-                  }}
-                  aria-label="Kapat"
-                >
-                  ×
-                </button>
               </div>
 
               <div className="zrc-mobile-task-column-menu-list">

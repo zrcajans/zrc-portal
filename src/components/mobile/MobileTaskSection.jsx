@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MobileTaskList from './MobileTaskList';
 import { getSafeMobileProjectName } from '../../utils/mobileProjectHelpers';
 
@@ -16,6 +16,8 @@ export default function MobileTaskSection({
 }) {
   const safeProjectName = getSafeMobileProjectName(selectedProject);
   const [selectedMobileColumnId, setSelectedMobileColumnId] = useState('');
+  const [mobileTaskMoveToast, setMobileTaskMoveToast] = useState('');
+  const mobileTaskMoveToastTimerRef = useRef(null);
 
   const mobileColumns = useMemo(
     () => (Array.isArray(boardColumns) ? boardColumns : []).filter((column) => column && column.id),
@@ -35,8 +37,26 @@ export default function MobileTaskSection({
     }
   }, [mobileColumns, selectedMobileColumnId]);
 
+  useEffect(() => () => {
+    if (mobileTaskMoveToastTimerRef.current) {
+      window.clearTimeout(mobileTaskMoveToastTimerRef.current);
+    }
+  }, []);
+
   const activeMobileColumn = mobileColumns.find((column) => column.id === selectedMobileColumnId) || mobileColumns[0] || null;
   const visibleMobileColumns = activeMobileColumn ? [activeMobileColumn] : [];
+
+  const showMobileTaskMoveToast = (message = 'Görev başka kolona aktarıldı.') => {
+    setMobileTaskMoveToast(message);
+
+    if (mobileTaskMoveToastTimerRef.current) {
+      window.clearTimeout(mobileTaskMoveToastTimerRef.current);
+    }
+
+    mobileTaskMoveToastTimerRef.current = window.setTimeout(() => {
+      setMobileTaskMoveToast('');
+    }, 2400);
+  };
 
   const openTaskWizard = () => {
     setMobileTaskWizardData((prev) => ({
@@ -74,7 +94,14 @@ export default function MobileTaskSection({
         getMobileTaskCardAssignees={getMobileTaskCardAssignees}
         moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
         setMobileActiveColumnId={setSelectedMobileColumnId}
+        onMobileTaskMoveToast={showMobileTaskMoveToast}
       />
+
+      {mobileTaskMoveToast && (
+        <div className="zrc-mobile-task-move-toast" role="status" aria-live="polite">
+          {mobileTaskMoveToast}
+        </div>
+      )}
 
       {mobileColumns.length > 0 && (
         <nav className="zrc-mobile-column-capsule" aria-label="Mobil kolon seçimi">

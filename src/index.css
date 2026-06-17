@@ -1477,3 +1477,118 @@ body {
   }
 }
 /* === ZRC REFINE MOBILE TASK MOVE BUTTON CLOSE END === */
+
+/* === ZRC MOBILE TASK MOVE TOAST SMALLER START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-task-column-dropdown {
+    top: 16px !important;
+    right: 16px !important;
+  }
+
+  body .zrc-mobile-task-move-btn,
+  body .zrc-mobile-task-active-btn {
+    height: 29px !important;
+    min-width: 66px !important;
+    padding: 0 9px !important;
+    gap: 4px !important;
+    font-size: 10.8px !important;
+    box-shadow:
+      0 13px 28px rgba(15, 23, 42, 0.18),
+      0 5px 12px rgba(15, 23, 42, 0.11),
+      inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+  }
+
+  body .zrc-mobile-task-move-btn svg {
+    width: 11.5px !important;
+    height: 11.5px !important;
+  }
+
+  body .zrc-mobile-task-column-menu {
+    top: 36px !important;
+    width: 128px !important;
+    padding: 6px !important;
+    border-radius: 13px !important;
+  }
+
+  body .zrc-mobile-task-column-menu-head {
+    height: 17px !important;
+    padding: 0 2px 4px !important;
+    justify-content: flex-start !important;
+  }
+
+  body .zrc-mobile-task-column-menu-head small {
+    display: block !important;
+    color: #8b95a1 !important;
+    font-size: 8.2px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+  }
+
+  body .zrc-mobile-task-column-menu-close {
+    display: none !important;
+  }
+
+  body .zrc-mobile-task-column-menu-list {
+    gap: 4px !important;
+  }
+
+  body .zrc-mobile-task-column-menu-item {
+    height: 29px !important;
+    padding: 0 8px !important;
+    border-radius: 10px !important;
+    font-size: 9.5px !important;
+  }
+
+  body .zrc-mobile-task-column-menu-item em {
+    min-width: 15px !important;
+    height: 15px !important;
+    padding: 0 4px !important;
+    font-size: 7.8px !important;
+  }
+
+  body .zrc-mobile-task-move-toast {
+    position: fixed !important;
+    left: 50% !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 100px) !important;
+    transform: translateX(-50%) !important;
+
+    max-width: calc(100vw - 58px) !important;
+    padding: 9px 13px !important;
+
+    border-radius: 999px !important;
+    border: 1px solid rgba(255, 255, 255, 0.58) !important;
+    background: rgba(31, 41, 55, 0.88) !important;
+    color: #ffffff !important;
+
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+
+    box-shadow:
+      0 15px 38px rgba(15, 23, 42, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+
+    backdrop-filter: blur(12px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+
+    z-index: 1200 !important;
+    pointer-events: none !important;
+    animation: zrcMobileTaskMoveToastIn 220ms ease-out both !important;
+  }
+
+  @keyframes zrcMobileTaskMoveToastIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(8px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+  }
+}
+/* === ZRC MOBILE TASK MOVE TOAST SMALLER END === */
