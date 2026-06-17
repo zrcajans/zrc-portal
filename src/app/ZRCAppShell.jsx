@@ -14622,124 +14622,23 @@ return (
 
                                 {/* zrc-v526-section-activecontentmenu-diger-activetab-musteriler-showcustomermanagementpage */}
                 <ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagementPageSection
-                  activeTab={typeof activeTab !== 'undefined' ? activeTab : undefined}
-                  activeContentMenu={typeof activeContentMenu !== 'undefined' ? activeContentMenu : undefined}
-                  showCustomerManagementPage={typeof showCustomerManagementPage !== 'undefined' ? showCustomerManagementPage : undefined}
-                  zrc={typeof zrc !== 'undefined' ? zrc : undefined}
-                  center={typeof center !== 'undefined' ? center : undefined}
-                  page={typeof page !== 'undefined' ? page : undefined}
-                  w={typeof w !== 'undefined' ? w : undefined}
-                  full={typeof full !== 'undefined' ? full : undefined}
-                  h={typeof h !== 'undefined' ? h : undefined}
-                  overflow={typeof overflow !== 'undefined' ? overflow : undefined}
-                  auto={typeof auto !== 'undefined' ? auto : undefined}
-                  custom={typeof custom !== 'undefined' ? custom : undefined}
-                  scrollbar={typeof scrollbar !== 'undefined' ? scrollbar : undefined}
-                  bg={typeof bg !== 'undefined' ? bg : undefined}
-                  f5f6f8={typeof f5f6f8 !== 'undefined' ? f5f6f8 : undefined}
-                  animate={typeof animate !== 'undefined' ? animate : undefined}
-                  fade={typeof fade !== 'undefined' ? fade : undefined}
-                  card={typeof card !== 'undefined' ? card : undefined}
-                  max={typeof max !== 'undefined' ? max : undefined}
-                  mx={typeof mx !== 'undefined' ? mx : undefined}
-                  px={typeof px !== 'undefined' ? px : undefined}
-                  py={typeof py !== 'undefined' ? py : undefined}
-                  rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                  white={typeof white !== 'undefined' ? white : undefined}
-                  border={typeof border !== 'undefined' ? border : undefined}
-                  zinc={typeof zinc !== 'undefined' ? zinc : undefined}
-                  shadow={typeof shadow !== 'undefined' ? shadow : undefined}
-                  sm={typeof sm !== 'undefined' ? sm : undefined}
-                  flex={typeof flex !== 'undefined' ? flex : undefined}
-                  items={typeof items !== 'undefined' ? items : undefined}
-                  justify={typeof justify !== 'undefined' ? justify : undefined}
-                  between={typeof between !== 'undefined' ? between : undefined}
-                  gap={typeof gap !== 'undefined' ? gap : undefined}
-                  text={typeof text !== 'undefined' ? text : undefined}
-                  font={typeof font !== 'undefined' ? font : undefined}
-                  black={typeof black !== 'undefined' ? black : undefined}
-                  tracking={typeof tracking !== 'undefined' ? tracking : undefined}
-                  uppercase={typeof uppercase !== 'undefined' ? uppercase : undefined}
-                  ff3600={typeof ff3600 !== 'undefined' ? ff3600 : undefined}
-                  mt={typeof mt !== 'undefined' ? mt : undefined}
-                  tight={typeof tight !== 'undefined' ? tight : undefined}
-                  bold={typeof bold !== 'undefined' ? bold : undefined}
-                  ekle={typeof ekle !== 'undefined' ? ekle : undefined}
-                  ve={typeof ve !== 'undefined' ? ve : undefined}
-                  takip={typeof takip !== 'undefined' ? takip : undefined}
-                  et={typeof et !== 'undefined' ? et : undefined}
-                  shrink={typeof shrink !== 'undefined' ? shrink : undefined}
-                  customers={typeof customers !== 'undefined' ? customers : undefined}
-                  fff3ef={typeof fff3ef !== 'undefined' ? fff3ef : undefined}
-                  customerPageItems={typeof customerPageItems !== 'undefined' ? customerPageItems : undefined}
-                  Liste={typeof Liste !== 'undefined' ? Liste : undefined}
-                  grid={typeof grid !== 'undefined' ? grid : undefined}
-                  space={typeof space !== 'undefined' ? space : undefined}
-                  createCustomerFromCenter={typeof createCustomerFromCenter !== 'undefined' ? createCustomerFromCenter : undefined}
-                  mb={typeof mb !== 'undefined' ? mb : undefined}
-                  Yeni={typeof Yeni !== 'undefined' ? Yeni : undefined}
-                  none={typeof none !== 'undefined' ? none : undefined}
-                  currentColor={typeof currentColor !== 'undefined' ? currentColor : undefined}
-                  round={typeof round !== 'undefined' ? round : undefined}
-                  M12={typeof M12 !== 'undefined' ? M12 : undefined}
-                  customerDraft={typeof customerDraft !== 'undefined' ? customerDraft : undefined}
-                  setCustomerDraft={typeof setCustomerDraft !== 'undefined' ? setCustomerDraft : undefined}
-                  outline={typeof outline !== 'undefined' ? outline : undefined}
-                  Yetkili={typeof Yetkili !== 'undefined' ? Yetkili : undefined}
-                  Telefon={typeof Telefon !== 'undefined' ? Telefon : undefined}
-                  normalizeCredentialText={typeof normalizeCredentialText !== 'undefined' ? normalizeCredentialText : undefined}
-                  orange={typeof orange !== 'undefined' ? orange : undefined}
-                  leading={typeof leading !== 'undefined' ? leading : undefined}
-                  girersen={typeof girersen !== 'undefined' ? girersen : undefined}
-                  bu={typeof bu !== 'undefined' ? bu : undefined}
-                  da={typeof da !== 'undefined' ? da : undefined}
-                  Not={typeof Not !== 'undefined' ? Not : undefined}
-                  resize={typeof resize !== 'undefined' ? resize : undefined}
-                  submit={typeof submit !== 'undefined' ? submit : undefined}
-                  e03000={typeof e03000 !== 'undefined' ? e03000 : undefined}
-                  scale={typeof scale !== 'undefined' ? scale : undefined}
-                  transition={typeof transition !== 'undefined' ? transition : undefined}
-                  all={typeof all !== 'undefined' ? all : undefined}
-                  Ekle={typeof Ekle !== 'undefined' ? Ekle : undefined}
-                  selectedCustomer={typeof selectedCustomer !== 'undefined' ? selectedCustomer : undefined}
-                  copyCredentialTextForCustomer={typeof copyCredentialTextForCustomer !== 'undefined' ? copyCredentialTextForCustomer : undefined}
-                  Bilgisi={typeof Bilgisi !== 'undefined' ? Bilgisi : undefined}
-                  createAvatarFromName={typeof createAvatarFromName !== 'undefined' ? createAvatarFromName : undefined}
-                  min={typeof min !== 'undefined' ? min : undefined}
-                  truncate={typeof truncate !== 'undefined' ? truncate : undefined}
-                  yok={typeof yok !== 'undefined' ? yok : undefined}
-                  blue={typeof blue !== 'undefined' ? blue : undefined}
-                  emerald={typeof emerald !== 'undefined' ? emerald : undefined}
-                  Biten={typeof Biten !== 'undefined' ? Biten : undefined}
-                  hidden={typeof hidden !== 'undefined' ? hidden : undefined}
-                  b={typeof b !== 'undefined' ? b : undefined}
-                  Listesi={typeof Listesi !== 'undefined' ? Listesi : undefined}
-                  veya={typeof veya !== 'undefined' ? veya : undefined}
-                  sil={typeof sil !== 'undefined' ? sil : undefined}
-                  calc={typeof calc !== 'undefined' ? calc : undefined}
-                  pendingCustomerDeleteId={typeof pendingCustomerDeleteId !== 'undefined' ? pendingCustomerDeleteId : undefined}
-                  task={typeof task !== 'undefined' ? task : undefined}
-                  setSelectedCustomerId={typeof setSelectedCustomerId !== 'undefined' ? setSelectedCustomerId : undefined}
-                  cursor={typeof cursor !== 'undefined' ? cursor : undefined}
-                  pointer={typeof pointer !== 'undefined' ? pointer : undefined}
-                  transparent={typeof transparent !== 'undefined' ? transparent : undefined}
-                  red={typeof red !== 'undefined' ? red : undefined}
-                  geciken={typeof geciken !== 'undefined' ? geciken : undefined}
-                  transform={typeof transform !== 'undefined' ? transform : undefined}
-                  rotate={typeof rotate !== 'undefined' ? rotate : undefined}
-                  M9={typeof M9 !== 'undefined' ? M9 : undefined}
-                  t={typeof t !== 'undefined' ? t : undefined}
-                  getCustomerLinkedAccount={typeof getCustomerLinkedAccount !== 'undefined' ? getCustomerLinkedAccount : undefined}
-                  Otomatik={typeof Otomatik !== 'undefined' ? Otomatik : undefined}
-                  openCustomerEditModal={typeof openCustomerEditModal !== 'undefined' ? openCustomerEditModal : undefined}
-                  deleteCustomerFromCenter={typeof deleteCustomerFromCenter !== 'undefined' ? deleteCustomerFromCenter : undefined}
-                  Tekrar={typeof Tekrar !== 'undefined' ? Tekrar : undefined}
-                  Sil={typeof Sil !== 'undefined' ? Sil : undefined}
-                  dashed={typeof dashed !== 'undefined' ? dashed : undefined}
-                  col={typeof col !== 'undefined' ? col : undefined}
-                  Sol={typeof Sol !== 'undefined' ? Sol : undefined}
-                  taraftaki={typeof taraftaki !== 'undefined' ? taraftaki : undefined}
-                  formdan={typeof formdan !== 'undefined' ? formdan : undefined}
+                  activeTab={activeTab}
+                  activeContentMenu={activeContentMenu}
+                  showCustomerManagementPage={showCustomerManagementPage}
+                  customers={customers}
+                  customerPageItems={customerPageItems}
+                  createCustomerFromCenter={createCustomerFromCenter}
+                  customerDraft={customerDraft}
+                  setCustomerDraft={setCustomerDraft}
+                  normalizeCredentialText={normalizeCredentialText}
+                  selectedCustomer={selectedCustomer}
+                  copyCredentialTextForCustomer={copyCredentialTextForCustomer}
+                  createAvatarFromName={createAvatarFromName}
+                  pendingCustomerDeleteId={pendingCustomerDeleteId}
+                  setSelectedCustomerId={setSelectedCustomerId}
+                  getCustomerLinkedAccount={getCustomerLinkedAccount}
+                  openCustomerEditModal={openCustomerEditModal}
+                  deleteCustomerFromCenter={deleteCustomerFromCenter}
                 />
 
                 <ZRCAppShellProjectSettingsControlsBlock
