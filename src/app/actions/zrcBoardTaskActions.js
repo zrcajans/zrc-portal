@@ -88,13 +88,68 @@ export function createZRCBoardTaskActions(deps) {
     const targetIndex = index + direction;
     if (targetIndex < 0 || targetIndex >= boardColumns.length) return;
 
-    setBoardColumns((prev) => {
-      const updated = [...prev];
-      const temp = updated[index];
-      updated[index] = updated[targetIndex];
-      updated[targetIndex] = temp;
-      return updated;
-    });
+    const nextColumns = [...boardColumns];
+    [nextColumns[index], nextColumns[targetIndex]] = [nextColumns[targetIndex], nextColumns[index]];
+
+    setBoardColumns(nextColumns);
+
+    const persistColumnOrderToSupabase = async () => {
+      const workspaceId =
+        typeof getCurrentSupabaseWorkspaceId === 'function'
+          ? getCurrentSupabaseWorkspaceId()
+          : null;
+
+      if (!workspaceId || !selectedProject || !supabase) return;
+
+      const isUuid = (value = '') =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || '').trim());
+
+      try {
+        if (typeof zrcSetSupabaseWriteInfo === 'function') {
+          zrcSetSupabaseWriteInfo('saving', 'Supabase kolon sırası kaydediliyor');
+        }
+
+        const projectId =
+          typeof ensureSupabaseProject === 'function'
+            ? await ensureSupabaseProject(selectedProject)
+            : null;
+
+        if (!projectId) return;
+
+        for (const [position, column] of nextColumns.entries()) {
+          const columnTitle = normalizeColumnTitleForDisplay(column?.title || 'Yeni Görev');
+          const columnId = String(column?.id || '').trim();
+
+          let query = supabase
+            .from('board_columns')
+            .update({ position })
+            .eq('workspace_id', workspaceId)
+            .eq('project_id', projectId);
+
+          if (isUuid(columnId)) {
+            query = query.eq('id', columnId);
+          } else {
+            query = query.eq('title', columnTitle);
+          }
+
+          const { error } = await query;
+
+          if (error) throw error;
+        }
+
+        if (typeof zrcSetSupabaseWriteInfo === 'function') {
+          zrcSetSupabaseWriteInfo('saved', 'Supabase kolon sırası kaydedildi');
+        }
+      } catch (error) {
+        console.warn('Kolon sırası Supabase kaydı başarısız:', error);
+
+        if (typeof zrcSetSupabaseWriteInfo === 'function') {
+          zrcSetSupabaseWriteInfo('error', `Supabase kolon sırası kaydedilemedi: ${error?.message || 'bilinmeyen hata'}`);
+        }
+      }
+    };
+
+    persistColumnOrderToSupabase();
   };
 
   const handleSaveStage = async (updatedColumn) => {
