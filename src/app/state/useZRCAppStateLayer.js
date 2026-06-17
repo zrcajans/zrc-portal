@@ -29,10 +29,121 @@ import {
 // v535: ZRCAppShell içinden ayrılan state katmanı.
 // Amaç: Shell dosyasını küçültmek, hook sırasını bozmadan state sorumluluğunu ayırmak.
 
+
+const ZRC_MAIN_ACCOUNT_UID = 'a7b13472-0efa-4dac-965f-5937c58b8794';
+const ZRC_MAIN_ACCOUNT_EMAIL = 'info@zrcajans.com';
+const ZRC_MAIN_ACCOUNT_NAME = 'ZRC AJANS';
+
+function zrcCleanText(value) {
+  return String(value ?? '').trim().toLowerCase();
+}
+
+function zrcTeamMemberDedupKey(member) {
+  if (!member || typeof member !== 'object') return null;
+
+  const joined = [
+    member.id,
+    member.user_id,
+    member.userId,
+    member.auth_user_id,
+    member.authUserId,
+    member.profile_id,
+    member.profileId,
+    member.email,
+    member.username,
+    member.accountUsername,
+    member.name,
+    member.full_name,
+    member.fullName,
+    member.display_name,
+    member.displayName
+  ].map(zrcCleanText).filter(Boolean).join(' | ');
+
+  if (!joined) return null;
+
+  if (joined.includes('zrc babaa')) return 'main:zrc-ajans';
+  if (joined.includes(ZRC_MAIN_ACCOUNT_UID)) return 'main:zrc-ajans';
+  if (joined.includes(ZRC_MAIN_ACCOUNT_EMAIL)) return 'main:zrc-ajans';
+  if (joined.includes('zrc ajans')) return 'main:zrc-ajans';
+
+  const email = zrcCleanText(member.email || member.username || member.accountUsername);
+  if (email && email.includes('@')) return `email:${email}`;
+
+  const userId = zrcCleanText(member.user_id || member.userId || member.auth_user_id || member.authUserId || member.profile_id || member.profileId);
+  if (userId) return `user:${userId}`;
+
+  const id = zrcCleanText(member.id);
+  if (id) return `id:${id}`;
+
+  const nameRole = [member.name, member.full_name, member.fullName, member.display_name, member.displayName, member.role]
+    .map(zrcCleanText)
+    .filter(Boolean)
+    .join('|');
+
+  return nameRole ? `name:${nameRole}` : null;
+}
+
+function zrcNormalizeMainTeamMember(member = {}) {
+  return {
+    ...member,
+    id: ZRC_MAIN_ACCOUNT_UID,
+    user_id: member.user_id || member.userId || ZRC_MAIN_ACCOUNT_UID,
+    userId: member.userId || member.user_id || ZRC_MAIN_ACCOUNT_UID,
+    email: member.email || ZRC_MAIN_ACCOUNT_EMAIL,
+    username: ZRC_MAIN_ACCOUNT_EMAIL,
+    accountUsername: ZRC_MAIN_ACCOUNT_EMAIL,
+    name: ZRC_MAIN_ACCOUNT_NAME,
+    full_name: ZRC_MAIN_ACCOUNT_NAME,
+    fullName: ZRC_MAIN_ACCOUNT_NAME,
+    display_name: ZRC_MAIN_ACCOUNT_NAME,
+    displayName: ZRC_MAIN_ACCOUNT_NAME,
+    role: 'Yönetici',
+    status: 'Aktif'
+  };
+}
+
+function zrcMergeTeamMember(prev, next) {
+  const merged = { ...prev, ...next };
+
+  if (zrcCleanText(prev?.status) === 'aktif' || zrcCleanText(next?.status) === 'aktif') {
+    merged.status = 'Aktif';
+  }
+
+  if (zrcCleanText(prev?.role).includes('yönetici') || zrcCleanText(next?.role).includes('yönetici')) {
+    merged.role = 'Yönetici';
+  }
+
+  return merged;
+}
+
+function zrcDedupeTeamMembers(list) {
+  if (!Array.isArray(list)) return [];
+
+  const map = new Map();
+
+  for (const rawMember of list) {
+    const key = zrcTeamMemberDedupKey(rawMember);
+    if (!key) continue;
+
+    const member = key === 'main:zrc-ajans'
+      ? zrcNormalizeMainTeamMember(rawMember)
+      : rawMember;
+
+    if (!map.has(key)) {
+      map.set(key, member);
+    } else {
+      map.set(key, zrcMergeTeamMember(map.get(key), member));
+    }
+  }
+
+  return Array.from(map.values());
+}
+
+
 export function useZRCAppCoreState() {
   const [projects, setProjects] = useState(() => ['Çalışma']);
 
-  const [teamMembers, setTeamMembers] = useState(() => {
+  const [teamMembers, setTeamMembersRaw] = useState(() => {
     const parsedMembers = readStorageValue('teamMembers', null);
     const initialMembers = Array.isArray(parsedMembers) && parsedMembers.length > 0 ? parsedMembers : createDefaultTeamMembers();
 
@@ -40,6 +151,14 @@ export function useZRCAppCoreState() {
       .map(normalizeTeamMember)
       .filter((member) => !isLegacyDemoTeamMemberRecord(member));
   });
+
+  const setTeamMembers = (value) => {
+    setTeamMembersRaw((prevMembers) => {
+      const nextMembers = typeof value === 'function' ? value(prevMembers) : value;
+      return zrcDedupeTeamMembers(nextMembers);
+    });
+  };
+
 
   const [currentUserId, setCurrentUserId] = useState(() => readStorageValue('currentUserId', '') || '');
   const [supabaseAuthUserId, setSupabaseAuthUserId] = useState('');
