@@ -1055,3 +1055,33 @@ body {
   }
 }
 /* === ZRC MOBILE COLUMN CAPSULE DYNAMIC GLASS END === */
+
+/* === ZRC MOBILE CAPSULE INSTAGRAM ACTIVE START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-column-capsule-item.is-active {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 245, 245, 0.78)) !important;
+    color: #202020 !important;
+    box-shadow:
+      0 10px 24px rgba(15, 23, 42, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.80),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.62) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-title {
+    color: #202020 !important;
+    font-weight: 950 !important;
+  }
+
+  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-count {
+    background: rgba(0, 0, 0, 0.08) !important;
+    color: #202020 !important;
+  }
+
+  body .zrc-mobile-column-capsule-item.is-active:active {
+    transform: scale(0.97) translateY(0) !important;
+  }
+}
+/* === ZRC MOBILE CAPSULE INSTAGRAM ACTIVE END === */
