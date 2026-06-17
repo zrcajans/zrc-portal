@@ -3062,7 +3062,7 @@ function App() {
   };
 
   const saveUserPreferencesToSupabase = async (preferencesPatch = {}) => {
-    if (!isSupabaseConfigured) return false;
+    if (!supabase || !supabaseWorkspaceId) return false;
 
     const workspaceId = getCurrentSupabaseWorkspaceId();
     const cleanUserId = String(currentUserId || '').trim();
