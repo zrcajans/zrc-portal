@@ -629,3 +629,54 @@ body {
   }
 }
 /* === ZRC CLEAN TEAM CUSTOMER PANEL END === */
+
+
+/* === ZRC MOBILE PROJECT PICKER SOFT DESIGN START === */
+@media (max-width: 768px) {
+  .zrc-mobile-project-picker-soft-v2 {
+    min-height: 104px !important;
+    height: auto !important;
+    padding: 18px 20px 22px !important;
+    border-radius: 24px !important;
+    background: #eef1f5 !important;
+    color: #334155 !important;
+    border: 1px solid rgba(255, 255, 255, 0.86) !important;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .zrc-mobile-project-picker-soft-v2 small {
+    color: #6b7280 !important;
+    font-size: 13px !important;
+    line-height: 1.1 !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .zrc-mobile-project-picker-soft-v2 strong {
+    color: #1f2937 !important;
+    font-size: 21px !important;
+    line-height: 1.08 !important;
+    font-weight: 950 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  .zrc-mobile-project-picker-soft-v2 > span,
+  .zrc-mobile-project-picker-soft-v2 .zrc-mobile-project-picker-arrow,
+  .zrc-mobile-project-picker-soft-v2 .zrc-mobile-project-arrow {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    border-radius: 999px !important;
+    background: #ffffff !important;
+    color: #374151 !important;
+    border: 1px solid rgba(203, 213, 225, 0.9) !important;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.10) !important;
+  }
+
+  .zrc-mobile-project-picker-soft-v2 svg {
+    color: #374151 !important;
+    stroke: currentColor !important;
+  }
+}
+/* === ZRC MOBILE PROJECT PICKER SOFT DESIGN END === */

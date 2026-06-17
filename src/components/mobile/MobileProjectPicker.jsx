@@ -16,7 +16,7 @@ export default function MobileProjectPicker({
     <div className="zrc-mobile-project-picker">
       <button
         type="button"
-        className="zrc-mobile-project-picker-btn"
+        className="zrc-mobile-project-picker-btn zrc-mobile-project-picker-soft-v2"
         onClick={() => setIsOpen((prev) => !prev)}
       >
         <div>
