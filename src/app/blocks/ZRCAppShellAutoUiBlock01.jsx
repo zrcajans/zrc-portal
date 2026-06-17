@@ -72,7 +72,7 @@ export default function ZRCAppShellAutoUiBlock01({
                       </div>
                     </div>
       
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={loadActivityLogsFromSupabase}
@@ -85,9 +85,9 @@ export default function ZRCAppShellAutoUiBlock01({
                         <button
                           type="button"
                           onClick={markAllNotificationsAsRead}
-                          className="h-6 px-2.5 rounded-full bg-zinc-900 border border-zinc-900 text-[9px] font-black text-white hover:bg-zinc-700 transition-all"
+                          className="h-6 px-2 rounded-full bg-zinc-100 border border-transparent text-[9px] font-black text-zinc-500 hover:bg-zinc-900 hover:text-white transition-all"
                         >
-                          Tümünü okundu yap
+                          Temizle
                         </button>
                       )}
                     </div>
