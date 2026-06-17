@@ -9130,7 +9130,7 @@ const filterTaskFollowersForSave = (people = []) =>
         await loadActivityLogsFromSupabase();
         setZrcMobileColumnRefreshKey((value) => value + 1);
       } catch (error) {
-        console.warn(`[ZRC v462] ${reason} başarısız.`, error);
+        console.warn(`[] ${reason} başarısız.`, error);
       } finally {
         isRefreshing = false;
       }

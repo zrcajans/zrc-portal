@@ -2328,7 +2328,7 @@
   }
 }
 
-/* ZRC v467 - Mobil görev kartı gerçek görevli avatarları */
+/*  - Mobil görev kartı gerçek görevli avatarları */
 @media (max-width: 768px) {
   .zrc-mobile-task-assignees {
     display: flex;

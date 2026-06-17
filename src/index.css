@@ -1009,3 +1009,21 @@ body {
   }
 }
 /* === ZRC MOBILE COLUMN CAPSULE SLIM NARROW END === */
+
+/* === ZRC HIDE VERSION BADGES START === */
+.zrc-version-badge,
+.zrc-build-badge,
+.zrc-debug-badge,
+.zrc-mobile-version-badge,
+.zrc-floating-version-badge,
+[class*="zrc-version-badge"],
+[class*="zrc-build-badge"],
+[class*="zrc-debug-badge"],
+[class*="zrc-mobile-version-badge"],
+[class*="zrc-floating-version-badge"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+/* === ZRC HIDE VERSION BADGES END === */
