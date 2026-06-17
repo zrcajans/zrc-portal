@@ -1701,4 +1701,57 @@ body {
 }
 /* === ZRC DESKTOP SHADOW DESIGN LANGUAGE END === */
 
+/* === ZRC MOBILE MOVE MENU FLIP SCROLL START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-task-card {
+    overflow: visible !important;
+  }
 
+  body .zrc-mobile-task-column-dropdown {
+    z-index: 240 !important;
+  }
+
+  body .zrc-mobile-task-column-dropdown.is-open {
+    z-index: 2147482000 !important;
+  }
+
+  body .zrc-mobile-task-column-menu {
+    max-height: min(44vh, 238px) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  body .zrc-mobile-task-column-dropdown.is-down .zrc-mobile-task-column-menu {
+    top: 36px !important;
+    bottom: auto !important;
+  }
+
+  body .zrc-mobile-task-column-dropdown.is-up .zrc-mobile-task-column-menu {
+    top: auto !important;
+    bottom: 38px !important;
+  }
+
+  body .zrc-mobile-task-column-menu-list {
+    max-height: min(37vh, 198px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 1px !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: none !important;
+  }
+
+  body .zrc-mobile-task-column-menu-list::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  body .zrc-mobile-column-capsule {
+    z-index: 900 !important;
+  }
+
+  body .zrc-mobile-task-column-menu {
+    z-index: 2147482100 !important;
+  }
+}
+/* === ZRC MOBILE MOVE MENU FLIP SCROLL END === */

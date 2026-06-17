@@ -12,10 +12,28 @@ export default function MobileTaskCard({
   onMobileTaskMoveToast
 }) {
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const [columnMenuPlacement, setColumnMenuPlacement] = useState('down');
   const columnDropdownRef = useRef(null);
+  const moveButtonRef = useRef(null);
+
+  const updateColumnMenuPlacement = () => {
+    if (!moveButtonRef.current || typeof window === 'undefined') {
+      setColumnMenuPlacement('down');
+      return;
+    }
+
+    const rect = moveButtonRef.current.getBoundingClientRect();
+    const bottomSafeSpace = 190;
+    const neededMenuHeight = 230;
+    const availableBelow = window.innerHeight - rect.bottom - bottomSafeSpace;
+
+    setColumnMenuPlacement(availableBelow < neededMenuHeight ? 'up' : 'down');
+  };
 
   useEffect(() => {
     if (!isColumnMenuOpen) return undefined;
+
+    updateColumnMenuPlacement();
 
     const closeOnOutsideTap = (event) => {
       if (!columnDropdownRef.current) return;
@@ -31,12 +49,20 @@ export default function MobileTaskCard({
       }
     };
 
+    const updateOnScrollOrResize = () => {
+      updateColumnMenuPlacement();
+    };
+
     document.addEventListener('pointerdown', closeOnOutsideTap);
     document.addEventListener('keydown', closeOnEscape);
+    window.addEventListener('resize', updateOnScrollOrResize);
+    window.addEventListener('scroll', updateOnScrollOrResize, true);
 
     return () => {
       document.removeEventListener('pointerdown', closeOnOutsideTap);
       document.removeEventListener('keydown', closeOnEscape);
+      window.removeEventListener('resize', updateOnScrollOrResize);
+      window.removeEventListener('scroll', updateOnScrollOrResize, true);
     };
   }, [isColumnMenuOpen]);
 
@@ -67,6 +93,7 @@ export default function MobileTaskCard({
     if (typeof moveMobileTaskToActiveColumn === 'function') {
       await moveMobileTaskToActiveColumn(task, targetColumn.id);
     }
+
     setIsColumnMenuOpen(false);
 
     if (typeof onMobileTaskMoveToast === 'function') {
@@ -119,13 +146,19 @@ export default function MobileTaskCard({
       {columnOptions.length > 0 && (
         <div
           ref={columnDropdownRef}
-          className={`zrc-mobile-task-action-row zrc-mobile-task-column-dropdown ${isColumnMenuOpen ? 'is-open' : ''}`}
+          className={`zrc-mobile-task-action-row zrc-mobile-task-column-dropdown ${isColumnMenuOpen ? 'is-open' : ''} is-${columnMenuPlacement}`}
         >
           <button
+            ref={moveButtonRef}
             type="button"
             className="zrc-mobile-task-move-btn"
             onClick={(event) => {
               event.stopPropagation();
+
+              if (!isColumnMenuOpen) {
+                window.requestAnimationFrame(updateColumnMenuPlacement);
+              }
+
               setIsColumnMenuOpen((prev) => !prev);
             }}
           >
