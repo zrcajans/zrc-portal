@@ -4043,7 +4043,7 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
-  const readSupabaseTableForBackup = async (tableName, mode = 'workspace') => {
+  async function readSupabaseTableForBackup(tableName, mode = 'workspace') {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (mode === 'workspace' && !workspaceId) {
@@ -4065,7 +4065,7 @@ function App() {
     }
 
     return query;
-  };
+  }
 
 
 
