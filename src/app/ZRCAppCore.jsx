@@ -5464,21 +5464,31 @@ function App() {
   const visibleProjectNames = projects.filter((projectName) => isProjectVisibleForCurrentUser(projectName));
 
 
-  const moveMobileTaskToActiveColumn = async (taskToMove = {}) => {
+  const moveMobileTaskToActiveColumn = async (taskToMove = {}, targetColumnId = '') => {
     const activeProjectName = selectedProject;
 
     if (!activeProjectName || !taskToMove?.id) return;
 
-    const activeColumn = (boardColumns || []).find(
-      (column) => normalizeColumnTitleForDisplay(column.title) === 'Aktif'
-    );
+    const normalizedTargetColumnId = String(targetColumnId || '').trim();
+    const normalizedTargetColumnTitle = normalizeColumnTitleForDisplay(normalizedTargetColumnId);
 
-    if (!activeColumn) {
-      await window.zrcAlert('Aktif kolonu bulunamadı.');
+    const targetColumn = (boardColumns || []).find((column) => {
+      const columnId = String(column?.id || '').trim();
+      const columnTitle = normalizeColumnTitleForDisplay(column?.title || '');
+
+      return (
+        (normalizedTargetColumnId && columnId === normalizedTargetColumnId) ||
+        (normalizedTargetColumnId && columnTitle === normalizedTargetColumnTitle) ||
+        (!normalizedTargetColumnId && columnTitle === 'Aktif')
+      );
+    });
+
+    if (!targetColumn) {
+      await window.zrcAlert(normalizedTargetColumnId ? 'Hedef kolon bulunamadı.' : 'Aktif kolonu bulunamadı.');
       return;
     }
 
-    const targetStatus = activeColumn.title || 'Aktif';
+    const targetStatus = targetColumn.title || 'Aktif';
     const rawTaskId = String(taskToMove.id || '').trim();
     const taskSupabaseId = String(
       taskToMove.supabaseId ||
@@ -5493,7 +5503,9 @@ function App() {
       projectName: activeProjectName,
       project: activeProjectName,
       status: targetStatus,
+      columnId: targetColumn.id,
       columnTitle: targetStatus,
+      columnColor: targetColumn.color,
       updatedAt: new Date().toISOString()
     };
 
@@ -5519,8 +5531,9 @@ function App() {
         tasks: (column.tasks || []).filter((task) => !isSameTask(task, movedTask))
       }));
 
-      const targetIndex = nextColumns.findIndex(
-        (column) => normalizeColumnTitleForDisplay(column.title) === 'Aktif'
+      const targetIndex = nextColumns.findIndex((column) =>
+        String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
+        normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
       );
 
       if (targetIndex < 0) return prevBoards;
@@ -5546,14 +5559,17 @@ function App() {
         const projectId = await ensureSupabaseProject(activeProjectName);
         const targetColumnIndex = Math.max(
           0,
-          (boardColumns || []).findIndex((column) => normalizeColumnTitleForDisplay(column.title) === 'Aktif')
+          (boardColumns || []).findIndex((column) =>
+            String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
+            normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
+          )
         );
-        const activeColumnId = await ensureSupabaseColumn(projectId, activeColumn, targetColumnIndex);
+        const targetSupabaseColumnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
 
         const { error } = await supabase
           .from('tasks')
           .update({
-            column_id: activeColumnId,
+            column_id: targetSupabaseColumnId,
             status: targetStatus,
             updated_at: new Date().toISOString()
           })

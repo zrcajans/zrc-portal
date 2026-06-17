@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function MobileTaskCard({
   task,
@@ -6,14 +6,44 @@ export default function MobileTaskCard({
   renderProfileAvatar,
   createAvatarFromName,
   getMobileTaskCardAssignees,
-  moveMobileTaskToActiveColumn
+  moveMobileTaskToActiveColumn,
+  allBoardColumns,
+  setMobileActiveColumnId
 }) {
+  const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+
+  const normalizeTitle =
+    typeof normalizeColumnTitleForDisplay === 'function'
+      ? normalizeColumnTitleForDisplay
+      : (value) => value || '';
+
   const columnTitle = task.columnTitle || task.status || '';
+  const currentColumnId = String(task.columnId || '').trim();
   const taskTitle = task.title || 'Adsız görev';
   const assignees =
     typeof getMobileTaskCardAssignees === 'function'
       ? getMobileTaskCardAssignees(task)
       : [];
+
+  const columnOptions = (Array.isArray(allBoardColumns) ? allBoardColumns : [])
+    .filter((column) => column && column.id)
+    .filter((column) => String(column.id || '').trim() !== currentColumnId);
+
+  const handleMoveToColumn = async (event, targetColumn) => {
+    event.stopPropagation();
+
+    if (!targetColumn?.id) return;
+
+    if (typeof moveMobileTaskToActiveColumn === 'function') {
+      await moveMobileTaskToActiveColumn(task, targetColumn.id);
+    }
+
+    if (typeof setMobileActiveColumnId === 'function') {
+      setMobileActiveColumnId(targetColumn.id);
+    }
+
+    setIsColumnMenuOpen(false);
+  };
 
   return (
     <div className="zrc-mobile-task-card">
@@ -57,21 +87,55 @@ export default function MobileTaskCard({
         </div>
       )}
 
-      {normalizeColumnTitleForDisplay(columnTitle) !== 'Aktif' && (
-        <div className="zrc-mobile-task-action-row">
+      {columnOptions.length > 0 && (
+        <div className={`zrc-mobile-task-action-row zrc-mobile-task-column-dropdown ${isColumnMenuOpen ? 'is-open' : ''}`}>
           <button
             type="button"
-            className="zrc-mobile-task-active-btn"
+            className="zrc-mobile-task-move-btn"
             onClick={(event) => {
               event.stopPropagation();
-
-              if (typeof moveMobileTaskToActiveColumn === 'function') {
-                moveMobileTaskToActiveColumn(task);
-              }
+              setIsColumnMenuOpen((prev) => !prev);
             }}
           >
-            Aktife Al
+            <span>Taşı</span>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d={isColumnMenuOpen ? 'M6 14l6-6 6 6' : 'M6 10l6 6 6-6'}
+                stroke="currentColor"
+                strokeWidth="3.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
+
+          {isColumnMenuOpen && (
+            <div className="zrc-mobile-task-column-menu" onClick={(event) => event.stopPropagation()}>
+              <small>Kolona aktar</small>
+
+              <div className="zrc-mobile-task-column-menu-list">
+                {columnOptions.map((column) => {
+                  const title = normalizeTitle(column.title || 'Kolon');
+                  const taskCount = Array.isArray(column.tasks) ? column.tasks.length : 0;
+
+                  return (
+                    <button
+                      key={column.id}
+                      type="button"
+                      className="zrc-mobile-task-column-menu-item"
+                      onClick={(event) => handleMoveToColumn(event, column)}
+                    >
+                      <span>
+                        <i style={{ backgroundColor: column.color || '#94a3b8' }} />
+                        {title}
+                      </span>
+                      <em>{taskCount}</em>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

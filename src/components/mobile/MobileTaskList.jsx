@@ -11,10 +11,14 @@ export default function MobileTaskList({
   moveMobileTaskToActiveColumn,
   setMobileActiveColumnId
 }) {
-  const mobileTasks = boardColumns
+  const safeBoardColumns = Array.isArray(boardColumns) ? boardColumns : [];
+  const safeAllBoardColumns = Array.isArray(allBoardColumns) ? allBoardColumns : safeBoardColumns;
+
+  const mobileTasks = safeBoardColumns
     .flatMap((column) =>
       (column.tasks || []).map((task) => ({
         ...task,
+        columnId: column.id,
         columnTitle: column.title,
         columnColor: column.color
       }))
@@ -36,6 +40,8 @@ export default function MobileTaskList({
             createAvatarFromName={createAvatarFromName}
             getMobileTaskCardAssignees={getMobileTaskCardAssignees}
             moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
+            allBoardColumns={safeAllBoardColumns}
+            setMobileActiveColumnId={setMobileActiveColumnId}
           />
         ))
       )}
