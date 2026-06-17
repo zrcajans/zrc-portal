@@ -51,6 +51,89 @@ export function createZRCTeamCustomerActions(deps) {
     selectedCustomerId
   } = deps;
 
+
+  // zrc-db-delete-team-member-from-supabase
+  const deleteTeamMemberFromSupabase = async (member = {}) => {
+    const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
+      ? getCurrentSupabaseWorkspaceId()
+      : '';
+
+    if (!workspaceId || !supabase || !member) return false;
+
+    const normalizeValue = (value) => String(value || '').trim();
+
+    const possibleUserIds = [
+      member.userId,
+      member.user_id,
+      member.authUserId,
+      member.auth_user_id,
+      member.supabaseUserId,
+      member.supabase_user_id,
+      member.profileId,
+      member.profile_id,
+      member.id
+    ]
+      .map(normalizeValue)
+      .filter(Boolean)
+      .filter((value, index, arr) => arr.indexOf(value) === index)
+      .filter((value) => typeof isSupabaseUuid === 'function' ? isSupabaseUuid(value) : /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
+
+    const username = typeof normalizeCredentialText === 'function'
+      ? normalizeCredentialText(member.username || (typeof createUsernameFromMember === 'function' ? createUsernameFromMember(member) : member.name))
+      : normalizeValue(member.username || member.name).toLowerCase();
+
+    const email = normalizeValue(member.email).toLowerCase();
+
+    try {
+      let attempted = false;
+
+      for (const userId of possibleUserIds) {
+        attempted = true;
+        const { error } = await supabase
+          .from('workspace_members')
+          .delete()
+          .eq('workspace_id', workspaceId)
+          .eq('user_id', userId);
+
+        if (error) throw error;
+      }
+
+      if (username) {
+        attempted = true;
+        const { error } = await supabase
+          .from('workspace_members')
+          .delete()
+          .eq('workspace_id', workspaceId)
+          .eq('username', username);
+
+        if (error) throw error;
+      }
+
+      if (email) {
+        attempted = true;
+        const { error } = await supabase
+          .from('workspace_members')
+          .delete()
+          .eq('workspace_id', workspaceId)
+          .eq('username', email);
+
+        if (error) throw error;
+      }
+
+      if (attempted && typeof zrcSetSupabaseWriteInfo === 'function') {
+        zrcSetSupabaseWriteInfo('saved', 'Ekip/müşteri hesabı Supabase veritabanından silindi.');
+      }
+
+      return attempted;
+    } catch (error) {
+      if (typeof zrcSetSupabaseWriteInfo === 'function') {
+        zrcSetSupabaseWriteInfo('error', `Ekip/müşteri veritabanı silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      }
+
+      throw error;
+    }
+  };
+
   const createTeamMemberFromCenter = async (event) => {
     event.preventDefault();
 
@@ -204,7 +287,7 @@ export function createZRCTeamCustomerActions(deps) {
     setPendingTeamDeleteId(null);
   };
 
-  const deleteTeamMemberFromCenter = (memberId) => {
+  const deleteTeamMemberFromCenter = async (memberId) => {
     if (!requirePermission('manageTeam', 'Ekip üyesi silme yetkisi sadece Yönetici rolünde var.')) return;
 
     const targetMember = teamMembers.find((member) => member.id === memberId);
@@ -216,6 +299,15 @@ export function createZRCTeamCustomerActions(deps) {
     if (pendingTeamDeleteId !== memberId) {
       setPendingTeamDeleteId(memberId);
       return;
+    }
+
+    if (targetMember) {
+      try {
+        await deleteTeamMemberFromSupabase(targetMember);
+      } catch (error) {
+        alert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        return;
+      }
     }
 
     setTeamMembers((prevMembers) => prevMembers.filter((member) => member.id !== memberId));
@@ -796,7 +888,7 @@ export function createZRCTeamCustomerActions(deps) {
     closeCustomerEditModal();
   };
 
-  const deleteCustomerFromCenter = (customerId) => {
+  const deleteCustomerFromCenter = async (customerId) => {
     if (!requirePermission('manageCustomers', 'Müşteri silme yetkisi sadece Yönetici rolünde var.')) return;
 
     if (pendingCustomerDeleteId !== customerId) {
@@ -808,17 +900,54 @@ export function createZRCTeamCustomerActions(deps) {
 
     if (deletedCustomer) {
       rememberDeletedCustomer(deletedCustomer);
-      deleteCustomerFromSupabase(deletedCustomer);
+
+      try {
+        if (typeof deleteCustomerFromSupabase === 'function') {
+          await deleteCustomerFromSupabase(deletedCustomer);
+        }
+      } catch (error) {
+        alert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        return;
+      }
+    }
+
+    const linkedCustomerAccountIds = new Set(
+      teamMembers
+        .filter((member) =>
+          member.customerId === customerId &&
+          normalizeTeamRole(member.role) === 'Müşteri/Misafir'
+        )
+        .map((member) => member.id)
+        .filter(Boolean)
+    );
+
+    if (deletedCustomer?.accountUserId) {
+      linkedCustomerAccountIds.add(deletedCustomer.accountUserId);
+    }
+
+    if (linkedCustomerAccountIds.size > 0) {
+      const linkedCustomerMembers = teamMembers.filter((member) => linkedCustomerAccountIds.has(member.id));
+
+      try {
+        for (const member of linkedCustomerMembers) {
+          await deleteTeamMemberFromSupabase(member);
+        }
+      } catch (error) {
+        alert(`Bağlı müşteri hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        return;
+      }
     }
 
     setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer.id !== customerId));
 
     setTeamMembers((prevMembers) =>
-      prevMembers.map((member) =>
-        member.customerId === customerId || member.id === deletedCustomer?.accountUserId
-          ? { ...member, customerId: '' }
-          : member
-      )
+      prevMembers
+        .filter((member) => !linkedCustomerAccountIds.has(member.id))
+        .map((member) =>
+          member.customerId === customerId
+            ? { ...member, customerId: '' }
+            : member
+        )
     );
 
     setProjectSettings((prevSettings) =>
