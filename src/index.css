@@ -831,3 +831,109 @@ body {
   }
 }
 /* === ZRC CENTER MOBILE PROJECT OPTIONS END === */
+
+/* === ZRC MOBILE COLUMN CAPSULE START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-task-section-with-column-capsule {
+    padding-bottom: 120px !important;
+  }
+
+  body .zrc-mobile-column-capsule {
+    position: fixed !important;
+    left: 50% !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px) !important;
+    transform: translateX(-50%) !important;
+
+    width: min(calc(100vw - 36px), 520px) !important;
+    min-height: 72px !important;
+    padding: 9px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+
+    background: rgba(20, 20, 20, 0.92) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    border-radius: 999px !important;
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.26) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    z-index: 999 !important;
+    scrollbar-width: none !important;
+  }
+
+  body .zrc-mobile-column-capsule::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  body .zrc-mobile-column-capsule-item {
+    min-width: 96px !important;
+    height: 54px !important;
+    padding: 0 14px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+
+    border: 0 !important;
+    outline: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.72) !important;
+
+    font-family: inherit !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+
+    transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease !important;
+  }
+
+  body .zrc-mobile-column-capsule-item:active {
+    transform: scale(0.96) !important;
+  }
+
+  body .zrc-mobile-column-capsule-item.is-active {
+    background: #ff3600 !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(255, 54, 0, 0.30) !important;
+  }
+
+  body .zrc-mobile-column-capsule-title {
+    display: block !important;
+    max-width: 92px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    font-weight: 950 !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  body .zrc-mobile-column-capsule-count {
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 6px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.13) !important;
+
+    font-size: 10px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+  }
+
+  body .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-count {
+    background: rgba(255, 255, 255, 0.22) !important;
+  }
+}
+/* === ZRC MOBILE COLUMN CAPSULE END === */

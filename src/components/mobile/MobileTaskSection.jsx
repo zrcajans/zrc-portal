@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import MobileTaskList from './MobileTaskList';
-import { getMobileProjectLabel, getSafeMobileProjectName } from '../../utils/mobileProjectHelpers';
+import { getSafeMobileProjectName } from '../../utils/mobileProjectHelpers';
 
 export default function MobileTaskSection({
   selectedProject,
@@ -14,8 +14,29 @@ export default function MobileTaskSection({
   setMobileTaskWizardStep,
   setIsMobileTaskWizardOpen
 }) {
-  const projectLabel = getMobileProjectLabel(selectedProject);
   const safeProjectName = getSafeMobileProjectName(selectedProject);
+  const [selectedMobileColumnId, setSelectedMobileColumnId] = useState('');
+
+  const mobileColumns = useMemo(
+    () => (Array.isArray(boardColumns) ? boardColumns : []).filter((column) => column && column.id),
+    [boardColumns]
+  );
+
+  useEffect(() => {
+    if (mobileColumns.length === 0) {
+      if (selectedMobileColumnId) setSelectedMobileColumnId('');
+      return;
+    }
+
+    const hasSelectedColumn = mobileColumns.some((column) => column.id === selectedMobileColumnId);
+
+    if (!selectedMobileColumnId || !hasSelectedColumn) {
+      setSelectedMobileColumnId(mobileColumns[0].id);
+    }
+  }, [mobileColumns, selectedMobileColumnId]);
+
+  const activeMobileColumn = mobileColumns.find((column) => column.id === selectedMobileColumnId) || mobileColumns[0] || null;
+  const visibleMobileColumns = activeMobileColumn ? [activeMobileColumn] : [];
 
   const openTaskWizard = () => {
     setMobileTaskWizardData((prev) => ({
@@ -33,9 +54,8 @@ export default function MobileTaskSection({
   };
 
   return (
-    <div className="zrc-mobile-task-section">
+    <div className="zrc-mobile-task-section zrc-mobile-task-section-with-column-capsule">
       <div className="zrc-mobile-task-section-head">
-
         <button
           type="button"
           className="zrc-mobile-create-task-btn"
@@ -46,13 +66,37 @@ export default function MobileTaskSection({
       </div>
 
       <MobileTaskList
-        boardColumns={boardColumns}
+        boardColumns={visibleMobileColumns}
+        allBoardColumns={mobileColumns}
         normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
         renderProfileAvatar={renderProfileAvatar}
         createAvatarFromName={createAvatarFromName}
         getMobileTaskCardAssignees={getMobileTaskCardAssignees}
         moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
+        setMobileActiveColumnId={setSelectedMobileColumnId}
       />
+
+      {mobileColumns.length > 0 && (
+        <nav className="zrc-mobile-column-capsule" aria-label="Mobil kolon seçimi">
+          {mobileColumns.map((column) => {
+            const isActiveColumn = column.id === activeMobileColumn?.id;
+            const columnTitle = normalizeColumnTitleForDisplay(column.title);
+            const taskCount = Array.isArray(column.tasks) ? column.tasks.length : 0;
+
+            return (
+              <button
+                key={column.id}
+                type="button"
+                className={`zrc-mobile-column-capsule-item ${isActiveColumn ? 'is-active' : ''}`}
+                onClick={() => setSelectedMobileColumnId(column.id)}
+              >
+                <span className="zrc-mobile-column-capsule-title">{columnTitle}</span>
+                <span className="zrc-mobile-column-capsule-count">{taskCount}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }

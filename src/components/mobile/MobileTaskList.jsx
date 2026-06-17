@@ -3,14 +3,15 @@ import MobileTaskCard from './MobileTaskCard';
 
 export default function MobileTaskList({
   boardColumns,
+  allBoardColumns,
   normalizeColumnTitleForDisplay,
   renderProfileAvatar,
   createAvatarFromName,
   getMobileTaskCardAssignees,
-  moveMobileTaskToActiveColumn
+  moveMobileTaskToActiveColumn,
+  setMobileActiveColumnId
 }) {
   const mobileTasks = boardColumns
-    .filter((column) => normalizeColumnTitleForDisplay(column.title) !== 'Aktif')
     .flatMap((column) =>
       (column.tasks || []).map((task) => ({
         ...task,
