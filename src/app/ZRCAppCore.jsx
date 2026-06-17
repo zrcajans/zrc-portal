@@ -152,6 +152,8 @@ import ZRCAppShellActiveContentMenuDigerActiveTabMusterilerShowCustomerManagemen
 import ZRCAppShellIsMessagesOpenSection from './sections/ZRCAppShellIsMessagesOpenSection';
 import ZRCAppHomeDashboardSection from './sections/ZRCAppHomeDashboardSection';
 import ZRCAppMenuCalendarSection from './sections/ZRCAppMenuCalendarSection';
+import ZRCAppMessagesPageSection from './sections/ZRCAppMessagesPageSection';
+import ZRCAppProfilePageSection from './sections/ZRCAppProfilePageSection';
 import { useZRCAppCoreState, useZRCBoardStateLayer, useZRCTaskSelectionState, useZRCModalState } from './state/useZRCAppStateLayer';
 function App() {
 
@@ -12788,530 +12790,55 @@ return (
             todayStart={todayStart}
           />
         ) : activeContentMenu === 'Yazışmalar' ? (
-          <div className="w-full h-full bg-[#f2f3f5] overflow-hidden animate-fade-in">
-            <div className="h-full px-4 pt-3 pb-6">
-              <div className="h-full bg-white border border-[#e4e7ec] rounded-[7px] shadow-[0_10px_30px_rgba(15,23,42,0.06)] overflow-hidden flex">
-                <aside className="w-[255px] border-r border-[#e8ebf0] bg-white flex flex-col">
-                  <div className="h-[52px] px-4 flex items-center justify-between shrink-0">
-                    <div className="text-[15px] font-bold text-current">Mesajlar</div>
-
-                    <div className="relative flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        className="w-7 h-7 rounded-[5px] text-[#b3bbc7] hover:bg-[#f5f7fa] hover:text-[#687386] transition-all flex items-center justify-center"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
-                      </button>
-
-                      {canCreateChatGroups && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setIsChatActionMenuOpen((prev) => !prev);
-                            }}
-                            className="w-7 h-7 rounded-[5px] text-[#b3bbc7] hover:bg-[#f5f7fa] hover:text-[#687386] transition-all flex items-center justify-center"
-                          >
-                            ⋮
-                          </button>
-
-                          {isChatActionMenuOpen && (
-                            <div
-                              onClick={(event) => event.stopPropagation()}
-                              className="absolute right-0 top-[30px] z-[620] w-[170px] bg-white border border-[#dfe3ea] rounded-[4px] shadow-[0_14px_34px_rgba(15,23,42,0.16)] overflow-hidden py-1"
-                            >
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setIsChatGroupModalOpen(true);
-                                  setIsChatActionMenuOpen(false);
-                                }}
-                                className="w-full h-8 px-3 text-left text-[11px] font-bold text-[#394150] hover:bg-[#f6f8fb] flex items-center gap-2"
-                              >
-                                <span className="text-[#6f7a89]">⊞</span>
-                                Yeni Yazışma Grubu
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="px-4 pb-2">
-                    <input
-                      value={chatGroupSearch}
-                      onChange={(event) => setChatGroupSearch(event.target.value)}
-                      placeholder="Yazışma ara..."
-                      className="w-full h-8 rounded-[4px] border border-[#e4e7ec] bg-[#fafbfc] px-2.5 text-[10px] font-semibold text-[#45505f] placeholder:text-[#b4bbc7] focus:outline-none focus:border-[#b7d4ff] focus:bg-white"
-                    />
-                  </div>
-
-                  <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-                    {filteredChatGroups.map((group) => {
-                      const isSelected = selectedChatGroupId === group.id;
-                      const groupMessages = projectMessages
-                        .filter((message) => message.chatGroupId === group.id)
-                        .filter(isProjectMessageVisibleForCurrentUser);
-                      const lastMessage = groupMessages[groupMessages.length - 1];
-
-                      return (
-                        <button
-                          key={group.id}
-                          type="button"
-                          onClick={() => setSelectedChatGroupId(group.id)}
-                          className={`w-full h-[58px] px-4 flex items-center gap-3 text-left border-b border-[#f0f2f5] transition-all ${
-                            isSelected ? 'bg-[#f2f7ff]' : 'bg-white hover:bg-[#fafbfc]'
-                          }`}
-                        >
-                          <div className="w-8 h-8 rounded-full bg-[#a9ddf4] border border-[#6fbce2] flex items-center justify-center shrink-0 overflow-hidden">
-                            <div className="relative w-full h-full">
-                              <span className="absolute left-[7px] top-[7px] w-3 h-3 rounded-full bg-[#2e8fc5]" />
-                              <span className="absolute right-[6px] top-[8px] w-3 h-3 rounded-full bg-[#51b2dc]" />
-                              <span className="absolute left-[5px] bottom-[5px] w-[22px] h-[12px] rounded-t-full bg-[#2e8fc5]/80" />
-                            </div>
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="text-[11.5px] font-bold text-[#2f3847] truncate">{group.name}</div>
-                            <div className="mt-0.5 text-[9px] font-semibold text-[#9aa3b1] truncate">
-                              {lastMessage ? lastMessage.text : group.type === 'project' ? 'Proje yazışma grubu' : 'Özel yazışma grubu'}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {canCreateChatGroups && (
-                    <div className="p-4 border-t border-[#edf0f4] shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setIsChatGroupModalOpen(true)}
-                        className="w-full h-8 rounded-[5px] bg-[#4aa5e8] text-white text-[10px] font-black hover:bg-[#3c98dc] transition-all flex items-center justify-center gap-2"
-                      >
-                        Yeni Yazışma Grubu
-                        <span className="text-[14px] leading-none">+</span>
-                      </button>
-                    </div>
-                  )}
-                </aside>
-
-                <section className="flex-1 min-w-0 bg-white flex flex-col">
-                  {selectedChatGroup ? (
-                    <>
-                      <div className="h-[54px] px-5 border-b border-[#edf0f4] flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#a9ddf4] border border-[#6fbce2] flex items-center justify-center text-[9px] font-black text-[#1f6c96]">
-                            {selectedChatGroup.avatar || createAvatarFromName(selectedChatGroup.name)}
-                          </div>
-
-                          <div>
-                            <div className="text-[14px] font-black text-current">{selectedChatGroup.name}</div>
-                            <div className="mt-0.5 text-[9.5px] font-bold text-[#9aa3b1]">
-                              {(selectedChatGroup.members || []).length} üye
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setSelectedChatGroupId('')}
-                          className="h-7 px-3 rounded-[4px] bg-[#f4f6f8] text-[9px] font-black text-[#7d8795] hover:text-[#394150]"
-                        >
-                          Kapat
-                        </button>
-                      </div>
-
-                      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#fbfcfe] p-5">
-                        {selectedChatMessages.length > 0 ? (
-                          <div className="space-y-3">
-                            {selectedChatMessages.map((message) => {
-                              const isMe = isCurrentProfileRecord(message);
-
-                              return (
-                                <div key={message.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                  <div className={`max-w-[520px] rounded-[8px] px-3 py-2 shadow-sm ${
-                                    isMe ? 'bg-[#4aa5e8] text-white' : 'bg-white border border-[#e4e7ec] text-[#394150]'
-                                  }`}>
-                                    <div className={`text-[9px] font-black mb-1 ${isMe ? 'text-white/75' : 'text-[#9aa3b1]'}`}>
-                                      {message.sender || 'Ekip'} · {getProjectMessageDateLabel(message.createdAt)}
-                                    </div>
-                                    <div className="text-[11px] font-semibold leading-5">{message.text}</div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div className="h-full min-h-[360px] flex items-center justify-center">
-                            <div className="text-center max-w-[420px]">
-                              <div className="mx-auto w-[160px] h-[110px] relative mb-5">
-                                <div className="absolute left-8 top-2 w-[100px] h-[58px] border-[3px] border-[#d8edff] bg-[#f8fcff]" />
-                                <div className="absolute left-[58px] top-[48px] w-[62px] h-[48px] rounded-t-[28px] bg-[#5f91f3]" />
-                                <div className="absolute left-[70px] top-[38px] w-[28px] h-[28px] rounded-full bg-[#263244]" />
-                                <div className="absolute left-[40px] top-[10px] w-[28px] h-[28px] bg-[#4d82ff] rotate-[-20deg]" />
-                                <div className="absolute right-[28px] top-[18px] w-[48px] h-[26px] rounded-[5px] bg-[#4d82ff]" />
-                                <div className="absolute left-[48px] bottom-0 w-[86px] h-[2px] bg-[#b8d9ff]" />
-                              </div>
-
-                              <div className="text-[18px] font-black text-current">Yazışmalar</div>
-                              <p className="mt-2 text-[11px] font-semibold leading-5 text-[#3f4858]">
-                                {canSendSelectedChatMessage
-                                  ? 'Bu yazışma grubunda henüz mesaj yok. İlk mesajı yazarak konuşmayı başlat.'
-                                  : 'Bu yazışma grubunda henüz mesaj yok.'}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {canSendSelectedChatMessage && (
-                        <form onSubmit={handleSendChatPageMessage} className="h-[62px] px-4 border-t border-[#edf0f4] bg-white flex items-center gap-2 shrink-0">
-                          <input
-                            value={chatPageDraft}
-                            onChange={(event) => setChatPageDraft(event.target.value)}
-                            placeholder="Mesaj yaz..."
-                            className="flex-1 h-10 rounded-[6px] border border-[#e4e7ec] bg-[#fafbfc] px-3 text-[11px] font-semibold text-[#394150] placeholder:text-[#b4bbc7] focus:outline-none focus:border-[#b7d4ff] focus:bg-white"
-                          />
-
-                          <button
-                            type="submit"
-                            disabled={!chatPageDraft.trim()}
-                            className={`h-10 px-4 rounded-[6px] text-white text-[10px] font-black transition-all ${
-                              chatPageDraft.trim()
-                                ? 'bg-[#4aa5e8] hover:bg-[#3c98dc]'
-                                : 'bg-zinc-300 cursor-not-allowed'
-                            }`}
-                          >
-                            Gönder
-                          </button>
-                        </form>
-                      )}
-                    </>
-                  ) : (
-                    <div className="flex-1 min-h-0 flex items-center justify-center">
-                      <div className="text-center max-w-[560px] px-6">
-                        <div className="mx-auto w-[260px] h-[155px] relative mb-7">
-                          <div className="absolute left-[56px] top-0 w-[136px] h-[78px] border-[4px] border-[#d8edff] bg-[#f9fdff]" />
-                          <div className="absolute left-[94px] top-[62px] w-[76px] h-[62px] rounded-t-[34px] bg-[#5f91f3]" />
-                          <div className="absolute left-[110px] top-[48px] w-[32px] h-[32px] rounded-full bg-[#263244]" />
-                          <div className="absolute left-[70px] top-[14px] w-[40px] h-[40px] bg-[#4d82ff] rotate-[-20deg]" />
-                          <div className="absolute right-[58px] top-[26px] w-[66px] h-[34px] rounded-[5px] bg-[#4d82ff]" />
-                          <div className="absolute left-[72px] bottom-0 w-[140px] h-[2px] bg-[#b8d9ff]" />
-                        </div>
-
-                        <div className="text-[18px] font-black text-current">Yazışmalar</div>
-                        <p className="mt-2 text-[11px] font-semibold leading-5 text-[#3f4858]">
-                          Yazışmalarınızı görüntülemek ve yazışmaya başlamak için soldaki yazışma listesinden bir yazışmayı seçin.
-                        </p>
-
-                        <div className="mt-8 text-[18px] font-black text-current">Yazışma Grupları</div>
-                        <p className="mt-2 text-[11px] font-semibold leading-5 text-[#3f4858]">
-                          {canCreateChatGroups
-                            ? 'Soldaki liste mevcut projelerinizden otomatik oluşur. Ayrıca özel yazışma grubu da oluşturabilirsiniz.'
-                            : 'Soldaki listede sadece erişiminiz olan proje yazışmaları görünür.'}
-                        </p>
-
-                        {canCreateChatGroups && (
-                          <button
-                            type="button"
-                            onClick={() => setIsChatGroupModalOpen(true)}
-                            className="mt-5 h-8 px-4 rounded-full bg-[#45b978] text-white text-[10px] font-black hover:bg-[#38a86b] transition-all inline-flex items-center gap-2"
-                          >
-                            Yazışma Grubu Oluştur
-                            <span className="text-[13px] leading-none">+</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </section>
-              </div>
-            </div>
-
-            <ZRCAppShellAutoUiBlock04
-        Grubu={typeof Grubu !== 'undefined' ? Grubu : undefined}
-        Grup={typeof Grup !== 'undefined' ? Grup : undefined}
-        Kapat={typeof Kapat !== 'undefined' ? Kapat : undefined}
-        Kaydet={typeof Kaydet !== 'undefined' ? Kaydet : undefined}
-        autoFocus={typeof autoFocus !== 'undefined' ? autoFocus : undefined}
-        canCreateChatGroups={typeof canCreateChatGroups !== 'undefined' ? canCreateChatGroups : undefined}
-        chatGroupDraft={typeof chatGroupDraft !== 'undefined' ? chatGroupDraft : undefined}
-        createChatGroupFromPage={typeof createChatGroupFromPage !== 'undefined' ? createChatGroupFromPage : undefined}
-        event={typeof event !== 'undefined' ? event : undefined}
-        isChatGroupModalOpen={typeof isChatGroupModalOpen !== 'undefined' ? isChatGroupModalOpen : undefined}
-        onChange={typeof onChange !== 'undefined' ? onChange : undefined}
-        onClick={typeof onClick !== 'undefined' ? onClick : undefined}
-        onSubmit={typeof onSubmit !== 'undefined' ? onSubmit : undefined}
-        setChatGroupDraft={typeof setChatGroupDraft !== 'undefined' ? setChatGroupDraft : undefined}
-        setIsChatGroupModalOpen={typeof setIsChatGroupModalOpen !== 'undefined' ? setIsChatGroupModalOpen : undefined}
-      />
-          </div>
+          <ZRCAppMessagesPageSection
+            canCreateChatGroups={canCreateChatGroups}
+            canSendSelectedChatMessage={canSendSelectedChatMessage}
+            chatGroupDraft={chatGroupDraft}
+            chatGroupSearch={chatGroupSearch}
+            chatPageDraft={chatPageDraft}
+            createChatGroupFromPage={createChatGroupFromPage}
+            filteredChatGroups={filteredChatGroups}
+            getProjectMessageDateLabel={getProjectMessageDateLabel}
+            handleSendChatPageMessage={handleSendChatPageMessage}
+            isChatActionMenuOpen={isChatActionMenuOpen}
+            isChatGroupModalOpen={isChatGroupModalOpen}
+            isCurrentProfileRecord={isCurrentProfileRecord}
+            isProjectMessageVisibleForCurrentUser={isProjectMessageVisibleForCurrentUser}
+            projectMessages={projectMessages}
+            selectedChatGroup={selectedChatGroup}
+            selectedChatGroupId={selectedChatGroupId}
+            selectedChatMessages={selectedChatMessages}
+            setChatGroupDraft={setChatGroupDraft}
+            setChatGroupSearch={setChatGroupSearch}
+            setChatPageDraft={setChatPageDraft}
+            setIsChatActionMenuOpen={setIsChatActionMenuOpen}
+            setIsChatGroupModalOpen={setIsChatGroupModalOpen}
+            setSelectedChatGroupId={setSelectedChatGroupId}
+          />
         ) : activeContentMenu === 'Profil' ? (
-          <div className="zrc-profile-page-safe-v326 zrc-profile-page-safe-v328 w-full h-full min-h-0 bg-[#f2f3f5] overflow-y-auto custom-scrollbar animate-fade-in">
-            <div className="zrc-profile-shell-safe-v326 zrc-profile-shell-safe-v328 max-w-[1240px] mx-auto px-5 py-4 pb-20 space-y-4 min-w-[980px]">
-              <div className="zrc-profile-header-card-safe-v328 bg-white border border-[#e5e8ee] rounded-[8px] shadow-[0_8px_24px_rgba(15,23,42,0.06)] px-5 py-4">
-                <div className="grid grid-cols-[300px_1fr] gap-7 items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="relative shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => profileAvatarInputRef.current?.click()}
-                        className="group relative w-[118px] h-[118px] rounded-[12px] border-[3px] border-[#7c4dff] bg-[#4a3920] shadow-sm flex items-center justify-center overflow-hidden"
-                      >
-                        {profileDraft.avatarDataUrl ? (
-                          <img
-                            src={profileDraft.avatarDataUrl}
-                            alt="Profil"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="relative w-[86px] h-[74px]">
-                            <div className="absolute inset-x-1 top-2 h-[54px] rounded-[50%] bg-[#b7a482]" />
-                            <div className="absolute left-6 top-10 w-3 h-3 rounded-full bg-[#263244]" />
-                            <div className="absolute right-6 top-10 w-3 h-3 rounded-full bg-[#263244]" />
-                            <div className="absolute left-9 top-[53px] w-5 h-2 rounded-b-full border-b-2 border-[#263244]" />
-                            <div className="absolute left-1 top-0 w-11 h-9 rounded-full bg-[#8b7a5c] rotate-[-18deg]" />
-                            <div className="absolute right-1 top-0 w-11 h-9 rounded-full bg-[#8b7a5c] rotate-[18deg]" />
-                          </div>
-                        )}
-
-                        <span className="absolute inset-x-0 bottom-0 h-8 bg-zinc-950/55 text-white text-[9px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          Resmi Değiştir
-                        </span>
-                      </button>
-
-                      <input
-                        ref={profileAvatarInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleProfileAvatarChange}
-                        className="hidden"
-                      />
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="text-[13px] font-black text-current">Profil Detayları</div>
-                      <div className="mt-1 text-[11px] font-bold text-[#7c8798] truncate">
-                        {profileDraft.firstName} {profileDraft.lastName}
-                      </div>
-                      <div className="mt-2 text-[10px] font-bold text-[#9aa3b1]">
-                        {profileDraft.email}
-                      </div>
-                      {profilePreferences.lastSavedAt && (
-                        <div className="mt-2 text-[10px] font-black text-[#45b978]">Kaydedildi</div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-x-4 gap-y-3">
-                    <label className="block">
-                      <span className="block text-[10px] font-black text-[#a1aabb] mb-1.5">Ad</span>
-                      <input
-                        value={profileDraft.firstName}
-                        onChange={(event) => setProfileDraft((prev) => ({ ...prev, firstName: event.target.value }))}
-                        className="w-full h-8 rounded-[15px] border border-[#e4e7ec] px-3 text-[10.5px] font-semibold text-[#394150] focus:outline-none focus:border-[#b7d4ff]"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="block text-[10px] font-black text-[#a1aabb] mb-1.5">Soyad</span>
-                      <input
-                        value={profileDraft.lastName}
-                        onChange={(event) => setProfileDraft((prev) => ({ ...prev, lastName: event.target.value }))}
-                        className="w-full h-8 rounded-[15px] border border-[#e4e7ec] px-3 text-[10.5px] font-semibold text-[#394150] focus:outline-none focus:border-[#b7d4ff]"
-                      />
-                    </label>
-
-                    {renderProfileSelect({
-                      id: 'profile-language',
-                      label: 'Dil',
-                      value: profileDraft.language,
-                      options: ['Türkçe', 'English'],
-                      onChange: (value) => setProfileDraft((prev) => ({ ...prev, language: value }))
-                    })}
-
-                    {renderProfileSelect({
-                      id: 'profile-status',
-                      label: 'Durum',
-                      value: profileDraft.status,
-                      options: ['Hiçbiri', 'Müsait', 'Meşgul', 'Rahatsız Etmeyin'],
-                      onChange: (value) => setProfileDraft((prev) => ({ ...prev, status: value }))
-                    })}
-
-                    <label className="block col-span-3">
-                      <span className="block text-[10px] font-black text-[#a1aabb] mb-1.5">İş Ünvanı</span>
-                      <input
-                        value={profileDraft.title}
-                        onChange={(event) => setProfileDraft((prev) => ({ ...prev, title: event.target.value }))}
-                        className="w-full h-8 rounded-[15px] border border-[#e4e7ec] px-3 text-[10.5px] font-semibold text-[#394150] focus:outline-none focus:border-[#b7d4ff]"
-                      />
-                    </label>
-
-                    <div className="flex items-end justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="h-8 px-4 rounded-full bg-white border border-zinc-200 text-zinc-500 text-[10px] font-black hover:text-[#ff3600] hover:border-[#ff3600] transition-all"
-                      >
-                        Kullanıcı Değiştir
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={saveProfileSection}
-                        className="h-8 px-4 rounded-full bg-[#45b978] text-white text-[10px] font-black hover:bg-[#38a86b] transition-all flex items-center gap-2"
-                      >
-                        Güncelle
-                        <span>▣</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="zrc-profile-tab-card-safe-v328 bg-white border border-[#e5e8ee] rounded-[8px] shadow-[0_8px_24px_rgba(15,23,42,0.06)] overflow-hidden">
-                <ZRCAppShellProfileTabButtonsBlock
-                  visibleProfileTabs={visibleProfileTabs}
-                  activeProfileTab={activeProfileTab}
-                  setActiveProfileTab={setActiveProfileTab}
-                />
-
-                <div className="zrc-profile-tab-content-safe-v328 p-5">
-                                    {/* zrc-v523-block-activeprofiletab-hesap */}
-                  <ZRCAppShellActiveProfileTabHesapBlock
-                    activeProfileTab={typeof activeProfileTab !== 'undefined' ? activeProfileTab : undefined}
-                    Hesap={typeof Hesap !== 'undefined' ? Hesap : undefined}
-                    space={typeof space !== 'undefined' ? space : undefined}
-                    text={typeof text !== 'undefined' ? text : undefined}
-                    font={typeof font !== 'undefined' ? font : undefined}
-                    black={typeof black !== 'undefined' ? black : undefined}
-                    current={typeof current !== 'undefined' ? current : undefined}
-                    mb={typeof mb !== 'undefined' ? mb : undefined}
-                    E={typeof E !== 'undefined' ? E : undefined}
-                    Posta={typeof Posta !== 'undefined' ? Posta : undefined}
-                    Bilgilerini={typeof Bilgilerini !== 'undefined' ? Bilgilerini : undefined}
-                    grid={typeof grid !== 'undefined' ? grid : undefined}
-                    gap={typeof gap !== 'undefined' ? gap : undefined}
-                    block={typeof block !== 'undefined' ? block : undefined}
-                    a1aabb={typeof a1aabb !== 'undefined' ? a1aabb : undefined}
-                    posta={typeof posta !== 'undefined' ? posta : undefined}
-                    profileDraft={typeof profileDraft !== 'undefined' ? profileDraft : undefined}
-                    setProfileDraft={typeof setProfileDraft !== 'undefined' ? setProfileDraft : undefined}
-                    w={typeof w !== 'undefined' ? w : undefined}
-                    full={typeof full !== 'undefined' ? full : undefined}
-                    h={typeof h !== 'undefined' ? h : undefined}
-                    rounded={typeof rounded !== 'undefined' ? rounded : undefined}
-                    border={typeof border !== 'undefined' ? border : undefined}
-                    e4e7ec={typeof e4e7ec !== 'undefined' ? e4e7ec : undefined}
-                    px={typeof px !== 'undefined' ? px : undefined}
-                    semibold={typeof semibold !== 'undefined' ? semibold : undefined}
-                    outline={typeof outline !== 'undefined' ? outline : undefined}
-                    none={typeof none !== 'undefined' ? none : undefined}
-                    b7d4ff={typeof b7d4ff !== 'undefined' ? b7d4ff : undefined}
-                    password={typeof password !== 'undefined' ? password : undefined}
-                    mt={typeof mt !== 'undefined' ? mt : undefined}
-                    bold={typeof bold !== 'undefined' ? bold : undefined}
-                    adresini={typeof adresini !== 'undefined' ? adresini : undefined}
-                    girmelisiniz={typeof girmelisiniz !== 'undefined' ? girmelisiniz : undefined}
-                    flex={typeof flex !== 'undefined' ? flex : undefined}
-                    justify={typeof justify !== 'undefined' ? justify : undefined}
-                    end={typeof end !== 'undefined' ? end : undefined}
-                    saveProfileSection={typeof saveProfileSection !== 'undefined' ? saveProfileSection : undefined}
-                    bg={typeof bg !== 'undefined' ? bg : undefined}
-                    white={typeof white !== 'undefined' ? white : undefined}
-                    transition={typeof transition !== 'undefined' ? transition : undefined}
-                    all={typeof all !== 'undefined' ? all : undefined}
-                    t={typeof t !== 'undefined' ? t : undefined}
-                    edf0f4={typeof edf0f4 !== 'undefined' ? edf0f4 : undefined}
-                    pt={typeof pt !== 'undefined' ? pt : undefined}
-                    currentPassword={typeof currentPassword !== 'undefined' ? currentPassword : undefined}
-                    newPassword={typeof newPassword !== 'undefined' ? newPassword : undefined}
-                    Yeni={typeof Yeni !== 'undefined' ? Yeni : undefined}
-                    repeatPassword={typeof repeatPassword !== 'undefined' ? repeatPassword : undefined}
-                    tekrar={typeof tekrar !== 'undefined' ? tekrar : undefined}
-                    keyName={typeof keyName !== 'undefined' ? keyName : undefined}
-                    renderProfileSelect={typeof renderProfileSelect !== 'undefined' ? renderProfileSelect : undefined}
-                    profile={typeof profile !== 'undefined' ? profile : undefined}
-                    date={typeof date !== 'undefined' ? date : undefined}
-                    format={typeof format !== 'undefined' ? format : undefined}
-                    Tarih={typeof Tarih !== 'undefined' ? Tarih : undefined}
-                    DD={typeof DD !== 'undefined' ? DD : undefined}
-                    MM={typeof MM !== 'undefined' ? MM : undefined}
-                    YYYY={typeof YYYY !== 'undefined' ? YYYY : undefined}
-                    time={typeof time !== 'undefined' ? time : undefined}
-                    Zaman={typeof Zaman !== 'undefined' ? Zaman : undefined}
-                    Saat={typeof Saat !== 'undefined' ? Saat : undefined}
-                    AM={typeof AM !== 'undefined' ? AM : undefined}
-                    timezone={typeof timezone !== 'undefined' ? timezone : undefined}
-                    Dilimi={typeof Dilimi !== 'undefined' ? Dilimi : undefined}
-                    UTC={typeof UTC !== 'undefined' ? UTC : undefined}
-                    items={typeof items !== 'undefined' ? items : undefined}
-                    center={typeof center !== 'undefined' ? center : undefined}
-                    haneli={typeof haneli !== 'undefined' ? haneli : undefined}
-                    kod={typeof kod !== 'undefined' ? kod : undefined}
-                    isteyerek={typeof isteyerek !== 'undefined' ? isteyerek : undefined}
-                    hesap={typeof hesap !== 'undefined' ? hesap : undefined}
-                    e5e7eb={typeof e5e7eb !== 'undefined' ? e5e7eb : undefined}
-                    setProfilePreferences={typeof setProfilePreferences !== 'undefined' ? setProfilePreferences : undefined}
-                    profilePreferences={typeof profilePreferences !== 'undefined' ? profilePreferences : undefined}
-                    red={typeof red !== 'undefined' ? red : undefined}
-                    Sil={typeof Sil !== 'undefined' ? Sil : undefined}
-                    silme={typeof silme !== 'undefined' ? silme : undefined}
-                    geri={typeof geri !== 'undefined' ? geri : undefined}
-                    setPendingProfileDelete={typeof setPendingProfileDelete !== 'undefined' ? setPendingProfileDelete : undefined}
-                    pendingProfileDelete={typeof pendingProfileDelete !== 'undefined' ? pendingProfileDelete : undefined}
-                    Emin={typeof Emin !== 'undefined' ? Emin : undefined}
-                    misin={typeof misin !== 'undefined' ? misin : undefined}
-                  />
-
-                  <ZRCAppShellActiveProfileTabEPostaBildirimiBlock
-                    activeProfileTab={activeProfileTab}
-                    setProfilePreferences={setProfilePreferences}
-                    profilePreferences={profilePreferences}
-                    toggleProfilePreference={toggleProfilePreference}
-                    saveProfileSection={saveProfileSection}
-                  />
-
-                  <ZRCAppShellActiveProfileTabTarayiciBildirimiBlock
-                    activeProfileTab={activeProfileTab}
-                    toggleProfilePreference={toggleProfilePreference}
-                    profilePreferences={profilePreferences}
-                    renderProfileSelect={renderProfileSelect}
-                    setProfilePreferences={setProfilePreferences}
-                    saveProfileSection={saveProfileSection}
-                  />
-
-                  <ZRCAppShellActiveProfileTabEPostaKutusuBlock
-                    activeProfileTab={activeProfileTab}
-                    addProfileEmailAccount={addProfileEmailAccount}
-                    emailAccountDraft={emailAccountDraft}
-                    setEmailAccountDraft={setEmailAccountDraft}
-                    profilePreferences={profilePreferences}
-                    removeProfileEmailAccount={removeProfileEmailAccount}
-                  />
-
-                  <ZRCAppShellActiveProfileTabOzellestirmelerBlock
-                    activeProfileTab={activeProfileTab}
-                    profileDraft={profileDraft}
-                    setProfileDraft={setProfileDraft}
-                    saveProfileSection={saveProfileSection}
-                  />
-
-                  <ZRCAppShellActiveProfileTabOturumlarBlock
-                    activeProfileTab={activeProfileTab}
-                    profilePreferences={profilePreferences}
-                    removeProfileSession={removeProfileSession}
-                    markSuspiciousEventAsMine={markSuspiciousEventAsMine}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <ZRCAppProfilePageSection
+            activeProfileTab={activeProfileTab}
+            addProfileEmailAccount={addProfileEmailAccount}
+            emailAccountDraft={emailAccountDraft}
+            handleLogout={handleLogout}
+            handleProfileAvatarChange={handleProfileAvatarChange}
+            markSuspiciousEventAsMine={markSuspiciousEventAsMine}
+            pendingProfileDelete={pendingProfileDelete}
+            profileAvatarInputRef={profileAvatarInputRef}
+            profileDraft={profileDraft}
+            profilePreferences={profilePreferences}
+            removeProfileEmailAccount={removeProfileEmailAccount}
+            removeProfileSession={removeProfileSession}
+            renderProfileSelect={renderProfileSelect}
+            saveProfileSection={saveProfileSection}
+            setActiveProfileTab={setActiveProfileTab}
+            setEmailAccountDraft={setEmailAccountDraft}
+            setPendingProfileDelete={setPendingProfileDelete}
+            setProfileDraft={setProfileDraft}
+            setProfilePreferences={setProfilePreferences}
+            toggleProfilePreference={toggleProfilePreference}
+            visibleProfileTabs={visibleProfileTabs}
+          />
         ) : (activeContentMenu === 'Projeler' || activeContentMenu === 'Diğer') ? (
           selectedProject ? (
             <div className="zrc-project-board-page w-full h-full min-h-0 bg-white animate-fade-in flex flex-col flex-1 overflow-hidden">
