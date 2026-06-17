@@ -67,11 +67,6 @@ export default function MobileTaskCard({
     if (typeof moveMobileTaskToActiveColumn === 'function') {
       await moveMobileTaskToActiveColumn(task, targetColumn.id);
     }
-
-    if (typeof setMobileActiveColumnId === 'function') {
-      setMobileActiveColumnId(targetColumn.id);
-    }
-
     setIsColumnMenuOpen(false);
 
     if (typeof onMobileTaskMoveToast === 'function') {

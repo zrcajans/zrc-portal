@@ -30,8 +30,7 @@ export default function MobileTaskMoveButtons({
           onClick={(event) => {
             event.stopPropagation();
             handleMoveTaskToColumn(column.id, previousColumn.id, task);
-            setMobileActiveColumnId(previousColumn.id);
-          }}
+}}
           className="h-9 rounded-[10px] bg-white border border-zinc-200 text-[9.5px] font-black text-zinc-600 active:scale-[0.98] transition-all flex items-center justify-center px-2"
         >
           ← {previousColumn.title}
@@ -46,8 +45,7 @@ export default function MobileTaskMoveButtons({
           onClick={(event) => {
             event.stopPropagation();
             handleMoveTaskToColumn(column.id, nextColumn.id, task);
-            setMobileActiveColumnId(nextColumn.id);
-          }}
+}}
           className="h-9 rounded-[10px] bg-[#ff3600] border border-[#ff3600] text-[9.5px] font-black text-white active:scale-[0.98] transition-all flex items-center justify-center px-2"
         >
           {nextColumn.title} →
