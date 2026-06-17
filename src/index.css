@@ -1091,37 +1091,37 @@ body {
 @media (max-width: 768px) {
   body .zrc-mobile-column-capsule {
     background:
-      linear-gradient(135deg, rgba(38, 42, 48, 0.46), rgba(22, 24, 28, 0.34)) !important;
+      linear-gradient(135deg, rgba(255, 255, 255, 0.26), rgba(210, 214, 220, 0.18)) !important;
 
-    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    border: 1px solid rgba(255, 255, 255, 0.24) !important;
 
     backdrop-filter: blur(10px) saturate(130%) !important;
     -webkit-backdrop-filter: blur(10px) saturate(130%) !important;
 
     box-shadow:
-      0 26px 62px rgba(15, 23, 42, 0.30),
-      0 10px 26px rgba(15, 23, 42, 0.16),
-      inset 0 1px 0 rgba(255, 255, 255, 0.26),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.10) !important;
+      0 22px 50px rgba(15, 23, 42, 0.22),
+      0 8px 22px rgba(15, 23, 42, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.30),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.06) !important;
   }
 
   body .zrc-mobile-column-capsule::before {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.02)) !important;
+      linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.03)) !important;
   }
 
   body .zrc-mobile-column-capsule-item:not(.is-active) {
-    background: rgba(255, 255, 255, 0.13) !important;
-    color: rgba(255, 255, 255, 0.78) !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: rgba(255, 255, 255, 0.80) !important;
   }
 
   body .zrc-mobile-column-capsule-item:not(.is-active) .zrc-mobile-column-capsule-title {
-    color: rgba(255, 255, 255, 0.78) !important;
+    color: rgba(255, 255, 255, 0.80) !important;
   }
 
   body .zrc-mobile-column-capsule-item:not(.is-active) .zrc-mobile-column-capsule-count {
-    background: rgba(255, 255, 255, 0.18) !important;
-    color: rgba(255, 255, 255, 0.82) !important;
+    background: rgba(255, 255, 255, 0.20) !important;
+    color: rgba(255, 255, 255, 0.84) !important;
   }
 
   body .zrc-mobile-column-capsule-item.is-active {
