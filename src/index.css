@@ -673,12 +673,12 @@ body {
     border-radius: 999px !important;
 
     /* ok yuvarlağı artık antrasit değil */
-    background: #eeeeee !important;
+    background: #ff3600 !important;
 
-    color: #2f2f2f !important;
+    color: #ffffff !important;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 9px 18px rgba(0, 0, 0, 0.10) !important;
+    box-shadow: 0 10px 22px rgba(255, 54, 0, 0.24) !important;
 
     display: flex !important;
     align-items: center !important;
@@ -693,7 +693,7 @@ body {
     height: 22px !important;
     display: block !important;
     margin: 0 !important;
-    color: #2f2f2f !important;
+    color: #ffffff !important;
     stroke: currentColor !important;
     stroke-width: 3.8 !important;
     transform: translateY(1px) !important;
