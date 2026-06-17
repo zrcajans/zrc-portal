@@ -1,3 +1,23 @@
+
+const zrcIsMissingAuthUserError = (error) => {
+  const message = String(
+    error?.message ||
+    error?.error_description ||
+    error?.details ||
+    error ||
+    ''
+  ).toLowerCase();
+
+  return (
+    message.includes('user not found') ||
+    message.includes('auth user not found') ||
+    message.includes('auth kullanıcısı bulunamadı') ||
+    message.includes('auth kullanicisi bulunamadi') ||
+    (message.includes('not found') && message.includes('user')) ||
+    (message.includes('404') && message.includes('user'))
+  );
+};
+
 export function createZRCTeamCustomerActions(deps) {
   const {
     requirePermission,
@@ -402,18 +422,28 @@ export function createZRCTeamCustomerActions(deps) {
       try {
         await deleteTeamMemberFromSupabase(targetMember);
       } catch (error) {
+    if (zrcIsMissingAuthUserError(error)) {
+      console.warn('[ZRC] Auth kullanıcısı zaten yok. Portal kaydı silme akışı devam ediyor.', error);
+    } else {
         await window.zrcAlert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
-      }
+      
+    }
+}
     }
 
     if (targetMember) {
       try {
         await deleteWorkspaceMemberFromDatabase(targetMember);
       } catch (error) {
+    if (zrcIsMissingAuthUserError(error)) {
+      console.warn('[ZRC] Auth kullanıcısı zaten yok. Portal kaydı silme akışı devam ediyor.', error);
+    } else {
         await window.zrcAlert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
-      }
+      
+    }
+}
     }
 
     setTeamMembers((prevMembers) => prevMembers.filter((member) => member.id !== memberId));
@@ -1064,9 +1094,14 @@ export function createZRCTeamCustomerActions(deps) {
       try {
         await deleteWorkspaceMemberFromDatabase(customerGuestAuthDeleteMember);
       } catch (error) {
+    if (zrcIsMissingAuthUserError(error)) {
+      console.warn('[ZRC] Auth kullanıcısı zaten yok. Portal kaydı silme akışı devam ediyor.', error);
+    } else {
         await window.zrcAlert(`Müşteri/Misafir auth hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
-      }
+      
+    }
+}
 
       try {
         if (typeof deleteCustomerFromSupabase === 'function') {
@@ -1100,9 +1135,14 @@ export function createZRCTeamCustomerActions(deps) {
           await deleteTeamMemberFromSupabase(member);
         }
       } catch (error) {
+    if (zrcIsMissingAuthUserError(error)) {
+      console.warn('[ZRC] Auth kullanıcısı zaten yok. Portal kaydı silme akışı devam ediyor.', error);
+    } else {
         await window.zrcAlert(`Bağlı müşteri hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
-      }
+      
+    }
+}
     }
 
     setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer.id !== customerId));
