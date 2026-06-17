@@ -4030,7 +4030,7 @@ function App() {
     return `${okCount} başarılı · ${warningCount} uyarı · ${errorCount} hata`;
   };
 
-  const downloadJsonSnapshot = (snapshot, fileNamePrefix = 'zrc-yedek') => {
+  function downloadJsonSnapshot(snapshot, fileNamePrefix = 'zrc-yedek') {
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -4041,7 +4041,7 @@ function App() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
+  }
 
   async function readSupabaseTableForBackup(tableName, mode = 'workspace') {
     const workspaceId = getCurrentSupabaseWorkspaceId();
