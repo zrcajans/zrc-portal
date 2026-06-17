@@ -807,3 +807,27 @@ body {
   }
 }
 /* === ZRC MOBILE PROJECT PANEL CONTINUITY FIX END === */
+
+/* === ZRC CENTER MOBILE PROJECT OPTIONS START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-option {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 6px !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-option strong,
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-option small {
+    width: 100% !important;
+    display: block !important;
+    text-align: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+/* === ZRC CENTER MOBILE PROJECT OPTIONS END === */
