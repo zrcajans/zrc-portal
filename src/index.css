@@ -972,3 +972,40 @@ body {
   }
 }
 /* === ZRC MOBILE COLUMN CAPSULE FINAL CLEAN END === */
+
+/* === ZRC MOBILE COLUMN CAPSULE SLIM NARROW START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-task-section-with-column-capsule {
+    padding-bottom: 108px !important;
+  }
+
+  body .zrc-mobile-column-capsule {
+    width: min(calc(100vw - 58px), 486px) !important;
+    min-height: 64px !important;
+    padding: 7px !important;
+    gap: 7px !important;
+  }
+
+  body .zrc-mobile-column-capsule-item {
+    min-width: 88px !important;
+    height: 48px !important;
+    padding: 0 14px !important;
+  }
+
+  body .zrc-mobile-column-capsule-title {
+    max-width: 84px !important;
+    min-height: 48px !important;
+    font-size: 10.5px !important;
+    line-height: 1.05 !important;
+  }
+
+  body .zrc-mobile-column-capsule-count {
+    top: 5px !important;
+    right: 7px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
+    font-size: 8.5px !important;
+  }
+}
+/* === ZRC MOBILE COLUMN CAPSULE SLIM NARROW END === */
