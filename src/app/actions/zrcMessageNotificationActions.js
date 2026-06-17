@@ -3,6 +3,7 @@ const ZRC_CLEARED_NOTIFICATION_IDS_KEY = 'zrcClearedNotificationIds';
 const ZRC_CLEARED_NOTIFICATION_KEYS_KEY = 'zrcClearedNotificationKeys';
 const ZRC_CLEARED_NOTIFICATION_TOKEN_PREFIX = 'cleared:';
 const ZRC_CLEARED_NOTIFICATION_KEY_PREFIX = 'cleared-key:';
+const ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX = 'cleared-before:';
 
 const zrcNotificationFingerprint = (notification = {}) =>
   [
@@ -164,6 +165,8 @@ export function createZRCMessageNotificationActions(deps) {
   const markAllNotificationsAsRead = () => {
     const visibleNotifications = Array.isArray(notificationItems) ? notificationItems : [];
     const clearState = zrcClearedNotificationTokensFromItems(visibleNotifications);
+    const clearedBefore = new Date().toISOString();
+    const clearedBeforeToken = `${ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX}${clearedBefore}`;
 
     zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY, [
       ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY),
@@ -195,10 +198,15 @@ export function createZRCMessageNotificationActions(deps) {
       const nextIds = Array.from(new Set([
         ...(prevIds || []),
         ...clearState.ids,
-        ...clearState.tokens
+        ...clearState.tokens,
+        clearedBeforeToken
       ]));
 
-      saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
+      saveUserPreferencesToSupabase({
+        readNotificationIds: nextIds,
+        notificationsClearedBefore: clearedBefore
+      });
+
       return nextIds;
     });
 

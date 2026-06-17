@@ -7283,7 +7283,108 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     })
     .slice(0, 32);
 
-  const unreadNotificationCount = notificationItems.filter((item) => !readNotificationIds.includes(item.id)).length;
+  const zrcCoreIsPushSubscriptionNotification = (notification = {}) => {
+    const haystack = [
+      notification.type,
+      notification.title,
+      notification.text,
+      notification.meta,
+      notification.projectName
+    ]
+      .map((value) => String(value || '').toLowerCase())
+      .join(' ');
+
+    if (haystack.includes('push subscription')) return true;
+    if (haystack.includes('subscription') && haystack.includes('endpoint')) return true;
+
+    return false;
+  };
+
+  const zrcCoreNotificationTimeMs = (notification = {}) => {
+    const values = [
+      notification.createdAt,
+      notification.created_at,
+      notification.updatedAt,
+      notification.updated_at,
+      notification.timestamp,
+      notification.date,
+      notification.time
+    ];
+
+    for (const value of values) {
+      const parsed = Date.parse(String(value || ''));
+      if (Number.isFinite(parsed)) return parsed;
+    }
+
+    return 0;
+  };
+
+  const zrcCoreClearedBeforeMs = (ids = []) => {
+    let maxValue = 0;
+
+    for (const rawValue of ids || []) {
+      const value = String(rawValue || '');
+      if (!value.startsWith('cleared-before:')) continue;
+
+      const parsed = Date.parse(value.slice('cleared-before:'.length));
+      if (Number.isFinite(parsed)) maxValue = Math.max(maxValue, parsed);
+    }
+
+    return maxValue;
+  };
+
+  const zrcCoreIsNotificationHidden = (notification = {}, ids = []) => {
+    if (zrcCoreIsPushSubscriptionNotification(notification)) return true;
+
+    const clearedBeforeMs = zrcCoreClearedBeforeMs(ids);
+    const notificationTimeMs = zrcCoreNotificationTimeMs(notification);
+
+    if (clearedBeforeMs && notificationTimeMs && notificationTimeMs <= clearedBeforeMs) return true;
+
+    return false;
+  };
+
+  useEffect(() => {
+    if (!isLoggedIn || !supabase || !supabaseWorkspaceId || !currentUserId) return undefined;
+
+    let cancelled = false;
+
+    const zrcSyncNotificationClearsAcrossDevices = async () => {
+      try {
+        const { data: preferencesRecord, error } = await supabase
+          .from('user_preferences')
+          .select('preferences')
+          .eq('workspace_id', supabaseWorkspaceId)
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+
+        if (cancelled || error) return;
+
+        const preferences = normalizeStorageObject(preferencesRecord?.preferences || {}, {});
+        const remoteReadNotificationIds = normalizeStorageArray(preferences.readNotificationIds || [], []);
+
+        if (remoteReadNotificationIds.length === 0) return;
+
+        setReadNotificationIds((prevIds) =>
+          Array.from(new Set([...(prevIds || []), ...remoteReadNotificationIds]))
+        );
+      } catch (error) {
+        console.warn('[ZRC] Bildirim temizleme senkronu atlandı.', error);
+      }
+    };
+
+    zrcSyncNotificationClearsAcrossDevices();
+    const intervalId = window.setInterval(zrcSyncNotificationClearsAcrossDevices, 12000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isLoggedIn, supabase, supabaseWorkspaceId, currentUserId]);
+
+  const unreadNotificationCount = notificationItems.filter(
+    (item) => !zrcCoreIsNotificationHidden(item, readNotificationIds) && !readNotificationIds.includes(item.id)
+  ).length;
 
   // zrc-notification-title-badge-v317
   useEffect(() => {

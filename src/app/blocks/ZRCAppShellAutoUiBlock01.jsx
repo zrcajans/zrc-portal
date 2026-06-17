@@ -7,6 +7,7 @@ const ZRC_CLEARED_NOTIFICATION_IDS_KEY = 'zrcClearedNotificationIds';
 const ZRC_CLEARED_NOTIFICATION_KEYS_KEY = 'zrcClearedNotificationKeys';
 const ZRC_CLEARED_NOTIFICATION_TOKEN_PREFIX = 'cleared:';
 const ZRC_CLEARED_NOTIFICATION_KEY_PREFIX = 'cleared-key:';
+const ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX = 'cleared-before:';
 
 const zrcNotificationFingerprint = (notification = {}) =>
   [
@@ -99,7 +100,65 @@ const zrcBuildClearedNotificationState = (readNotificationIds = []) => {
   return { ids, keys };
 };
 
+
+const zrcIsPushSubscriptionNotification = (notification = {}) => {
+  const haystack = [
+    notification.type,
+    notification.title,
+    notification.text,
+    notification.meta,
+    notification.projectName
+  ]
+    .map((value) => String(value || '').toLowerCase())
+    .join(' ');
+
+  if (haystack.includes('push subscription')) return true;
+  if (haystack.includes('subscription') && haystack.includes('endpoint')) return true;
+
+  return false;
+};
+
+const zrcGetNotificationTimeMs = (notification = {}) => {
+  const values = [
+    notification.createdAt,
+    notification.created_at,
+    notification.updatedAt,
+    notification.updated_at,
+    notification.timestamp,
+    notification.date,
+    notification.time
+  ];
+
+  for (const value of values) {
+    const parsed = Date.parse(String(value || ''));
+    if (Number.isFinite(parsed)) return parsed;
+  }
+
+  return 0;
+};
+
+const zrcGetClearedBeforeMs = (readNotificationIds = []) => {
+  let maxValue = 0;
+
+  for (const rawValue of readNotificationIds || []) {
+    const value = String(rawValue || '');
+    if (!value.startsWith(ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX)) continue;
+
+    const parsed = Date.parse(value.slice(ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX.length));
+    if (Number.isFinite(parsed)) maxValue = Math.max(maxValue, parsed);
+  }
+
+  return maxValue;
+};
+
 const zrcIsNotificationCleared = (notification, readNotificationIds = []) => {
+  if (zrcIsPushSubscriptionNotification(notification)) return true;
+
+  const clearedBeforeMs = zrcGetClearedBeforeMs(readNotificationIds);
+  const notificationTimeMs = zrcGetNotificationTimeMs(notification);
+
+  if (clearedBeforeMs && notificationTimeMs && notificationTimeMs <= clearedBeforeMs) return true;
+
   const state = zrcBuildClearedNotificationState(readNotificationIds);
   const variants = zrcNotificationIdVariants(notification);
   const fingerprint = zrcNotificationFingerprint(notification);
