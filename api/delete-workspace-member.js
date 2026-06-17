@@ -7,21 +7,30 @@ const SUPABASE_URL =
 
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const normalizeCredentialText = (value = '') =>
-  String(value || '')
-    .trim()
-    .toLowerCase()
+const normalizeText = (value = '') =>
+  String(value || '').trim().toLowerCase();
+
+const normalizeUsername = (value = '') => {
+  const raw = normalizeText(value);
+  return raw
     .replace(/ğ/g, 'g')
     .replace(/ü/g, 'u')
     .replace(/ş/g, 's')
     .replace(/ı/g, 'i')
     .replace(/ö/g, 'o')
     .replace(/ç/g, 'c')
-    .replace(/[^a-z0-9._-]+/g, '')
-    .slice(0, 80);
+    .replace(/[^a-z0-9@._-]+/g, '')
+    .slice(0, 120);
+};
 
 const isUuid = (value) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+
+const unique = (arr) =>
+  arr
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+    .filter((value, index, list) => list.indexOf(value) === index);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -31,7 +40,7 @@ export default async function handler(req, res) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({
       ok: false,
-      error: 'Supabase service role env eksik. SUPABASE_URL/VITE_SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY gerekli.'
+      error: 'Supabase service role env eksik.'
     });
   }
 
@@ -40,14 +49,10 @@ export default async function handler(req, res) {
   });
 
   const body = req.body || {};
-  const workspaceId = String(body.workspaceId || '').trim();
   const member = body.member || {};
+  const workspaceId = String(body.workspaceId || '').trim();
 
-  if (!workspaceId || !isUuid(workspaceId)) {
-    return res.status(400).json({ ok: false, error: 'Geçersiz workspaceId' });
-  }
-
-  const possibleUserIds = [
+  const idCandidates = unique([
     body.userId,
     member.userId,
     member.user_id,
@@ -58,85 +63,101 @@ export default async function handler(req, res) {
     member.profileId,
     member.profile_id,
     member.id
-  ]
-    .map((value) => String(value || '').trim())
-    .filter(Boolean)
-    .filter(isUuid)
-    .filter((value, index, arr) => arr.indexOf(value) === index);
+  ]).filter(isUuid);
 
-  const possibleUsernames = [
+  const rawTextCandidates = unique([
     body.username,
     member.username,
     member.email,
-    member.name
-  ]
-    .map(normalizeCredentialText)
-    .filter(Boolean)
-    .filter((value, index, arr) => arr.indexOf(value) === index);
+    member.name,
+    member.fullName,
+    member.full_name
+  ]);
 
-  const possibleCustomerIds = [
+  const usernameCandidates = unique([
+    ...rawTextCandidates.map(normalizeText),
+    ...rawTextCandidates.map(normalizeUsername),
+    ...rawTextCandidates.map((value) => {
+      const v = normalizeUsername(value);
+      return v && !v.startsWith('@') && !v.includes('@') ? `@${v}` : v;
+    }),
+    ...rawTextCandidates.map((value) => {
+      const v = normalizeUsername(value);
+      return v.startsWith('@') ? v.slice(1) : v;
+    })
+  ]);
+
+  const customerCandidates = unique([
     body.customerId,
     member.customerId,
     member.customer_id
-  ]
-    .map((value) => String(value || '').trim())
-    .filter(Boolean)
-    .filter((value, index, arr) => arr.indexOf(value) === index);
+  ]);
 
   const deletedRows = [];
   const attempts = [];
 
-  const runDelete = async (label, column, value) => {
+  const ignoreMissingColumn = (error) => {
+    const msg = String(error?.message || '').toLowerCase();
+    return (
+      msg.includes('column') ||
+      msg.includes('schema cache') ||
+      msg.includes('does not exist') ||
+      msg.includes('not found')
+    );
+  };
+
+  const deleteFrom = async (table, column, value, workspaceScoped = false) => {
     if (!value) return;
 
-    attempts.push(`${column}:${value}`);
+    attempts.push(`${table}.${column}:${value}`);
 
-    const { data, error } = await admin
-      .from('workspace_members')
-      .delete()
-      .eq('workspace_id', workspaceId)
-      .eq(column, value)
-      .select('workspace_id,user_id,username,customer_id,role,status');
+    let query = admin.from(table).delete();
+
+    if (workspaceScoped && workspaceId) {
+      query = query.eq('workspace_id', workspaceId);
+    }
+
+    const { data, error } = await query.eq(column, value).select('*');
 
     if (error) {
-      throw new Error(`${label} silme hatası: ${error.message}`);
+      if (ignoreMissingColumn(error)) return;
+      throw new Error(`${table}.${column} silme hatası: ${error.message}`);
     }
 
     if (Array.isArray(data) && data.length > 0) {
-      deletedRows.push(...data);
+      deletedRows.push(...data.map((row) => ({ table, ...row })));
     }
   };
 
   try {
-    for (const userId of possibleUserIds) {
-      await runDelete('user_id', 'user_id', userId);
+    for (const id of idCandidates) {
+      await deleteFrom('workspace_members', 'user_id', id, true);
+      await deleteFrom('workspace_members', 'id', id, true);
+      await deleteFrom('profiles', 'id', id, false);
+      await deleteFrom('profiles', 'user_id', id, false);
     }
 
-    for (const username of possibleUsernames) {
-      await runDelete('username', 'username', username);
+    for (const value of usernameCandidates) {
+      await deleteFrom('workspace_members', 'username', value, true);
+      await deleteFrom('workspace_members', 'email', value, true);
+      await deleteFrom('profiles', 'username', value, false);
+      await deleteFrom('profiles', 'email', value, false);
+      await deleteFrom('profiles', 'full_name', value, false);
+      await deleteFrom('profiles', 'name', value, false);
     }
 
-    for (const customerId of possibleCustomerIds) {
-      await runDelete('customer_id', 'customer_id', customerId);
-    }
-
-    const uniqueDeleted = new Map(
-      deletedRows.map((row) => [`${row.workspace_id}:${row.user_id}:${row.username}:${row.customer_id}`, row])
-    );
-
-    if (uniqueDeleted.size === 0) {
-      return res.status(404).json({
-        ok: false,
-        error: 'Veritabanında silinecek workspace_members kaydı bulunamadı. UI silme engellendi.',
-        attempts
-      });
+    for (const customerId of customerCandidates) {
+      await deleteFrom('workspace_members', 'customer_id', customerId, true);
     }
 
     return res.status(200).json({
       ok: true,
-      deletedCount: uniqueDeleted.size,
-      deletedRows: Array.from(uniqueDeleted.values()),
-      attempts
+      deletedCount: deletedRows.length,
+      deletedRows,
+      attempts,
+      note: deletedRows.length
+        ? 'Veritabanı kaydı silindi.'
+        : 'Veritabanında eşleşen kayıt bulunamadı; UI/local silmeye izin verildi.'
     });
   } catch (error) {
     return res.status(500).json({

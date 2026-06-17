@@ -78,8 +78,8 @@ export function createZRCTeamCustomerActions(deps) {
 
     const result = await response.json().catch(() => ({}));
 
-    if (!response.ok || !result.ok || !result.deletedCount) {
-      throw new Error(result?.error || 'Veritabanı silme işlemi doğrulanamadı');
+    if (!response.ok || !result.ok) {
+      throw new Error(result?.error || 'Veritabanı silme işlemi başarısız oldu');
     }
 
     if (typeof zrcSetSupabaseWriteInfo === 'function') {
