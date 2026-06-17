@@ -947,3 +947,48 @@ body {
   }
 }
 /* === ZRC MOBILE COLUMN CAPSULE END === */
+
+/* === ZRC MOBILE COLUMN CAPSULE CENTER SHADOW START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-column-capsule {
+    box-shadow:
+      0 24px 58px rgba(15, 23, 42, 0.24),
+      0 8px 22px rgba(15, 23, 42, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34) !important;
+  }
+
+  body .zrc-mobile-column-capsule-item {
+    position: relative !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 16px !important;
+    gap: 0 !important;
+  }
+
+  body .zrc-mobile-column-capsule-title {
+    height: 100% !important;
+    min-height: 54px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    line-height: 1.05 !important;
+  }
+
+  body .zrc-mobile-column-capsule-count {
+    position: absolute !important;
+    top: 6px !important;
+    right: 8px !important;
+
+    min-width: 17px !important;
+    height: 17px !important;
+    padding: 0 5px !important;
+
+    font-size: 9px !important;
+    line-height: 1 !important;
+    opacity: 0.86 !important;
+  }
+}
+/* === ZRC MOBILE COLUMN CAPSULE CENTER SHADOW END === */
