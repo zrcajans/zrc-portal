@@ -23,7 +23,17 @@ export default function MobileProjectPicker({
           <small>Proje seçimi</small>
           <strong>{projectLabel}</strong>
         </div>
-        <span className="zrc-mobile-project-picker-arrow-gray-v3">{isOpen ? '⌃' : '⌄'}</span>
+        <span className="zrc-mobile-project-picker-arrow-gray-v3" aria-hidden="true">
+          <svg className="zrc-mobile-project-picker-arrow-icon-v4" viewBox="0 0 24 24" fill="none">
+            <path
+              d={isOpen ? 'M6 14l6-6 6 6' : 'M6 10l6 6 6-6'}
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       </button>
 
       {isOpen && (
