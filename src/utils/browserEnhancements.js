@@ -894,3 +894,84 @@ export const zrcV448PlayDesktopNotificationSound = () => {
 };
 
 zrcV448InstallDesktopSoundUnlock();
+
+/* === ZRC KILL FLOATING VERSION BADGE START === */
+const zrcKillFloatingVersionBadge = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  const versionTextPattern = /^ZRC\s+v\d+[A-Za-z0-9._-]*$/i;
+
+  const removeNodeSafely = (node) => {
+    if (!node || !node.parentNode) return;
+
+    const parent = node.parentElement;
+    const parentText = parent?.textContent?.trim() || '';
+
+    if (parent && versionTextPattern.test(parentText)) {
+      parent.remove();
+      return;
+    }
+
+    node.remove();
+  };
+
+  const allElements = Array.from(document.querySelectorAll('body *'));
+
+  allElements.forEach((element) => {
+    if (!element || element.closest('script, style, noscript')) return;
+
+    const text = element.textContent?.trim() || '';
+    if (!versionTextPattern.test(text)) return;
+
+    const childCount = element.children?.length || 0;
+
+    if (childCount === 0) {
+      removeNodeSafely(element);
+      return;
+    }
+
+    const computed = window.getComputedStyle(element);
+    const looksFloating =
+      ['fixed', 'absolute', 'sticky'].includes(computed.position) ||
+      computed.right !== 'auto' ||
+      computed.bottom !== 'auto' ||
+      element.className?.toString?.().toLowerCase?.().includes('version') ||
+      element.className?.toString?.().toLowerCase?.().includes('badge');
+
+    if (looksFloating) {
+      element.remove();
+    } else {
+      element.style.display = 'none';
+      element.style.visibility = 'hidden';
+      element.style.opacity = '0';
+      element.setAttribute('aria-hidden', 'true');
+    }
+  });
+};
+
+const zrcInstallFloatingVersionBadgeKiller = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window.__zrcFloatingVersionBadgeKillerInstalled) return;
+
+  window.__zrcFloatingVersionBadgeKillerInstalled = true;
+
+  zrcKillFloatingVersionBadge();
+
+  window.setTimeout(zrcKillFloatingVersionBadge, 100);
+  window.setTimeout(zrcKillFloatingVersionBadge, 500);
+  window.setTimeout(zrcKillFloatingVersionBadge, 1200);
+  window.setTimeout(zrcKillFloatingVersionBadge, 2500);
+
+  const observer = new MutationObserver(() => {
+    window.requestAnimationFrame(zrcKillFloatingVersionBadge);
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+};
+
+zrcInstallFloatingVersionBadgeKiller();
+/* === ZRC KILL FLOATING VERSION BADGE END === */

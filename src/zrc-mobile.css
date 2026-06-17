@@ -2378,3 +2378,23 @@
     background: #ff3600;
   }
 }
+
+/* === ZRC HIDE FLOATING VERSION BADGE HARD START === */
+.zrc-version-badge,
+.zrc-build-badge,
+.zrc-debug-badge,
+.zrc-mobile-version-badge,
+.zrc-floating-version-badge,
+[data-zrc-version-badge],
+[data-version-badge],
+[class*="zrc-version"],
+[class*="zrc-build-badge"],
+[class*="zrc-debug-badge"],
+[class*="floating-version"],
+[class*="mobile-version-badge"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+/* === ZRC HIDE FLOATING VERSION BADGE HARD END === */
