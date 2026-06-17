@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import MobileTaskMoveButtons from '../components/mobile/MobileTaskMoveButtons';
 import ZRCErrorBoundary from '../components/common/ZRCErrorBoundary';
-import { ProfileSelect, SoftSelect } from '../components/common/SelectControls';
 import { createAvatarFromName, renderProfileAvatar } from '../utils/avatarHelpers';
 import {
   getSupabaseSafeDate
@@ -117,6 +116,7 @@ import {
 import { useZRCAppCoreState, useZRCBoardStateLayer, useZRCTaskSelectionState, useZRCModalState } from './state/useZRCAppStateLayer';
 import ZRCAppLoginScreen from './sections/ZRCAppLoginScreen';
 import ZRCAppAuthenticatedShell from './sections/ZRCAppAuthenticatedShell';
+import { renderZRCProfileSelect, renderZRCSoftSelect } from './blocks/ZRCAppSelectRenderers';
 import {
   formatDateStringShort,
   getTaskCardDateParts,
@@ -11148,21 +11148,11 @@ function App() {
     event.target.value = '';
   };
 
-  const renderProfileSelect = (props) => (
-    <ProfileSelect
-      {...props}
-      openProfileDropdown={openProfileDropdown}
-      setOpenProfileDropdown={setOpenProfileDropdown}
-    />
-  );
+  const renderProfileSelect = (props) =>
+    renderZRCProfileSelect(props, openProfileDropdown, setOpenProfileDropdown);
 
-  const renderSoftSelect = (props) => (
-    <SoftSelect
-      {...props}
-      openProfileDropdown={openProfileDropdown}
-      setOpenProfileDropdown={setOpenProfileDropdown}
-    />
-  );
+  const renderSoftSelect = (props) =>
+    renderZRCSoftSelect(props, openProfileDropdown, setOpenProfileDropdown);
 
 
 
