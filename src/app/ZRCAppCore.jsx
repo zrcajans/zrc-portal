@@ -5635,9 +5635,21 @@ function App() {
     isSupabaseUuid(currentUserId) && String(userId) === String(currentUserId);
 
   const isProjectVisibleForCurrentUser = (projectName = '') => {
-    if (currentAccountType === 'Patron') return true;
-    if (currentAccountType === 'Ekip Üyesi') return isCurrentUserProjectMember(projectName);
-    if (currentAccountType === 'Müşteri') return isCurrentCustomerProject(projectName);
+    const cleanProjectName = String(projectName || '').trim();
+
+    if (!cleanProjectName) return false;
+
+    if (
+      isZrcOwnerAccount ||
+      currentUserRole === 'Yönetici' ||
+      currentAccountType === 'Patron' ||
+      currentAccountType === 'Yönetici'
+    ) {
+      return true;
+    }
+
+    if (currentAccountType === 'Ekip Üyesi') return isCurrentUserProjectMember(cleanProjectName);
+    if (currentAccountType === 'Müşteri') return isCurrentCustomerProject(cleanProjectName);
 
     return false;
   };
