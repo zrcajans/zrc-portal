@@ -4,15 +4,19 @@
 
 export const openCalendarQuickTaskCreatorHelper = async (date, event = null, zrcContext = {}) => {
   const {
+    calendarTaskOpenLockRef,
     currentAccountType,
+    formatDateForTaskModal,
     projectBoards,
+    requirePermission,
     selectedProject,
     setCalendarFocusedDate,
     setCalendarNewTaskDate,
     setCalendarTaskModalContext,
     setEditingTask,
     setIsTaskModalOpen,
-    setSelectedProject
+    setSelectedProject,
+    visibleProjectNames = []
   } = zrcContext;
 
 
@@ -20,18 +24,29 @@ export const openCalendarQuickTaskCreatorHelper = async (date, event = null, zrc
     event?.stopPropagation?.();
 
     const now = Date.now();
+    const safeCalendarTaskOpenLockRef = calendarTaskOpenLockRef || { current: 0 };
 
-    if (now - calendarTaskOpenLockRef.current < 220) return;
+    if (now - Number(safeCalendarTaskOpenLockRef.current || 0) < 220) return;
 
-    calendarTaskOpenLockRef.current = now;
+    safeCalendarTaskOpenLockRef.current = now;
 
-    if (!requirePermission('createTasks', 'Bu rol takvimden görev oluşturamaz.')) return;
+    const canCreateCalendarTask =
+      typeof requirePermission === 'function'
+        ? requirePermission('createTasks', 'Bu rol takvimden görev oluşturamaz.')
+        : currentAccountType !== 'Müşteri';
+
+    if (!canCreateCalendarTask) return;
 
     const safeDate = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
-    const safeDateValue = formatDateForTaskModal(safeDate);
+    const safeFormatDateForTaskModal =
+      typeof formatDateForTaskModal === 'function'
+        ? formatDateForTaskModal
+        : (value) => value.toISOString().slice(0, 10);
+
+    const safeDateValue = safeFormatDateForTaskModal(safeDate);
     const fallbackProjectName =
       selectedProject ||
-      visibleProjectNames[0] ||
+      (Array.isArray(visibleProjectNames) ? visibleProjectNames[0] : '') ||
       Object.keys(projectBoards || {})[0] ||
       '';
 

@@ -6879,15 +6879,19 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
 
   const openCalendarQuickTaskCreator = (...args) =>
     openCalendarQuickTaskCreatorHelper(...args, {
+      calendarTaskOpenLockRef,
       currentAccountType,
+      formatDateForTaskModal,
       projectBoards,
+      requirePermission,
       selectedProject,
       setCalendarFocusedDate,
       setCalendarNewTaskDate,
       setCalendarTaskModalContext,
       setEditingTask,
       setIsTaskModalOpen,
-      setSelectedProject
+      setSelectedProject,
+      visibleProjectNames
     });
 
 
