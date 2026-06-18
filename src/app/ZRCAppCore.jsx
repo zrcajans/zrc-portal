@@ -1360,6 +1360,58 @@ function App() {
 
   const {isEditMode, setIsEditMode, projectBoards, setProjectBoards} = useZRCBoardStateLayer({ selectedProject, setSelectedProject });
 
+  /* === ZRC REMOVE LEGACY DEFAULT PROJECTS START === */
+  useEffect(() => {
+    const legacyProjectNames = ['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'];
+
+    setProjects((prevProjects) =>
+      Array.isArray(prevProjects)
+        ? prevProjects.filter((projectName) => !legacyProjectNames.includes(projectName))
+        : []
+    );
+
+    setSelectedProject((prevProject) =>
+      legacyProjectNames.includes(prevProject) ? '' : prevProject
+    );
+
+    setProjectBoards((prevBoards) => {
+      if (!prevBoards || typeof prevBoards !== 'object' || Array.isArray(prevBoards)) return {};
+
+      const cleanedBoards = Object.fromEntries(
+        Object.entries(prevBoards).filter(([projectName]) =>
+          projectName && !legacyProjectNames.includes(projectName)
+        )
+      );
+
+      return Object.keys(cleanedBoards).length === Object.keys(prevBoards).length
+        ? prevBoards
+        : cleanedBoards;
+    });
+
+    const cachedSelectedProject = String(readStorageValue('selectedProject', '') || '').trim();
+
+    if (legacyProjectNames.includes(cachedSelectedProject)) {
+      writeStorageValue('selectedProject', '');
+    }
+
+    const cachedBoards = normalizeStorageObject(readStorageValue('projectBoards', null), null);
+
+    if (cachedBoards && typeof cachedBoards === 'object' && !Array.isArray(cachedBoards)) {
+      const cleanedCachedBoards = Object.fromEntries(
+        Object.entries(cachedBoards).filter(([projectName]) =>
+          projectName && !legacyProjectNames.includes(projectName)
+        )
+      );
+
+      if (Object.keys(cleanedCachedBoards).length !== Object.keys(cachedBoards).length) {
+        writeStorageValue('projectBoards', cleanedCachedBoards);
+      }
+    }
+  }, []);
+  /* === ZRC REMOVE LEGACY DEFAULT PROJECTS END === */
+
+
+
   // zrc-v426b-mobile-end-date-hard-fix
   // Mobil kartlar endDate beklediği için dueDate/end_date/due_date alanlarını endDate'e kesin olarak taşır.
   useEffect(() => {

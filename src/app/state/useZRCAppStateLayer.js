@@ -141,7 +141,7 @@ function zrcDedupeTeamMembers(list) {
 
 
 export function useZRCAppCoreState() {
-  const [projects, setProjects] = useState(() => ['Çalışma']);
+  const [projects, setProjects] = useState(() => []);
 
   const [teamMembers, setTeamMembersRaw] = useState(() => {
     const parsedMembers = readStorageValue('teamMembers', null);
@@ -231,11 +231,11 @@ export function useZRCAppCoreState() {
     const savedProject = String(readStorageValue('selectedProject', '') || '').trim();
     const legacyProjectNames = ['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'];
 
-    if (savedProject && !legacyProjectNames.includes(savedProject)) {
-      return savedProject;
+    if (!savedProject || legacyProjectNames.includes(savedProject)) {
+      return '';
     }
 
-    return '';
+    return savedProject;
   };
 
   const [selectedProject, setSelectedProject] = useState(() => getInitialSelectedProject());
@@ -553,22 +553,14 @@ export function useZRCBoardStateLayer({ selectedProject, setSelectedProject }) {
 
   const [projectBoards, setProjectBoards] = useState(() => {
     const savedProjectBoards = normalizeStorageObject(readStorageValue('projectBoards', null), null);
+    const legacyProjectNames = ['Çalışma', 'Calisma', 'E-Ticaret Arayüz Tasarımı'];
 
-    if (savedProjectBoards) {
-      return savedProjectBoards;
-    }
-
-    // Eski tek-pano kayıtlarını yeni proje bazlı sisteme taşıma.
-    const savedBoardColumns = readStorageValue('legacyBoardColumns', null);
-    const savedArchivedTasks = readStorageValue('legacyArchivedTasks', null);
-
-    if (savedBoardColumns || savedArchivedTasks) {
-      return {
-        [selectedProject || 'E-Ticaret Arayüz Tasarımı']: {
-          columns: normalizeStorageArray(savedBoardColumns, createDefaultProjectBoard().columns),
-          archivedTasks: normalizeStorageArray(savedArchivedTasks, [])
-        }
-      };
+    if (savedProjectBoards && typeof savedProjectBoards === 'object' && !Array.isArray(savedProjectBoards)) {
+      return Object.fromEntries(
+        Object.entries(savedProjectBoards).filter(([projectName]) =>
+          projectName && !legacyProjectNames.includes(projectName)
+        )
+      );
     }
 
     return {};
