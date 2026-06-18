@@ -1334,7 +1334,7 @@ export function createZRCBoardTaskActions(deps) {
       (column.tasks || []).some((task) => task.id === taskId)
     );
 
-    const finalTargetColId = currentTaskColumnBeforeDrop?.id || targetColId;
+    const finalTargetColId = targetColId;
     const sourceColumnBeforeMove =
       boardColumns.find((column) => column.id === originalSourceColId) ||
       boardColumns.find((column) => column.id === sourceColId) ||
@@ -1440,6 +1440,19 @@ export function createZRCBoardTaskActions(deps) {
         sortWeight: 820
       });
     }
+
+    /* === ZRC CROSS COLUMN EXPLICIT SUPABASE COLUMN FIX START === */
+    if (shouldCreateStatusNotification && taskBeforeMove && targetColumnBeforeMove) {
+      updateSupabaseTaskColumn(
+        {
+          ...taskBeforeMove,
+          status: targetColumnBeforeMove.title,
+          columnTitle: targetColumnBeforeMove.title
+        },
+        targetColumnBeforeMove
+      );
+    }
+    /* === ZRC CROSS COLUMN EXPLICIT SUPABASE COLUMN FIX END === */
 
     draggedTaskInfo.current = null;
     zrcClearDesktopDragSource();
