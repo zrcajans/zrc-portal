@@ -112,6 +112,7 @@ export default function GorevlerTabPanel(props) {
     openTaskDetail,
     showPermissionWarning,
     handleDragStart,
+    handleDragOverTaskPreview,
     duration,
     handleTaskAction,
     Kopyala,
@@ -290,8 +291,8 @@ export default function GorevlerTabPanel(props) {
                                 ? 'z-[300]'
                                 : 'z-10'
                             }`}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => handleDrop(e, column.id)}
+onDragOver={(e) => (typeof handleDragOverTaskPreview === 'function' ? handleDragOverTaskPreview(e, column.id, null) : e.preventDefault())}
+                      onDrop={(e) => handleDrop(e, column.id)}
                           >
                             <div
                               className="w-full px-3 py-1.5 flex items-center justify-between text-[10.5px] font-black select-none tracking-tight shrink-0 h-[34px] rounded-[4px] shadow-[0_2px_8px_rgba(0,0,0,0.045)] relative z-[260]"
@@ -451,7 +452,8 @@ export default function GorevlerTabPanel(props) {
                                 column.tasks.some((task) => task.id === openTaskMenuId) || openMenuColumnId === column.id
                                   ? 'overflow-visible'
                                   : 'overflow-y-auto custom-scrollbar'
-                              }`} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, column.id)}>
+                              }`} onDragOver={(e) => e.preventDefault()} onDragOver={(e) => (typeof handleDragOverTaskPreview === 'function' ? handleDragOverTaskPreview(e, column.id, null) : e.preventDefault())}
+                      onDrop={(e) => handleDrop(e, column.id)}>
                               {column.tasks.map((task) => {
                                 const isSelected = selectedTasks.includes(task.id);
                                 const prioColor = priorityOptions.find((p) => p.label === task.priority)?.color || '#9ca3af';

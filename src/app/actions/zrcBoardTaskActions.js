@@ -918,6 +918,7 @@ export function createZRCBoardTaskActions(deps) {
     const zrcClearDesktopDragSource = () => {
       if (typeof document !== 'undefined') {
         document.documentElement.classList.remove('zrc-desktop-task-dragging');
+        document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
 
         document
           .querySelectorAll('.zrc-desktop-task-drag-source')
@@ -1016,6 +1017,7 @@ export function createZRCBoardTaskActions(deps) {
     const zrcClearDesktopDragSource = () => {
       if (typeof document !== 'undefined') {
         document.documentElement.classList.remove('zrc-desktop-task-dragging');
+        document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
 
         document
           .querySelectorAll('.zrc-desktop-task-drag-source')
@@ -1030,6 +1032,7 @@ export function createZRCBoardTaskActions(deps) {
 
     const { taskId } = draggedTaskInfo.current;
     let sourceColId = draggedTaskInfo.current.sourceColId;
+    const originalSourceColId = draggedTaskInfo.current.originalSourceColId || sourceColId;
 
     const zrcActualSourceColumnForDrop = boardColumns.find((column) =>
       (column.tasks || []).some((task) => task.id === taskId)
@@ -1039,15 +1042,15 @@ export function createZRCBoardTaskActions(deps) {
       sourceColId = zrcActualSourceColumnForDrop.id;
     }
 
-    if (sourceColId === targetColId && taskId === targetTaskId) {
+    if (sourceColId === targetColId && taskId === targetTaskId && !draggedTaskInfo.current?.hasPreviewMoved) {
       zrcClearDesktopDragSource();
       draggedTaskInfo.current = null;
       return;
     }
 
-    const sourceColumnBeforeMove = boardColumns.find((column) => column.id === sourceColId);
+    const sourceColumnBeforeMove = boardColumns.find((column) => column.id === originalSourceColId) || boardColumns.find((column) => column.id === sourceColId);
     const targetColumnBeforeMove = boardColumns.find((column) => column.id === targetColId);
-    const taskBeforeMove = sourceColumnBeforeMove?.tasks.find((task) => task.id === taskId) || null;
+    const taskBeforeMove = sourceColumnBeforeMove?.tasks.find((task) => task.id === taskId) || boardColumns.flatMap((column) => column.tasks || []).find((task) => task.id === taskId) || null;
 
     if (taskBeforeMove && !canCurrentUserModifyTask(taskBeforeMove, selectedProject)) {
       draggedTaskInfo.current = null;
@@ -1085,7 +1088,7 @@ export function createZRCBoardTaskActions(deps) {
       return updatedCols;
     });
 
-    if (taskBeforeMove && sourceColId !== targetColId) {
+    if (taskBeforeMove && originalSourceColId !== targetColId) {
       createActivityNotification({
         type: 'status',
         title: 'Görev durumu değişti',
@@ -1128,6 +1131,7 @@ export function createZRCBoardTaskActions(deps) {
     handleRestoreArchivedTask,
     handleDeleteArchivedTask,
     handleDragStart,
+    handleDragOverTaskPreview,
     handleDrop
   };
 }
