@@ -1841,8 +1841,8 @@ body {
     position: fixed;
     left: 0;
     top: 0;
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
     border-radius: 999px;
     background: #ff3600;
     opacity: 0;
@@ -1858,22 +1858,58 @@ body {
     will-change: transform, opacity, width, height;
   }
 
+  .zrc-pure-dot-cursor::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 54, 0, 0.28);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: none;
+  }
+
   body.zrc-pure-dot-cursor-visible .zrc-pure-dot-cursor {
     opacity: 1;
   }
 
   body.zrc-pure-dot-cursor-interactive .zrc-pure-dot-cursor {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   body.zrc-pure-dot-cursor-down .zrc-pure-dot-cursor {
-    width: 3px;
-    height: 3px;
+    width: 5px;
+    height: 5px;
+  }
+
+  body.zrc-pure-dot-cursor-clicked .zrc-pure-dot-cursor::after {
+    animation: zrcPureDotClickGlow 1000ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   body.zrc-pure-dot-cursor-text .zrc-pure-dot-cursor {
     opacity: 0;
+  }
+
+  @keyframes zrcPureDotClickGlow {
+    0% {
+      opacity: 0.36;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    45% {
+      opacity: 0.18;
+      transform: translate(-50%, -50%) scale(4.7);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(7.2);
+    }
   }
 }
 /* === ZRC PURE ORANGE DOT CURSOR END === */

@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 export default function ZRCPremiumCursor() {
   const cursorRef = useRef(null);
   const frameRef = useRef(null);
+  const clickTimerRef = useRef(null);
 
   const stateRef = useRef({
     x: -80,
@@ -77,7 +78,8 @@ export default function ZRCPremiumCursor() {
         'zrc-pure-dot-cursor-visible',
         'zrc-pure-dot-cursor-interactive',
         'zrc-pure-dot-cursor-text',
-        'zrc-pure-dot-cursor-down'
+        'zrc-pure-dot-cursor-down',
+        'zrc-pure-dot-cursor-clicked'
       );
     };
 
@@ -102,7 +104,19 @@ export default function ZRCPremiumCursor() {
 
     const onPointerDown = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
+
       body.classList.add('zrc-pure-dot-cursor-down');
+      body.classList.remove('zrc-pure-dot-cursor-clicked');
+
+      window.clearTimeout(clickTimerRef.current);
+
+      window.requestAnimationFrame(() => {
+        body.classList.add('zrc-pure-dot-cursor-clicked');
+      });
+
+      clickTimerRef.current = window.setTimeout(() => {
+        body.classList.remove('zrc-pure-dot-cursor-clicked');
+      }, 1050);
     };
 
     const onPointerUp = () => {
@@ -126,6 +140,7 @@ export default function ZRCPremiumCursor() {
 
     return () => {
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+      window.clearTimeout(clickTimerRef.current);
 
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
@@ -139,7 +154,8 @@ export default function ZRCPremiumCursor() {
         'zrc-pure-dot-cursor-visible',
         'zrc-pure-dot-cursor-interactive',
         'zrc-pure-dot-cursor-text',
-        'zrc-pure-dot-cursor-down'
+        'zrc-pure-dot-cursor-down',
+        'zrc-pure-dot-cursor-clicked'
       );
     };
   }, []);
