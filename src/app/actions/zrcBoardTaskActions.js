@@ -1210,7 +1210,24 @@ export function createZRCBoardTaskActions(deps) {
       if (targetTaskIndex >= 0 && placement === 'after') targetTaskIndex += 1;
       if (targetTaskIndex < 0) targetTaskIndex = updatedTargetColumn.tasks.length;
 
-      updatedTargetColumn.tasks.splice(targetTaskIndex, 0, movingTask);
+      /* === ZRC PREVIEW NORMALIZE MOVED TASK START === */
+      const movingTaskForPreview = {
+        ...movingTask,
+        status: updatedTargetColumn.title,
+        taskOrder: targetTaskIndex
+      };
+
+      updatedTargetColumn.tasks.splice(targetTaskIndex, 0, movingTaskForPreview);
+
+      const zrcNormalizedPreviewColumns = nextColumns.map((column) => ({
+        ...column,
+        tasks: (column.tasks || []).map((task, index) => ({
+          ...task,
+          taskOrder: index,
+          ...(task.id === taskId ? { status: column.title } : {})
+        }))
+      }));
+      /* === ZRC PREVIEW NORMALIZE MOVED TASK END === */
 
       draggedTaskInfo.current = {
         ...draggedTaskInfo.current,
@@ -1225,7 +1242,7 @@ export function createZRCBoardTaskActions(deps) {
         document.documentElement.classList.add('zrc-desktop-task-live-previewing');
       }
 
-      return nextColumns;
+      return zrcNormalizedPreviewColumns;
     });
 
     zrcAnimateTaskLayoutShift(zrcPreviousTaskRects);
@@ -1258,21 +1275,22 @@ export function createZRCBoardTaskActions(deps) {
       return;
     }
 
-    const { taskId } = draggedTaskInfo.current;
-    let sourceColId = draggedTaskInfo.current.sourceColId;
-    const originalSourceColId = draggedTaskInfo.current.originalSourceColId || sourceColId;
+    const dragInfoSnapshot = { ...draggedTaskInfo.current };
+    const { taskId } = dragInfoSnapshot;
+    const originalSourceColId = dragInfoSnapshot.originalSourceColId || dragInfoSnapshot.sourceColId;
+    const sourceColId = dragInfoSnapshot.sourceColId || originalSourceColId;
+    const hasLivePreviewMoved = Boolean(dragInfoSnapshot.hasPreviewMoved);
+    const placement = insertPlacement === 'after' ? 'after' : 'before';
 
-    const zrcActualSourceColumnForDrop = boardColumns.find((column) =>
-      (column.tasks || []).some((task) => task.id === taskId)
-    );
-
-    if (zrcActualSourceColumnForDrop?.id) {
-      sourceColId = zrcActualSourceColumnForDrop.id;
+    if (!taskId || !targetColId) {
+      draggedTaskInfo.current = null;
+      zrcClearDesktopDragSource();
+      return;
     }
 
-    /* === ZRC DROP BETWEEN TASKS RESOLVER START === */
+    /* === ZRC RESOLVE FINAL DROP TARGET START === */
     let resolvedTargetTaskId = targetTaskId;
-    let resolvedInsertPlacement = insertPlacement === 'after' ? 'after' : 'before';
+    let resolvedInsertPlacement = placement;
 
     if (!resolvedTargetTaskId && e?.currentTarget?.querySelectorAll) {
       try {
@@ -1310,17 +1328,27 @@ export function createZRCBoardTaskActions(deps) {
         }
       } catch (error) {}
     }
-    /* === ZRC DROP BETWEEN TASKS RESOLVER END === */
+    /* === ZRC RESOLVE FINAL DROP TARGET END === */
 
-    if (sourceColId === targetColId && taskId === resolvedTargetTaskId && !draggedTaskInfo.current?.hasPreviewMoved) {
-      zrcClearDesktopDragSource();
-      draggedTaskInfo.current = null;
-      return;
-    }
+    const currentTaskColumnBeforeDrop = boardColumns.find((column) =>
+      (column.tasks || []).some((task) => task.id === taskId)
+    );
 
-    const sourceColumnBeforeMove = boardColumns.find((column) => column.id === originalSourceColId) || boardColumns.find((column) => column.id === sourceColId);
-    const targetColumnBeforeMove = boardColumns.find((column) => column.id === targetColId);
-    const taskBeforeMove = sourceColumnBeforeMove?.tasks.find((task) => task.id === taskId) || boardColumns.flatMap((column) => column.tasks || []).find((task) => task.id === taskId) || null;
+    const finalTargetColId = currentTaskColumnBeforeDrop?.id || targetColId;
+    const sourceColumnBeforeMove =
+      boardColumns.find((column) => column.id === originalSourceColId) ||
+      boardColumns.find((column) => column.id === sourceColId) ||
+      currentTaskColumnBeforeDrop;
+
+    const targetColumnBeforeMove =
+      boardColumns.find((column) => column.id === finalTargetColId) ||
+      boardColumns.find((column) => column.id === targetColId);
+
+    const taskBeforeMove =
+      sourceColumnBeforeMove?.tasks?.find((task) => task.id === taskId) ||
+      currentTaskColumnBeforeDrop?.tasks?.find((task) => task.id === taskId) ||
+      boardColumns.flatMap((column) => column.tasks || []).find((task) => task.id === taskId) ||
+      null;
 
     if (taskBeforeMove && !canCurrentUserModifyTask(taskBeforeMove, selectedProject)) {
       draggedTaskInfo.current = null;
@@ -1329,22 +1357,53 @@ export function createZRCBoardTaskActions(deps) {
       return;
     }
 
+    const shouldCreateStatusNotification =
+      taskBeforeMove &&
+      originalSourceColId &&
+      finalTargetColId &&
+      originalSourceColId !== finalTargetColId;
+
     setBoardColumns((prevColumns) => {
-      const updatedCols = prevColumns.map((col) => ({ ...col, tasks: [...col.tasks] }));
-      const sourceColumn = updatedCols.find((c) => c.id === sourceColId);
-      const targetColumn = updatedCols.find((c) => c.id === targetColId);
+      const updatedCols = prevColumns.map((col) => ({
+        ...col,
+        tasks: Array.isArray(col.tasks) ? [...col.tasks] : []
+      }));
+
+      if (hasLivePreviewMoved) {
+        const normalizedCols = updatedCols.map((col) => ({
+          ...col,
+          tasks: (col.tasks || []).map((task, index) => ({
+            ...task,
+            taskOrder: index,
+            ...(task.id === taskId ? { status: col.title } : {})
+          }))
+        }));
+
+        zrcPersistBoardTaskOrderToSupabase(normalizedCols);
+        return normalizedCols;
+      }
+
+      const sourceColumn =
+        updatedCols.find((column) => column.id === sourceColId) ||
+        updatedCols.find((column) => (column.tasks || []).some((task) => task.id === taskId));
+
+      const targetColumn = updatedCols.find((column) => column.id === targetColId);
 
       if (!sourceColumn || !targetColumn) return prevColumns;
 
-      const taskToMoveIndex = sourceColumn.tasks.findIndex((t) => t.id === taskId);
+      const taskToMoveIndex = sourceColumn.tasks.findIndex((task) => task.id === taskId);
       if (taskToMoveIndex === -1) return prevColumns;
 
-      const taskToMove = sourceColumn.tasks[taskToMoveIndex];
+      const [rawTaskToMove] = sourceColumn.tasks.splice(taskToMoveIndex, 1);
+      if (!rawTaskToMove) return prevColumns;
 
-      sourceColumn.tasks.splice(taskToMoveIndex, 1);
+      const taskToMove = {
+        ...rawTaskToMove,
+        status: targetColumn.title
+      };
 
-      if (resolvedTargetTaskId) {
-        const targetIdx = targetColumn.tasks.findIndex((t) => t.id === resolvedTargetTaskId);
+      if (resolvedTargetTaskId && resolvedTargetTaskId !== taskId) {
+        const targetIdx = targetColumn.tasks.findIndex((task) => task.id === resolvedTargetTaskId);
 
         if (targetIdx !== -1) {
           const insertIndex = resolvedInsertPlacement === 'after' ? targetIdx + 1 : targetIdx;
@@ -1356,11 +1415,20 @@ export function createZRCBoardTaskActions(deps) {
         targetColumn.tasks.push(taskToMove);
       }
 
-      zrcPersistBoardTaskOrderToSupabase(updatedCols);
-      return updatedCols;
+      const normalizedCols = updatedCols.map((col) => ({
+        ...col,
+        tasks: (col.tasks || []).map((task, index) => ({
+          ...task,
+          taskOrder: index,
+          ...(task.id === taskId ? { status: col.title } : {})
+        }))
+      }));
+
+      zrcPersistBoardTaskOrderToSupabase(normalizedCols);
+      return normalizedCols;
     });
 
-    if (taskBeforeMove && originalSourceColId !== targetColId) {
+    if (shouldCreateStatusNotification) {
       createActivityNotification({
         type: 'status',
         title: 'Görev durumu değişti',
@@ -1371,10 +1439,6 @@ export function createZRCBoardTaskActions(deps) {
         targetUserIds: getTaskAssigneeUserIdsForNotification(taskBeforeMove || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 820
       });
-
-      if (targetColumnBeforeMove) {
-        updateSupabaseTaskColumn(taskBeforeMove, targetColumnBeforeMove);
-      }
     }
 
     draggedTaskInfo.current = null;
