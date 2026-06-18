@@ -1057,8 +1057,13 @@ export function createZRCBoardTaskActions(deps) {
         document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
 
         document
-          .querySelectorAll('.zrc-desktop-task-drag-source')
-          .forEach((element) => element.classList.remove('zrc-desktop-task-drag-source'));
+          .querySelectorAll('.zrc-desktop-task-drag-source, .zrc-task-drop-before, .zrc-task-drop-after')
+          .forEach((element) => {
+            element.classList.remove('zrc-desktop-task-drag-source');
+            element.classList.remove('zrc-task-drop-before');
+            element.classList.remove('zrc-task-drop-after');
+            if (element?.dataset) delete element.dataset.zrcDropPlacement;
+          });
       }
     };
 
@@ -1084,6 +1089,18 @@ export function createZRCBoardTaskActions(deps) {
     if (!taskId || !targetColId || taskId === targetTaskId) return;
 
     const placement = insertPlacement === 'after' ? 'after' : 'before';
+
+    /* === ZRC DRAG PREVIEW SAME TARGET GUARD START === */
+    if (
+      draggedTaskInfo.current?.hasPreviewMoved &&
+      draggedTaskInfo.current?.lastPreviewTargetColId === targetColId &&
+      draggedTaskInfo.current?.lastPreviewTargetTaskId === targetTaskId &&
+      draggedTaskInfo.current?.lastPreviewPlacement === placement
+    ) {
+      return;
+    }
+    /* === ZRC DRAG PREVIEW SAME TARGET GUARD END === */
+
 
     setBoardColumns((prevColumns) => {
       const nextColumns = prevColumns.map((column) => ({
@@ -1145,8 +1162,13 @@ export function createZRCBoardTaskActions(deps) {
         document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
 
         document
-          .querySelectorAll('.zrc-desktop-task-drag-source')
-          .forEach((element) => element.classList.remove('zrc-desktop-task-drag-source'));
+          .querySelectorAll('.zrc-desktop-task-drag-source, .zrc-task-drop-before, .zrc-task-drop-after')
+          .forEach((element) => {
+            element.classList.remove('zrc-desktop-task-drag-source');
+            element.classList.remove('zrc-task-drop-before');
+            element.classList.remove('zrc-task-drop-after');
+            if (element?.dataset) delete element.dataset.zrcDropPlacement;
+          });
       }
     };
 

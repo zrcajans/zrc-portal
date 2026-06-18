@@ -1766,3 +1766,34 @@ body {
   }
 }
 /* === ZRC REAL DESKTOP DRAG LIVE PREVIEW END === */
+
+
+/* === ZRC TASK DROP INDICATOR NO JITTER START === */
+.zrc-task-drop-before,
+.zrc-task-drop-after {
+  position: relative;
+}
+
+.zrc-task-drop-before::before,
+.zrc-task-drop-after::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  height: 3px;
+  border-radius: 999px;
+  background: #ff3600;
+  box-shadow: 0 0 0 3px rgba(255, 54, 0, 0.12);
+  pointer-events: none;
+  z-index: 80;
+}
+
+.zrc-task-drop-before::before {
+  top: -7px;
+}
+
+.zrc-task-drop-after::after {
+  bottom: -7px;
+}
+/* === ZRC TASK DROP INDICATOR NO JITTER END === */
+

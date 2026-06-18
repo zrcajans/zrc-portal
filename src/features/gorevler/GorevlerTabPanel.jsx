@@ -291,15 +291,7 @@ export default function GorevlerTabPanel(props) {
                                 ? 'z-[300]'
                                 : 'z-10'
                             }`}
-onDragOver={(e) => {
-                      if (typeof handleDragOverTaskPreview === 'function') {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
-                        handleDragOverTaskPreview(e, column.id, null, placement);
-                      } else {
-                        e.preventDefault();
-                      }
-                    }}
+onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => handleDrop(e, column.id)}
                           >
                             <div
@@ -460,15 +452,7 @@ onDragOver={(e) => {
                                 column.tasks.some((task) => task.id === openTaskMenuId) || openMenuColumnId === column.id
                                   ? 'overflow-visible'
                                   : 'overflow-y-auto custom-scrollbar'
-                              }`} onDragOver={(e) => e.preventDefault()} onDragOver={(e) => {
-                      if (typeof handleDragOverTaskPreview === 'function') {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
-                        handleDragOverTaskPreview(e, column.id, null, placement);
-                      } else {
-                        e.preventDefault();
-                      }
-                    }}
+                              }`} onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => handleDrop(e, column.id)}>
                               {column.tasks.map((task) => {
                                 const isSelected = selectedTasks.includes(task.id);
@@ -495,25 +479,66 @@ onDragOver={(e) => {
                                     }}
                                     /* === ZRC DROP BETWEEN TASKS CARD HANDLERS START === */
                                     onDragOver={(e) => {
-                                      if (typeof handleDragOverTaskPreview !== 'function') {
-                                        e.preventDefault();
-                                        return;
-                                      }
-
                                       e.preventDefault();
                                       e.stopPropagation();
 
                                       const rect = e.currentTarget.getBoundingClientRect();
-                                      const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
+                                      const middleY = rect.top + rect.height / 2;
+                                      const deadZonePx = Math.min(18, Math.max(8, rect.height * 0.18));
+                                      const previousPlacement = e.currentTarget.dataset.zrcDropPlacement;
+                                      let placement = previousPlacement === 'after' ? 'after' : 'before';
 
-                                      handleDragOverTaskPreview(e, column.id, task.id, placement);
+                                      if (!previousPlacement || e.clientY < middleY - deadZonePx) {
+                                        placement = 'before';
+                                      } else if (!previousPlacement || e.clientY > middleY + deadZonePx) {
+                                        placement = 'after';
+                                      }
+
+                                      if (typeof document !== 'undefined') {
+                                        document
+                                          .querySelectorAll('.zrc-task-drop-before, .zrc-task-drop-after')
+                                          .forEach((element) => {
+                                            if (element === e.currentTarget) return;
+                                            element.classList.remove('zrc-task-drop-before');
+                                            element.classList.remove('zrc-task-drop-after');
+                                            if (element?.dataset) delete element.dataset.zrcDropPlacement;
+                                          });
+                                      }
+
+                                      e.currentTarget.dataset.zrcDropPlacement = placement;
+                                      e.currentTarget.classList.toggle('zrc-task-drop-before', placement === 'before');
+                                      e.currentTarget.classList.toggle('zrc-task-drop-after', placement === 'after');
+                                    }}
+                                    onDragLeave={(e) => {
+                                      if (e.currentTarget.contains(e.relatedTarget)) return;
+
+                                      e.currentTarget.classList.remove('zrc-task-drop-before');
+                                      e.currentTarget.classList.remove('zrc-task-drop-after');
+                                      if (e.currentTarget?.dataset) delete e.currentTarget.dataset.zrcDropPlacement;
                                     }}
                                     onDrop={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
 
                                       const rect = e.currentTarget.getBoundingClientRect();
-                                      const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
+                                      const storedPlacement = e.currentTarget.dataset.zrcDropPlacement;
+                                      const placement = storedPlacement === 'after'
+                                        ? 'after'
+                                        : storedPlacement === 'before'
+                                          ? 'before'
+                                          : e.clientY > rect.top + rect.height / 2
+                                            ? 'after'
+                                            : 'before';
+
+                                      if (typeof document !== 'undefined') {
+                                        document
+                                          .querySelectorAll('.zrc-task-drop-before, .zrc-task-drop-after')
+                                          .forEach((element) => {
+                                            element.classList.remove('zrc-task-drop-before');
+                                            element.classList.remove('zrc-task-drop-after');
+                                            if (element?.dataset) delete element.dataset.zrcDropPlacement;
+                                          });
+                                      }
 
                                       handleDrop(e, column.id, task.id, placement);
                                     }}
