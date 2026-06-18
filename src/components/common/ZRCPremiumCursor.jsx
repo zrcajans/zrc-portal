@@ -2,17 +2,13 @@ import { useEffect, useRef } from 'react';
 
 export default function ZRCPremiumCursor() {
   const cursorRef = useRef(null);
-  const auraRef = useRef(null);
   const frameRef = useRef(null);
-  const clickTimerRef = useRef(null);
 
   const stateRef = useRef({
     x: -80,
     y: -80,
     dotX: -80,
     dotY: -80,
-    auraX: -80,
-    auraY: -80,
     visible: false
   });
 
@@ -27,9 +23,8 @@ export default function ZRCPremiumCursor() {
 
     const body = document.body;
     const cursor = cursorRef.current;
-    const aura = auraRef.current;
 
-    if (!body || !cursor || !aura) return undefined;
+    if (!body || !cursor) return undefined;
 
     const interactiveSelector = [
       'a',
@@ -56,38 +51,33 @@ export default function ZRCPremiumCursor() {
       const isText = Boolean(element?.closest(textSelector));
       const isInteractive = Boolean(element?.closest(interactiveSelector));
 
-      body.classList.toggle('zrc-glow-dot-cursor-text', isText);
-      body.classList.toggle('zrc-glow-dot-cursor-interactive', isInteractive && !isText);
+      body.classList.toggle('zrc-pure-dot-cursor-text', isText);
+      body.classList.toggle('zrc-pure-dot-cursor-interactive', isInteractive && !isText);
     };
 
     const animate = () => {
       const state = stateRef.current;
 
-      state.dotX += (state.x - state.dotX) * 0.58;
-      state.dotY += (state.y - state.dotY) * 0.58;
-
-      state.auraX += (state.x - state.auraX) * 0.16;
-      state.auraY += (state.y - state.auraY) * 0.16;
+      state.dotX += (state.x - state.dotX) * 0.62;
+      state.dotY += (state.y - state.dotY) * 0.62;
 
       cursor.style.transform = `translate3d(${state.dotX}px, ${state.dotY}px, 0) translate(-50%, -50%)`;
-      aura.style.transform = `translate3d(${state.auraX}px, ${state.auraY}px, 0) translate(-50%, -50%)`;
 
       frameRef.current = window.requestAnimationFrame(animate);
     };
 
     const show = () => {
       stateRef.current.visible = true;
-      body.classList.add('zrc-glow-dot-cursor-visible');
+      body.classList.add('zrc-pure-dot-cursor-visible');
     };
 
     const hide = () => {
       stateRef.current.visible = false;
       body.classList.remove(
-        'zrc-glow-dot-cursor-visible',
-        'zrc-glow-dot-cursor-interactive',
-        'zrc-glow-dot-cursor-text',
-        'zrc-glow-dot-cursor-down',
-        'zrc-glow-dot-cursor-clicked'
+        'zrc-pure-dot-cursor-visible',
+        'zrc-pure-dot-cursor-interactive',
+        'zrc-pure-dot-cursor-text',
+        'zrc-pure-dot-cursor-down'
       );
     };
 
@@ -104,8 +94,6 @@ export default function ZRCPremiumCursor() {
       if (!state.visible) {
         state.dotX = event.clientX;
         state.dotY = event.clientY;
-        state.auraX = event.clientX;
-        state.auraY = event.clientY;
         show();
       }
 
@@ -114,25 +102,18 @@ export default function ZRCPremiumCursor() {
 
     const onPointerDown = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
-
-      body.classList.add('zrc-glow-dot-cursor-down');
-      body.classList.add('zrc-glow-dot-cursor-clicked');
-
-      window.clearTimeout(clickTimerRef.current);
-      clickTimerRef.current = window.setTimeout(() => {
-        body.classList.remove('zrc-glow-dot-cursor-clicked');
-      }, 520);
+      body.classList.add('zrc-pure-dot-cursor-down');
     };
 
     const onPointerUp = () => {
-      body.classList.remove('zrc-glow-dot-cursor-down');
+      body.classList.remove('zrc-pure-dot-cursor-down');
     };
 
     const onMouseLeave = () => hide();
     const onMouseEnter = () => show();
     const onTouchStart = () => hide();
 
-    body.classList.add('zrc-glow-dot-cursor-enabled');
+    body.classList.add('zrc-pure-dot-cursor-enabled');
 
     frameRef.current = window.requestAnimationFrame(animate);
 
@@ -145,7 +126,6 @@ export default function ZRCPremiumCursor() {
 
     return () => {
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
-      window.clearTimeout(clickTimerRef.current);
 
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
@@ -155,30 +135,14 @@ export default function ZRCPremiumCursor() {
       window.removeEventListener('touchstart', onTouchStart);
 
       body.classList.remove(
-        'zrc-glow-dot-cursor-enabled',
-        'zrc-glow-dot-cursor-visible',
-        'zrc-glow-dot-cursor-interactive',
-        'zrc-glow-dot-cursor-text',
-        'zrc-glow-dot-cursor-down',
-        'zrc-glow-dot-cursor-clicked'
+        'zrc-pure-dot-cursor-enabled',
+        'zrc-pure-dot-cursor-visible',
+        'zrc-pure-dot-cursor-interactive',
+        'zrc-pure-dot-cursor-text',
+        'zrc-pure-dot-cursor-down'
       );
     };
   }, []);
 
-  return (
-    <>
-      <span ref={auraRef} className="zrc-glow-dot-cursor-aura" aria-hidden="true" />
-      <span ref={cursorRef} className="zrc-glow-dot-cursor" aria-hidden="true">
-        <span className="zrc-glow-dot-cursor__core" />
-        <span className="zrc-glow-dot-cursor__ring zrc-glow-dot-cursor__ring--a" />
-        <span className="zrc-glow-dot-cursor__ring zrc-glow-dot-cursor__ring--b" />
-        <span className="zrc-glow-dot-cursor__spark zrc-glow-dot-cursor__spark--a" />
-        <span className="zrc-glow-dot-cursor__spark zrc-glow-dot-cursor__spark--b" />
-        <span className="zrc-glow-dot-cursor__spark zrc-glow-dot-cursor__spark--c" />
-        <span className="zrc-glow-dot-cursor__spark zrc-glow-dot-cursor__spark--d" />
-        <span className="zrc-glow-dot-cursor__spark zrc-glow-dot-cursor__spark--e" />
-        <span className="zrc-glow-dot-cursor__spark zrc-glow-dot-cursor__spark--f" />
-      </span>
-    </>
-  );
+  return <span ref={cursorRef} className="zrc-pure-dot-cursor" aria-hidden="true" />;
 }
