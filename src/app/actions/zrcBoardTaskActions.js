@@ -657,6 +657,48 @@ export function createZRCBoardTaskActions(deps) {
       columnTitle: targetColumn.title
     };
 
+    /* === ZRC PREVIEW DROP FINALIZE WITHOUT APPEND START === */
+    if (draggedTaskInfo.current?.hasPreviewMoved) {
+      const finalColumnAfterPreview = boardColumns.find((column) =>
+        (column.tasks || []).some((task) => task.id === taskId)
+      );
+
+      const finalTaskAfterPreview =
+        finalColumnAfterPreview?.tasks?.find((task) => task.id === taskId) || taskBeforeMove;
+
+      const finalTargetColumn =
+        finalColumnAfterPreview || boardColumns.find((column) => column.id === targetColId);
+
+      const finalColumnId = finalTargetColumn?.id || targetColId;
+
+      if (taskBeforeMove && originalSourceColId !== finalColumnId) {
+        createActivityNotification({
+          type: 'status',
+          title: 'Görev durumu değişti',
+          text: taskBeforeMove.title || 'Adsız görev',
+          meta: `${sourceColumnBeforeMove?.title || 'Eski durum'} → ${finalTargetColumn?.title || 'Yeni durum'}`,
+          task: { ...taskBeforeMove, columnTitle: finalTargetColumn?.title },
+          columnTitle: finalTargetColumn?.title,
+          targetUserIds: getTaskAssigneeUserIdsForNotification(taskBeforeMove || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
+          sortWeight: 820
+        });
+
+        if (finalTargetColumn) {
+          updateSupabaseTaskColumn(finalTaskAfterPreview || taskBeforeMove, finalTargetColumn);
+        }
+      }
+
+      draggedTaskInfo.current = null;
+      zrcClearDesktopDragSource();
+
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
+      }
+
+      return;
+    }
+    /* === ZRC PREVIEW DROP FINALIZE WITHOUT APPEND END === */
+
     setBoardColumns((prevColumns) => {
       const updatedColumns = prevColumns.map((column) => ({
         ...column,
