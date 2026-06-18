@@ -1768,34 +1768,6 @@ body {
 /* === ZRC REAL DESKTOP DRAG LIVE PREVIEW END === */
 
 
-/* === ZRC TASK DROP INDICATOR NO JITTER START === */
-.zrc-task-drop-before,
-.zrc-task-drop-after {
-  position: relative;
-}
-
-.zrc-task-drop-before::before,
-.zrc-task-drop-after::after {
-  content: "";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  height: 3px;
-  border-radius: 999px;
-  background: #ff3600;
-  box-shadow: 0 0 0 3px rgba(255, 54, 0, 0.12);
-  pointer-events: none;
-  z-index: 80;
-}
-
-.zrc-task-drop-before::before {
-  top: -7px;
-}
-
-.zrc-task-drop-after::after {
-  bottom: -7px;
-}
-/* === ZRC TASK DROP INDICATOR NO JITTER END === */
 
 /* === ZRC PREMIUM TASK REORDER ANIMATION START === */
 .zrc-premium-task-reorder-active [data-zrc-task-card="true"] {
@@ -1815,10 +1787,4 @@ body {
   box-shadow: 0 16px 34px rgba(15, 23, 42, 0.14);
 }
 
-.zrc-premium-task-reorder-active .zrc-task-drop-before::before,
-.zrc-premium-task-reorder-active .zrc-task-drop-after::after {
-  transition:
-    opacity 120ms ease,
-    transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
-}
 /* === ZRC PREMIUM TASK REORDER ANIMATION END === */
