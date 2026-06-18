@@ -59,8 +59,8 @@ export default function ZRCPremiumCursor() {
     const animate = () => {
       const state = stateRef.current;
 
-      state.dotX += (state.x - state.dotX) * 0.62;
-      state.dotY += (state.y - state.dotY) * 0.62;
+      state.dotX += (state.x - state.dotX) * 0.66;
+      state.dotY += (state.y - state.dotY) * 0.66;
 
       cursor.style.transform = `translate3d(${state.dotX}px, ${state.dotY}px, 0) translate(-50%, -50%)`;
 
@@ -111,12 +111,14 @@ export default function ZRCPremiumCursor() {
       window.clearTimeout(clickTimerRef.current);
 
       window.requestAnimationFrame(() => {
-        body.classList.add('zrc-pure-dot-cursor-clicked');
+        window.requestAnimationFrame(() => {
+          body.classList.add('zrc-pure-dot-cursor-clicked');
+        });
       });
 
       clickTimerRef.current = window.setTimeout(() => {
         body.classList.remove('zrc-pure-dot-cursor-clicked');
-      }, 1050);
+      }, 1080);
     };
 
     const onPointerUp = () => {
