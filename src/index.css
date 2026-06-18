@@ -1822,3 +1822,86 @@ body {
   }
 }
 /* === ZRC PREMIUM NATIVE MICRO INTERACTIONS END === */
+
+/* === ZRC MICRO SIGNATURE CURSOR START === */
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .zrc-micro-cursor-mark {
+    pointer-events: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 13px;
+    height: 13px;
+    opacity: 0;
+    z-index: 2147483000;
+    transform: translate3d(-80px, -80px, 0) translate(10px, 10px);
+    transition:
+      opacity 140ms ease,
+      filter 180ms ease;
+    will-change: transform, opacity;
+  }
+
+  .zrc-micro-cursor-mark__dash {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: block;
+    width: 9px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(17, 24, 39, 0.30), rgba(17, 24, 39, 0.72));
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.10),
+      0 0 0 1px rgba(255, 255, 255, 0.42);
+    transform-origin: center;
+    transition:
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      width 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .zrc-micro-cursor-mark__dash--a {
+    transform: translate(-50%, -50%) rotate(45deg) translateY(-2px);
+  }
+
+  .zrc-micro-cursor-mark__dash--b {
+    opacity: 0.48;
+    transform: translate(-50%, -50%) rotate(45deg) translateY(3px);
+  }
+
+  body.zrc-micro-cursor-visible .zrc-micro-cursor-mark {
+    opacity: 1;
+  }
+
+  body.zrc-micro-cursor-interactive .zrc-micro-cursor-mark {
+    filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.14));
+  }
+
+  body.zrc-micro-cursor-interactive .zrc-micro-cursor-mark__dash {
+    width: 11px;
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.42), rgba(15, 23, 42, 0.88));
+  }
+
+  body.zrc-micro-cursor-interactive .zrc-micro-cursor-mark__dash--a {
+    transform: translate(-50%, -50%) rotate(0deg) translateY(-2px);
+  }
+
+  body.zrc-micro-cursor-interactive .zrc-micro-cursor-mark__dash--b {
+    opacity: 0.42;
+    transform: translate(-50%, -50%) rotate(0deg) translateY(3px);
+  }
+
+  body.zrc-micro-cursor-down .zrc-micro-cursor-mark__dash--a {
+    transform: translate(-50%, -50%) rotate(0deg) translateY(-1px) scaleX(0.78);
+  }
+
+  body.zrc-micro-cursor-down .zrc-micro-cursor-mark__dash--b {
+    transform: translate(-50%, -50%) rotate(0deg) translateY(2px) scaleX(0.78);
+  }
+
+  body.zrc-micro-cursor-text .zrc-micro-cursor-mark {
+    opacity: 0;
+  }
+}
+/* === ZRC MICRO SIGNATURE CURSOR END === */
