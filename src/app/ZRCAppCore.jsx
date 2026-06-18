@@ -1473,12 +1473,124 @@ function App() {
     ['Yazışma Grubu', chatGroups.length]
   ];
 
+  
+  /* === ZRC TASK ORDER PERSISTENCE HELPERS START === */
+  const zrcTaskOrderStorageKeyForProject = (projectName = '') =>
+    `zrc-task-order-v1:${String(projectName || '').trim()}`;
+
+  const zrcGetStableTaskOrderId = (task = {}) => {
+    const rawId = String(task?.id || '').trim();
+    const supabaseId = String(
+      task?.supabaseId ||
+      task?.supabase_id ||
+      (rawId.startsWith('supabase-') ? rawId.replace('supabase-', '') : '') ||
+      ''
+    ).trim();
+
+    return supabaseId || rawId || String(task?.title || '').trim();
+  };
+
+  const zrcGetColumnOrderKey = (column = {}) =>
+    String(column?.id || normalizeColumnTitleForDisplay(column?.title || '') || '').trim();
+
+  const zrcReadStoredTaskOrder = (projectName = '') => {
+    const storageKey = zrcTaskOrderStorageKeyForProject(projectName);
+    const storedOrder = normalizeStorageObject(readStorageValue(storageKey, {}), {});
+
+    return storedOrder && typeof storedOrder === 'object' && !Array.isArray(storedOrder)
+      ? storedOrder
+      : {};
+  };
+
+  const zrcPersistTaskOrderForColumns = (columns = [], projectName = selectedProject) => {
+    if (!projectName || !Array.isArray(columns)) return;
+
+    const orderMap = {};
+
+    columns.forEach((column) => {
+      const columnKey = zrcGetColumnOrderKey(column);
+      const titleKey = normalizeColumnTitleForDisplay(column?.title || '');
+
+      const taskIds = (column?.tasks || [])
+        .map(zrcGetStableTaskOrderId)
+        .filter(Boolean);
+
+      if (columnKey) orderMap[columnKey] = taskIds;
+      if (titleKey) orderMap[titleKey] = taskIds;
+    });
+
+    writeStorageValue(zrcTaskOrderStorageKeyForProject(projectName), orderMap);
+  };
+
+  const zrcApplyStoredTaskOrderToColumns = (columns = [], projectName = selectedProject) => {
+    if (!projectName || !Array.isArray(columns)) return columns;
+
+    const storedOrder = zrcReadStoredTaskOrder(projectName);
+
+    if (!storedOrder || Object.keys(storedOrder).length === 0) return columns;
+
+    let didChange = false;
+
+    const orderedColumns = columns.map((column) => {
+      const tasks = Array.isArray(column?.tasks) ? column.tasks : [];
+      if (tasks.length <= 1) return column;
+
+      const columnKey = zrcGetColumnOrderKey(column);
+      const titleKey = normalizeColumnTitleForDisplay(column?.title || '');
+      const taskOrder = storedOrder[columnKey] || storedOrder[titleKey];
+
+      if (!Array.isArray(taskOrder) || taskOrder.length === 0) return column;
+
+      const orderIndex = new Map(taskOrder.map((taskId, index) => [String(taskId), index]));
+
+      const orderedTasks = [...tasks].sort((leftTask, rightTask) => {
+        const leftId = zrcGetStableTaskOrderId(leftTask);
+        const rightId = zrcGetStableTaskOrderId(rightTask);
+
+        const leftOrder = orderIndex.has(leftId) ? orderIndex.get(leftId) : Number.MAX_SAFE_INTEGER;
+        const rightOrder = orderIndex.has(rightId) ? orderIndex.get(rightId) : Number.MAX_SAFE_INTEGER;
+
+        if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+
+        return 0;
+      });
+
+      const beforeIds = tasks.map(zrcGetStableTaskOrderId).join('|');
+      const afterIds = orderedTasks.map(zrcGetStableTaskOrderId).join('|');
+
+      if (beforeIds !== afterIds) didChange = true;
+
+      return {
+        ...column,
+        tasks: orderedTasks
+      };
+    });
+
+    return didChange ? orderedColumns : columns;
+  };
+
+  const zrcTaskOrderSignatureForColumns = (columns = []) =>
+    (Array.isArray(columns) ? columns : [])
+      .map((column) =>
+        `${zrcGetColumnOrderKey(column)}:${(column?.tasks || []).map(zrcGetStableTaskOrderId).join(',')}`
+      )
+      .join('||');
+  /* === ZRC TASK ORDER PERSISTENCE HELPERS END === */
+
   const setBoardColumns = (updater) => {
     if (!selectedProject) return;
 
     setProjectBoards((prevBoards) => {
       const existingBoard = prevBoards[selectedProject] || createDefaultProjectBoard();
-      const nextColumns = typeof updater === 'function' ? updater(existingBoard.columns) : updater;
+      const rawNextColumns = typeof updater === 'function' ? updater(existingBoard.columns) : updater;
+      const safeNextColumns = Array.isArray(rawNextColumns) ? rawNextColumns : existingBoard.columns;
+
+      const nextColumns =
+        typeof updater === 'function'
+          ? safeNextColumns
+          : zrcApplyStoredTaskOrderToColumns(safeNextColumns, selectedProject);
+
+      zrcPersistTaskOrderForColumns(nextColumns, selectedProject);
 
       return {
         ...prevBoards,
@@ -1489,6 +1601,31 @@ function App() {
       };
     });
   };
+
+
+  /* === ZRC TASK ORDER APPLY EFFECT START === */
+  useEffect(() => {
+    if (!selectedProject || !Array.isArray(boardColumns) || boardColumns.length === 0) return;
+
+    const currentSignature = zrcTaskOrderSignatureForColumns(boardColumns);
+    const orderedColumns = zrcApplyStoredTaskOrderToColumns(boardColumns, selectedProject);
+    const orderedSignature = zrcTaskOrderSignatureForColumns(orderedColumns);
+
+    if (currentSignature === orderedSignature) return;
+
+    setProjectBoards((prevBoards) => {
+      const existingBoard = prevBoards[selectedProject] || createDefaultProjectBoard();
+
+      return {
+        ...prevBoards,
+        [selectedProject]: {
+          ...existingBoard,
+          columns: orderedColumns
+        }
+      };
+    });
+  }, [selectedProject, boardColumns]);
+  /* === ZRC TASK ORDER APPLY EFFECT END === */
 
   const setArchivedTasks = (updater) => {
     if (!selectedProject) return;
