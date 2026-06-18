@@ -5634,27 +5634,37 @@ function App() {
   const isCurrentSupabaseUserId = (userId = '') =>
     isSupabaseUuid(currentUserId) && String(userId) === String(currentUserId);
 
-  const isProjectVisibleForCurrentUser = (projectName = '') => {
+    const isProjectVisibleForCurrentUser = (projectName = '') => {
     const cleanProjectName = String(projectName || '').trim();
 
     if (!cleanProjectName) return false;
 
-    if (
+    const isMainZrcOwner =
       isZrcOwnerAccount ||
       currentUserRole === 'Yönetici' ||
       currentAccountType === 'Patron' ||
-      currentAccountType === 'Yönetici'
-    ) {
-      return true;
-    }
+      currentAccountType === 'Yönetici' ||
+      String(currentUserId || '') === 'a7b13472-0efa-4dac-965f-5937c58b8794' ||
+      String(supabaseAuthUserId || '') === 'a7b13472-0efa-4dac-965f-5937c58b8794';
+
+    if (isMainZrcOwner) return true;
 
     if (currentAccountType === 'Ekip Üyesi') return isCurrentUserProjectMember(cleanProjectName);
     if (currentAccountType === 'Müşteri') return isCurrentCustomerProject(cleanProjectName);
 
     return false;
   };
+  const isMainZrcProjectOwner =
+    isZrcOwnerAccount ||
+    currentUserRole === 'Yönetici' ||
+    currentAccountType === 'Patron' ||
+    currentAccountType === 'Yönetici' ||
+    String(currentUserId || '') === 'a7b13472-0efa-4dac-965f-5937c58b8794' ||
+    String(supabaseAuthUserId || '') === 'a7b13472-0efa-4dac-965f-5937c58b8794';
 
-  const visibleProjectNames = projects.filter((projectName) => isProjectVisibleForCurrentUser(projectName));
+  const visibleProjectNames = isMainZrcProjectOwner
+    ? (projects || []).filter(Boolean)
+    : (projects || []).filter((projectName) => isProjectVisibleForCurrentUser(projectName));
 
 
   const moveMobileTaskToActiveColumn = async (taskToMove = {}, targetColumnId = '') => {
