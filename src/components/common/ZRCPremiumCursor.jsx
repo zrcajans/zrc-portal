@@ -2,12 +2,19 @@ import { useEffect, useRef } from 'react';
 
 export default function ZRCPremiumCursor() {
   const cursorRef = useRef(null);
+  const softRef = useRef(null);
   const frameRef = useRef(null);
+  const clickTimerRef = useRef(null);
+
   const stateRef = useRef({
     x: -80,
     y: -80,
     cursorX: -80,
     cursorY: -80,
+    softX: -80,
+    softY: -80,
+    angle: 0,
+    targetAngle: 0,
     visible: false
   });
 
@@ -22,8 +29,9 @@ export default function ZRCPremiumCursor() {
 
     const body = document.body;
     const cursor = cursorRef.current;
+    const soft = softRef.current;
 
-    if (!body || !cursor) return undefined;
+    if (!body || !cursor || !soft) return undefined;
 
     const interactiveSelector = [
       'a',
@@ -54,13 +62,26 @@ export default function ZRCPremiumCursor() {
       body.classList.toggle('zrc-tiny-x-cursor-interactive', isInteractive && !isText);
     };
 
+    const shortestAngle = (from, to) => {
+      let delta = to - from;
+      while (delta > 180) delta -= 360;
+      while (delta < -180) delta += 360;
+      return delta;
+    };
+
     const animate = () => {
       const state = stateRef.current;
 
-      state.cursorX += (state.x - state.cursorX) * 0.55;
-      state.cursorY += (state.y - state.cursorY) * 0.55;
+      state.cursorX += (state.x - state.cursorX) * 0.62;
+      state.cursorY += (state.y - state.cursorY) * 0.62;
 
-      cursor.style.transform = `translate3d(${state.cursorX}px, ${state.cursorY}px, 0) translate(-50%, -50%)`;
+      state.softX += (state.x - state.softX) * 0.19;
+      state.softY += (state.y - state.softY) * 0.19;
+
+      state.angle += shortestAngle(state.angle, state.targetAngle) * 0.16;
+
+      cursor.style.transform = `translate3d(${state.cursorX}px, ${state.cursorY}px, 0) translate(-50%, -50%) rotate(${state.angle}deg)`;
+      soft.style.transform = `translate3d(${state.softX}px, ${state.softY}px, 0) translate(-50%, -50%)`;
 
       frameRef.current = window.requestAnimationFrame(animate);
     };
@@ -76,7 +97,8 @@ export default function ZRCPremiumCursor() {
         'zrc-tiny-x-cursor-visible',
         'zrc-tiny-x-cursor-interactive',
         'zrc-tiny-x-cursor-text',
-        'zrc-tiny-x-cursor-down'
+        'zrc-tiny-x-cursor-down',
+        'zrc-tiny-x-cursor-clicked'
       );
     };
 
@@ -87,12 +109,26 @@ export default function ZRCPremiumCursor() {
       }
 
       const state = stateRef.current;
+      const previousX = state.x;
+      const previousY = state.y;
+
       state.x = event.clientX;
       state.y = event.clientY;
+
+      const dx = state.x - previousX;
+      const dy = state.y - previousY;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance > 1.4) {
+        state.targetAngle = Math.atan2(dy, dx) * 180 / Math.PI + 45;
+      }
 
       if (!state.visible) {
         state.cursorX = event.clientX;
         state.cursorY = event.clientY;
+        state.softX = event.clientX;
+        state.softY = event.clientY;
+        state.angle = state.targetAngle;
         show();
       }
 
@@ -101,7 +137,14 @@ export default function ZRCPremiumCursor() {
 
     const onPointerDown = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
+
       body.classList.add('zrc-tiny-x-cursor-down');
+      body.classList.add('zrc-tiny-x-cursor-clicked');
+
+      window.clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = window.setTimeout(() => {
+        body.classList.remove('zrc-tiny-x-cursor-clicked');
+      }, 420);
     };
 
     const onPointerUp = () => {
@@ -113,7 +156,6 @@ export default function ZRCPremiumCursor() {
     const onTouchStart = () => hide();
 
     body.classList.add('zrc-tiny-x-cursor-enabled');
-
     frameRef.current = window.requestAnimationFrame(animate);
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -125,6 +167,7 @@ export default function ZRCPremiumCursor() {
 
     return () => {
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+      window.clearTimeout(clickTimerRef.current);
 
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
@@ -138,16 +181,24 @@ export default function ZRCPremiumCursor() {
         'zrc-tiny-x-cursor-visible',
         'zrc-tiny-x-cursor-interactive',
         'zrc-tiny-x-cursor-text',
-        'zrc-tiny-x-cursor-down'
+        'zrc-tiny-x-cursor-down',
+        'zrc-tiny-x-cursor-clicked'
       );
     };
   }, []);
 
   return (
-    <span ref={cursorRef} className="zrc-tiny-x-cursor" aria-hidden="true">
-      <span className="zrc-tiny-x-cursor__dot" />
-      <span className="zrc-tiny-x-cursor__line zrc-tiny-x-cursor__line--a" />
-      <span className="zrc-tiny-x-cursor__line zrc-tiny-x-cursor__line--b" />
-    </span>
+    <>
+      <span ref={softRef} className="zrc-tiny-x-cursor-soft" aria-hidden="true" />
+      <span ref={cursorRef} className="zrc-tiny-x-cursor" aria-hidden="true">
+        <span className="zrc-tiny-x-cursor__dot" />
+        <span className="zrc-tiny-x-cursor__line zrc-tiny-x-cursor__line--a" />
+        <span className="zrc-tiny-x-cursor__line zrc-tiny-x-cursor__line--b" />
+        <span className="zrc-tiny-x-cursor__spark zrc-tiny-x-cursor__spark--a" />
+        <span className="zrc-tiny-x-cursor__spark zrc-tiny-x-cursor__spark--b" />
+        <span className="zrc-tiny-x-cursor__spark zrc-tiny-x-cursor__spark--c" />
+        <span className="zrc-tiny-x-cursor__spark zrc-tiny-x-cursor__spark--d" />
+      </span>
+    </>
   );
 }
