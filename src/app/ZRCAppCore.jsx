@@ -2246,6 +2246,8 @@ function App() {
   };
 
   const archiveSupabaseTask = async (task) => {
+    zrcMarkOptimisticHiddenTask(task, 9000);
+
     if (!task?.supabaseId) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev arşivleniyor');
@@ -2304,6 +2306,8 @@ function App() {
   };
 
   const deleteSupabaseTask = async (task) => {
+    zrcMarkOptimisticHiddenTask(task, 9000);
+
     if (!task?.supabaseId) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev siliniyor');
@@ -4873,7 +4877,85 @@ function App() {
     };
   };
 
-  const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], dbTasks = []) => {
+  
+  /* === ZRC TASK FLICKER OPTIMISTIC GUARD START === */
+  const zrcGetOptimisticTaskSupabaseId = (taskOrId = {}) => {
+    const rawValue = typeof taskOrId === 'string' ? taskOrId : '';
+    const task = typeof taskOrId === 'object' && taskOrId ? taskOrId : {};
+
+    const rawId = String(
+      task.supabaseId ||
+      task.supabase_id ||
+      task.dbId ||
+      rawValue ||
+      task.id ||
+      ''
+    ).trim();
+
+    if (!rawId) return '';
+    if (rawId.startsWith('supabase-')) return rawId.replace('supabase-', '');
+    return rawId;
+  };
+
+  const zrcReadOptimisticHiddenTaskIds = () => {
+    if (typeof window === 'undefined') return new Set();
+
+    try {
+      const now = Date.now();
+      const rawItems = JSON.parse(window.localStorage.getItem('zrc-optimistic-hidden-task-ids') || '[]');
+      const validItems = Array.isArray(rawItems)
+        ? rawItems.filter((item) => item?.id && Number(item.until || 0) > now)
+        : [];
+
+      if (validItems.length !== rawItems.length) {
+        window.localStorage.setItem('zrc-optimistic-hidden-task-ids', JSON.stringify(validItems));
+      }
+
+      return new Set(validItems.map((item) => String(item.id)));
+    } catch (error) {
+      return new Set();
+    }
+  };
+
+  const zrcIsTaskOptimisticWindowActive = () => {
+    if (typeof window === 'undefined') return false;
+
+    try {
+      return Number(window.localStorage.getItem('zrc-task-order-saving-until') || 0) > Date.now();
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const zrcMarkOptimisticHiddenTask = (taskOrId, durationMs = 9000) => {
+    if (typeof window === 'undefined') return;
+
+    const taskId = zrcGetOptimisticTaskSupabaseId(taskOrId);
+    if (!taskId) return;
+
+    try {
+      const now = Date.now();
+      const until = now + durationMs;
+      const rawItems = JSON.parse(window.localStorage.getItem('zrc-optimistic-hidden-task-ids') || '[]');
+      const validItems = Array.isArray(rawItems)
+        ? rawItems.filter((item) => item?.id && Number(item.until || 0) > now && String(item.id) !== String(taskId))
+        : [];
+
+      validItems.push({ id: String(taskId), until });
+      window.localStorage.setItem('zrc-optimistic-hidden-task-ids', JSON.stringify(validItems));
+      window.localStorage.setItem('zrc-task-order-saving-until', String(until));
+    } catch (error) {}
+  };
+  /* === ZRC TASK FLICKER OPTIMISTIC GUARD END === */
+
+const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingDbTasks = []) => {
+    const zrcOptimisticHiddenTaskIds = zrcReadOptimisticHiddenTaskIds();
+    const zrcTaskOptimisticWindowActive = zrcIsTaskOptimisticWindowActive();
+
+    let dbTasks = (incomingDbTasks || []).filter((task) => {
+      const taskId = String(task?.id || '').trim();
+      return !taskId || !zrcOptimisticHiddenTaskIds.has(taskId);
+    });
     const dbTaskIds = new Set((dbTasks || []).map((task) => task.id).filter(Boolean));
 
     setProjectBoards((prevBoards) => {
@@ -4910,6 +4992,19 @@ function App() {
         ...((existingBoard.columns || []).flatMap((item) => item.tasks || [])),
         ...(existingBoard.archivedTasks || [])
       ];
+
+      const zrcLocalSupabaseTaskIdsForOptimisticMerge = new Set(
+        allExistingTasks
+          .map((task) => zrcGetOptimisticTaskSupabaseId(task))
+          .filter(Boolean)
+      );
+
+      if (zrcTaskOptimisticWindowActive && zrcLocalSupabaseTaskIdsForOptimisticMerge.size > 0) {
+        dbTasks = dbTasks.filter((task) => {
+          const dbTaskId = String(task?.id || '').trim();
+          return !dbTaskId || !zrcLocalSupabaseTaskIdsForOptimisticMerge.has(dbTaskId);
+        });
+      }
 
       const getExistingLocalTaskForSupabaseTask = (supabaseTaskId = '') =>
         allExistingTasks.find((task) => {
@@ -4979,7 +5074,7 @@ function App() {
             isSupabaseUuid(existingId)
           );
 
-          if (hasSupabaseIdentity) return false;
+          if (hasSupabaseIdentity) return zrcTaskOptimisticWindowActive;
 
           return !(dbTasks || []).some((dbTask) => {
             const dbId = String(dbTask.id || '').trim();
