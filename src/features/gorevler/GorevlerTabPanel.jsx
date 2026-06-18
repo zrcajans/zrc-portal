@@ -291,7 +291,15 @@ export default function GorevlerTabPanel(props) {
                                 ? 'z-[300]'
                                 : 'z-10'
                             }`}
-onDragOver={(e) => (typeof handleDragOverTaskPreview === 'function' ? handleDragOverTaskPreview(e, column.id, null) : e.preventDefault())}
+onDragOver={(e) => {
+                      if (typeof handleDragOverTaskPreview === 'function') {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
+                        handleDragOverTaskPreview(e, column.id, null, placement);
+                      } else {
+                        e.preventDefault();
+                      }
+                    }}
                       onDrop={(e) => handleDrop(e, column.id)}
                           >
                             <div
@@ -452,7 +460,15 @@ onDragOver={(e) => (typeof handleDragOverTaskPreview === 'function' ? handleDrag
                                 column.tasks.some((task) => task.id === openTaskMenuId) || openMenuColumnId === column.id
                                   ? 'overflow-visible'
                                   : 'overflow-y-auto custom-scrollbar'
-                              }`} onDragOver={(e) => e.preventDefault()} onDragOver={(e) => (typeof handleDragOverTaskPreview === 'function' ? handleDragOverTaskPreview(e, column.id, null) : e.preventDefault())}
+                              }`} onDragOver={(e) => e.preventDefault()} onDragOver={(e) => {
+                      if (typeof handleDragOverTaskPreview === 'function') {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
+                        handleDragOverTaskPreview(e, column.id, null, placement);
+                      } else {
+                        e.preventDefault();
+                      }
+                    }}
                       onDrop={(e) => handleDrop(e, column.id)}>
                               {column.tasks.map((task) => {
                                 const isSelected = selectedTasks.includes(task.id);

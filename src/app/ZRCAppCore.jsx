@@ -1602,31 +1602,6 @@ function App() {
     });
   };
 
-
-  /* === ZRC TASK ORDER APPLY EFFECT START === */
-  useEffect(() => {
-    if (!selectedProject || !Array.isArray(boardColumns) || boardColumns.length === 0) return;
-
-    const currentSignature = zrcTaskOrderSignatureForColumns(boardColumns);
-    const orderedColumns = zrcApplyStoredTaskOrderToColumns(boardColumns, selectedProject);
-    const orderedSignature = zrcTaskOrderSignatureForColumns(orderedColumns);
-
-    if (currentSignature === orderedSignature) return;
-
-    setProjectBoards((prevBoards) => {
-      const existingBoard = prevBoards[selectedProject] || createDefaultProjectBoard();
-
-      return {
-        ...prevBoards,
-        [selectedProject]: {
-          ...existingBoard,
-          columns: orderedColumns
-        }
-      };
-    });
-  }, [selectedProject, boardColumns]);
-  /* === ZRC TASK ORDER APPLY EFFECT END === */
-
   const setArchivedTasks = (updater) => {
     if (!selectedProject) return;
 

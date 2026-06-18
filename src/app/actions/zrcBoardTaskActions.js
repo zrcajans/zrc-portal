@@ -981,13 +981,15 @@ export function createZRCBoardTaskActions(deps) {
     /* === ZRC DESKTOP DRAG SOURCE HIDE END === */
   };
 
-  const handleDragOverTaskPreview = (e, targetColId, targetTaskId = null) => {
+  const handleDragOverTaskPreview = (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
     if (!draggedTaskInfo.current) return;
 
     e.preventDefault();
 
     const { taskId } = draggedTaskInfo.current;
     if (!taskId || !targetColId || taskId === targetTaskId) return;
+
+    const placement = insertPlacement === 'after' ? 'after' : 'before';
 
     setBoardColumns((prevColumns) => {
       const nextColumns = prevColumns.map((column) => ({
@@ -1003,44 +1005,46 @@ export function createZRCBoardTaskActions(deps) {
       if (actualSourceIndex === -1 || targetColumnIndex === -1) return prevColumns;
 
       const actualSourceColumn = nextColumns[actualSourceIndex];
-      const targetColumn = nextColumns[targetColumnIndex];
       const sourceTaskIndex = actualSourceColumn.tasks.findIndex((task) => task.id === taskId);
 
       if (sourceTaskIndex === -1) return prevColumns;
 
       const movingTask = actualSourceColumn.tasks[sourceTaskIndex];
 
-      const isAlreadyBeforeTarget =
-        targetTaskId &&
-        actualSourceColumn.id === targetColumn.id &&
-        actualSourceColumn.tasks[sourceTaskIndex + 1]?.id === targetTaskId;
-
-      const isAlreadyAtEnd =
-        !targetTaskId &&
-        actualSourceColumn.id === targetColumn.id &&
-        sourceTaskIndex === actualSourceColumn.tasks.length - 1;
-
-      if (isAlreadyBeforeTarget || isAlreadyAtEnd) return prevColumns;
-
       actualSourceColumn.tasks.splice(sourceTaskIndex, 1);
 
       const updatedTargetColumn = nextColumns.find((column) => column.id === targetColId);
       if (!updatedTargetColumn) return prevColumns;
 
-      const targetTaskIndex = targetTaskId
+      let targetTaskIndex = targetTaskId
         ? updatedTargetColumn.tasks.findIndex((task) => task.id === targetTaskId)
         : -1;
 
-      if (targetTaskIndex >= 0) {
-        updatedTargetColumn.tasks.splice(targetTaskIndex, 0, movingTask);
-      } else {
-        updatedTargetColumn.tasks.push(movingTask);
+      if (targetTaskIndex >= 0 && placement === 'after') {
+        targetTaskIndex += 1;
       }
+
+      if (targetTaskIndex < 0) {
+        targetTaskIndex = updatedTargetColumn.tasks.length;
+      }
+
+      const existingIndex = updatedTargetColumn.tasks.findIndex((task) => task.id === taskId);
+      if (existingIndex >= 0) {
+        updatedTargetColumn.tasks.splice(existingIndex, 1);
+        if (existingIndex < targetTaskIndex) {
+          targetTaskIndex -= 1;
+        }
+      }
+
+      updatedTargetColumn.tasks.splice(targetTaskIndex, 0, movingTask);
 
       draggedTaskInfo.current = {
         ...draggedTaskInfo.current,
         sourceColId: targetColId,
-        hasPreviewMoved: true
+        hasPreviewMoved: true,
+        lastPreviewTargetColId: targetColId,
+        lastPreviewTargetTaskId: targetTaskId,
+        lastPreviewPlacement: placement
       };
 
       if (typeof document !== 'undefined') {
