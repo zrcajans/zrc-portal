@@ -161,6 +161,26 @@ export default function GorevlerTabPanel(props) {
     tab,
   } = props;
 
+  const getTaskDropPlacement = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+
+    return event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+  };
+
+  const getColumnDropTarget = (event, targetColumn = {}) => {
+    const tasks = Array.isArray(targetColumn.tasks) ? targetColumn.tasks : [];
+
+    if (tasks.length === 0) {
+      return { targetTaskId: null, placement: 'after' };
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const placement = event.clientY < rect.top + Math.min(56, rect.height / 3) ? 'before' : 'after';
+    const targetTask = placement === 'before' ? tasks[0] : tasks[tasks.length - 1];
+
+    return { targetTaskId: targetTask?.id || null, placement };
+  };
+
   return (
     activeTab === 'Görevler' && (
                   <div className="w-full flex flex-col flex-1 animate-fade-in overflow-hidden h-full bg-[#f5f6f8]">
@@ -291,16 +311,6 @@ export default function GorevlerTabPanel(props) {
                                 ? 'z-[300]'
                                 : 'z-10'
                             }`}
-onDragOver={(e) => {
-                      if (typeof handleDragOverTaskPreview === 'function') {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
-                        handleDragOverTaskPreview(e, column.id, null, placement);
-                      } else {
-                        e.preventDefault();
-                      }
-                    }}
-                      onDrop={(e) => handleDrop(e, column.id)}
                           >
                             <div
                               className="w-full px-3 py-1.5 flex items-center justify-between text-[10.5px] font-black select-none tracking-tight shrink-0 h-[34px] rounded-[4px] shadow-[0_2px_8px_rgba(0,0,0,0.045)] relative z-[260]"
@@ -460,16 +470,19 @@ onDragOver={(e) => {
                                 column.tasks.some((task) => task.id === openTaskMenuId) || openMenuColumnId === column.id
                                   ? 'overflow-visible'
                                   : 'overflow-y-auto custom-scrollbar'
-                              }`} onDragOver={(e) => e.preventDefault()} onDragOver={(e) => {
-                      if (typeof handleDragOverTaskPreview === 'function') {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
-                        handleDragOverTaskPreview(e, column.id, null, placement);
-                      } else {
-                        e.preventDefault();
-                      }
-                    }}
-                      onDrop={(e) => handleDrop(e, column.id)}>
+                              }`}
+                              onDragOver={(event) => {
+                                if (typeof handleDragOverTaskPreview === 'function') {
+                                  const { targetTaskId, placement } = getColumnDropTarget(event, column);
+                                  handleDragOverTaskPreview(event, column.id, targetTaskId, placement);
+                                } else {
+                                  event.preventDefault();
+                                }
+                              }}
+                              onDrop={(event) => {
+                                const { targetTaskId, placement } = getColumnDropTarget(event, column);
+                                handleDrop(event, column.id, targetTaskId, placement);
+                              }}>
                               {column.tasks.map((task) => {
                                 const isSelected = selectedTasks.includes(task.id);
                                 const prioColor = priorityOptions.find((p) => p.label === task.priority)?.color || '#9ca3af';
@@ -490,6 +503,17 @@ onDragOver={(e) => {
                                         return;
                                       }
                                       handleDragStart(e, task.id, column.id);
+                                    }}
+                                    onDragOver={(event) => {
+                                      if (typeof handleDragOverTaskPreview !== 'function') {
+                                        event.preventDefault();
+                                        return;
+                                      }
+
+                                      handleDragOverTaskPreview(event, column.id, task.id, getTaskDropPlacement(event));
+                                    }}
+                                    onDrop={(event) => {
+                                      handleDrop(event, column.id, task.id, getTaskDropPlacement(event));
                                     }}
                                     className={`w-full bg-white p-3.5 rounded-[3px] border border-zinc-100 shadow-[0_6px_16px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)] transition-all duration-200 group relative ${isEditMode ? 'cursor-default opacity-70 hover:shadow-[0_6px_16px_rgba(15,23,42,0.055)]' : 'cursor-pointer'} ${openTaskMenuId === task.id ? 'z-[400]' : 'z-10'} ${
                                       isSelected ? 'border-[#3b82f6] border-2 bg-zinc-50' : 'border-zinc-200/50'

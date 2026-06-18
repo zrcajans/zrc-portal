@@ -1695,8 +1695,23 @@ body {
 }
 /* === ZRC MOBILE TOP HORIZONTAL LOGO END === */
 
-/* === ZRC DESKTOP DRAG SOURCE SHADOW FIX START === */
 @media (min-width: 769px) {
+  html.zrc-desktop-task-live-previewing [draggable="true"] {
+    transition:
+      transform 150ms ease,
+      opacity 150ms ease,
+      box-shadow 150ms ease,
+      margin 150ms ease !important;
+    will-change: transform !important;
+  }
+
+  html.zrc-desktop-task-live-previewing .zrc-desktop-task-drag-source {
+    opacity: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    pointer-events: none !important;
+  }
+
   html.zrc-desktop-task-dragging .zrc-desktop-task-drag-source {
     opacity: 0 !important;
     box-shadow: none !important;
@@ -1705,7 +1720,8 @@ body {
     pointer-events: none !important;
   }
 
-  html.zrc-desktop-task-dragging .zrc-desktop-task-drag-source * {
+  html.zrc-desktop-task-dragging .zrc-desktop-task-drag-source *,
+  html.zrc-desktop-task-live-previewing .zrc-desktop-task-drag-source * {
     opacity: 0 !important;
     box-shadow: none !important;
     filter: none !important;
@@ -1715,54 +1731,3 @@ body {
     background: transparent !important;
   }
 }
-/* === ZRC DESKTOP DRAG SOURCE SHADOW FIX END === */
-
-/* === ZRC DESKTOP DRAG LIVE PREVIEW SHIFT START === */
-@media (min-width: 769px) {
-  html.zrc-desktop-task-live-previewing [draggable="true"] {
-    transition:
-      transform 150ms ease,
-      box-shadow 150ms ease,
-      opacity 150ms ease,
-      margin 150ms ease !important;
-  }
-
-  html.zrc-desktop-task-live-previewing .zrc-desktop-task-drag-source {
-    opacity: 0 !important;
-    box-shadow: none !important;
-    filter: none !important;
-    pointer-events: none !important;
-  }
-
-  html.zrc-desktop-task-live-previewing [draggable="true"]:not(.zrc-desktop-task-drag-source) {
-    will-change: transform !important;
-  }
-}
-/* === ZRC DESKTOP DRAG LIVE PREVIEW SHIFT END === */
-
-/* === ZRC REAL DESKTOP DRAG LIVE PREVIEW START === */
-@media (min-width: 769px) {
-  html.zrc-desktop-task-live-previewing [draggable="true"] {
-    transition:
-      transform 150ms ease,
-      opacity 150ms ease,
-      box-shadow 150ms ease,
-      margin 150ms ease !important;
-    will-change: transform !important;
-  }
-
-  html.zrc-desktop-task-live-previewing .zrc-desktop-task-drag-source {
-    opacity: 0 !important;
-    box-shadow: none !important;
-    filter: none !important;
-    pointer-events: none !important;
-  }
-
-  html.zrc-desktop-task-dragging .zrc-desktop-task-drag-source {
-    opacity: 0 !important;
-    box-shadow: none !important;
-    filter: none !important;
-    pointer-events: none !important;
-  }
-}
-/* === ZRC REAL DESKTOP DRAG LIVE PREVIEW END === */
