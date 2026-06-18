@@ -484,7 +484,7 @@ onDragOver={(e) => e.preventDefault()}
 
                                       const rect = e.currentTarget.getBoundingClientRect();
                                       const middleY = rect.top + rect.height / 2;
-                                      const deadZonePx = Math.min(18, Math.max(8, rect.height * 0.18));
+                                      const deadZonePx = Math.min(22, Math.max(10, rect.height * 0.22));
                                       const previousPlacement = e.currentTarget.dataset.zrcDropPlacement;
                                       let placement = previousPlacement === 'after' ? 'after' : 'before';
 
@@ -508,6 +508,10 @@ onDragOver={(e) => e.preventDefault()}
                                       e.currentTarget.dataset.zrcDropPlacement = placement;
                                       e.currentTarget.classList.toggle('zrc-task-drop-before', placement === 'before');
                                       e.currentTarget.classList.toggle('zrc-task-drop-after', placement === 'after');
+
+                                      if (typeof handleDragOverTaskPreview === 'function') {
+                                        handleDragOverTaskPreview(e, column.id, task.id, placement);
+                                      }
                                     }}
                                     onDragLeave={(e) => {
                                       if (e.currentTarget.contains(e.relatedTarget)) return;

@@ -1797,3 +1797,28 @@ body {
 }
 /* === ZRC TASK DROP INDICATOR NO JITTER END === */
 
+/* === ZRC PREMIUM TASK REORDER ANIMATION START === */
+.zrc-premium-task-reorder-active [data-zrc-task-card="true"] {
+  will-change: transform;
+  transform-origin: center;
+  backface-visibility: hidden;
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease,
+    filter 160ms ease;
+}
+
+.zrc-premium-task-reorder-active .zrc-desktop-task-drag-source {
+  opacity: 0.42;
+  filter: saturate(0.92);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.14);
+}
+
+.zrc-premium-task-reorder-active .zrc-task-drop-before::before,
+.zrc-premium-task-reorder-active .zrc-task-drop-after::after {
+  transition:
+    opacity 120ms ease,
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* === ZRC PREMIUM TASK REORDER ANIMATION END === */

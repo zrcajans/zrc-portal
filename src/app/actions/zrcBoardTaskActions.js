@@ -787,6 +787,7 @@ export function createZRCBoardTaskActions(deps) {
 
       if (typeof document !== 'undefined') {
         document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
+        document.documentElement.classList.remove('zrc-premium-task-reorder-active');
       }
 
       return;
@@ -1030,6 +1031,67 @@ export function createZRCBoardTaskActions(deps) {
     setArchivedTasks((prev) => prev.filter((archivedTask) => archivedTask.id !== taskId));
   };
 
+
+  /* === ZRC PREMIUM LIVE TASK REORDER HELPERS START === */
+  const zrcCaptureTaskLayoutRects = () => {
+    if (typeof document === 'undefined') return new Map();
+
+    try {
+      return new Map(
+        Array.from(document.querySelectorAll('[data-zrc-task-card="true"]'))
+          .map((element) => {
+            const taskId = String(element?.dataset?.zrcTaskId || '').trim();
+            if (!taskId) return null;
+
+            const rect = element.getBoundingClientRect();
+            return [taskId, { top: rect.top, left: rect.left }];
+          })
+          .filter(Boolean)
+      );
+    } catch (error) {
+      return new Map();
+    }
+  };
+
+  const zrcAnimateTaskLayoutShift = (previousRects) => {
+    if (typeof document === 'undefined' || !previousRects || previousRects.size === 0) return;
+
+    window.requestAnimationFrame(() => {
+      try {
+        document
+          .querySelectorAll('[data-zrc-task-card="true"]')
+          .forEach((element) => {
+            const taskId = String(element?.dataset?.zrcTaskId || '').trim();
+            if (!taskId || element.classList.contains('zrc-desktop-task-drag-source')) return;
+
+            const previousRect = previousRects.get(taskId);
+            if (!previousRect) return;
+
+            const nextRect = element.getBoundingClientRect();
+            const deltaX = previousRect.left - nextRect.left;
+            const deltaY = previousRect.top - nextRect.top;
+
+            if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
+
+            if (typeof element.animate === 'function') {
+              element.animate(
+                [
+                  { transform: `translate(${deltaX}px, ${deltaY}px)` },
+                  { transform: 'translate(0, 0)' }
+                ],
+                {
+                  duration: 230,
+                  easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                  fill: 'both'
+                }
+              );
+            }
+          });
+      } catch (error) {}
+    });
+  };
+  /* === ZRC PREMIUM LIVE TASK REORDER HELPERS END === */
+
   const handleDragStart = (e, taskId, sourceColId) => {
     const sourceColumn = boardColumns.find((column) => column.id === sourceColId);
     const sourceTask = sourceColumn?.tasks.find((task) => task.id === taskId) || null;
@@ -1039,6 +1101,7 @@ export function createZRCBoardTaskActions(deps) {
 
     if (typeof document !== 'undefined') {
       document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
+        document.documentElement.classList.remove('zrc-premium-task-reorder-active');
     }
       e.preventDefault();
       showPermissionWarning('Bu görev sana atanmadığı için durumunu değiştiremezsin.');
@@ -1055,6 +1118,7 @@ export function createZRCBoardTaskActions(deps) {
       if (typeof document !== 'undefined') {
         document.documentElement.classList.remove('zrc-desktop-task-dragging');
         document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
+        document.documentElement.classList.remove('zrc-premium-task-reorder-active');
 
         document
           .querySelectorAll('.zrc-desktop-task-drag-source, .zrc-task-drop-before, .zrc-task-drop-after')
@@ -1073,6 +1137,7 @@ export function createZRCBoardTaskActions(deps) {
       window.requestAnimationFrame(() => {
         if (draggedTaskInfo.current?.taskId === taskId) {
           document.documentElement.classList.add('zrc-desktop-task-dragging');
+          document.documentElement.classList.add('zrc-premium-task-reorder-active');
           zrcDesktopDragSourceElement.classList.add('zrc-desktop-task-drag-source');
         }
       });
@@ -1090,6 +1155,17 @@ export function createZRCBoardTaskActions(deps) {
 
     const placement = insertPlacement === 'after' ? 'after' : 'before';
 
+    /* === ZRC PREMIUM LIVE REORDER SAME TARGET GUARD START === */
+    if (
+      draggedTaskInfo.current?.hasPreviewMoved &&
+      draggedTaskInfo.current?.lastPreviewTargetColId === targetColId &&
+      draggedTaskInfo.current?.lastPreviewTargetTaskId === targetTaskId &&
+      draggedTaskInfo.current?.lastPreviewPlacement === placement
+    ) {
+      return;
+    }
+    /* === ZRC PREMIUM LIVE REORDER SAME TARGET GUARD END === */
+
     /* === ZRC DRAG PREVIEW SAME TARGET GUARD START === */
     if (
       draggedTaskInfo.current?.hasPreviewMoved &&
@@ -1101,6 +1177,8 @@ export function createZRCBoardTaskActions(deps) {
     }
     /* === ZRC DRAG PREVIEW SAME TARGET GUARD END === */
 
+
+    const zrcPreviousTaskRects = zrcCaptureTaskLayoutRects();
 
     setBoardColumns((prevColumns) => {
       const nextColumns = prevColumns.map((column) => ({
@@ -1149,6 +1227,8 @@ export function createZRCBoardTaskActions(deps) {
 
       return nextColumns;
     });
+
+    zrcAnimateTaskLayoutShift(zrcPreviousTaskRects);
   };
 
 
@@ -1160,6 +1240,7 @@ export function createZRCBoardTaskActions(deps) {
       if (typeof document !== 'undefined') {
         document.documentElement.classList.remove('zrc-desktop-task-dragging');
         document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
+        document.documentElement.classList.remove('zrc-premium-task-reorder-active');
 
         document
           .querySelectorAll('.zrc-desktop-task-drag-source, .zrc-task-drop-before, .zrc-task-drop-after')
