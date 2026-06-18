@@ -900,12 +900,16 @@ export function createZRCBoardTaskActions(deps) {
 
     if (!sourceTask || !canCurrentUserModifyTask(sourceTask, selectedProject)) {
       draggedTaskInfo.current = null;
+
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('zrc-desktop-task-live-previewing');
+    }
       e.preventDefault();
       showPermissionWarning('Bu görev sana atanmadığı için durumunu değiştiremezsin.');
       return;
     }
 
-    draggedTaskInfo.current = { taskId, sourceColId };
+    draggedTaskInfo.current = { taskId, sourceColId, originalSourceColId: sourceColId, hasPreviewMoved: false };
     e.dataTransfer.effectAllowed = 'move';
 
     /* === ZRC DESKTOP DRAG SOURCE HIDE START === */
@@ -934,6 +938,77 @@ export function createZRCBoardTaskActions(deps) {
     /* === ZRC DESKTOP DRAG SOURCE HIDE END === */
   };
 
+  const handleDragOverTaskPreview = (e, targetColId, targetTaskId = null) => {
+    if (!draggedTaskInfo.current) return;
+
+    e.preventDefault();
+
+    const { taskId } = draggedTaskInfo.current;
+    if (!taskId || !targetColId || taskId === targetTaskId) return;
+
+    setBoardColumns((prevColumns) => {
+      const nextColumns = prevColumns.map((column) => ({
+        ...column,
+        tasks: Array.isArray(column.tasks) ? [...column.tasks] : []
+      }));
+
+      const actualSourceIndex = nextColumns.findIndex((column) =>
+        column.tasks.some((task) => task.id === taskId)
+      );
+      const targetColumnIndex = nextColumns.findIndex((column) => column.id === targetColId);
+
+      if (actualSourceIndex === -1 || targetColumnIndex === -1) return prevColumns;
+
+      const actualSourceColumn = nextColumns[actualSourceIndex];
+      const targetColumn = nextColumns[targetColumnIndex];
+      const sourceTaskIndex = actualSourceColumn.tasks.findIndex((task) => task.id === taskId);
+
+      if (sourceTaskIndex === -1) return prevColumns;
+
+      const movingTask = actualSourceColumn.tasks[sourceTaskIndex];
+
+      const isAlreadyBeforeTarget =
+        targetTaskId &&
+        actualSourceColumn.id === targetColumn.id &&
+        actualSourceColumn.tasks[sourceTaskIndex + 1]?.id === targetTaskId;
+
+      const isAlreadyAtEnd =
+        !targetTaskId &&
+        actualSourceColumn.id === targetColumn.id &&
+        sourceTaskIndex === actualSourceColumn.tasks.length - 1;
+
+      if (isAlreadyBeforeTarget || isAlreadyAtEnd) return prevColumns;
+
+      actualSourceColumn.tasks.splice(sourceTaskIndex, 1);
+
+      const updatedTargetColumn = nextColumns.find((column) => column.id === targetColId);
+      if (!updatedTargetColumn) return prevColumns;
+
+      const targetTaskIndex = targetTaskId
+        ? updatedTargetColumn.tasks.findIndex((task) => task.id === targetTaskId)
+        : -1;
+
+      if (targetTaskIndex >= 0) {
+        updatedTargetColumn.tasks.splice(targetTaskIndex, 0, movingTask);
+      } else {
+        updatedTargetColumn.tasks.push(movingTask);
+      }
+
+      draggedTaskInfo.current = {
+        ...draggedTaskInfo.current,
+        sourceColId: targetColId,
+        hasPreviewMoved: true
+      };
+
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.add('zrc-desktop-task-live-previewing');
+      }
+
+      return nextColumns;
+    });
+  };
+
+
   const handleDrop = (e, targetColId, targetTaskId = null) => {
     e.preventDefault();
     e.stopPropagation();
@@ -953,7 +1028,16 @@ export function createZRCBoardTaskActions(deps) {
       return;
     }
 
-    const { taskId, sourceColId } = draggedTaskInfo.current;
+    const { taskId } = draggedTaskInfo.current;
+    let sourceColId = draggedTaskInfo.current.sourceColId;
+
+    const zrcActualSourceColumnForDrop = boardColumns.find((column) =>
+      (column.tasks || []).some((task) => task.id === taskId)
+    );
+
+    if (zrcActualSourceColumnForDrop?.id) {
+      sourceColId = zrcActualSourceColumnForDrop.id;
+    }
 
     if (sourceColId === targetColId && taskId === targetTaskId) {
       zrcClearDesktopDragSource();
