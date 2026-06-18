@@ -1860,6 +1860,45 @@ function App() {
       let savedTask = null;
       const existingSupabaseTaskId = getSupabaseTaskIdFromLocalTask(taskData) || getSupabaseTaskIdFromLocalTask(taskData.id);
 
+      const shouldInsertTaskAtTop =
+        !existingSupabaseTaskId &&
+        taskData?.zrcInsertAtTop === true &&
+        payload.task_order === 0 &&
+        Boolean(columnId);
+
+      if (shouldInsertTaskAtTop) {
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.setItem('zrc-task-order-saving-until', String(Date.now() + 5000));
+          } catch (error) {}
+        }
+
+        const { data: existingOrderTasks, error: existingOrderTasksError } = await supabase
+          .from('tasks')
+          .select('id, task_order, created_at')
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId)
+          .eq('column_id', columnId)
+          .eq('is_archived', false)
+          .order('task_order', { ascending: true, nullsFirst: false })
+          .order('created_at', { ascending: true });
+
+        if (existingOrderTasksError) throw existingOrderTasksError;
+
+        await Promise.all(
+          (existingOrderTasks || []).map((item, index) =>
+            supabase
+              .from('tasks')
+              .update({
+                task_order: index + 1,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', item.id)
+              .eq('workspace_id', workspaceId)
+          )
+        );
+      }
+
       if (existingSupabaseTaskId) {
         const { data, error } = await supabase
           .from('tasks')
@@ -1992,6 +2031,33 @@ function App() {
         updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
         task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
       };
+
+      if (taskData?.zrcInsertAtTop === true && payload.task_order === 0 && columnId) {
+        const { data: existingOrderTasks, error: existingOrderTasksError } = await supabase
+          .from('tasks')
+          .select('id, task_order, created_at')
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId)
+          .eq('column_id', columnId)
+          .eq('is_archived', false)
+          .order('task_order', { ascending: true, nullsFirst: false })
+          .order('created_at', { ascending: true });
+
+        if (existingOrderTasksError) throw existingOrderTasksError;
+
+        await Promise.all(
+          (existingOrderTasks || []).map((item, index) =>
+            supabase
+              .from('tasks')
+              .update({
+                task_order: index + 1,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', item.id)
+              .eq('workspace_id', workspaceId)
+          )
+        );
+      }
 
       const { data, error } = await supabase
         .from('tasks')
@@ -5170,7 +5236,15 @@ function App() {
         previousTask?.assignees || [],
         Boolean(previousTask)
       ),
-      followers: filterTaskFollowersForSave(taskData.followers || previousTask?.followers || [])
+      followers: filterTaskFollowersForSave(taskData.followers || previousTask?.followers || []),
+      taskOrder: isEditingExistingTask
+        ? (
+            typeof previousTask?.taskOrder === 'number'
+              ? previousTask.taskOrder
+              : (typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : 0)
+          )
+        : 0,
+      zrcInsertAtTop: !isEditingExistingTask
     };
 
     const targetColumn = boardColumns.find((column) => column.title === finalTargetStatus) || previousColumn || boardColumns[0];
@@ -5200,13 +5274,21 @@ function App() {
 
       const targetColIndex = updatedCols.findIndex((c) => c.title === finalTargetStatus);
 
-      if (targetColIndex !== -1) {
-        updatedCols[targetColIndex].tasks.push(cleanedTaskData);
+      const targetIndexForInsert = targetColIndex !== -1 ? targetColIndex : 0;
+
+      if (isEditingExistingTask) {
+        updatedCols[targetIndexForInsert].tasks.push(cleanedTaskData);
       } else {
-        updatedCols[0].tasks.push(cleanedTaskData);
+        updatedCols[targetIndexForInsert].tasks = [cleanedTaskData, ...(updatedCols[targetIndexForInsert].tasks || [])];
       }
 
-      return updatedCols;
+      return updatedCols.map((col) => ({
+        ...col,
+        tasks: (col.tasks || []).map((task, index) => ({
+          ...task,
+          taskOrder: index
+        }))
+      }));
     });
 
     if (!previousTask) {
