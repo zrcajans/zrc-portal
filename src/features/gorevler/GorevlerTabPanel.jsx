@@ -478,6 +478,8 @@ onDragOver={(e) => {
                                 return (
                                   <div
                                     key={task.id}
+                                    data-zrc-task-card="true"
+                                    data-zrc-task-id={task.id}
                                     draggable={Boolean(currentPermissions.editTasks && canCurrentUserModifyTask(task, selectedProject))}
                                     onClick={() => {
                                       if (isEditMode) return;
@@ -491,6 +493,31 @@ onDragOver={(e) => {
                                       }
                                       handleDragStart(e, task.id, column.id);
                                     }}
+                                    /* === ZRC DROP BETWEEN TASKS CARD HANDLERS START === */
+                                    onDragOver={(e) => {
+                                      if (typeof handleDragOverTaskPreview !== 'function') {
+                                        e.preventDefault();
+                                        return;
+                                      }
+
+                                      e.preventDefault();
+                                      e.stopPropagation();
+
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
+
+                                      handleDragOverTaskPreview(e, column.id, task.id, placement);
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      const placement = e.clientY > rect.top + rect.height / 2 ? 'after' : 'before';
+
+                                      handleDrop(e, column.id, task.id, placement);
+                                    }}
+                                    /* === ZRC DROP BETWEEN TASKS CARD HANDLERS END === */
                                     className={`w-full bg-white p-3.5 rounded-[3px] border border-zinc-100 shadow-[0_6px_16px_rgba(15,23,42,0.055)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)] transition-all duration-200 group relative ${isEditMode ? 'cursor-default opacity-70 hover:shadow-[0_6px_16px_rgba(15,23,42,0.055)]' : 'cursor-pointer'} ${openTaskMenuId === task.id ? 'z-[400]' : 'z-10'} ${
                                       isSelected ? 'border-[#3b82f6] border-2 bg-zinc-50' : 'border-zinc-200/50'
                                     }`}

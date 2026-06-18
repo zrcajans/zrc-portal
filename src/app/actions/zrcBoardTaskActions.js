@@ -1135,7 +1135,7 @@ export function createZRCBoardTaskActions(deps) {
   };
 
 
-  const handleDrop = (e, targetColId, targetTaskId = null) => {
+  const handleDrop = (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -1167,7 +1167,49 @@ export function createZRCBoardTaskActions(deps) {
       sourceColId = zrcActualSourceColumnForDrop.id;
     }
 
-    if (sourceColId === targetColId && taskId === targetTaskId && !draggedTaskInfo.current?.hasPreviewMoved) {
+    /* === ZRC DROP BETWEEN TASKS RESOLVER START === */
+    let resolvedTargetTaskId = targetTaskId;
+    let resolvedInsertPlacement = insertPlacement === 'after' ? 'after' : 'before';
+
+    if (!resolvedTargetTaskId && e?.currentTarget?.querySelectorAll) {
+      try {
+        const pointerY = Number(e.clientY || 0);
+        const taskCards = Array.from(e.currentTarget.querySelectorAll('[data-zrc-task-card="true"]'))
+          .filter((card) => {
+            const cardTaskId = String(card?.dataset?.zrcTaskId || '').trim();
+            return cardTaskId && cardTaskId !== String(taskId || '').trim();
+          });
+
+        if (taskCards.length > 0) {
+          let chosenCard = null;
+          let chosenPlacement = 'after';
+
+          for (const card of taskCards) {
+            const rect = card.getBoundingClientRect();
+            const middleY = rect.top + rect.height / 2;
+
+            if (pointerY < middleY) {
+              chosenCard = card;
+              chosenPlacement = 'before';
+              break;
+            }
+
+            chosenCard = card;
+            chosenPlacement = 'after';
+          }
+
+          const chosenTaskId = String(chosenCard?.dataset?.zrcTaskId || '').trim();
+
+          if (chosenTaskId) {
+            resolvedTargetTaskId = chosenTaskId;
+            resolvedInsertPlacement = chosenPlacement;
+          }
+        }
+      } catch (error) {}
+    }
+    /* === ZRC DROP BETWEEN TASKS RESOLVER END === */
+
+    if (sourceColId === targetColId && taskId === resolvedTargetTaskId && !draggedTaskInfo.current?.hasPreviewMoved) {
       zrcClearDesktopDragSource();
       draggedTaskInfo.current = null;
       return;
@@ -1198,11 +1240,12 @@ export function createZRCBoardTaskActions(deps) {
 
       sourceColumn.tasks.splice(taskToMoveIndex, 1);
 
-      if (targetTaskId) {
-        const targetIdx = targetColumn.tasks.findIndex((t) => t.id === targetTaskId);
+      if (resolvedTargetTaskId) {
+        const targetIdx = targetColumn.tasks.findIndex((t) => t.id === resolvedTargetTaskId);
 
         if (targetIdx !== -1) {
-          targetColumn.tasks.splice(targetIdx, 0, taskToMove);
+          const insertIndex = resolvedInsertPlacement === 'after' ? targetIdx + 1 : targetIdx;
+          targetColumn.tasks.splice(insertIndex, 0, taskToMove);
         } else {
           targetColumn.tasks.push(taskToMove);
         }
