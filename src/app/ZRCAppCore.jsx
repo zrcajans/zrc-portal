@@ -4474,7 +4474,19 @@ function App() {
       clearTimeout(supabaseRealtimeRefreshTimer.current);
     }
 
-    const refreshDelay = Number.isFinite(options?.delay) ? options.delay : 80;
+    const zrcTaskOrderSavingUntil =
+      tableName === 'tasks' && typeof window !== 'undefined'
+        ? Number(window.localStorage.getItem('zrc-task-order-saving-until') || 0)
+        : 0;
+
+    const zrcRealtimeDefaultDelay =
+      tableName === 'tasks' && Number.isFinite(zrcTaskOrderSavingUntil) && zrcTaskOrderSavingUntil > Date.now()
+        ? Math.max(1800, zrcTaskOrderSavingUntil - Date.now())
+        : tableName === 'tasks'
+          ? 1200
+          : 80;
+
+    const refreshDelay = Number.isFinite(options?.delay) ? options.delay : zrcRealtimeDefaultDelay;
 
     setSupabaseRealtimeStatus({
       state: 'syncing',
@@ -4949,7 +4961,7 @@ function App() {
         ...prevBoards,
         [projectName]: {
           ...existingBoard,
-          columns: nextColumns,
+          columns: zrcApplyStoredTaskOrderToColumns(nextColumns, projectName),
           archivedTasks: dbArchivedTasks
         }
       };

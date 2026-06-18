@@ -644,14 +644,26 @@ export function createZRCBoardTaskActions(deps) {
     return supabaseId;
   };
 
+  const zrcMarkTaskOrderSavingWindow = (durationMs = 3500) => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem('zrc-task-order-saving-until', String(Date.now() + durationMs));
+    } catch (error) {}
+  };
+
   const zrcPersistBoardTaskOrderToSupabase = async (columnsToPersist = []) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (!workspaceId || !selectedProject || !Array.isArray(columnsToPersist) || !supabase) return false;
 
+    zrcMarkTaskOrderSavingWindow(6000);
+
     try {
       const projectId = await ensureSupabaseProject(selectedProject);
       if (!projectId) return false;
+
+      const updates = [];
 
       for (const [columnIndex, column] of columnsToPersist.entries()) {
         if (!column) continue;
@@ -670,6 +682,14 @@ export function createZRCBoardTaskActions(deps) {
           if (columnId) updatePayload.column_id = columnId;
           if (column.title) updatePayload.status = column.title;
 
+          updates.push({ taskId, updatePayload });
+        }
+      }
+
+      if (updates.length === 0) return true;
+
+      await Promise.all(
+        updates.map(async ({ taskId, updatePayload }) => {
           const { error } = await supabase
             .from('tasks')
             .update(updatePayload)
@@ -677,8 +697,10 @@ export function createZRCBoardTaskActions(deps) {
             .eq('workspace_id', workspaceId);
 
           if (error) throw error;
-        }
-      }
+        })
+      );
+
+      zrcMarkTaskOrderSavingWindow(1800);
 
       if (typeof zrcSetSupabaseWriteInfo === 'function') {
         zrcSetSupabaseWriteInfo('saved', 'Supabase görev sırası kaydedildi');
@@ -693,6 +715,8 @@ export function createZRCBoardTaskActions(deps) {
       }
 
       return false;
+    } finally {
+      zrcMarkTaskOrderSavingWindow(1200);
     }
   };
   /* === ZRC TASK ORDER DB PERSIST HELPERS END === */
