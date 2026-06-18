@@ -1848,30 +1848,24 @@ body {
   }
 
   .zrc-glow-dot-cursor {
-    width: 10px;
-    height: 10px;
+    width: 6px;
+    height: 6px;
     transition:
-      opacity 120ms ease,
-      filter 160ms ease;
+      opacity 110ms ease,
+      filter 150ms ease;
   }
 
-  .zrc-glow-dot-cursor-aura {
-    width: 30px;
-    height: 30px;
-    border-radius: 999px;
-    transform: translate3d(-80px, -80px, 0) translate(-50%, -50%);
-    background:
-      radial-gradient(circle, rgba(255, 54, 0, 0.18), rgba(255, 54, 0, 0.055) 42%, rgba(255, 54, 0, 0.00) 72%);
-    filter: blur(0.2px);
-    transition:
-      opacity 170ms ease,
-      width 210ms cubic-bezier(0.22, 1, 0.36, 1),
-      height 210ms cubic-bezier(0.22, 1, 0.36, 1),
-      background 210ms ease;
+  /* Arkadaki büyük ikinci halka/aura iptal edildi */
+  .zrc-glow-dot-cursor-aura,
+  .zrc-glow-dot-cursor__ring,
+  .zrc-glow-dot-cursor__ring--a,
+  .zrc-glow-dot-cursor__ring--b {
+    display: none !important;
+    opacity: 0 !important;
+    animation: none !important;
   }
 
   .zrc-glow-dot-cursor__core,
-  .zrc-glow-dot-cursor__ring,
   .zrc-glow-dot-cursor__spark {
     position: absolute;
     left: 50%;
@@ -1881,47 +1875,29 @@ body {
   }
 
   .zrc-glow-dot-cursor__core {
-    width: 8px;
-    height: 8px;
+    width: 4px;
+    height: 4px;
     border-radius: 999px;
     background: #ff3600;
     transform: translate(-50%, -50%);
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.72),
-      0 0 12px rgba(255, 54, 0, 0.50),
-      0 0 28px rgba(255, 54, 0, 0.28),
-      0 8px 24px rgba(255, 54, 0, 0.18);
-    animation: zrcGlowDotBreathe 1.85s ease-in-out infinite;
+      0 0 0 1px rgba(255, 255, 255, 0.58),
+      0 0 7px rgba(255, 54, 0, 0.38),
+      0 0 14px rgba(255, 54, 0, 0.18);
+    animation: zrcGlowDotBreatheTiny 1.9s ease-in-out infinite;
     transition:
-      width 180ms cubic-bezier(0.22, 1, 0.36, 1),
-      height 180ms cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 190ms ease,
-      transform 170ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .zrc-glow-dot-cursor__ring {
-    width: 16px;
-    height: 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 54, 0, 0.34);
-    transform: translate(-50%, -50%) scale(0.58);
-    opacity: 0;
-  }
-
-  .zrc-glow-dot-cursor__ring--a {
-    animation: zrcGlowDotPulseA 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-  }
-
-  .zrc-glow-dot-cursor__ring--b {
-    animation: zrcGlowDotPulseB 1.65s cubic-bezier(0.22, 1, 0.36, 1) 0.42s infinite;
+      width 170ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 170ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 180ms ease,
+      transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .zrc-glow-dot-cursor__spark {
-    width: 2.2px;
-    height: 2.2px;
+    width: 1.6px;
+    height: 1.6px;
     border-radius: 999px;
     background: rgba(255, 54, 0, 0);
-    box-shadow: 0 0 10px rgba(255, 54, 0, 0);
+    box-shadow: 0 0 6px rgba(255, 54, 0, 0);
     transform: translate(-50%, -50%) scale(0.22);
   }
 
@@ -1930,78 +1906,70 @@ body {
   }
 
   body.zrc-glow-dot-cursor-visible .zrc-glow-dot-cursor-aura {
-    opacity: 1;
+    opacity: 0 !important;
   }
 
   body.zrc-glow-dot-cursor-interactive .zrc-glow-dot-cursor {
-    filter: drop-shadow(0 10px 18px rgba(255, 54, 0, 0.26));
-  }
-
-  body.zrc-glow-dot-cursor-interactive .zrc-glow-dot-cursor-aura {
-    width: 44px;
-    height: 44px;
-    background:
-      radial-gradient(circle, rgba(255, 54, 0, 0.24), rgba(255, 54, 0, 0.075) 46%, rgba(255, 54, 0, 0.00) 76%);
+    filter: drop-shadow(0 6px 10px rgba(255, 54, 0, 0.18));
   }
 
   body.zrc-glow-dot-cursor-interactive .zrc-glow-dot-cursor__core {
-    width: 13px;
-    height: 13px;
+    width: 7px;
+    height: 7px;
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.78),
-      0 0 16px rgba(255, 54, 0, 0.58),
-      0 0 38px rgba(255, 54, 0, 0.34),
-      0 12px 30px rgba(255, 54, 0, 0.22);
+      0 0 0 1px rgba(255, 255, 255, 0.68),
+      0 0 10px rgba(255, 54, 0, 0.42),
+      0 0 22px rgba(255, 54, 0, 0.20);
   }
 
   body.zrc-glow-dot-cursor-down .zrc-glow-dot-cursor__core {
-    width: 6px;
-    height: 6px;
+    width: 3px;
+    height: 3px;
     animation: none;
     transform: translate(-50%, -50%) scale(0.88);
     box-shadow:
-      0 0 0 7px rgba(255, 54, 0, 0.11),
-      0 0 14px rgba(255, 54, 0, 0.44);
+      0 0 0 4px rgba(255, 54, 0, 0.09),
+      0 0 9px rgba(255, 54, 0, 0.30);
   }
 
   body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark {
-    background: rgba(255, 54, 0, 0.76);
-    box-shadow: 0 0 10px rgba(255, 54, 0, 0.62);
-    animation: zrcGlowDotSpark 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    background: rgba(255, 54, 0, 0.70);
+    box-shadow: 0 0 6px rgba(255, 54, 0, 0.46);
+    animation: zrcGlowDotSparkTiny 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--a {
-    --x: -13px;
+    --x: -8px;
     --y: -1px;
   }
 
   body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--b {
-    --x: 13px;
+    --x: 8px;
     --y: 1px;
     animation-delay: 20ms;
   }
 
   body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--c {
-    --x: -8px;
-    --y: -11px;
+    --x: -5px;
+    --y: -7px;
     animation-delay: 35ms;
   }
 
   body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--d {
-    --x: 9px;
-    --y: -10px;
+    --x: 5px;
+    --y: -7px;
     animation-delay: 50ms;
   }
 
   body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--e {
-    --x: -7px;
-    --y: 12px;
+    --x: -5px;
+    --y: 8px;
     animation-delay: 65ms;
   }
 
   body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--f {
-    --x: 8px;
-    --y: 12px;
+    --x: 5px;
+    --y: 8px;
     animation-delay: 80ms;
   }
 
@@ -2010,51 +1978,27 @@ body {
     opacity: 0;
   }
 
-  @keyframes zrcGlowDotBreathe {
+  @keyframes zrcGlowDotBreatheTiny {
     0%, 100% {
       transform: translate(-50%, -50%) scale(1);
       filter: brightness(1);
     }
 
     50% {
-      transform: translate(-50%, -50%) scale(1.18);
+      transform: translate(-50%, -50%) scale(1.16);
       filter: brightness(1.08);
     }
   }
 
-  @keyframes zrcGlowDotPulseA {
+  @keyframes zrcGlowDotSparkTiny {
     0% {
-      opacity: 0.34;
-      transform: translate(-50%, -50%) scale(0.5);
-    }
-
-    100% {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(1.65);
-    }
-  }
-
-  @keyframes zrcGlowDotPulseB {
-    0% {
-      opacity: 0.25;
-      transform: translate(-50%, -50%) scale(0.4);
-    }
-
-    100% {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(2.15);
-    }
-  }
-
-  @keyframes zrcGlowDotSpark {
-    0% {
-      opacity: 0.78;
+      opacity: 0.72;
       transform: translate(-50%, -50%) scale(0.2);
     }
 
     100% {
       opacity: 0;
-      transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1);
+      transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0.88);
     }
   }
 }
