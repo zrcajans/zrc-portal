@@ -907,17 +907,59 @@ export function createZRCBoardTaskActions(deps) {
 
     draggedTaskInfo.current = { taskId, sourceColId };
     e.dataTransfer.effectAllowed = 'move';
+
+    /* === ZRC DESKTOP DRAG SOURCE HIDE START === */
+    const zrcDesktopDragSourceElement = e.currentTarget;
+
+    const zrcClearDesktopDragSource = () => {
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.remove('zrc-desktop-task-dragging');
+
+        document
+          .querySelectorAll('.zrc-desktop-task-drag-source')
+          .forEach((element) => element.classList.remove('zrc-desktop-task-drag-source'));
+      }
+    };
+
+    if (zrcDesktopDragSourceElement?.classList && typeof window !== 'undefined') {
+      zrcDesktopDragSourceElement.addEventListener('dragend', zrcClearDesktopDragSource, { once: true });
+
+      window.requestAnimationFrame(() => {
+        if (draggedTaskInfo.current?.taskId === taskId) {
+          document.documentElement.classList.add('zrc-desktop-task-dragging');
+          zrcDesktopDragSourceElement.classList.add('zrc-desktop-task-drag-source');
+        }
+      });
+    }
+    /* === ZRC DESKTOP DRAG SOURCE HIDE END === */
   };
 
   const handleDrop = (e, targetColId, targetTaskId = null) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!draggedTaskInfo.current) return;
+    const zrcClearDesktopDragSource = () => {
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.remove('zrc-desktop-task-dragging');
+
+        document
+          .querySelectorAll('.zrc-desktop-task-drag-source')
+          .forEach((element) => element.classList.remove('zrc-desktop-task-drag-source'));
+      }
+    };
+
+    if (!draggedTaskInfo.current) {
+      zrcClearDesktopDragSource();
+      return;
+    }
 
     const { taskId, sourceColId } = draggedTaskInfo.current;
 
-    if (sourceColId === targetColId && taskId === targetTaskId) return;
+    if (sourceColId === targetColId && taskId === targetTaskId) {
+      zrcClearDesktopDragSource();
+      draggedTaskInfo.current = null;
+      return;
+    }
 
     const sourceColumnBeforeMove = boardColumns.find((column) => column.id === sourceColId);
     const targetColumnBeforeMove = boardColumns.find((column) => column.id === targetColId);
@@ -925,6 +967,7 @@ export function createZRCBoardTaskActions(deps) {
 
     if (taskBeforeMove && !canCurrentUserModifyTask(taskBeforeMove, selectedProject)) {
       draggedTaskInfo.current = null;
+      zrcClearDesktopDragSource();
       showPermissionWarning('Bu görev sana atanmadığı için durumunu değiştiremezsin.');
       return;
     }
@@ -976,6 +1019,7 @@ export function createZRCBoardTaskActions(deps) {
     }
 
     draggedTaskInfo.current = null;
+    zrcClearDesktopDragSource();
   };
 
   return {

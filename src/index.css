@@ -1694,3 +1694,25 @@ body {
   }
 }
 /* === ZRC MOBILE TOP HORIZONTAL LOGO END === */
+
+/* === ZRC DESKTOP DRAG SOURCE SHADOW FIX START === */
+@media (min-width: 769px) {
+  html.zrc-desktop-task-dragging .zrc-desktop-task-drag-source {
+    opacity: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    transform: scale(0.985) !important;
+    pointer-events: none !important;
+  }
+
+  html.zrc-desktop-task-dragging .zrc-desktop-task-drag-source * {
+    opacity: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+  }
+
+  html.zrc-desktop-task-dragging [draggable="true"].zrc-desktop-task-drag-source {
+    background: transparent !important;
+  }
+}
+/* === ZRC DESKTOP DRAG SOURCE SHADOW FIX END === */
