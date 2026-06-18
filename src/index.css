@@ -1823,54 +1823,56 @@ body {
 }
 /* === ZRC PREMIUM NATIVE MICRO INTERACTIONS END === */
 
-/* === ZRC TINY X CURSOR V2 START === */
+/* === ZRC GLOW DOT CURSOR START === */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  body.zrc-tiny-x-cursor-enabled,
-  body.zrc-tiny-x-cursor-enabled * {
+  body.zrc-glow-dot-cursor-enabled,
+  body.zrc-glow-dot-cursor-enabled * {
     cursor: none !important;
   }
 
-  body.zrc-tiny-x-cursor-enabled input,
-  body.zrc-tiny-x-cursor-enabled textarea,
-  body.zrc-tiny-x-cursor-enabled [contenteditable="true"] {
+  body.zrc-glow-dot-cursor-enabled input,
+  body.zrc-glow-dot-cursor-enabled textarea,
+  body.zrc-glow-dot-cursor-enabled [contenteditable="true"] {
     cursor: text !important;
   }
 
-  .zrc-tiny-x-cursor,
-  .zrc-tiny-x-cursor-soft {
+  .zrc-glow-dot-cursor,
+  .zrc-glow-dot-cursor-aura {
     pointer-events: none;
     position: fixed;
     left: 0;
     top: 0;
     opacity: 0;
     z-index: 2147483000;
-    will-change: transform, opacity;
+    will-change: transform, opacity, width, height;
   }
 
-  .zrc-tiny-x-cursor {
-    width: 12px;
-    height: 12px;
+  .zrc-glow-dot-cursor {
+    width: 10px;
+    height: 10px;
     transition:
       opacity 120ms ease,
-      filter 150ms ease;
+      filter 160ms ease;
   }
 
-  .zrc-tiny-x-cursor-soft {
-    width: 18px;
-    height: 18px;
+  .zrc-glow-dot-cursor-aura {
+    width: 30px;
+    height: 30px;
     border-radius: 999px;
-    background:
-      radial-gradient(circle, rgba(98, 116, 150, 0.105), rgba(98, 116, 150, 0.035) 45%, transparent 70%);
     transform: translate3d(-80px, -80px, 0) translate(-50%, -50%);
+    background:
+      radial-gradient(circle, rgba(255, 54, 0, 0.18), rgba(255, 54, 0, 0.055) 42%, rgba(255, 54, 0, 0.00) 72%);
+    filter: blur(0.2px);
     transition:
-      opacity 160ms ease,
-      width 190ms cubic-bezier(0.22, 1, 0.36, 1),
-      height 190ms cubic-bezier(0.22, 1, 0.36, 1);
+      opacity 170ms ease,
+      width 210ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 210ms cubic-bezier(0.22, 1, 0.36, 1),
+      background 210ms ease;
   }
 
-  .zrc-tiny-x-cursor__line,
-  .zrc-tiny-x-cursor__dot,
-  .zrc-tiny-x-cursor__spark {
+  .zrc-glow-dot-cursor__core,
+  .zrc-glow-dot-cursor__ring,
+  .zrc-glow-dot-cursor__spark {
     position: absolute;
     left: 50%;
     top: 50%;
@@ -1878,149 +1880,182 @@ body {
     pointer-events: none;
   }
 
-  .zrc-tiny-x-cursor__dot {
-    width: 2.4px;
-    height: 2.4px;
+  .zrc-glow-dot-cursor__core {
+    width: 8px;
+    height: 8px;
     border-radius: 999px;
-    background: rgba(12, 18, 28, 0.88);
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.58),
-      0 1px 4px rgba(15, 23, 42, 0.20);
+    background: #ff3600;
     transform: translate(-50%, -50%);
-    animation: zrcTinyXDotBreathe 2.2s ease-in-out infinite;
-  }
-
-  .zrc-tiny-x-cursor__line {
-    width: 9.5px;
-    height: 1.4px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, rgba(15, 23, 42, 0.54), rgba(15, 23, 42, 0.92));
     box-shadow:
-      0 0 0 0.5px rgba(255, 255, 255, 0.32),
-      0 2px 5px rgba(15, 23, 42, 0.14);
-    transform-origin: center;
+      0 0 0 1px rgba(255, 255, 255, 0.72),
+      0 0 12px rgba(255, 54, 0, 0.50),
+      0 0 28px rgba(255, 54, 0, 0.28),
+      0 8px 24px rgba(255, 54, 0, 0.18);
+    animation: zrcGlowDotBreathe 1.85s ease-in-out infinite;
     transition:
-      width 165ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 150ms ease,
-      background-color 150ms ease,
-      transform 165ms cubic-bezier(0.22, 1, 0.36, 1);
+      width 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 190ms ease,
+      transform 170ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .zrc-tiny-x-cursor__line--a {
-    transform: translate(-50%, -50%) rotate(45deg);
-  }
-
-  .zrc-tiny-x-cursor__line--b {
-    opacity: 0.76;
-    transform: translate(-50%, -50%) rotate(-45deg);
-  }
-
-  .zrc-tiny-x-cursor__spark {
-    width: 2px;
-    height: 2px;
+  .zrc-glow-dot-cursor__ring {
+    width: 16px;
+    height: 16px;
     border-radius: 999px;
-    background: rgba(99, 116, 144, 0.0);
-    transform: translate(-50%, -50%) scale(0.25);
-  }
-
-  body.zrc-tiny-x-cursor-visible .zrc-tiny-x-cursor {
-    opacity: 1;
-  }
-
-  body.zrc-tiny-x-cursor-visible .zrc-tiny-x-cursor-soft {
-    opacity: 1;
-  }
-
-  body.zrc-tiny-x-cursor-interactive .zrc-tiny-x-cursor {
-    filter: drop-shadow(0 8px 12px rgba(15, 23, 42, 0.18));
-  }
-
-  body.zrc-tiny-x-cursor-interactive .zrc-tiny-x-cursor-soft {
-    width: 24px;
-    height: 24px;
-    opacity: 1;
-    background:
-      radial-gradient(circle, rgba(83, 101, 132, 0.13), rgba(83, 101, 132, 0.035) 52%, transparent 74%);
-  }
-
-  body.zrc-tiny-x-cursor-interactive .zrc-tiny-x-cursor__line {
-    width: 11px;
-    background: linear-gradient(90deg, rgba(10, 16, 26, 0.60), rgba(10, 16, 26, 0.98));
-  }
-
-  body.zrc-tiny-x-cursor-interactive .zrc-tiny-x-cursor__line--a {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-
-  body.zrc-tiny-x-cursor-interactive .zrc-tiny-x-cursor__line--b {
-    opacity: 0.64;
-    transform: translate(-50%, -50%) rotate(90deg);
-  }
-
-  body.zrc-tiny-x-cursor-down .zrc-tiny-x-cursor__line {
-    width: 7px;
-  }
-
-  body.zrc-tiny-x-cursor-down .zrc-tiny-x-cursor__dot {
-    animation: none;
-    transform: translate(-50%, -50%) scale(0.72);
-  }
-
-  body.zrc-tiny-x-cursor-clicked .zrc-tiny-x-cursor__spark {
-    background: rgba(15, 23, 42, 0.42);
-    animation: zrcTinyXSpark 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  }
-
-  body.zrc-tiny-x-cursor-clicked .zrc-tiny-x-cursor__spark--a {
-    --x: -10px;
-    --y: -8px;
-  }
-
-  body.zrc-tiny-x-cursor-clicked .zrc-tiny-x-cursor__spark--b {
-    --x: 10px;
-    --y: -8px;
-    animation-delay: 20ms;
-  }
-
-  body.zrc-tiny-x-cursor-clicked .zrc-tiny-x-cursor__spark--c {
-    --x: -9px;
-    --y: 9px;
-    animation-delay: 35ms;
-  }
-
-  body.zrc-tiny-x-cursor-clicked .zrc-tiny-x-cursor__spark--d {
-    --x: 9px;
-    --y: 9px;
-    animation-delay: 50ms;
-  }
-
-  body.zrc-tiny-x-cursor-text .zrc-tiny-x-cursor,
-  body.zrc-tiny-x-cursor-text .zrc-tiny-x-cursor-soft {
+    border: 1px solid rgba(255, 54, 0, 0.34);
+    transform: translate(-50%, -50%) scale(0.58);
     opacity: 0;
   }
 
-  @keyframes zrcTinyXDotBreathe {
+  .zrc-glow-dot-cursor__ring--a {
+    animation: zrcGlowDotPulseA 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  .zrc-glow-dot-cursor__ring--b {
+    animation: zrcGlowDotPulseB 1.65s cubic-bezier(0.22, 1, 0.36, 1) 0.42s infinite;
+  }
+
+  .zrc-glow-dot-cursor__spark {
+    width: 2.2px;
+    height: 2.2px;
+    border-radius: 999px;
+    background: rgba(255, 54, 0, 0);
+    box-shadow: 0 0 10px rgba(255, 54, 0, 0);
+    transform: translate(-50%, -50%) scale(0.22);
+  }
+
+  body.zrc-glow-dot-cursor-visible .zrc-glow-dot-cursor {
+    opacity: 1;
+  }
+
+  body.zrc-glow-dot-cursor-visible .zrc-glow-dot-cursor-aura {
+    opacity: 1;
+  }
+
+  body.zrc-glow-dot-cursor-interactive .zrc-glow-dot-cursor {
+    filter: drop-shadow(0 10px 18px rgba(255, 54, 0, 0.26));
+  }
+
+  body.zrc-glow-dot-cursor-interactive .zrc-glow-dot-cursor-aura {
+    width: 44px;
+    height: 44px;
+    background:
+      radial-gradient(circle, rgba(255, 54, 0, 0.24), rgba(255, 54, 0, 0.075) 46%, rgba(255, 54, 0, 0.00) 76%);
+  }
+
+  body.zrc-glow-dot-cursor-interactive .zrc-glow-dot-cursor__core {
+    width: 13px;
+    height: 13px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.78),
+      0 0 16px rgba(255, 54, 0, 0.58),
+      0 0 38px rgba(255, 54, 0, 0.34),
+      0 12px 30px rgba(255, 54, 0, 0.22);
+  }
+
+  body.zrc-glow-dot-cursor-down .zrc-glow-dot-cursor__core {
+    width: 6px;
+    height: 6px;
+    animation: none;
+    transform: translate(-50%, -50%) scale(0.88);
+    box-shadow:
+      0 0 0 7px rgba(255, 54, 0, 0.11),
+      0 0 14px rgba(255, 54, 0, 0.44);
+  }
+
+  body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark {
+    background: rgba(255, 54, 0, 0.76);
+    box-shadow: 0 0 10px rgba(255, 54, 0, 0.62);
+    animation: zrcGlowDotSpark 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--a {
+    --x: -13px;
+    --y: -1px;
+  }
+
+  body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--b {
+    --x: 13px;
+    --y: 1px;
+    animation-delay: 20ms;
+  }
+
+  body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--c {
+    --x: -8px;
+    --y: -11px;
+    animation-delay: 35ms;
+  }
+
+  body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--d {
+    --x: 9px;
+    --y: -10px;
+    animation-delay: 50ms;
+  }
+
+  body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--e {
+    --x: -7px;
+    --y: 12px;
+    animation-delay: 65ms;
+  }
+
+  body.zrc-glow-dot-cursor-clicked .zrc-glow-dot-cursor__spark--f {
+    --x: 8px;
+    --y: 12px;
+    animation-delay: 80ms;
+  }
+
+  body.zrc-glow-dot-cursor-text .zrc-glow-dot-cursor,
+  body.zrc-glow-dot-cursor-text .zrc-glow-dot-cursor-aura {
+    opacity: 0;
+  }
+
+  @keyframes zrcGlowDotBreathe {
     0%, 100% {
       transform: translate(-50%, -50%) scale(1);
-      opacity: 0.88;
+      filter: brightness(1);
     }
 
     50% {
-      transform: translate(-50%, -50%) scale(1.22);
-      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.18);
+      filter: brightness(1.08);
     }
   }
 
-  @keyframes zrcTinyXSpark {
+  @keyframes zrcGlowDotPulseA {
     0% {
-      opacity: 0.45;
-      transform: translate(-50%, -50%) scale(0.25);
+      opacity: 0.34;
+      transform: translate(-50%, -50%) scale(0.5);
     }
 
     100% {
       opacity: 0;
-      transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0.9);
+      transform: translate(-50%, -50%) scale(1.65);
+    }
+  }
+
+  @keyframes zrcGlowDotPulseB {
+    0% {
+      opacity: 0.25;
+      transform: translate(-50%, -50%) scale(0.4);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(2.15);
+    }
+  }
+
+  @keyframes zrcGlowDotSpark {
+    0% {
+      opacity: 0.78;
+      transform: translate(-50%, -50%) scale(0.2);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1);
     }
   }
 }
-/* === ZRC TINY X CURSOR V2 END === */
+/* === ZRC GLOW DOT CURSOR END === */
