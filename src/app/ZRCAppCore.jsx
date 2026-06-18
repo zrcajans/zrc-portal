@@ -1409,6 +1409,48 @@ function App() {
   }, [projectBoards]);
 
 
+  // zrc-v425-instant-task-cache
+  // Sayfa yenilenince görev kartları Supabase beklemeden son yerel cache'ten anında gösterilir.
+  // Supabase arkada güncel veriyi getirince mevcut akış zaten panoyu tazeler.
+  useEffect(() => {
+    const cachedBoards = normalizeStorageObject(readStorageValue('projectBoards', null), null);
+
+    if (!cachedBoards || typeof cachedBoards !== 'object' || Array.isArray(cachedBoards)) {
+      return;
+    }
+
+    const cachedProjectNames = Object.keys(cachedBoards);
+
+    if (cachedProjectNames.length === 0) {
+      return;
+    }
+
+    const cachedHasTasks = Object.values(cachedBoards).some((board) =>
+      Array.isArray(board?.columns) &&
+      board.columns.some((column) => Array.isArray(column?.tasks) && column.tasks.length > 0)
+    );
+
+    if (!cachedHasTasks) {
+      return;
+    }
+
+    setProjectBoards((prevBoards) => {
+      const currentHasTasks = Object.values(prevBoards || {}).some((board) =>
+        Array.isArray(board?.columns) &&
+        board.columns.some((column) => Array.isArray(column?.tasks) && column.tasks.length > 0)
+      );
+
+      return currentHasTasks ? prevBoards : cachedBoards;
+    });
+
+    const cachedSelectedProject = String(readStorageValue('selectedProject', '') || '').trim();
+
+    if (cachedSelectedProject) {
+      setSelectedProject((prevProject) => prevProject || cachedSelectedProject);
+    }
+  }, []);
+
+
   const currentBoard = projectBoards[selectedProject] || createDefaultProjectBoard();
   const boardColumns = currentBoard.columns;
   const archivedTasks = currentBoard.archivedTasks;
@@ -1431,42 +1473,109 @@ function App() {
     ['Yazışma Grubu', chatGroups.length]
   ];
 
-  const getPersistentTaskOrder = (task = {}) => {
-    const rawOrder = task.task_order ?? task.taskOrder;
-    if (rawOrder === null || rawOrder === undefined || rawOrder === '') return Number.MAX_SAFE_INTEGER;
+  
+  /* === ZRC TASK ORDER PERSISTENCE HELPERS START === */
+  const zrcTaskOrderStorageKeyForProject = (projectName = '') =>
+    `zrc-task-order-v1:${String(projectName || '').trim()}`;
 
-    const numericOrder = Number(rawOrder);
+  const zrcGetStableTaskOrderId = (task = {}) => {
+    const rawId = String(task?.id || '').trim();
+    const supabaseId = String(
+      task?.supabaseId ||
+      task?.supabase_id ||
+      (rawId.startsWith('supabase-') ? rawId.replace('supabase-', '') : '') ||
+      ''
+    ).trim();
 
-    return Number.isFinite(numericOrder) ? numericOrder : Number.MAX_SAFE_INTEGER;
+    return supabaseId || rawId || String(task?.title || '').trim();
   };
 
-  const getTaskCreatedAtTime = (task = {}) => {
-    const time = Date.parse(task.created_at || task.createdAt || '');
+  const zrcGetColumnOrderKey = (column = {}) =>
+    String(column?.id || normalizeColumnTitleForDisplay(column?.title || '') || '').trim();
 
-    return Number.isFinite(time) ? time : Number.MAX_SAFE_INTEGER;
+  const zrcReadStoredTaskOrder = (projectName = '') => {
+    const storageKey = zrcTaskOrderStorageKeyForProject(projectName);
+    const storedOrder = normalizeStorageObject(readStorageValue(storageKey, {}), {});
+
+    return storedOrder && typeof storedOrder === 'object' && !Array.isArray(storedOrder)
+      ? storedOrder
+      : {};
   };
 
-  const sortTasksByPersistentOrder = (tasks = []) =>
-    (Array.isArray(tasks) ? tasks : [])
-      .map((task, originalIndex) => ({ task, originalIndex }))
-      .sort((left, right) => {
-        const leftOrder = getPersistentTaskOrder(left.task);
-        const rightOrder = getPersistentTaskOrder(right.task);
+  const zrcPersistTaskOrderForColumns = (columns = [], projectName = selectedProject) => {
+    if (!projectName || !Array.isArray(columns)) return;
+
+    const orderMap = {};
+
+    columns.forEach((column) => {
+      const columnKey = zrcGetColumnOrderKey(column);
+      const titleKey = normalizeColumnTitleForDisplay(column?.title || '');
+
+      const taskIds = (column?.tasks || [])
+        .map(zrcGetStableTaskOrderId)
+        .filter(Boolean);
+
+      if (columnKey) orderMap[columnKey] = taskIds;
+      if (titleKey) orderMap[titleKey] = taskIds;
+    });
+
+    writeStorageValue(zrcTaskOrderStorageKeyForProject(projectName), orderMap);
+  };
+
+  const zrcApplyStoredTaskOrderToColumns = (columns = [], projectName = selectedProject) => {
+    if (!projectName || !Array.isArray(columns)) return columns;
+
+    const storedOrder = zrcReadStoredTaskOrder(projectName);
+
+    if (!storedOrder || Object.keys(storedOrder).length === 0) return columns;
+
+    let didChange = false;
+
+    const orderedColumns = columns.map((column) => {
+      const tasks = Array.isArray(column?.tasks) ? column.tasks : [];
+      if (tasks.length <= 1) return column;
+
+      const columnKey = zrcGetColumnOrderKey(column);
+      const titleKey = normalizeColumnTitleForDisplay(column?.title || '');
+      const taskOrder = storedOrder[columnKey] || storedOrder[titleKey];
+
+      if (!Array.isArray(taskOrder) || taskOrder.length === 0) return column;
+
+      const orderIndex = new Map(taskOrder.map((taskId, index) => [String(taskId), index]));
+
+      const orderedTasks = [...tasks].sort((leftTask, rightTask) => {
+        const leftId = zrcGetStableTaskOrderId(leftTask);
+        const rightId = zrcGetStableTaskOrderId(rightTask);
+
+        const leftOrder = orderIndex.has(leftId) ? orderIndex.get(leftId) : Number.MAX_SAFE_INTEGER;
+        const rightOrder = orderIndex.has(rightId) ? orderIndex.get(rightId) : Number.MAX_SAFE_INTEGER;
 
         if (leftOrder !== rightOrder) return leftOrder - rightOrder;
 
-        const leftCreatedAt = getTaskCreatedAtTime(left.task);
-        const rightCreatedAt = getTaskCreatedAtTime(right.task);
+        return 0;
+      });
 
-        if (leftCreatedAt !== rightCreatedAt) return leftCreatedAt - rightCreatedAt;
+      const beforeIds = tasks.map(zrcGetStableTaskOrderId).join('|');
+      const afterIds = orderedTasks.map(zrcGetStableTaskOrderId).join('|');
 
-        return left.originalIndex - right.originalIndex;
-      })
-      .map(({ task }, index) => ({
-        ...task,
-        taskOrder: index,
-        task_order: index
-      }));
+      if (beforeIds !== afterIds) didChange = true;
+
+      return {
+        ...column,
+        tasks: orderedTasks
+      };
+    });
+
+    return didChange ? orderedColumns : columns;
+  };
+
+  const zrcTaskOrderSignatureForColumns = (columns = []) =>
+    (Array.isArray(columns) ? columns : [])
+      .map((column) =>
+        `${zrcGetColumnOrderKey(column)}:${(column?.tasks || []).map(zrcGetStableTaskOrderId).join(',')}`
+      )
+      .join('||');
+  /* === ZRC TASK ORDER PERSISTENCE HELPERS END === */
 
   const setBoardColumns = (updater) => {
     if (!selectedProject) return;
@@ -1474,7 +1583,14 @@ function App() {
     setProjectBoards((prevBoards) => {
       const existingBoard = prevBoards[selectedProject] || createDefaultProjectBoard();
       const rawNextColumns = typeof updater === 'function' ? updater(existingBoard.columns) : updater;
-      const nextColumns = Array.isArray(rawNextColumns) ? rawNextColumns : existingBoard.columns;
+      const safeNextColumns = Array.isArray(rawNextColumns) ? rawNextColumns : existingBoard.columns;
+
+      const nextColumns =
+        typeof updater === 'function'
+          ? safeNextColumns
+          : zrcApplyStoredTaskOrderToColumns(safeNextColumns, selectedProject);
+
+      zrcPersistTaskOrderForColumns(nextColumns, selectedProject);
 
       return {
         ...prevBoards,
@@ -1504,6 +1620,11 @@ function App() {
   };
 
   const {openMenuColumnId, setOpenMenuColumnId, openTaskMenuId, setOpenTaskMenuId, selectedTasks, setSelectedTasks} = useZRCTaskSelectionState();
+
+
+  useEffect(() => {
+    writeStorageValue('projectBoards', projectBoards);
+  }, [projectBoards]);
 
   useEffect(() => {
     if (!selectedProject) return;
@@ -1662,7 +1783,6 @@ function App() {
       const targetColumn = boardColumns.find((column) => column.title === targetStatus) || boardColumns[0];
       const targetColumnIndex = Math.max(0, boardColumns.findIndex((column) => column.title === targetStatus));
       const columnId = await ensureSupabaseColumn(projectId, targetColumn || { title: targetStatus }, targetColumnIndex);
-      const requestedTaskOrder = Number(taskData.task_order ?? taskData.taskOrder);
 
       if (!projectId) return;
 
@@ -1682,7 +1802,7 @@ function App() {
         tags: Array.isArray(taskData.tags) ? taskData.tags : [],
         is_archived: false,
         updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
-        task_order: Number.isFinite(requestedTaskOrder) ? requestedTaskOrder : ((targetColumn?.tasks || []).length || 0)
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
       };
 
       let savedTask = null;
@@ -1799,7 +1919,6 @@ function App() {
       const targetColumn = projectColumns.find((column) => column.title === targetStatus) || projectColumns[0] || { title: targetStatus || 'Yeni Görev' };
       const targetColumnIndex = Math.max(0, projectColumns.findIndex((column) => column.title === targetColumn.title));
       const columnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
-      const requestedTaskOrder = Number(taskData.task_order ?? taskData.taskOrder);
 
       if (!projectId) return false;
 
@@ -1819,7 +1938,7 @@ function App() {
         tags: Array.isArray(taskData.tags) ? taskData.tags : [],
         is_archived: false,
         updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
-        task_order: Number.isFinite(requestedTaskOrder) ? requestedTaskOrder : ((targetColumn?.tasks || []).length || 0)
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
       };
 
       const { data, error } = await supabase
@@ -2008,66 +2127,6 @@ function App() {
     }
   };
 
-  const getSupabaseTaskIdForOrder = (task = {}) => {
-    const rawId = String(task?.id || '').trim();
-
-    return String(
-      task?.supabaseId ||
-      task?.supabase_id ||
-      (rawId.startsWith('supabase-') ? rawId.replace('supabase-', '') : '') ||
-      (isSupabaseUuid(rawId) ? rawId : '') ||
-      ''
-    ).trim();
-  };
-
-  const persistBoardTaskOrderToSupabase = async (columnsToPersist = []) => {
-    const workspaceId = getCurrentSupabaseWorkspaceId();
-
-    if (!workspaceId || !selectedProject || !Array.isArray(columnsToPersist) || !supabase) return false;
-
-    try {
-      const projectId = await ensureSupabaseProject(selectedProject);
-      if (!projectId) return false;
-
-      zrcSetSupabaseWriteInfo('saving', 'Supabase görev sırası kaydediliyor');
-
-      for (const [columnIndex, column] of columnsToPersist.entries()) {
-        if (!column) continue;
-
-        const columnId = await ensureSupabaseColumn(projectId, column, columnIndex);
-
-        for (const [taskIndex, task] of (column.tasks || []).entries()) {
-          const taskId = getSupabaseTaskIdForOrder(task);
-          if (!taskId) continue;
-
-          const updatePayload = {
-            task_order: taskIndex,
-            updated_at: new Date().toISOString(),
-            updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
-          };
-
-          if (columnId) updatePayload.column_id = columnId;
-          if (column.title) updatePayload.status = column.title;
-
-          const { error } = await supabase
-            .from('tasks')
-            .update(updatePayload)
-            .eq('id', taskId)
-            .eq('workspace_id', workspaceId);
-
-          if (error) throw error;
-        }
-      }
-
-      zrcSetSupabaseWriteInfo('saved', 'Supabase görev sırası kaydedildi');
-      return true;
-    } catch (error) {
-      console.warn('ZRC görev sırası Supabase kaydı başarısız:', error);
-      zrcSetSupabaseWriteInfo('error', `Supabase görev sırası kaydedilemedi: ${error?.message || 'bilinmeyen hata'}`);
-      return false;
-    }
-  };
-
   const archiveSupabaseTask = async (task) => {
     if (!task?.supabaseId) return false;
 
@@ -2079,7 +2138,8 @@ function App() {
         .update({
           is_archived: true,
           archived_at: new Date().toISOString(),
-          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
         })
         .eq('id', task.supabaseId);
 
@@ -2111,7 +2171,7 @@ function App() {
           is_archived: false,
           archived_at: null,
           updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
-          task_order: (targetColumn?.tasks || []).length || 0
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
         })
         .eq('id', task.supabaseId);
 
@@ -2240,7 +2300,8 @@ function App() {
           .from('tasks')
           .update({
             description: updates.description || '',
-            updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+            updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
           })
           .eq('id', taskSupabaseId);
 
@@ -4147,13 +4208,6 @@ function App() {
     const projectId = await ensureSupabaseProject(projectName);
     const columnIndex = Math.max(0, (projectBoards?.[projectName]?.columns || boardColumns).findIndex((item) => item.title === column.title));
     const columnId = isArchived ? null : await ensureSupabaseColumn(projectId, column || { title: task.status || 'Yeni Görev' }, columnIndex);
-    const sourceColumnTasks = (projectBoards?.[projectName]?.columns || boardColumns)
-      .find((item) => item.title === column.title)?.tasks || [];
-    const existingTaskOrder = Number(task.task_order ?? task.taskOrder);
-    const sourceTaskIndex = sourceColumnTasks.findIndex((item) => item.id === task.id);
-    const taskOrder = Number.isFinite(existingTaskOrder)
-      ? existingTaskOrder
-      : (sourceTaskIndex >= 0 ? sourceTaskIndex : sourceColumnTasks.length);
 
     const payload = {
       workspace_id: workspaceId,
@@ -4172,7 +4226,7 @@ function App() {
       is_archived: isArchived || task.isArchived === true,
       archived_at: isArchived || task.isArchived === true ? new Date().toISOString() : null,
       updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
-      task_order: taskOrder
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
     };
 
     let savedTask = null;
@@ -4656,14 +4710,12 @@ function App() {
 
   const mapSupabaseTaskToLocalTask = (task = {}, columnTitle = 'Yeni Görev') => {
     const dateValue = task.due_date || task.end_date || task.start_date || '';
-    const numericTaskOrder = Number(task.task_order);
-    const taskOrder = Number.isFinite(numericTaskOrder) ? numericTaskOrder : null;
 
     return {
       id: `supabase-${task.id}`,
       supabaseId: task.id,
-      taskOrder,
-      task_order: taskOrder,
+          taskOrder: typeof task.task_order === 'number' ? task.task_order : Number(task.task_order ?? 0),
+          task_order: typeof task.task_order === 'number' ? task.task_order : Number(task.task_order ?? 0),
       title: task.title || 'Adsız görev',
       description: getPlainTaskDescription(task.description),
       note: getPlainTaskDescription(task.description),
@@ -4828,7 +4880,7 @@ function App() {
 
         return {
           ...column,
-          tasks: sortTasksByPersistentOrder([...dbTasksForColumn, ...localOnlyTasks])
+          tasks: [...localOnlyTasks, ...dbTasksForColumn]
         };
       });
 
@@ -4888,7 +4940,7 @@ function App() {
 
       const { data: dbTasks, error: tasksError } = await supabase
         .from('tasks')
-        .select('id, column_id, title, description, rich_description, priority, status, start_date, due_date, end_date, tags, is_archived, customer_id, task_order, created_at, updated_at')
+        .select('id, column_id, title, description, rich_description, priority, status, start_date, due_date, end_date, tags, is_archived, customer_id, created_at, updated_at')
         .eq('project_id', projectRecord.id)
         .order('task_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
@@ -5600,45 +5652,31 @@ function App() {
       );
     };
 
-    const existingBoard = projectBoards[activeProjectName] || createDefaultProjectBoard();
-    const nextColumns = (existingBoard.columns || boardColumns || []).map((column) => ({
-      ...column,
-      tasks: (column.tasks || []).filter((task) => !isSameTask(task, movedTask))
-    }));
-
-    const targetIndex = nextColumns.findIndex((column) =>
-      String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
-      normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
-    );
-
-    if (targetIndex < 0) {
-      await window.zrcAlert('Hedef kolon bulunamadı.');
-      return;
-    }
-
-    nextColumns[targetIndex] = {
-      ...nextColumns[targetIndex],
-      tasks: [...(nextColumns[targetIndex].tasks || []), movedTask]
-    };
-
-    const nextColumnsToPersist = nextColumns.map((column) => ({
-      ...column,
-      tasks: (column.tasks || []).map((task, taskIndex) => ({
-        ...task,
-        status: column.title || task.status,
-        columnTitle: column.title || task.columnTitle,
-        columnId: column.id || task.columnId,
-        taskOrder: taskIndex,
-        task_order: taskIndex
-      }))
-    }));
-
     setProjectBoards((prevBoards) => {
+      const existingBoard = prevBoards[activeProjectName] || createDefaultProjectBoard();
+
+      const nextColumns = (existingBoard.columns || []).map((column) => ({
+        ...column,
+        tasks: (column.tasks || []).filter((task) => !isSameTask(task, movedTask))
+      }));
+
+      const targetIndex = nextColumns.findIndex((column) =>
+        String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
+        normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
+      );
+
+      if (targetIndex < 0) return prevBoards;
+
+      nextColumns[targetIndex] = {
+        ...nextColumns[targetIndex],
+        tasks: [...(nextColumns[targetIndex].tasks || []), movedTask]
+      };
+
       return {
         ...prevBoards,
         [activeProjectName]: {
-          ...(prevBoards[activeProjectName] || existingBoard),
-          columns: nextColumnsToPersist
+          ...existingBoard,
+          columns: nextColumns
         }
       };
     });
@@ -5646,15 +5684,35 @@ function App() {
     try {
       const workspaceId = getCurrentSupabaseWorkspaceId();
 
-      if (taskSupabaseId && workspaceId && nextColumnsToPersist) {
-        await persistBoardTaskOrderToSupabase(nextColumnsToPersist);
+      if (taskSupabaseId && workspaceId) {
+        const projectId = await ensureSupabaseProject(activeProjectName);
+        const targetColumnIndex = Math.max(
+          0,
+          (boardColumns || []).findIndex((column) =>
+            String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
+            normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
+          )
+        );
+        const targetSupabaseColumnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
+
+        const { error } = await supabase
+          .from('tasks')
+          .update({
+            column_id: targetSupabaseColumnId,
+            status: targetStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', taskSupabaseId)
+          .eq('workspace_id', workspaceId);
+
+        if (error) throw error;
       } else {
         await saveTaskToSupabaseForProject(activeProjectName, movedTask, targetStatus);
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Görev Aktif kolonuna taşındı');
+      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
     } catch (error) {
-      console.warn('ZRC mobil görev taşıma Supabase kaydı başarısız:', error);
       zrcSetSupabaseWriteInfo('error', `Görev Aktif kolonuna taşınamadı: ${error?.message || 'bilinmeyen hata'}`);
     }
   };
@@ -8012,7 +8070,6 @@ const {
     createHistoryEntry,
     currentPermissions,
     updateSupabaseTaskColumn,
-    persistBoardTaskOrderToSupabase,
     ensureCanCreateTaskInSelectedProject,
     normalizeAssigneesForCurrentAccountSave,
     setSelectedTasks,

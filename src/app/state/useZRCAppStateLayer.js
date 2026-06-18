@@ -552,6 +552,12 @@ export function useZRCBoardStateLayer({ selectedProject, setSelectedProject }) {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const [projectBoards, setProjectBoards] = useState(() => {
+    const savedProjectBoards = normalizeStorageObject(readStorageValue('projectBoards', null), null);
+
+    if (savedProjectBoards) {
+      return savedProjectBoards;
+    }
+
     // Eski tek-pano kayıtlarını yeni proje bazlı sisteme taşıma.
     const savedBoardColumns = readStorageValue('legacyBoardColumns', null);
     const savedArchivedTasks = readStorageValue('legacyArchivedTasks', null);
