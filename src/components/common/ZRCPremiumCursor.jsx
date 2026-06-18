@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react';
 
 export default function ZRCPremiumCursor() {
-  const markRef = useRef(null);
+  const cursorRef = useRef(null);
   const frameRef = useRef(null);
   const stateRef = useRef({
     x: -80,
     y: -80,
-    markX: -80,
-    markY: -80,
+    cursorX: -80,
+    cursorY: -80,
     visible: false
   });
 
@@ -21,9 +21,9 @@ export default function ZRCPremiumCursor() {
     if (reducedMotion && reducedMotion.matches) return undefined;
 
     const body = document.body;
-    const mark = markRef.current;
+    const cursor = cursorRef.current;
 
-    if (!body || !mark) return undefined;
+    if (!body || !cursor) return undefined;
 
     const interactiveSelector = [
       'a',
@@ -45,74 +45,75 @@ export default function ZRCPremiumCursor() {
       '[contenteditable="true"]'
     ].join(',');
 
-    const animate = () => {
-      const state = stateRef.current;
-
-      state.markX += (state.x - state.markX) * 0.23;
-      state.markY += (state.y - state.markY) * 0.23;
-
-      mark.style.transform = `translate3d(${state.markX}px, ${state.markY}px, 0) translate(10px, 10px)`;
-
-      frameRef.current = window.requestAnimationFrame(animate);
-    };
-
-    const setVisible = (visible) => {
-      stateRef.current.visible = visible;
-      body.classList.toggle('zrc-micro-cursor-visible', visible);
-    };
-
-    const applyTargetTone = (target) => {
+    const applyTargetState = (target) => {
       const element = target instanceof Element ? target : null;
       const isText = Boolean(element?.closest(textSelector));
       const isInteractive = Boolean(element?.closest(interactiveSelector));
 
-      body.classList.toggle('zrc-micro-cursor-text', isText);
-      body.classList.toggle('zrc-micro-cursor-interactive', isInteractive && !isText);
+      body.classList.toggle('zrc-tiny-x-cursor-text', isText);
+      body.classList.toggle('zrc-tiny-x-cursor-interactive', isInteractive && !isText);
+    };
+
+    const animate = () => {
+      const state = stateRef.current;
+
+      state.cursorX += (state.x - state.cursorX) * 0.55;
+      state.cursorY += (state.y - state.cursorY) * 0.55;
+
+      cursor.style.transform = `translate3d(${state.cursorX}px, ${state.cursorY}px, 0) translate(-50%, -50%)`;
+
+      frameRef.current = window.requestAnimationFrame(animate);
+    };
+
+    const show = () => {
+      stateRef.current.visible = true;
+      body.classList.add('zrc-tiny-x-cursor-visible');
+    };
+
+    const hide = () => {
+      stateRef.current.visible = false;
+      body.classList.remove(
+        'zrc-tiny-x-cursor-visible',
+        'zrc-tiny-x-cursor-interactive',
+        'zrc-tiny-x-cursor-text',
+        'zrc-tiny-x-cursor-down'
+      );
     };
 
     const onPointerMove = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') {
-        setVisible(false);
+        hide();
         return;
       }
 
       const state = stateRef.current;
-
       state.x = event.clientX;
       state.y = event.clientY;
 
       if (!state.visible) {
-        state.markX = event.clientX;
-        state.markY = event.clientY;
-        setVisible(true);
+        state.cursorX = event.clientX;
+        state.cursorY = event.clientY;
+        show();
       }
 
-      applyTargetTone(event.target);
+      applyTargetState(event.target);
     };
 
     const onPointerDown = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
-      body.classList.add('zrc-micro-cursor-down');
+      body.classList.add('zrc-tiny-x-cursor-down');
     };
 
     const onPointerUp = () => {
-      body.classList.remove('zrc-micro-cursor-down');
+      body.classList.remove('zrc-tiny-x-cursor-down');
     };
 
-    const onMouseLeave = () => {
-      setVisible(false);
-      body.classList.remove('zrc-micro-cursor-interactive', 'zrc-micro-cursor-text', 'zrc-micro-cursor-down');
-    };
+    const onMouseLeave = () => hide();
+    const onMouseEnter = () => show();
+    const onTouchStart = () => hide();
 
-    const onMouseEnter = () => {
-      setVisible(true);
-    };
+    body.classList.add('zrc-tiny-x-cursor-enabled');
 
-    const onTouchStart = () => {
-      setVisible(false);
-    };
-
-    body.classList.add('zrc-micro-cursor-enabled');
     frameRef.current = window.requestAnimationFrame(animate);
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -133,19 +134,20 @@ export default function ZRCPremiumCursor() {
       window.removeEventListener('touchstart', onTouchStart);
 
       body.classList.remove(
-        'zrc-micro-cursor-enabled',
-        'zrc-micro-cursor-visible',
-        'zrc-micro-cursor-interactive',
-        'zrc-micro-cursor-text',
-        'zrc-micro-cursor-down'
+        'zrc-tiny-x-cursor-enabled',
+        'zrc-tiny-x-cursor-visible',
+        'zrc-tiny-x-cursor-interactive',
+        'zrc-tiny-x-cursor-text',
+        'zrc-tiny-x-cursor-down'
       );
     };
   }, []);
 
   return (
-    <span ref={markRef} className="zrc-micro-cursor-mark" aria-hidden="true">
-      <span className="zrc-micro-cursor-mark__dash zrc-micro-cursor-mark__dash--a" />
-      <span className="zrc-micro-cursor-mark__dash zrc-micro-cursor-mark__dash--b" />
+    <span ref={cursorRef} className="zrc-tiny-x-cursor" aria-hidden="true">
+      <span className="zrc-tiny-x-cursor__dot" />
+      <span className="zrc-tiny-x-cursor__line zrc-tiny-x-cursor__line--a" />
+      <span className="zrc-tiny-x-cursor__line zrc-tiny-x-cursor__line--b" />
     </span>
   );
 }
