@@ -629,6 +629,74 @@ export function createZRCBoardTaskActions(deps) {
     );
   };
 
+
+  /* === ZRC TASK ORDER DB PERSIST HELPERS START === */
+  const zrcGetSupabaseTaskIdForOrder = (task = {}) => {
+    const rawId = String(task?.id || '').trim();
+    const supabaseId = String(
+      task?.supabaseId ||
+      task?.supabase_id ||
+      (rawId.startsWith('supabase-') ? rawId.replace('supabase-', '') : '') ||
+      (isSupabaseUuid(rawId) ? rawId : '') ||
+      ''
+    ).trim();
+
+    return supabaseId;
+  };
+
+  const zrcPersistBoardTaskOrderToSupabase = async (columnsToPersist = []) => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !selectedProject || !Array.isArray(columnsToPersist) || !supabase) return false;
+
+    try {
+      const projectId = await ensureSupabaseProject(selectedProject);
+      if (!projectId) return false;
+
+      for (const [columnIndex, column] of columnsToPersist.entries()) {
+        if (!column) continue;
+
+        const columnId = await ensureSupabaseColumn(projectId, column, columnIndex);
+
+        for (const [taskIndex, task] of (column.tasks || []).entries()) {
+          const taskId = zrcGetSupabaseTaskIdForOrder(task);
+          if (!taskId) continue;
+
+          const updatePayload = {
+            task_order: taskIndex,
+            updated_at: new Date().toISOString()
+          };
+
+          if (columnId) updatePayload.column_id = columnId;
+          if (column.title) updatePayload.status = column.title;
+
+          const { error } = await supabase
+            .from('tasks')
+            .update(updatePayload)
+            .eq('id', taskId)
+            .eq('workspace_id', workspaceId);
+
+          if (error) throw error;
+        }
+      }
+
+      if (typeof zrcSetSupabaseWriteInfo === 'function') {
+        zrcSetSupabaseWriteInfo('saved', 'Supabase görev sırası kaydedildi');
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('ZRC görev sırası Supabase kaydı başarısız:', error);
+
+      if (typeof zrcSetSupabaseWriteInfo === 'function') {
+        zrcSetSupabaseWriteInfo('error', `Supabase görev sırası kaydedilemedi: ${error?.message || 'bilinmeyen hata'}`);
+      }
+
+      return false;
+    }
+  };
+  /* === ZRC TASK ORDER DB PERSIST HELPERS END === */
+
   const handleMoveTaskToColumn = (sourceColumnId, targetColumnId, task = {}) => {
     setOpenTaskMenuId(null);
 
@@ -659,34 +727,36 @@ export function createZRCBoardTaskActions(deps) {
 
     /* === ZRC PREVIEW DROP FINALIZE WITHOUT APPEND START === */
     if (draggedTaskInfo.current?.hasPreviewMoved) {
-      const finalColumnAfterPreview = boardColumns.find((column) =>
+      const finalColumns = boardColumns.map((column) => ({
+        ...column,
+        tasks: Array.isArray(column.tasks) ? column.tasks.map((task, taskIndex) => ({
+          ...task,
+          taskOrder: taskIndex,
+          task_order: taskIndex
+        })) : []
+      }));
+
+      const finalColumnAfterPreview = finalColumns.find((column) =>
         (column.tasks || []).some((task) => task.id === taskId)
       );
 
       const finalTaskAfterPreview =
         finalColumnAfterPreview?.tasks?.find((task) => task.id === taskId) || taskBeforeMove;
 
-      const finalTargetColumn =
-        finalColumnAfterPreview || boardColumns.find((column) => column.id === targetColId);
-
-      const finalColumnId = finalTargetColumn?.id || targetColId;
-
-      if (taskBeforeMove && originalSourceColId !== finalColumnId) {
+      if (taskBeforeMove && originalSourceColId !== (finalColumnAfterPreview?.id || targetColId)) {
         createActivityNotification({
           type: 'status',
           title: 'Görev durumu değişti',
           text: taskBeforeMove.title || 'Adsız görev',
-          meta: `${sourceColumnBeforeMove?.title || 'Eski durum'} → ${finalTargetColumn?.title || 'Yeni durum'}`,
-          task: { ...taskBeforeMove, columnTitle: finalTargetColumn?.title },
-          columnTitle: finalTargetColumn?.title,
+          meta: `${sourceColumnBeforeMove?.title || 'Eski durum'} → ${finalColumnAfterPreview?.title || 'Yeni durum'}`,
+          task: { ...taskBeforeMove, columnTitle: finalColumnAfterPreview?.title },
+          columnTitle: finalColumnAfterPreview?.title,
           targetUserIds: getTaskAssigneeUserIdsForNotification(taskBeforeMove || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
           sortWeight: 820
         });
-
-        if (finalTargetColumn) {
-          updateSupabaseTaskColumn(finalTaskAfterPreview || taskBeforeMove, finalTargetColumn);
-        }
       }
+
+      zrcPersistBoardTaskOrderToSupabase(finalColumns);
 
       draggedTaskInfo.current = null;
       zrcClearDesktopDragSource();
@@ -1009,32 +1079,17 @@ export function createZRCBoardTaskActions(deps) {
 
       if (sourceTaskIndex === -1) return prevColumns;
 
-      const movingTask = actualSourceColumn.tasks[sourceTaskIndex];
-
-      actualSourceColumn.tasks.splice(sourceTaskIndex, 1);
-
+      const [movingTask] = actualSourceColumn.tasks.splice(sourceTaskIndex, 1);
       const updatedTargetColumn = nextColumns.find((column) => column.id === targetColId);
-      if (!updatedTargetColumn) return prevColumns;
+
+      if (!movingTask || !updatedTargetColumn) return prevColumns;
 
       let targetTaskIndex = targetTaskId
         ? updatedTargetColumn.tasks.findIndex((task) => task.id === targetTaskId)
         : -1;
 
-      if (targetTaskIndex >= 0 && placement === 'after') {
-        targetTaskIndex += 1;
-      }
-
-      if (targetTaskIndex < 0) {
-        targetTaskIndex = updatedTargetColumn.tasks.length;
-      }
-
-      const existingIndex = updatedTargetColumn.tasks.findIndex((task) => task.id === taskId);
-      if (existingIndex >= 0) {
-        updatedTargetColumn.tasks.splice(existingIndex, 1);
-        if (existingIndex < targetTaskIndex) {
-          targetTaskIndex -= 1;
-        }
-      }
+      if (targetTaskIndex >= 0 && placement === 'after') targetTaskIndex += 1;
+      if (targetTaskIndex < 0) targetTaskIndex = updatedTargetColumn.tasks.length;
 
       updatedTargetColumn.tasks.splice(targetTaskIndex, 0, movingTask);
 
@@ -1131,6 +1186,7 @@ export function createZRCBoardTaskActions(deps) {
         targetColumn.tasks.push(taskToMove);
       }
 
+      zrcPersistBoardTaskOrderToSupabase(updatedCols);
       return updatedCols;
     });
 

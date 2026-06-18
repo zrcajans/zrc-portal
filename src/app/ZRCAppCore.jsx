@@ -1801,7 +1801,8 @@ function App() {
         end_date: getSupabaseSafeDate(taskData.endDate),
         tags: Array.isArray(taskData.tags) ? taskData.tags : [],
         is_archived: false,
-        updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+        updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
       };
 
       let savedTask = null;
@@ -1936,7 +1937,8 @@ function App() {
         end_date: getSupabaseSafeDate(taskData.endDate),
         tags: Array.isArray(taskData.tags) ? taskData.tags : [],
         is_archived: false,
-        updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+        updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
       };
 
       const { data, error } = await supabase
@@ -2089,7 +2091,7 @@ function App() {
   };
 
 
-  const updateSupabaseTaskColumn = async (task, targetColumn) => {
+  const updateSupabaseTaskColumn = async (task, targetColumn, taskOrder = null) => {
     if (!task?.supabaseId || !targetColumn?.title) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev durumu güncelleniyor');
@@ -2099,14 +2101,20 @@ function App() {
       const targetColumnIndex = Math.max(0, boardColumns.findIndex((column) => column.id === targetColumn.id || column.title === targetColumn.title));
       const columnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
 
+      const updatePayload = {
+        column_id: columnId || null,
+        status: targetColumn.title,
+        is_archived: false,
+        updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+      };
+
+      if (typeof taskOrder === 'number' && Number.isFinite(taskOrder)) {
+        updatePayload.task_order = taskOrder;
+      }
+
       const { error } = await supabase
         .from('tasks')
-        .update({
-          column_id: columnId || null,
-          status: targetColumn.title,
-          is_archived: false,
-          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
-        })
+        .update(updatePayload)
         .eq('id', task.supabaseId);
 
       if (error) throw error;
@@ -2130,7 +2138,8 @@ function App() {
         .update({
           is_archived: true,
           archived_at: new Date().toISOString(),
-          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
         })
         .eq('id', task.supabaseId);
 
@@ -2161,7 +2170,8 @@ function App() {
           status: targetColumn?.title || 'Yeni Görev',
           is_archived: false,
           archived_at: null,
-          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
         })
         .eq('id', task.supabaseId);
 
@@ -2290,7 +2300,8 @@ function App() {
           .from('tasks')
           .update({
             description: updates.description || '',
-            updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+            updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
           })
           .eq('id', taskSupabaseId);
 
@@ -3005,6 +3016,7 @@ function App() {
         .from('customers')
         .select('id, name, contact_name, email, phone, note, status, account_user_id')
         .eq('workspace_id', workspaceId)
+        .order('task_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 
       if (customersError) throw customersError;
@@ -3015,6 +3027,7 @@ function App() {
         .from('projects')
         .select('id, name, description, customer_id, status, color')
         .eq('workspace_id', workspaceId)
+        .order('task_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
 
       if (projectsError) throw projectsError;
@@ -4212,7 +4225,8 @@ function App() {
       tags: Array.isArray(task.tags) ? task.tags : String(task.tags || '').split(',').map((tag) => tag.trim()).filter(Boolean),
       is_archived: isArchived || task.isArchived === true,
       archived_at: isArchived || task.isArchived === true ? new Date().toISOString() : null,
-      updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+      updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
+        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
     };
 
     let savedTask = null;
@@ -4700,6 +4714,8 @@ function App() {
     return {
       id: `supabase-${task.id}`,
       supabaseId: task.id,
+          taskOrder: typeof task.task_order === 'number' ? task.task_order : Number(task.task_order ?? 0),
+          task_order: typeof task.task_order === 'number' ? task.task_order : Number(task.task_order ?? 0),
       title: task.title || 'Adsız görev',
       description: getPlainTaskDescription(task.description),
       note: getPlainTaskDescription(task.description),
@@ -4926,6 +4942,7 @@ function App() {
         .from('tasks')
         .select('id, column_id, title, description, rich_description, priority, status, start_date, due_date, end_date, tags, is_archived, customer_id, created_at, updated_at')
         .eq('project_id', projectRecord.id)
+        .order('task_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
 
       if (tasksError) throw tasksError;
