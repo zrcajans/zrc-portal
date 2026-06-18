@@ -337,7 +337,12 @@ onDragOver={(e) => e.preventDefault()}
                                         className="hover:opacity-100 font-black text-[13px] px-1"
                                         style={{ color: getReadableColumnColor(column.color) }}
                                         onClick={() => {
-                                          setEditingTask(null);
+                                          setEditingTask({
+                                            status: column.title,
+                                            columnTitle: column.title,
+                                            zrcNewTaskTargetStatus: column.title,
+                                            zrcNewTaskTargetColumnId: column.id
+                                          });
                                           setIsTaskModalOpen(true);
                                         }}
                                       >

@@ -613,7 +613,7 @@ export default function TaskModal({
   const getDraftContextKey = () =>
     initialData?.id
       ? `edit-${initialData.id}`
-      : `new-${calendarDefaultDate || 'manual'}-${selectedProjectName}`;
+      : `new-${calendarDefaultDate || 'manual'}-${selectedProjectName}-${initialData?.zrcNewTaskTargetStatus || initialData?.status || defaultStatus}`;
 
   const rememberCurrentDraft = () => {
     draftMemoryRef.current = {
@@ -674,7 +674,7 @@ export default function TaskModal({
 
     setForm({
       title: '',
-      status: defaultStatusRef.current,
+      status: initialData?.zrcNewTaskTargetStatus || initialData?.status || defaultStatusRef.current,
       priority: 'Düşük',
       description: '',
       startDate: calendarDate,
@@ -691,7 +691,10 @@ export default function TaskModal({
   // yazdığı başlığı silmeden yalnızca durum alanını günceller.
   useEffect(() => {
     if (!isOpen || initialData?.id) return;
-    setForm((prev) => ({ ...prev, status: defaultStatus }));
+    setForm((prev) => ({
+      ...prev,
+      status: initialData?.zrcNewTaskTargetStatus || initialData?.status || defaultStatus
+    }));
   }, [isOpen, initialData, defaultStatus]);
 
   useEffect(() => {

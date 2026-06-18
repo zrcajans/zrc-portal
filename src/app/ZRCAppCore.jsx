@@ -5313,7 +5313,14 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         )
       : '';
 
-    const finalTargetStatus = targetStatus || taskData.status || previousColumn?.title || boardColumns[0]?.title || 'Yeni Görev';
+    const finalTargetStatus =
+      targetStatus ||
+      taskData.zrcNewTaskTargetStatus ||
+      taskData.columnTitle ||
+      taskData.status ||
+      previousColumn?.title ||
+      boardColumns[0]?.title ||
+      'Yeni Görev';
     const generatedTaskId = `task-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     const cleanedTaskData = {
@@ -5332,6 +5339,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         Boolean(previousTask)
       ),
       followers: filterTaskFollowersForSave(taskData.followers || previousTask?.followers || []),
+      columnTitle: finalTargetStatus,
       taskOrder: isEditingExistingTask
         ? (
             typeof previousTask?.taskOrder === 'number'
@@ -5367,7 +5375,12 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
           : [...(col.tasks || [])]
       }));
 
-      const targetColIndex = updatedCols.findIndex((c) => c.title === finalTargetStatus);
+      const targetColIndex = updatedCols.findIndex((c) =>
+        c.title === finalTargetStatus ||
+        c.id === taskData.zrcNewTaskTargetColumnId ||
+        c.title === taskData.zrcNewTaskTargetStatus ||
+        c.title === taskData.columnTitle
+      );
 
       const targetIndexForInsert = targetColIndex !== -1 ? targetColIndex : 0;
 
