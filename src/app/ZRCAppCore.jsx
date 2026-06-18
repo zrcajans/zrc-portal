@@ -3068,7 +3068,6 @@ function App() {
         .from('customers')
         .select('id, name, contact_name, email, phone, note, status, account_user_id')
         .eq('workspace_id', workspaceId)
-        .order('task_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 
       if (customersError) throw customersError;
@@ -3079,7 +3078,6 @@ function App() {
         .from('projects')
         .select('id, name, description, customer_id, status, color')
         .eq('workspace_id', workspaceId)
-        .order('task_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
 
       if (projectsError) throw projectsError;
@@ -4992,7 +4990,7 @@ function App() {
 
       const { data: dbTasks, error: tasksError } = await supabase
         .from('tasks')
-        .select('id, column_id, title, description, rich_description, priority, status, start_date, due_date, end_date, tags, is_archived, customer_id, created_at, updated_at')
+        .select('id, column_id, title, description, rich_description, priority, status, start_date, due_date, end_date, tags, is_archived, customer_id, task_order, created_at, updated_at')
         .eq('project_id', projectRecord.id)
         .order('task_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
