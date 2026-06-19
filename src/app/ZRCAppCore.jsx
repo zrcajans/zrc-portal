@@ -10133,67 +10133,48 @@ const filterTaskFollowersForSave = (people = []) =>
 }
 
 function ZRCAppShell() {
+
+
   useEffect(() => {
-    // zrc-cursor-task-drag-follow-v1
+    // zrc-hide-custom-cursor-during-task-drag-v1
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-    let rafId = 0;
-    let lastX = -100;
-    let lastY = -100;
+    let safetyTimer = null;
 
-    const setCursorPoint = (x, y) => {
-      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
-
-      lastX = x;
-      lastY = y;
-
-      if (rafId) return;
-
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        document.documentElement.style.setProperty('--zrc-cursor-x', `${lastX}px`);
-        document.documentElement.style.setProperty('--zrc-cursor-y', `${lastY}px`);
-      });
-    };
-
-    const startDragCursor = (event) => {
+    const hideCursor = () => {
       document.documentElement.classList.add('zrc-task-native-dragging');
+      document.documentElement.classList.add('zrc-hide-custom-cursor-during-drag');
 
-      if (event?.clientX || event?.clientY) {
-        setCursorPoint(event.clientX, event.clientY);
-      }
+      window.clearTimeout(safetyTimer);
+      safetyTimer = window.setTimeout(() => {
+        document.documentElement.classList.remove('zrc-task-native-dragging');
+        document.documentElement.classList.remove('zrc-hide-custom-cursor-during-drag');
+      }, 20000);
     };
 
-    const moveDragCursor = (event) => {
-      if (!document.documentElement.classList.contains('zrc-desktop-task-dragging') && !document.documentElement.classList.contains('zrc-task-native-dragging')) {
-        return;
-      }
+    const showCursor = () => {
+      window.clearTimeout(safetyTimer);
+      safetyTimer = null;
 
-      setCursorPoint(event.clientX, event.clientY);
-    };
-
-    const stopDragCursor = () => {
       document.documentElement.classList.remove('zrc-task-native-dragging');
+      document.documentElement.classList.remove('zrc-hide-custom-cursor-during-drag');
     };
 
-    window.addEventListener('dragstart', startDragCursor, true);
-    window.addEventListener('dragover', moveDragCursor, true);
-    window.addEventListener('drag', moveDragCursor, true);
-    window.addEventListener('drop', stopDragCursor, true);
-    window.addEventListener('dragend', stopDragCursor, true);
-    window.addEventListener('pointerup', stopDragCursor, true);
-    window.addEventListener('blur', stopDragCursor, true);
+    window.addEventListener('dragstart', hideCursor, true);
+    window.addEventListener('drop', showCursor, true);
+    window.addEventListener('dragend', showCursor, true);
+    window.addEventListener('pointerup', showCursor, true);
+    window.addEventListener('mouseup', showCursor, true);
+    window.addEventListener('blur', showCursor, true);
 
     return () => {
-      if (rafId) window.cancelAnimationFrame(rafId);
-
-      window.removeEventListener('dragstart', startDragCursor, true);
-      window.removeEventListener('dragover', moveDragCursor, true);
-      window.removeEventListener('drag', moveDragCursor, true);
-      window.removeEventListener('drop', stopDragCursor, true);
-      window.removeEventListener('dragend', stopDragCursor, true);
-      window.removeEventListener('pointerup', stopDragCursor, true);
-      window.removeEventListener('blur', stopDragCursor, true);
+      showCursor();
+      window.removeEventListener('dragstart', hideCursor, true);
+      window.removeEventListener('drop', showCursor, true);
+      window.removeEventListener('dragend', showCursor, true);
+      window.removeEventListener('pointerup', showCursor, true);
+      window.removeEventListener('mouseup', showCursor, true);
+      window.removeEventListener('blur', showCursor, true);
     };
   }, []);
 
