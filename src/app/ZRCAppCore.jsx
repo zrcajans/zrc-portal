@@ -5157,11 +5157,26 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
           );
         });
 
+      /* === ZRC DB TASK ORDER WINS AFTER REALTIME START === */
+      // Webde yapılan görev sıralaması Supabase task_order olarak kaydediliyor.
+      // Başka cihaz/mobil Supabase'den okurken localStorage'daki eski sıralama DB sırasını ezmesin.
+      // Sadece bu cihazda aktif bir sürükleme/kaydetme penceresi varsa local sıralama korunur.
+      const shouldPreferLocalStoredTaskOrder = zrcTaskOptimisticWindowActive === true;
+
+      const mergedColumns = shouldPreferLocalStoredTaskOrder
+        ? zrcApplyStoredTaskOrderToColumns(nextColumns, projectName)
+        : nextColumns;
+
+      if (!shouldPreferLocalStoredTaskOrder) {
+        zrcPersistTaskOrderForColumns(mergedColumns, projectName);
+      }
+      /* === ZRC DB TASK ORDER WINS AFTER REALTIME END === */
+
       return {
         ...prevBoards,
         [projectName]: {
           ...existingBoard,
-          columns: zrcApplyStoredTaskOrderToColumns(nextColumns, projectName),
+          columns: mergedColumns,
           archivedTasks: dbArchivedTasks
         }
       };
