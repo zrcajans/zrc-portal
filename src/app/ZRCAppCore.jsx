@@ -6921,6 +6921,35 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     }))
   );
 
+  // zrc-notification-cross-device-count-v1
+  // Bildirim butonu sayısı mobil/masaüstü farklı seçili projelerde de aynı kalsın diye
+  // takvim/görev kaynaklı bildirimler sadece seçili projeden değil, erişilebilir tüm proje panolarından hesaplanır.
+  const zrcNotificationReportTasks = (() => {
+    const allVisibleProjectTasks = Object.entries(projectBoards || {})
+      .filter(([projectName, board]) =>
+        String(projectName || '').trim() &&
+        Array.isArray(board?.columns) &&
+        isProjectVisibleForCurrentUser(projectName)
+      )
+      .flatMap(([projectName, board]) =>
+        (board.columns || []).flatMap((column) =>
+          (column.tasks || []).map((task) => ({
+            ...task,
+            projectName,
+            columnTitle: column.title,
+            columnColor: column.color
+          }))
+        )
+      );
+
+    if (allVisibleProjectTasks.length > 0) return allVisibleProjectTasks;
+
+    return reportTasks.map((task) => ({
+      ...task,
+      projectName: task.projectName || selectedProject
+    }));
+  })();
+
 
 
 
@@ -7639,7 +7668,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
       dateLabel: notification.dateLabel || getActivityDateLabel(notification.createdAt),
       sortWeight: notification.sortWeight || 720
     })),
-    ...reportTasks.flatMap((task) => {
+    ...zrcNotificationReportTasks.flatMap((task) => {
       const taskDate = getNotificationTaskDate(task);
       const items = [];
 
@@ -7654,7 +7683,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
           dateLabel: getNotificationDateLabel(taskDate),
           sortWeight: 500,
           task,
-          projectName: selectedProject,
+          projectName: task.projectName || selectedProject,
           columnTitle: task.columnTitle
         });
       }
@@ -7670,7 +7699,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
           dateLabel: 'Bugün',
           sortWeight: 420,
           task,
-          projectName: selectedProject,
+          projectName: task.projectName || selectedProject,
           columnTitle: task.columnTitle
         });
       }
@@ -7686,7 +7715,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
           dateLabel: getNotificationDateLabel(taskDate),
           sortWeight: 360,
           task,
-          projectName: selectedProject,
+          projectName: task.projectName || selectedProject,
           columnTitle: task.columnTitle
         });
       }
@@ -7797,13 +7826,150 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     };
 
     zrcSyncNotificationClearsAcrossDevices();
-    const intervalId = window.setInterval(zrcSyncNotificationClearsAcrossDevices, 12000);
+    const intervalId = window.setInterval(zrcSyncNotificationClearsAcrossDevices, 2500);
 
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
     };
   }, [isLoggedIn, supabase, supabaseWorkspaceId, currentUserId]);
+
+
+
+  // zrc-notification-live-sync-v1
+  // Bildirim sayısı ve okundu bilgisi mobil/masaüstü aynı anda yürüsün diye
+  // notifications, activity_logs ve user_preferences için ayrı hızlı senkron katmanı.
+  useEffect(() => {
+    if (!isLoggedIn || authSessionLoading || !supabase || !supabaseWorkspaceId || !isSupabaseUuid(currentUserId)) return undefined;
+
+    let cancelled = false;
+    let syncTimer = null;
+    let syncRunning = false;
+    let syncQueued = false;
+
+    const syncRemoteReadNotificationIds = async () => {
+      try {
+        const { data: preferencesRecord, error } = await supabase
+          .from('user_preferences')
+          .select('preferences')
+          .eq('workspace_id', supabaseWorkspaceId)
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+
+        if (cancelled || error) return;
+
+        const preferences = normalizeStorageObject(preferencesRecord?.preferences || {}, {});
+        const remoteReadNotificationIds = normalizeStorageArray(preferences.readNotificationIds || [], []);
+
+        if (remoteReadNotificationIds.length === 0) return;
+
+        setReadNotificationIds((prevIds) =>
+          Array.from(new Set([...(prevIds || []), ...remoteReadNotificationIds]))
+        );
+      } catch (error) {
+        console.warn('[ZRC] Canlı bildirim okundu senkronu atlandı.', error);
+      }
+    };
+
+    const runNotificationSyncNow = async () => {
+      if (cancelled) return;
+
+      if (syncRunning) {
+        syncQueued = true;
+        return;
+      }
+
+      syncRunning = true;
+
+      try {
+        await loadActivityLogsFromSupabase();
+        await syncRemoteReadNotificationIds();
+      } finally {
+        syncRunning = false;
+
+        if (syncQueued && !cancelled) {
+          syncQueued = false;
+          scheduleNotificationSync(90);
+        }
+      }
+    };
+
+    const scheduleNotificationSync = (delay = 120) => {
+      if (cancelled) return;
+
+      if (syncTimer) {
+        window.clearTimeout(syncTimer);
+      }
+
+      syncTimer = window.setTimeout(runNotificationSyncNow, delay);
+    };
+
+    const shouldSyncPayloadForCurrentUser = (payload = {}) => {
+      const row = payload.new || payload.old || {};
+
+      if (!row) return true;
+      if (row.workspace_id && String(row.workspace_id) !== String(supabaseWorkspaceId)) return false;
+      if (row.user_id && String(row.user_id) !== String(currentUserId)) return false;
+
+      return true;
+    };
+
+    const channel = supabase.channel(`zrc-notification-live-sync-${supabaseWorkspaceId}-${currentUserId}`);
+
+    channel
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          if (shouldSyncPayloadForCurrentUser(payload)) scheduleNotificationSync(80);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'activity_logs',
+          filter: `workspace_id=eq.${supabaseWorkspaceId}`
+        },
+        () => scheduleNotificationSync(140)
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_preferences',
+          filter: `user_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          if (shouldSyncPayloadForCurrentUser(payload)) scheduleNotificationSync(80);
+        }
+      )
+      .subscribe();
+
+    scheduleNotificationSync(80);
+
+    const fallbackInterval = window.setInterval(() => {
+      scheduleNotificationSync(80);
+    }, 4000);
+
+    return () => {
+      cancelled = true;
+
+      if (syncTimer) {
+        window.clearTimeout(syncTimer);
+      }
+
+      window.clearInterval(fallbackInterval);
+      supabase.removeChannel(channel);
+    };
+  }, [isLoggedIn, authSessionLoading, supabase, supabaseWorkspaceId, currentUserId]);
 
   const unreadNotificationCount = notificationItems.filter(
     (item) => !zrcCoreIsNotificationHidden(item, readNotificationIds) && !readNotificationIds.includes(item.id)
@@ -8951,6 +9117,7 @@ const filterTaskFollowersForSave = (people = []) =>
     supabase,
     currentUserId,
     setReadNotificationIds,
+    setActivityNotifications,
     saveUserPreferencesToSupabase,
     notificationItems,
     isNotificationVisibleForCurrentUser,

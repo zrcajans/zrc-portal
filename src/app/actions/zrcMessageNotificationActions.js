@@ -81,6 +81,7 @@ export function createZRCMessageNotificationActions(deps) {
     supabase,
     currentUserId,
     setReadNotificationIds,
+    setActivityNotifications,
     saveUserPreferencesToSupabase,
     notificationItems,
     isNotificationVisibleForCurrentUser,
