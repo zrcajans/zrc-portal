@@ -1587,20 +1587,6 @@ function App() {
 
       const beforeIds = tasks.map(zrcGetStableTaskOrderId).join('|');
 
-      // Önce Supabase task_order/taskOrder kazansın.
-      // Bu, masaüstündeki aynı kolon sıralamasının mobilde eski localStorage tarafından ezilmesini engeller.
-      if (zrcColumnHasUsefulDbTaskOrder(tasks)) {
-        const orderedTasksByDb = zrcSortTasksByDbTaskOrder(tasks);
-        const afterDbIds = orderedTasksByDb.map(zrcGetStableTaskOrderId).join('|');
-
-        if (beforeIds !== afterDbIds) didChange = true;
-
-        return {
-          ...column,
-          tasks: orderedTasksByDb
-        };
-      }
-
       if (!storedOrder || Object.keys(storedOrder).length === 0) return column;
 
       const columnKey = zrcGetColumnOrderKey(column);
@@ -6044,11 +6030,10 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
     }
   };
 
-  // zrc-mobile-visible-columns-db-order-v1
   // Mobil görünüm dahil tüm görünür kolonlarda DB task_order sırası korunur.
   const visibleBoardColumns = boardColumns.map((column) => ({
     ...column,
-    tasks: zrcSortTasksByDbTaskOrder(
+    tasks: (
       (column.tasks || []).filter((task) => isTaskVisibleForProject(task, selectedProject))
     )
   }));
