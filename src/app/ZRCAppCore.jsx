@@ -1723,14 +1723,14 @@ function App() {
         zrcDesktopOrderDbMirrorRef.current.signature = orderSignature;
 
         try {
-          window.localStorage.setItem('zrc-task-order-saving-until', String(Date.now() + 1500));
+          window.localStorage.setItem('zrc-task-order-saving-until', String(Date.now() + 700));
         } catch (error) {}
       } catch (error) {
         console.warn('ZRC masaüstü görev sırası DB aynalama başarısız:', error);
       } finally {
         zrcDesktopOrderDbMirrorRef.current.inFlight = false;
       }
-    }, 900);
+    }, 250);
 
     return () => {
       window.clearTimeout(zrcDesktopOrderDbMirrorRef.current.timer);
