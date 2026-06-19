@@ -1575,53 +1575,6 @@ function App() {
   };
 
 
-  // zrc-mobile-same-column-db-order-v1
-  // Masaüstünde aynı kolon içinde yapılan sıralama Supabase task_order'a yazılıyor.
-  // Mobil cihazda eski localStorage sırası bu DB sırasını ezmesin diye DB order her zaman öncelikli.
-  const zrcGetTaskDbOrderValue = (task = {}, fallbackIndex = 0) => {
-    const candidates = [
-      task.task_order,
-      task.taskOrder,
-      task.order,
-      task.sort_order,
-      task.sortOrder,
-      task.position
-    ];
-
-    for (const value of candidates) {
-      if (value === null || value === undefined || value === '') continue;
-
-      const numericValue = Number(value);
-
-      if (Number.isFinite(numericValue)) return numericValue;
-    }
-
-    return Number.MAX_SAFE_INTEGER + fallbackIndex;
-  };
-
-  const zrcColumnHasUsefulDbTaskOrder = (tasks = []) => {
-    const values = (Array.isArray(tasks) ? tasks : [])
-      .map((task, index) => zrcGetTaskDbOrderValue(task, index))
-      .filter((value) => Number.isFinite(value) && value < Number.MAX_SAFE_INTEGER);
-
-    if (values.length < 2) return false;
-
-    return new Set(values).size > 1;
-  };
-
-  const zrcSortTasksByDbTaskOrder = (tasks = []) =>
-    (Array.isArray(tasks) ? tasks : [])
-      .map((task, index) => ({
-        task,
-        index,
-        orderValue: zrcGetTaskDbOrderValue(task, index)
-      }))
-      .sort((first, second) => {
-        if (first.orderValue !== second.orderValue) return first.orderValue - second.orderValue;
-        return first.index - second.index;
-      })
-      .map((entry) => entry.task);
-
   const zrcApplyStoredTaskOrderToColumns = (columns = [], projectName = selectedProject) => {
     if (!projectName || !Array.isArray(columns)) return columns;
 
@@ -4720,7 +4673,7 @@ function App() {
       'notifications',
       'activity_logs',
       'quick_notes',
-      'user_preferences'
+      'user_preferences',
     ];
 
     const channel = supabase.channel(`zrc-workspace-realtime-${workspaceId}`);
