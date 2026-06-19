@@ -259,7 +259,7 @@ export default function ZRCPremiumCursor() {
       state.dotX += (state.x - state.dotX) * 0.68;
       state.dotY += (state.y - state.dotY) * 0.68;
 
-      cursor.style.transform = `translate3d(${state.dotX}px, ${state.dotY}px, 0) translate(-50%, -50%)`;
+      cursor.style.transform = `translate3d(${state.dotX}px, ${state.dotY}px, 0) translate(-50%, -50%) rotate(var(--zrc-liquid-rotate, 0deg)) scaleX(var(--zrc-liquid-scale-x, 1)) scaleY(var(--zrc-liquid-scale-y, 1))`;
 
       frameRef.current = window.requestAnimationFrame(animate);
     };
@@ -341,7 +341,62 @@ export default function ZRCPremiumCursor() {
 
     frameRef.current = window.requestAnimationFrame(animate);
 
+
+    // zrc-liquid-cursor-motion-v1
+    let zrcLiquidLastX = state.x || -80;
+    let zrcLiquidLastY = state.y || -80;
+    let zrcLiquidStopTimer = 0;
+
+    const zrcResetLiquidCursor = () => {
+      cursor.style.setProperty('--zrc-liquid-scale-x', '1');
+      cursor.style.setProperty('--zrc-liquid-scale-y', '1');
+      cursor.style.setProperty('--zrc-liquid-rotate', '0deg');
+      cursor.style.setProperty('--zrc-liquid-trail', '0.65');
+      cursor.style.setProperty('--zrc-liquid-trail-opacity', '0');
+      body.classList.remove('zrc-pure-dot-cursor-liquid-moving');
+      body.classList.remove('zrc-pure-dot-cursor-liquid-fast');
+    };
+
+    const zrcUpdateLiquidCursor = (event) => {
+      if (!event || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) return;
+
+      if (body.classList.contains('zrc-pure-dot-cursor-text-mode')) {
+        zrcResetLiquidCursor();
+        zrcLiquidLastX = event.clientX;
+        zrcLiquidLastY = event.clientY;
+        return;
+      }
+
+      const dx = event.clientX - zrcLiquidLastX;
+      const dy = event.clientY - zrcLiquidLastY;
+      const speed = Math.min(46, Math.hypot(dx, dy));
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+      zrcLiquidLastX = event.clientX;
+      zrcLiquidLastY = event.clientY;
+
+      const stretch = Math.min(1.82, 1 + speed * 0.022);
+      const squash = Math.max(0.62, 1 - speed * 0.0085);
+      const trail = Math.min(1.9, 0.7 + speed * 0.032);
+      const trailOpacity = Math.min(0.42, 0.10 + speed * 0.010);
+
+      cursor.style.setProperty('--zrc-liquid-scale-x', stretch.toFixed(3));
+      cursor.style.setProperty('--zrc-liquid-scale-y', squash.toFixed(3));
+      cursor.style.setProperty('--zrc-liquid-rotate', `${angle.toFixed(2)}deg`);
+      cursor.style.setProperty('--zrc-liquid-trail', trail.toFixed(3));
+      cursor.style.setProperty('--zrc-liquid-trail-opacity', trailOpacity.toFixed(3));
+
+      body.classList.add('zrc-pure-dot-cursor-liquid-moving');
+      body.classList.toggle('zrc-pure-dot-cursor-liquid-fast', speed > 15);
+
+      window.clearTimeout(zrcLiquidStopTimer);
+      zrcLiquidStopTimer = window.setTimeout(() => {
+        zrcResetLiquidCursor();
+      }, 95);
+    };
+
     window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('pointermove', zrcUpdateLiquidCursor, { passive: true });
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
     window.addEventListener('mouseleave', onMouseLeave);
@@ -355,6 +410,9 @@ export default function ZRCPremiumCursor() {
       window.clearTimeout(clickTimerRef.current);
 
       window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointermove', zrcUpdateLiquidCursor);
+      window.clearTimeout(zrcLiquidStopTimer);
+      zrcResetLiquidCursor();
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('mouseleave', onMouseLeave);
