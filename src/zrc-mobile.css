@@ -2399,13 +2399,13 @@
 }
 /* === ZRC HIDE FLOATING VERSION BADGE HARD END === */
 
-/* === ZRC MOBILE CREATE TASK ACTIVE COLUMN COLOR START === */
+/* === ZRC MOBILE CREATE TASK FIXED FF3600 START === */
 @media (max-width: 768px) {
   .zrc-mobile-create-task-btn {
-    background: var(--zrc-mobile-create-task-color, #ff5b1f) !important;
-    color: var(--zrc-mobile-create-task-text, #ffffff) !important;
-    box-shadow: var(--zrc-mobile-create-task-shadow, 0 14px 28px rgba(255, 91, 31, 0.26)) !important;
+    background: #ff3600 !important;
+    color: #ffffff !important;
     border: 0 !important;
+    box-shadow: 0 14px 28px rgba(255, 54, 0, 0.26) !important;
     transition:
       background-color 180ms ease,
       color 180ms ease,
@@ -2417,4 +2417,4 @@
     transform: scale(0.985) !important;
   }
 }
-/* === ZRC MOBILE CREATE TASK ACTIVE COLUMN COLOR END === */
+/* === ZRC MOBILE CREATE TASK FIXED FF3600 END === */
