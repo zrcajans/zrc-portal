@@ -369,16 +369,16 @@ export default function ZRCPremiumCursor() {
 
       const dx = event.clientX - zrcLiquidLastX;
       const dy = event.clientY - zrcLiquidLastY;
-      const speed = Math.min(46, Math.hypot(dx, dy));
+      const speed = Math.min(62, Math.hypot(dx, dy));
       const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
       zrcLiquidLastX = event.clientX;
       zrcLiquidLastY = event.clientY;
 
-      const stretch = Math.min(1.82, 1 + speed * 0.022);
-      const squash = Math.max(0.62, 1 - speed * 0.0085);
-      const trail = Math.min(1.9, 0.7 + speed * 0.032);
-      const trailOpacity = Math.min(0.42, 0.10 + speed * 0.010);
+      const stretch = Math.min(2.38, 1 + speed * 0.036);
+      const squash = Math.max(0.58, 1 - speed * 0.0072);
+      const trail = Math.min(2.65, 0.92 + speed * 0.038);
+      const trailOpacity = Math.min(0.62, 0.18 + speed * 0.012);
 
       cursor.style.setProperty('--zrc-liquid-scale-x', stretch.toFixed(3));
       cursor.style.setProperty('--zrc-liquid-scale-y', squash.toFixed(3));
@@ -387,12 +387,12 @@ export default function ZRCPremiumCursor() {
       cursor.style.setProperty('--zrc-liquid-trail-opacity', trailOpacity.toFixed(3));
 
       body.classList.add('zrc-pure-dot-cursor-liquid-moving');
-      body.classList.toggle('zrc-pure-dot-cursor-liquid-fast', speed > 15);
+      body.classList.toggle('zrc-pure-dot-cursor-liquid-fast', speed > 10);
 
       window.clearTimeout(zrcLiquidStopTimer);
       zrcLiquidStopTimer = window.setTimeout(() => {
         zrcResetLiquidCursor();
-      }, 95);
+      }, 135);
     };
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
