@@ -21,6 +21,10 @@ export default function MobileTaskSection({
   const [mobileTaskMoveToast, setMobileTaskMoveToast] = useState('');
   const mobileTaskMoveToastTimerRef = useRef(null);
 
+  // zrc-mobile-column-capsule-scroll-anim-v1-state
+  const [isMobileColumnCapsuleCompact, setIsMobileColumnCapsuleCompact] = useState(false);
+  const mobileColumnCapsuleScrollTimerRef = useRef(null);
+
   const mobileColumns = useMemo(
     () => (Array.isArray(boardColumns) ? boardColumns : []).filter((column) => column && column.id),
     [boardColumns]
@@ -43,6 +47,38 @@ export default function MobileTaskSection({
     if (mobileTaskMoveToastTimerRef.current) {
       window.clearTimeout(mobileTaskMoveToastTimerRef.current);
     }
+
+    if (mobileColumnCapsuleScrollTimerRef.current) {
+      window.clearTimeout(mobileColumnCapsuleScrollTimerRef.current);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    // zrc-mobile-column-capsule-scroll-anim-v1-effect
+    if (typeof window === 'undefined') return;
+
+    const markCapsuleAsScrolling = () => {
+      setIsMobileColumnCapsuleCompact(true);
+
+      if (mobileColumnCapsuleScrollTimerRef.current) {
+        window.clearTimeout(mobileColumnCapsuleScrollTimerRef.current);
+      }
+
+      mobileColumnCapsuleScrollTimerRef.current = window.setTimeout(() => {
+        setIsMobileColumnCapsuleCompact(false);
+      }, 260);
+    };
+
+    window.addEventListener('scroll', markCapsuleAsScrolling, { passive: true });
+    window.addEventListener('touchmove', markCapsuleAsScrolling, { passive: true });
+    window.addEventListener('wheel', markCapsuleAsScrolling, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', markCapsuleAsScrolling);
+      window.removeEventListener('touchmove', markCapsuleAsScrolling);
+      window.removeEventListener('wheel', markCapsuleAsScrolling);
+    };
   }, []);
 
   const activeMobileColumn = mobileColumns.find((column) => column.id === selectedMobileColumnId) || mobileColumns[0] || null;
@@ -106,11 +142,17 @@ export default function MobileTaskSection({
       )}
 
       {mobileColumns.length > 0 && (
-        <nav className="zrc-mobile-column-capsule" aria-label="Mobil kolon seçimi">
+        <nav className={`zrc-mobile-column-capsule ${isMobileColumnCapsuleCompact ? 'is-scrolling' : ''}`} aria-label="Mobil kolon seçimi">
           {mobileColumns.map((column) => {
             const isActiveColumn = column.id === activeMobileColumn?.id;
             const columnTitle = normalizeColumnTitleForDisplay(column.title);
             const taskCount = Array.isArray(column.tasks) ? column.tasks.length : 0;
+            const zrcMobileColumnTitleLengthClass =
+              columnTitle.length >= 22
+                ? 'is-very-long'
+                : columnTitle.length >= 14
+                  ? 'is-long'
+                  : '';
 
             return (
               <button
@@ -119,7 +161,7 @@ export default function MobileTaskSection({
                 className={`zrc-mobile-column-capsule-item ${isActiveColumn ? 'is-active' : ''}`}
                 onClick={() => setSelectedMobileColumnId(column.id)}
               >
-                <span className="zrc-mobile-column-capsule-title">{columnTitle}</span>
+                <span className={`zrc-mobile-column-capsule-title ${zrcMobileColumnTitleLengthClass}`}>{columnTitle}</span>
                 <span className="zrc-mobile-column-capsule-count">{taskCount}</span>
               </button>
             );
