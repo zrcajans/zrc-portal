@@ -2,6 +2,45 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MobileTaskList from './MobileTaskList';
 import { getSafeMobileProjectName } from '../../utils/mobileProjectHelpers';
 
+
+// zrc-mobile-create-button-active-column-color-v1
+const zrcNormalizeMobileColumnColor = (color = '') => {
+  const cleanColor = String(color || '').trim();
+
+  if (/^#[0-9a-f]{3}$/i.test(cleanColor)) {
+    return `#${cleanColor[1]}${cleanColor[1]}${cleanColor[2]}${cleanColor[2]}${cleanColor[3]}${cleanColor[3]}`;
+  }
+
+  if (/^#[0-9a-f]{6}$/i.test(cleanColor)) return cleanColor;
+
+  return '#ff5b1f';
+};
+
+const zrcMobileHexToRgb = (hexColor = '#ff5b1f') => {
+  const normalizedColor = zrcNormalizeMobileColumnColor(hexColor).replace('#', '');
+
+  return {
+    r: parseInt(normalizedColor.slice(0, 2), 16),
+    g: parseInt(normalizedColor.slice(2, 4), 16),
+    b: parseInt(normalizedColor.slice(4, 6), 16)
+  };
+};
+
+const zrcGetMobileCreateButtonTextColor = (hexColor = '#ff5b1f') => {
+  const { r, g, b } = zrcMobileHexToRgb(hexColor);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  return luminance > 0.68 ? '#182033' : '#ffffff';
+};
+
+const zrcGetMobileCreateButtonShadow = (hexColor = '#ff5b1f') => {
+  const { r, g, b } = zrcMobileHexToRgb(hexColor);
+
+  return `0 14px 28px rgba(${r}, ${g}, ${b}, 0.26)`;
+};
+
+
+
 export default function MobileTaskSection({
   selectedProject,
   boardColumns,
@@ -46,6 +85,10 @@ export default function MobileTaskSection({
   const activeMobileColumn = mobileColumns.find((column) => column.id === selectedMobileColumnId) || mobileColumns[0] || null;
   const visibleMobileColumns = activeMobileColumn ? [activeMobileColumn] : [];
 
+  const zrcMobileCreateTaskButtonColor = zrcNormalizeMobileColumnColor(activeMobileColumn?.color);
+  const zrcMobileCreateTaskButtonTextColor = zrcGetMobileCreateButtonTextColor(zrcMobileCreateTaskButtonColor);
+  const zrcMobileCreateTaskButtonShadow = zrcGetMobileCreateButtonShadow(zrcMobileCreateTaskButtonColor);
+
   const showMobileTaskMoveToast = (message = 'Görev başka kolona aktarıldı.') => {
     setMobileTaskMoveToast(message);
 
@@ -79,6 +122,11 @@ export default function MobileTaskSection({
         <button
           type="button"
           className="zrc-mobile-create-task-btn"
+          style={{
+            '--zrc-mobile-create-task-color': zrcMobileCreateTaskButtonColor,
+            '--zrc-mobile-create-task-text': zrcMobileCreateTaskButtonTextColor,
+            '--zrc-mobile-create-task-shadow': zrcMobileCreateTaskButtonShadow
+          }}
           onClick={openTaskWizard}
         >
           Görev Oluştur

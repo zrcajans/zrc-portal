@@ -2398,3 +2398,23 @@
   pointer-events: none !important;
 }
 /* === ZRC HIDE FLOATING VERSION BADGE HARD END === */
+
+/* === ZRC MOBILE CREATE TASK ACTIVE COLUMN COLOR START === */
+@media (max-width: 768px) {
+  .zrc-mobile-create-task-btn {
+    background: var(--zrc-mobile-create-task-color, #ff5b1f) !important;
+    color: var(--zrc-mobile-create-task-text, #ffffff) !important;
+    box-shadow: var(--zrc-mobile-create-task-shadow, 0 14px 28px rgba(255, 91, 31, 0.26)) !important;
+    border: 0 !important;
+    transition:
+      background-color 180ms ease,
+      color 180ms ease,
+      box-shadow 180ms ease,
+      transform 160ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+
+  .zrc-mobile-create-task-btn:active {
+    transform: scale(0.985) !important;
+  }
+}
+/* === ZRC MOBILE CREATE TASK ACTIVE COLUMN COLOR END === */
