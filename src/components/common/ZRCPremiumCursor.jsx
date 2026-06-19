@@ -343,8 +343,8 @@ export default function ZRCPremiumCursor() {
 
 
     // zrc-liquid-cursor-motion-v1
-    let zrcLiquidLastX = state.x || -80;
-    let zrcLiquidLastY = state.y || -80;
+    let zrcLiquidLastX = -80;
+    let zrcLiquidLastY = -80;
     let zrcLiquidStopTimer = 0;
 
     const zrcResetLiquidCursor = () => {
