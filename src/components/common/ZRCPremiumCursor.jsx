@@ -74,6 +74,53 @@ function shouldUseWhiteOutline(target) {
   return contrast < 2.25 || orangeDistance < 120;
 }
 
+function hasReadableTextNode(element) {
+  if (!(element instanceof Element)) return false;
+
+  for (const node of element.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) return true;
+  }
+
+  return false;
+}
+
+function isPointOnReadableText(x, y, target, editableSelector, interactiveSelector) {
+  const element = target instanceof Element ? target : null;
+
+  if (!element) return false;
+
+  if (element.closest(editableSelector)) return true;
+
+  const interactiveElement = element.closest(interactiveSelector);
+  if (interactiveElement && !interactiveElement.closest(editableSelector)) return false;
+
+  let textNode = null;
+
+  if (document.caretPositionFromPoint) {
+    const position = document.caretPositionFromPoint(x, y);
+    textNode = position?.offsetNode || null;
+  } else if (document.caretRangeFromPoint) {
+    const range = document.caretRangeFromPoint(x, y);
+    textNode = range?.startContainer || null;
+  }
+
+  if (textNode?.nodeType === Node.TEXT_NODE && textNode.textContent?.trim()) {
+    const parent = textNode.parentElement;
+    if (!parent?.closest(interactiveSelector)) return true;
+  }
+
+  const textTags = 'p,span,strong,em,b,i,small,label,h1,h2,h3,h4,h5,h6,li,td,th,blockquote,code,pre';
+  const elementsAtPoint = document.elementsFromPoint?.(x, y) || [element];
+
+  return elementsAtPoint.slice(0, 5).some((item) => {
+    if (!(item instanceof Element)) return false;
+    if (item.closest(interactiveSelector) && !item.closest(editableSelector)) return false;
+    if (!item.matches(textTags)) return false;
+
+    return hasReadableTextNode(item) || Boolean(item.textContent?.trim());
+  });
+}
+
 export default function ZRCPremiumCursor() {
   const cursorRef = useRef(null);
   const frameRef = useRef(null);
@@ -101,34 +148,32 @@ export default function ZRCPremiumCursor() {
 
     if (!body || !cursor) return undefined;
 
-    const interactiveSelector = [
-      'a',
-      'button',
-      '[role="button"]',
-      'input',
-      'textarea',
-      'select',
-      'summary',
-      '[contenteditable="true"]',
-      '[data-cursor="interactive"]',
-      '.cursor-pointer',
-      '[draggable="true"]'
-    ].join(',');
-
-    const textSelector = [
+    const editableSelector = [
       'input',
       'textarea',
       '[contenteditable="true"]'
     ].join(',');
 
-    const applyTargetState = (target) => {
-      const element = target instanceof Element ? target : null;
-      const isText = Boolean(element?.closest(textSelector));
-      const isInteractive = Boolean(element?.closest(interactiveSelector));
-      const needsWhiteOutline = !isText && shouldUseWhiteOutline(target);
+    const interactiveSelector = [
+      'a',
+      'button',
+      '[role="button"]',
+      'select',
+      'summary',
+      '[data-cursor="interactive"]',
+      '.cursor-pointer',
+      '[draggable="true"]'
+    ].join(',');
 
-      body.classList.toggle('zrc-pure-dot-cursor-text', isText);
-      body.classList.toggle('zrc-pure-dot-cursor-interactive', isInteractive && !isText);
+    const applyTargetState = (event) => {
+      const target = event.target;
+      const element = target instanceof Element ? target : null;
+      const isTextMode = isPointOnReadableText(event.clientX, event.clientY, target, editableSelector, interactiveSelector);
+      const isInteractive = Boolean(element?.closest(interactiveSelector)) && !isTextMode;
+      const needsWhiteOutline = !isTextMode && shouldUseWhiteOutline(target);
+
+      body.classList.toggle('zrc-pure-dot-cursor-text-mode', isTextMode);
+      body.classList.toggle('zrc-pure-dot-cursor-interactive', isInteractive);
       body.classList.toggle('zrc-pure-dot-cursor-low-contrast', needsWhiteOutline);
     };
 
@@ -153,7 +198,7 @@ export default function ZRCPremiumCursor() {
       body.classList.remove(
         'zrc-pure-dot-cursor-visible',
         'zrc-pure-dot-cursor-interactive',
-        'zrc-pure-dot-cursor-text',
+        'zrc-pure-dot-cursor-text-mode',
         'zrc-pure-dot-cursor-down',
         'zrc-pure-dot-cursor-clicked',
         'zrc-pure-dot-cursor-low-contrast'
@@ -176,7 +221,7 @@ export default function ZRCPremiumCursor() {
         show();
       }
 
-      applyTargetState(event.target);
+      applyTargetState(event);
     };
 
     const onPointerDown = (event) => {
@@ -185,17 +230,19 @@ export default function ZRCPremiumCursor() {
       body.classList.add('zrc-pure-dot-cursor-down');
       body.classList.remove('zrc-pure-dot-cursor-clicked');
 
-      window.clearTimeout(clickTimerRef.current);
+      if (!body.classList.contains('zrc-pure-dot-cursor-text-mode')) {
+        window.clearTimeout(clickTimerRef.current);
 
-      window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
-          body.classList.add('zrc-pure-dot-cursor-clicked');
+          window.requestAnimationFrame(() => {
+            body.classList.add('zrc-pure-dot-cursor-clicked');
+          });
         });
-      });
 
-      clickTimerRef.current = window.setTimeout(() => {
-        body.classList.remove('zrc-pure-dot-cursor-clicked');
-      }, 1180);
+        clickTimerRef.current = window.setTimeout(() => {
+          body.classList.remove('zrc-pure-dot-cursor-clicked');
+        }, 1180);
+      }
     };
 
     const onPointerUp = () => {
@@ -232,7 +279,7 @@ export default function ZRCPremiumCursor() {
         'zrc-pure-dot-cursor-enabled',
         'zrc-pure-dot-cursor-visible',
         'zrc-pure-dot-cursor-interactive',
-        'zrc-pure-dot-cursor-text',
+        'zrc-pure-dot-cursor-text-mode',
         'zrc-pure-dot-cursor-down',
         'zrc-pure-dot-cursor-clicked',
         'zrc-pure-dot-cursor-low-contrast'
