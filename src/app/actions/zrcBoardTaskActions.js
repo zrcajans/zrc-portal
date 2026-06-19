@@ -1509,6 +1509,7 @@ export function createZRCBoardTaskActions(deps) {
           tasks: (col.tasks || []).map((task, index) => ({
             ...task,
             taskOrder: index,
+          task_order: index,
             ...(task.id === taskId ? { status: col.title } : {})
           }))
         }));
@@ -1554,6 +1555,7 @@ export function createZRCBoardTaskActions(deps) {
         tasks: (col.tasks || []).map((task, index) => ({
           ...task,
           taskOrder: index,
+          task_order: index,
           ...(task.id === taskId ? { status: col.title } : {})
         }))
       }));

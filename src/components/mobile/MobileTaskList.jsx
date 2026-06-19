@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import MobileTaskCard from './MobileTaskCard';
 
-const zrcMobileKeepIncomingTaskOrder = (tasks = []) => {
-  // zrc-mobile-trust-board-order-only-v2b
-  // Mobil kendi içinde yeniden sıralama yapmaz.
-  // Masaüstünden/Core'dan gelen görev dizilimini aynen gösterir.
+const zrcMobilePreserveIncomingTaskOrder = (tasks = []) => {
+  // zrc-mobile-stop-created-date-sort-v1
+  // Mobil kesinlikle oluşturulma tarihine göre yeniden sıralama yapmaz.
+  // Core/masaüstü/Supabase tarafından gelen görev dizilimini aynen gösterir.
   return Array.isArray(tasks) ? tasks : [];
 };
 
@@ -23,8 +23,8 @@ export default function MobileTaskList({
   const safeAllBoardColumns = Array.isArray(allBoardColumns) ? allBoardColumns : safeBoardColumns;
 
   useEffect(() => {
-    // zrc-mobile-clear-stale-order-cache-only-v2b
-    // Sadece mobilde eski yerel görev sırası kalıntıları temizlenir.
+    // zrc-mobile-clear-created-date-sort-cache-v1
+    // Mobilde daha önce kalmış yerel sıra cache'i oluşturulma tarihine göre görünümü dayatmasın.
     if (typeof window === 'undefined') return;
 
     try {
@@ -43,55 +43,21 @@ export default function MobileTaskList({
 
       window.localStorage.removeItem('zrc-task-order-saving-until');
 
-      if (!window.sessionStorage.getItem('zrc-mobile-order-cache-cleared-v2b')) {
+      if (!window.sessionStorage.getItem('zrc-mobile-created-date-sort-cache-cleared-v1')) {
         window.localStorage.removeItem('projectBoards');
-        window.sessionStorage.setItem('zrc-mobile-order-cache-cleared-v2b', '1');
+        window.sessionStorage.setItem('zrc-mobile-created-date-sort-cache-cleared-v1', '1');
       }
     } catch (error) {}
   }, []);
 
-
-  useEffect(() => {
-    // zrc-mobile-clear-stale-order-cache-only-v1
-    // Sadece mobil ekranda: eski mobil cache, masaüstü/DB sırasını bozmasın.
-    if (typeof window === 'undefined') return;
-
-    try {
-      const isMobile =
-        window.matchMedia?.('(max-width: 768px)')?.matches ||
-        window.innerWidth <= 768 ||
-        /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || '');
-
-      if (!isMobile) return;
-
-      Object.keys(window.localStorage || {}).forEach((key) => {
-        if (String(key).startsWith('zrc-task-order-v1:')) {
-          window.localStorage.removeItem(key);
-        }
-      });
-
-      window.localStorage.removeItem('zrc-task-order-saving-until');
-
-      // projectBoards cache'i mobilde eski sıra taşıyorsa ilk açılışta bir kere temizlenir.
-      if (!window.sessionStorage.getItem('zrc-mobile-order-cache-cleared-once-v1')) {
-        window.localStorage.removeItem('projectBoards');
-        window.sessionStorage.setItem('zrc-mobile-order-cache-cleared-once-v1', '1');
-      }
-    } catch (error) {}
-  }, []);
-
-
-  // zrc-mobile-task-order-sync-v1
-  // Masaüstünde kaydedilen task_order/taskOrder sırası mobilde de birebir uygulansın.
-  const mobileTasks = safeBoardColumns
-    .flatMap((column) =>
-      zrcMobileKeepIncomingTaskOrder(column.tasks || []).map((task) => ({
-        ...task,
-        columnId: column.id,
-        columnTitle: column.title,
-        columnColor: column.color
-      }))
-    );
+  const mobileTasks = safeBoardColumns.flatMap((column) =>
+    zrcMobilePreserveIncomingTaskOrder(column.tasks || []).map((task) => ({
+      ...task,
+      columnId: column.id,
+      columnTitle: column.title,
+      columnColor: column.color
+    }))
+  );
 
   return (
     <div className="zrc-mobile-task-list">
