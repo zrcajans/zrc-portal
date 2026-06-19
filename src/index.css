@@ -2067,31 +2067,3 @@ body {
 }
 /* === ZRC TASK DRAG HIDE DUPLICATE V2 END === */
 
-/* === ZRC HIDE CUSTOM CURSOR WHILE TASK DRAG START === */
-@media (pointer: fine) {
-  html.zrc-task-native-dragging,
-  html.zrc-task-native-dragging *,
-  html.zrc-desktop-task-dragging,
-  html.zrc-desktop-task-dragging * {
-    cursor: grabbing !important;
-  }
-
-  html.zrc-hide-custom-cursor-during-drag .zrc-custom-cursor,
-  html.zrc-hide-custom-cursor-during-drag [data-zrc-custom-cursor],
-  html.zrc-hide-custom-cursor-during-drag #zrc-custom-cursor,
-  html.zrc-hide-custom-cursor-during-drag .zrc-cursor,
-  html.zrc-hide-custom-cursor-during-drag .zrc-cursor-dot,
-  html.zrc-hide-custom-cursor-during-drag .zrc-orange-cursor,
-  html.zrc-hide-custom-cursor-during-drag .zrc-premium-cursor,
-  html.zrc-hide-custom-cursor-during-drag [class*="custom-cursor"],
-  html.zrc-hide-custom-cursor-during-drag [class*="zrc"][class*="cursor"],
-  html.zrc-hide-custom-cursor-during-drag [id*="custom-cursor"],
-  html.zrc-hide-custom-cursor-during-drag [id*="zrc"][id*="cursor"] {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    display: none !important;
-    transform: translate3d(-9999px, -9999px, 0) scale(0) !important;
-    pointer-events: none !important;
-  }
-}
-/* === ZRC HIDE CUSTOM CURSOR WHILE TASK DRAG END === */

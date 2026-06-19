@@ -10136,45 +10136,28 @@ function ZRCAppShell() {
 
 
   useEffect(() => {
-    // zrc-hide-custom-cursor-during-task-drag-v1
+    // zrc-clear-bad-cursor-drag-classes-v1
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-    let safetyTimer = null;
-
-    const hideCursor = () => {
-      document.documentElement.classList.add('zrc-task-native-dragging');
-      document.documentElement.classList.add('zrc-hide-custom-cursor-during-drag');
-
-      window.clearTimeout(safetyTimer);
-      safetyTimer = window.setTimeout(() => {
-        document.documentElement.classList.remove('zrc-task-native-dragging');
-        document.documentElement.classList.remove('zrc-hide-custom-cursor-during-drag');
-      }, 20000);
-    };
-
-    const showCursor = () => {
-      window.clearTimeout(safetyTimer);
-      safetyTimer = null;
-
+    const cleanupBadCursorDragClasses = () => {
       document.documentElement.classList.remove('zrc-task-native-dragging');
       document.documentElement.classList.remove('zrc-hide-custom-cursor-during-drag');
     };
 
-    window.addEventListener('dragstart', hideCursor, true);
-    window.addEventListener('drop', showCursor, true);
-    window.addEventListener('dragend', showCursor, true);
-    window.addEventListener('pointerup', showCursor, true);
-    window.addEventListener('mouseup', showCursor, true);
-    window.addEventListener('blur', showCursor, true);
+    cleanupBadCursorDragClasses();
+
+    window.addEventListener('drop', cleanupBadCursorDragClasses, true);
+    window.addEventListener('dragend', cleanupBadCursorDragClasses, true);
+    window.addEventListener('pointerup', cleanupBadCursorDragClasses, true);
+    window.addEventListener('mouseup', cleanupBadCursorDragClasses, true);
+    window.addEventListener('blur', cleanupBadCursorDragClasses, true);
 
     return () => {
-      showCursor();
-      window.removeEventListener('dragstart', hideCursor, true);
-      window.removeEventListener('drop', showCursor, true);
-      window.removeEventListener('dragend', showCursor, true);
-      window.removeEventListener('pointerup', showCursor, true);
-      window.removeEventListener('mouseup', showCursor, true);
-      window.removeEventListener('blur', showCursor, true);
+      window.removeEventListener('drop', cleanupBadCursorDragClasses, true);
+      window.removeEventListener('dragend', cleanupBadCursorDragClasses, true);
+      window.removeEventListener('pointerup', cleanupBadCursorDragClasses, true);
+      window.removeEventListener('mouseup', cleanupBadCursorDragClasses, true);
+      window.removeEventListener('blur', cleanupBadCursorDragClasses, true);
     };
   }, []);
 
