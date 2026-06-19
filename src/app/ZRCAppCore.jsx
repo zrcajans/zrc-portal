@@ -1622,6 +1622,73 @@ function App() {
       })
       .map((entry) => entry.task);
 
+
+  // zrc-global-live-sync-task-order-v2
+  // DB task_order, mobil/masaüstü için ortak sıralama kaynağıdır.
+  const zrcGlobalTaskOrderValue = (task = {}, fallbackIndex = 0) => {
+    const candidates = [
+      task.task_order,
+      task.taskOrder,
+      task.order,
+      task.sort_order,
+      task.sortOrder,
+      task.position
+    ];
+
+    for (const value of candidates) {
+      if (value === null || value === undefined || value === '') continue;
+
+      const numericValue = Number(value);
+
+      if (Number.isFinite(numericValue)) return numericValue;
+    }
+
+    return Number.MAX_SAFE_INTEGER + fallbackIndex;
+  };
+
+  const zrcGlobalColumnHasUsefulTaskOrder = (tasks = []) => {
+    const values = (Array.isArray(tasks) ? tasks : [])
+      .map((task, index) => zrcGlobalTaskOrderValue(task, index))
+      .filter((value) => Number.isFinite(value) && value < Number.MAX_SAFE_INTEGER);
+
+    return values.length > 1 && new Set(values).size > 1;
+  };
+
+  const zrcGlobalSortTasksByDbOrder = (tasks = []) =>
+    (Array.isArray(tasks) ? tasks : [])
+      .map((task, index) => ({
+        task,
+        index,
+        orderValue: zrcGlobalTaskOrderValue(task, index)
+      }))
+      .sort((first, second) => {
+        if (first.orderValue !== second.orderValue) return first.orderValue - second.orderValue;
+        return first.index - second.index;
+      })
+      .map((entry) => entry.task);
+
+  const zrcGlobalSortColumnsTasksByDbOrder = (columns = []) =>
+    (Array.isArray(columns) ? columns : []).map((column) => {
+      const tasks = Array.isArray(column?.tasks) ? column.tasks : [];
+
+      if (!zrcGlobalColumnHasUsefulTaskOrder(tasks)) return column;
+
+      return {
+        ...column,
+        tasks: zrcGlobalSortTasksByDbOrder(tasks)
+      };
+    });
+
+  const zrcGlobalColumnsTaskOrderSignature = (columns = []) =>
+    (Array.isArray(columns) ? columns : [])
+      .map((column) => {
+        const columnKey = String(column?.id || column?.title || '');
+        const taskIds = (column?.tasks || []).map((task) => String(task?.id || task?.supabaseId || task?.title || '')).join(',');
+
+        return `${columnKey}:${taskIds}`;
+      })
+      .join('|');
+
   const zrcApplyStoredTaskOrderToColumns = (columns = [], projectName = selectedProject) => {
     if (!projectName || !Array.isArray(columns)) return columns;
 
@@ -4653,7 +4720,7 @@ function App() {
       tableName === 'tasks' && Number.isFinite(zrcTaskOrderSavingUntil) && zrcTaskOrderSavingUntil > Date.now()
         ? Math.max(1800, zrcTaskOrderSavingUntil - Date.now())
         : tableName === 'tasks'
-          ? 1200
+          ? 220
           : 80;
 
     const refreshDelay = Number.isFinite(options?.delay) ? options.delay : zrcRealtimeDefaultDelay;
@@ -4668,6 +4735,7 @@ function App() {
         await loadWorkspaceStructureFromSupabase();
         await loadSelectedProjectBoardFromSupabase();
         await loadQuickNotesFromSupabase();
+        await loadProfileAndPreferencesFromSupabase();
         await loadActivityLogsFromSupabase();
         await loadChatsAndMessagesFromSupabase();
 
@@ -4720,7 +4788,13 @@ function App() {
       'notifications',
       'activity_logs',
       'quick_notes',
-      'user_preferences'
+      'user_preferences',
+      'workspaces',
+      'workspace_members',
+      'profiles',
+      'task_assignees',
+      'task_followers',
+      'chat_group_members',
     ];
 
     const channel = supabase.channel(`zrc-workspace-realtime-${workspaceId}`);
@@ -4767,6 +4841,49 @@ function App() {
       }
 
       supabase.removeChannel(channel);
+    };
+  }, [supabaseWorkspaceId, currentUserId, authSessionLoading, selectedProject]);
+
+
+
+  // zrc-global-live-sync-focus-refresh-v2
+  // Cihaz uyku/sekme arası geçişlerinden sonra mobil ve masaüstü aynı state'e hızla gelsin.
+  useEffect(() => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || authSessionLoading || !currentUserId) return undefined;
+
+    let lastGlobalSyncAt = 0;
+
+    const requestGlobalSync = (reason = 'focus') => {
+      const now = Date.now();
+
+      if (now - lastGlobalSyncAt < 1200) return;
+
+      lastGlobalSyncAt = now;
+      runRealtimeTriggeredRefresh(`global-${reason}`, { delay: 60 });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') requestGlobalSync('visible');
+    };
+
+    const handleFocus = () => requestGlobalSync('focus');
+    const handleOnline = () => requestGlobalSync('online');
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleOnline);
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') requestGlobalSync('interval');
+    }, 5000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleOnline);
+      window.clearInterval(intervalId);
     };
   }, [supabaseWorkspaceId, currentUserId, authSessionLoading, selectedProject]);
 
@@ -5222,7 +5339,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         ...prevBoards,
         [projectName]: {
           ...existingBoard,
-          columns: zrcApplyStoredTaskOrderToColumns(nextColumns, projectName),
+          columns: zrcGlobalSortColumnsTasksByDbOrder(zrcApplyStoredTaskOrderToColumns(nextColumns, projectName)),
           archivedTasks: dbArchivedTasks
         }
       };
@@ -6093,6 +6210,39 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
 
   // zrc-mobile-visible-columns-db-order-v1
   // Mobil görünüm dahil tüm görünür kolonlarda DB task_order sırası korunur.
+
+
+  // zrc-global-live-sync-board-order-effect-v2
+  // Supabase'den task_order güncellemesi geldiğinde tüm görünümler aynı sıraya hizalansın.
+  useEffect(() => {
+    if (!Array.isArray(boardColumns) || boardColumns.length === 0) return;
+    if (typeof zrcTaskOptimisticWindowActive !== 'undefined' && zrcTaskOptimisticWindowActive) return;
+
+    const orderedColumns = zrcGlobalSortColumnsTasksByDbOrder(boardColumns);
+    const beforeSignature = zrcGlobalColumnsTaskOrderSignature(boardColumns);
+    const afterSignature = zrcGlobalColumnsTaskOrderSignature(orderedColumns);
+
+    if (beforeSignature === afterSignature) return;
+
+    setBoardColumns(orderedColumns);
+
+    if (selectedProject) {
+      setProjectBoards((prevBoards) => {
+        const currentBoard = prevBoards?.[selectedProject];
+
+        if (!currentBoard) return prevBoards;
+
+        return {
+          ...prevBoards,
+          [selectedProject]: {
+            ...currentBoard,
+            columns: orderedColumns
+          }
+        };
+      });
+    }
+  }, [boardColumns, selectedProject]);
+
   const visibleBoardColumns = boardColumns.map((column) => ({
     ...column,
     tasks: zrcSortTasksByDbTaskOrder(
