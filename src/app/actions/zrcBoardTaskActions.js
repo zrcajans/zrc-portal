@@ -1234,7 +1234,7 @@ export function createZRCBoardTaskActions(deps) {
     const slotKey = `${targetColId || ''}:${targetTaskId || '__end__'}:${placement}`;
 
     // zrc-apple-spring-live-drag-v3
-    // V2'de hedef 90ms bekleyince state değişimi doğru yapılıyordu ama DOM animasyon yakalamadan
+    // V2'de hedef 70ms bekleyince state değişimi doğru yapılıyordu ama DOM animasyon yakalamadan
     // bir anda yer değiştiriyordu. Burada state değişimini flushSync ile DOM'a bastırıp
     // hemen ardından FLIP animasyonunu başlatıyoruz; böylece "tak" değil kayarak yer değiştirir.
     if (draggedTaskInfo.current?.zrcSpringLastAppliedSlotKey === slotKey) return;
@@ -1373,7 +1373,7 @@ export function createZRCBoardTaskActions(deps) {
           });
         });
       }
-    }, 90);
+    }, 70);
   };
 
   const handleDrop = (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
