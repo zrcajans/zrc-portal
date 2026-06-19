@@ -1080,9 +1080,9 @@ export function createZRCBoardTaskActions(deps) {
                   { transform: 'translate(0, 0)' }
                 ],
                 {
-                  duration: 285,
-                  easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                  fill: 'both', composite: 'add'
+                  duration: 230,
+                  easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                  fill: 'both'
                 }
               );
             }
@@ -1155,97 +1155,51 @@ export function createZRCBoardTaskActions(deps) {
 
     const placement = insertPlacement === 'after' ? 'after' : 'before';
 
-    /* === ZRC PREMIUM LIVE REORDER SAME TARGET GUARD START === */
+    // zrc-stable-slot-drag-preview-v1
+    // Drag sırasında state'i canlı canlı taşımıyoruz.
+    // Böylece kartlar sürekli yer değiştirip hedefi şaşırtmaz.
+    // Sadece hedef kartta sakin bir slot feedback gösterilir; asıl sıralama drop anında yapılır.
     if (
-      draggedTaskInfo.current?.hasPreviewMoved &&
       draggedTaskInfo.current?.lastPreviewTargetColId === targetColId &&
       draggedTaskInfo.current?.lastPreviewTargetTaskId === targetTaskId &&
       draggedTaskInfo.current?.lastPreviewPlacement === placement
     ) {
       return;
     }
-    /* === ZRC PREMIUM LIVE REORDER SAME TARGET GUARD END === */
 
-    /* === ZRC DRAG PREVIEW SAME TARGET GUARD START === */
-    if (
-      draggedTaskInfo.current?.hasPreviewMoved &&
-      draggedTaskInfo.current?.lastPreviewTargetColId === targetColId &&
-      draggedTaskInfo.current?.lastPreviewTargetTaskId === targetTaskId &&
-      draggedTaskInfo.current?.lastPreviewPlacement === placement
-    ) {
-      return;
-    }
-    /* === ZRC DRAG PREVIEW SAME TARGET GUARD END === */
+    draggedTaskInfo.current = {
+      ...draggedTaskInfo.current,
+      hasPreviewMoved: false,
+      lastPreviewTargetColId: targetColId,
+      lastPreviewTargetTaskId: targetTaskId,
+      lastPreviewPlacement: placement
+    };
 
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('zrc-desktop-task-live-previewing');
 
-    const zrcPreviousTaskRects = zrcCaptureTaskLayoutRects();
+      document
+        .querySelectorAll('.zrc-task-drop-before, .zrc-task-drop-after')
+        .forEach((element) => {
+          element.classList.remove('zrc-task-drop-before');
+          element.classList.remove('zrc-task-drop-after');
 
-    setBoardColumns((prevColumns) => {
-      const nextColumns = prevColumns.map((column) => ({
-        ...column,
-        tasks: Array.isArray(column.tasks) ? [...column.tasks] : []
-      }));
+          if (element?.dataset) delete element.dataset.zrcDropPlacement;
+        });
 
-      const actualSourceIndex = nextColumns.findIndex((column) =>
-        column.tasks.some((task) => task.id === taskId)
-      );
-      const targetColumnIndex = nextColumns.findIndex((column) => column.id === targetColId);
+      if (targetTaskId) {
+        const targetElement = Array.from(document.querySelectorAll('[data-zrc-task-card="true"]'))
+          .find((element) => String(element?.dataset?.zrcTaskId || '') === String(targetTaskId));
 
-      if (actualSourceIndex === -1 || targetColumnIndex === -1) return prevColumns;
+        if (targetElement?.classList) {
+          targetElement.classList.add(placement === 'after' ? 'zrc-task-drop-after' : 'zrc-task-drop-before');
 
-      const actualSourceColumn = nextColumns[actualSourceIndex];
-      const sourceTaskIndex = actualSourceColumn.tasks.findIndex((task) => task.id === taskId);
-
-      if (sourceTaskIndex === -1) return prevColumns;
-
-      const [movingTask] = actualSourceColumn.tasks.splice(sourceTaskIndex, 1);
-      const updatedTargetColumn = nextColumns.find((column) => column.id === targetColId);
-
-      if (!movingTask || !updatedTargetColumn) return prevColumns;
-
-      let targetTaskIndex = targetTaskId
-        ? updatedTargetColumn.tasks.findIndex((task) => task.id === targetTaskId)
-        : -1;
-
-      if (targetTaskIndex >= 0 && placement === 'after') targetTaskIndex += 1;
-      if (targetTaskIndex < 0) targetTaskIndex = updatedTargetColumn.tasks.length;
-
-      /* === ZRC PREVIEW NORMALIZE MOVED TASK START === */
-      const movingTaskForPreview = {
-        ...movingTask,
-        status: updatedTargetColumn.title,
-        taskOrder: targetTaskIndex
-      };
-
-      updatedTargetColumn.tasks.splice(targetTaskIndex, 0, movingTaskForPreview);
-
-      const zrcNormalizedPreviewColumns = nextColumns.map((column) => ({
-        ...column,
-        tasks: (column.tasks || []).map((task, index) => ({
-          ...task,
-          taskOrder: index,
-          ...(task.id === taskId ? { status: column.title } : {})
-        }))
-      }));
-      /* === ZRC PREVIEW NORMALIZE MOVED TASK END === */
-
-      draggedTaskInfo.current = {
-        ...draggedTaskInfo.current,
-        sourceColId: targetColId,
-        hasPreviewMoved: true,
-        lastPreviewTargetColId: targetColId,
-        lastPreviewTargetTaskId: targetTaskId,
-        lastPreviewPlacement: placement
-      };
-
-      if (typeof document !== 'undefined') {
-        document.documentElement.classList.add('zrc-desktop-task-live-previewing');
+          if (targetElement.dataset) {
+            targetElement.dataset.zrcDropPlacement = placement;
+          }
+        }
       }
-
-      return zrcNormalizedPreviewColumns;
-    });
-
-    zrcAnimateTaskLayoutShift(zrcPreviousTaskRects);
+    }
   };
 
 
