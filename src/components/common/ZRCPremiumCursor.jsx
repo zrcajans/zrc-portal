@@ -74,11 +74,53 @@ function shouldUseWhiteOutline(target) {
   return contrast < 2.25 || orangeDistance < 120;
 }
 
-function hasReadableTextNode(element) {
+function pointInsideRect(x, y, rect, padding = 2) {
+  return (
+    x >= rect.left - padding &&
+    x <= rect.right + padding &&
+    y >= rect.top - padding &&
+    y <= rect.bottom + padding
+  );
+}
+
+function textNodeHasPoint(textNode, x, y) {
+  if (!textNode?.textContent?.trim()) return false;
+
+  const range = document.createRange();
+
+  try {
+    range.selectNodeContents(textNode);
+
+    for (const rect of range.getClientRects()) {
+      if (rect.width <= 0 || rect.height <= 0) continue;
+      if (pointInsideRect(x, y, rect, 3)) return true;
+    }
+
+    return false;
+  } finally {
+    range.detach?.();
+  }
+}
+
+function elementHasTextAtPoint(element, x, y) {
   if (!(element instanceof Element)) return false;
 
-  for (const node of element.childNodes) {
-    if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) return true;
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      return node.textContent?.trim()
+        ? NodeFilter.FILTER_ACCEPT
+        : NodeFilter.FILTER_REJECT;
+    }
+  });
+
+  let node = walker.nextNode();
+  let checked = 0;
+
+  while (node && checked < 24) {
+    if (textNodeHasPoint(node, x, y)) return true;
+
+    node = walker.nextNode();
+    checked += 1;
   }
 
   return false;
@@ -91,34 +133,28 @@ function isPointOnReadableText(x, y, target, editableSelector, interactiveSelect
 
   if (element.closest(editableSelector)) return true;
 
-  const interactiveElement = element.closest(interactiveSelector);
-  if (interactiveElement && !interactiveElement.closest(editableSelector)) return false;
-
-  let textNode = null;
-
-  if (document.caretPositionFromPoint) {
-    const position = document.caretPositionFromPoint(x, y);
-    textNode = position?.offsetNode || null;
-  } else if (document.caretRangeFromPoint) {
-    const range = document.caretRangeFromPoint(x, y);
-    textNode = range?.startContainer || null;
-  }
-
-  if (textNode?.nodeType === Node.TEXT_NODE && textNode.textContent?.trim()) {
-    const parent = textNode.parentElement;
-    if (!parent?.closest(interactiveSelector)) return true;
-  }
-
-  const textTags = 'p,span,strong,em,b,i,small,label,h1,h2,h3,h4,h5,h6,li,td,th,blockquote,code,pre';
+  const textTags = 'p,span,strong,em,b,i,small,label,h1,h2,h3,h4,h5,h6,li,td,th,blockquote,code,pre,div';
   const elementsAtPoint = document.elementsFromPoint?.(x, y) || [element];
 
-  return elementsAtPoint.slice(0, 5).some((item) => {
-    if (!(item instanceof Element)) return false;
-    if (item.closest(interactiveSelector) && !item.closest(editableSelector)) return false;
-    if (!item.matches(textTags)) return false;
+  for (const item of elementsAtPoint.slice(0, 8)) {
+    if (!(item instanceof Element)) continue;
+    if (item.closest(editableSelector)) return true;
+    if (item.closest(interactiveSelector)) continue;
 
-    return hasReadableTextNode(item) || Boolean(item.textContent?.trim());
-  });
+    const candidate = item.matches(textTags)
+      ? item
+      : item.closest(textTags);
+
+    if (!(candidate instanceof Element)) continue;
+    if (candidate.closest(interactiveSelector)) continue;
+
+    const rect = candidate.getBoundingClientRect();
+    if (!pointInsideRect(x, y, rect, 0)) continue;
+
+    if (elementHasTextAtPoint(candidate, x, y)) return true;
+  }
+
+  return false;
 }
 
 export default function ZRCPremiumCursor() {
@@ -175,6 +211,26 @@ export default function ZRCPremiumCursor() {
       body.classList.toggle('zrc-pure-dot-cursor-text-mode', isTextMode);
       body.classList.toggle('zrc-pure-dot-cursor-interactive', isInteractive);
       body.classList.toggle('zrc-pure-dot-cursor-low-contrast', needsWhiteOutline);
+    };
+
+    const forceExitTextMode = () => {
+      body.classList.remove('zrc-pure-dot-cursor-text-mode');
+    };
+
+    const recalculateAtCurrentPoint = () => {
+      const state = stateRef.current;
+      const element = document.elementFromPoint?.(state.x, state.y);
+
+      if (!element) {
+        forceExitTextMode();
+        return;
+      }
+
+      applyTargetState({
+        clientX: state.x,
+        clientY: state.y,
+        target: element
+      });
     };
 
     const animate = () => {
@@ -245,13 +301,21 @@ export default function ZRCPremiumCursor() {
       }
     };
 
-    const onPointerUp = () => {
+    const onPointerUp = (event) => {
       body.classList.remove('zrc-pure-dot-cursor-down');
+      if (event) applyTargetState(event);
+    };
+
+    const onSelectionChange = () => {
+      window.requestAnimationFrame(recalculateAtCurrentPoint);
     };
 
     const onMouseLeave = () => hide();
     const onMouseEnter = () => show();
     const onTouchStart = () => hide();
+    const onScroll = () => {
+      window.requestAnimationFrame(recalculateAtCurrentPoint);
+    };
 
     body.classList.add('zrc-pure-dot-cursor-enabled');
 
@@ -263,6 +327,8 @@ export default function ZRCPremiumCursor() {
     window.addEventListener('mouseleave', onMouseLeave);
     window.addEventListener('mouseenter', onMouseEnter);
     window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    document.addEventListener('selectionchange', onSelectionChange);
 
     return () => {
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
@@ -274,6 +340,8 @@ export default function ZRCPremiumCursor() {
       window.removeEventListener('mouseleave', onMouseLeave);
       window.removeEventListener('mouseenter', onMouseEnter);
       window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('scroll', onScroll, { capture: true });
+      document.removeEventListener('selectionchange', onSelectionChange);
 
       body.classList.remove(
         'zrc-pure-dot-cursor-enabled',
