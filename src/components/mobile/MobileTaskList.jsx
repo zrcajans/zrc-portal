@@ -23,8 +23,23 @@ const zrcMobileTaskOrderValue = (task = {}, fallbackIndex = 0) => {
 };
 
 const zrcMobileTaskTieBreakerValue = (task = {}, fallbackIndex = 0) => {
-  // zrc-mobile-list-preserve-desktop-order-v2
-  // Aynı task_order varsa createdAt/updatedAt ile yeniden karıştırma; gelen masaüstü/DB sırasını koru.
+  const candidates = [
+    task.createdAt,
+    task.created_at,
+    task.updatedAt,
+    task.updated_at,
+    task.time,
+    task.date
+  ];
+
+  for (const value of candidates) {
+    if (!value) continue;
+
+    const parsedValue = Date.parse(value);
+
+    if (Number.isFinite(parsedValue)) return parsedValue;
+  }
+
   return fallbackIndex;
 };
 
