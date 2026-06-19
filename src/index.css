@@ -2027,3 +2027,46 @@ body {
   }
 }
 /* === ZRC APPLE SPRING DND END === */
+
+/* === ZRC TASK DRAG HIDE DUPLICATE V2 START === */
+@media (min-width: 769px) {
+  html.zrc-task-drag-clone-hidden-active [data-zrc-drag-hidden-clone="true"],
+  html.zrc-task-drag-clone-hidden-active .zrc-task-drag-in-list-copy-hidden {
+    position: relative !important;
+    opacity: 1 !important;
+    color: transparent !important;
+    text-shadow: none !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.40)) !important;
+    border-color: rgba(255, 54, 0, 0.16) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 54, 0, 0.11),
+      0 8px 18px rgba(15, 23, 42, 0.035) !important;
+    filter: none !important;
+    overflow: hidden !important;
+  }
+
+  html.zrc-task-drag-clone-hidden-active [data-zrc-drag-hidden-clone="true"] *,
+  html.zrc-task-drag-clone-hidden-active .zrc-task-drag-in-list-copy-hidden * {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  html.zrc-task-drag-clone-hidden-active [data-zrc-drag-hidden-clone="true"]::after,
+  html.zrc-task-drag-clone-hidden-active .zrc-task-drag-in-list-copy-hidden::after {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 50%;
+    height: 11px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background:
+      linear-gradient(90deg, rgba(255, 54, 0, 0.18), rgba(255, 54, 0, 0.045));
+    opacity: 0.72;
+    pointer-events: none;
+  }
+}
+/* === ZRC TASK DRAG HIDE DUPLICATE V2 END === */

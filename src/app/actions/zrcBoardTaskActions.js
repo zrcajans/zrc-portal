@@ -1146,6 +1146,82 @@ export function createZRCBoardTaskActions(deps) {
     /* === ZRC DESKTOP DRAG SOURCE HIDE END === */
   };
 
+
+
+
+  // zrc-hide-in-list-drag-clone-v2
+  // Native drag ghost imleç altında zaten görünür. Canlı preview sırasında listede aynı görevin
+  // içerikli ikinci kopyasını gizleyip sadece sakin bir slot/boşluk hissi bırakır.
+  const zrcGetTaskCardDomId = (element = {}) =>
+    String(
+      element?.dataset?.zrcTaskId ||
+      element?.dataset?.taskId ||
+      element?.dataset?.id ||
+      ''
+    );
+
+  const zrcClearDraggedTaskInListCopies = () => {
+    if (typeof document === 'undefined') return;
+
+    document
+      .querySelectorAll('[data-zrc-drag-hidden-clone="true"], .zrc-task-drag-in-list-copy-hidden')
+      .forEach((element) => {
+        element.classList.remove('zrc-task-drag-in-list-copy-hidden');
+        element.removeAttribute('data-zrc-drag-hidden-clone');
+      });
+
+    document.documentElement.classList.remove('zrc-task-drag-clone-hidden-active');
+  };
+
+  const zrcEnsureDraggedTaskCloneCleanupListeners = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (window.__zrcTaskDragCloneCleanupAttached) return;
+
+    window.__zrcTaskDragCloneCleanupAttached = true;
+
+    const cleanup = () => {
+      zrcClearDraggedTaskInListCopies();
+    };
+
+    window.addEventListener('dragend', cleanup, true);
+    window.addEventListener('drop', cleanup, true);
+    window.addEventListener('pointerup', cleanup, true);
+    window.addEventListener('blur', cleanup, true);
+    document.addEventListener('keyup', (event) => {
+      if (event?.key === 'Escape') cleanup();
+    }, true);
+  };
+
+  const zrcMarkDraggedTaskInListCopies = (draggedTaskId) => {
+    if (typeof document === 'undefined' || !draggedTaskId) return;
+
+    zrcEnsureDraggedTaskCloneCleanupListeners();
+
+    const normalizedTaskId = String(draggedTaskId);
+    let markedCount = 0;
+
+    document
+      .querySelectorAll('[data-zrc-task-card="true"]')
+      .forEach((element) => {
+        const cardTaskId = zrcGetTaskCardDomId(element);
+
+        if (cardTaskId && cardTaskId === normalizedTaskId) {
+          element.classList.add('zrc-task-drag-in-list-copy-hidden');
+          element.setAttribute('data-zrc-drag-hidden-clone', 'true');
+          markedCount += 1;
+        }
+      });
+
+    if (markedCount > 0) {
+      document.documentElement.classList.add('zrc-task-drag-clone-hidden-active');
+    }
+
+    window.clearTimeout(window.__zrcTaskDragCloneCleanupTimer);
+    window.__zrcTaskDragCloneCleanupTimer = window.setTimeout(() => {
+      zrcClearDraggedTaskInListCopies();
+    }, 18000);
+  };
+
   const handleDragOverTaskPreview = (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
     if (!draggedTaskInfo.current) return;
 
@@ -1179,6 +1255,8 @@ export function createZRCBoardTaskActions(deps) {
       document.documentElement.classList.add('zrc-desktop-task-dragging');
       document.documentElement.classList.add('zrc-apple-spring-task-dragging');
     }
+
+    zrcMarkDraggedTaskInListCopies(taskId);
 
     draggedTaskInfo.current.zrcSpringPreviewTimer = window.setTimeout(() => {
       if (!draggedTaskInfo.current || draggedTaskInfo.current.zrcSpringPendingSlotKey !== slotKey) return;
@@ -1283,6 +1361,10 @@ export function createZRCBoardTaskActions(deps) {
         }
       }
 
+      if (didMove) {
+        window.requestAnimationFrame(() => zrcMarkDraggedTaskInListCopies(taskId));
+      }
+
       if (didMove && beforeRects && typeof zrcAnimateTaskLayoutShift === 'function') {
         window.requestAnimationFrame(() => {
           zrcAnimateTaskLayoutShift(beforeRects, {
@@ -1295,6 +1377,8 @@ export function createZRCBoardTaskActions(deps) {
   };
 
   const handleDrop = (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
+
+    zrcClearDraggedTaskInListCopies();
 
     if (draggedTaskInfo.current?.zrcSpringPreviewTimer) {
       window.clearTimeout(draggedTaskInfo.current.zrcSpringPreviewTimer);
