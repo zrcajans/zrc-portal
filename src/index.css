@@ -1974,20 +1974,20 @@ body {
 
   html:not(.zrc-desktop-task-dragging) [data-zrc-task-card="true"] {
     transition:
-      transform 170ms cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 170ms ease,
-      filter 170ms ease,
-      opacity 170ms ease,
-      background-color 170ms ease !important;
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 180ms ease,
+      filter 180ms ease,
+      opacity 180ms ease,
+      background-color 180ms ease !important;
   }
 
   html.zrc-apple-spring-task-dragging [data-zrc-task-card="true"] {
     transition:
-      transform 275ms cubic-bezier(0.18, 1, 0.22, 1),
-      box-shadow 175ms ease,
-      opacity 145ms ease,
-      filter 175ms ease,
-      background-color 175ms ease !important;
+      transform 315ms cubic-bezier(0.2, 1.2, 0.22, 1),
+      box-shadow 185ms ease,
+      opacity 155ms ease,
+      filter 185ms ease,
+      background-color 185ms ease !important;
     will-change: transform;
   }
 

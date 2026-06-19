@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom';
 export function createZRCBoardTaskActions(deps) {
   const {
     requirePermission,
@@ -1080,8 +1081,8 @@ export function createZRCBoardTaskActions(deps) {
                   { transform: 'translate(0, 0)' }
                 ],
                 {
-                  duration: 275,
-                  easing: 'cubic-bezier(0.18, 1, 0.22, 1)',
+                  duration: 315,
+                  easing: 'cubic-bezier(0.2, 1.2, 0.22, 1)',
                   fill: 'both'
                 }
               );
@@ -1156,9 +1157,10 @@ export function createZRCBoardTaskActions(deps) {
     const placement = insertPlacement === 'after' ? 'after' : 'before';
     const slotKey = `${targetColId || ''}:${targetTaskId || '__end__'}:${placement}`;
 
-    // zrc-apple-spring-live-drag-v2
-    // Apple ana ekran hissi: kartlar canlı kayar ama hedef 90ms sabit kalmadan state değişmez.
-    // Bu sayede otomatik kayma var; fakat titreme/kafa karışıklığı azalır.
+    // zrc-apple-spring-live-drag-v3
+    // V2'de hedef 90ms bekleyince state değişimi doğru yapılıyordu ama DOM animasyon yakalamadan
+    // bir anda yer değiştiriyordu. Burada state değişimini flushSync ile DOM'a bastırıp
+    // hemen ardından FLIP animasyonunu başlatıyoruz; böylece "tak" değil kayarak yer değiştirir.
     if (draggedTaskInfo.current?.zrcSpringLastAppliedSlotKey === slotKey) return;
 
     if (draggedTaskInfo.current?.zrcSpringPreviewTimer) {
@@ -1189,95 +1191,108 @@ export function createZRCBoardTaskActions(deps) {
       let didMove = false;
       let nextColumnsForProject = null;
 
-      setBoardColumns((prevColumns) => {
-        const safeColumns = Array.isArray(prevColumns) ? prevColumns : [];
+      const applySpringPreviewUpdate = () => {
+        setBoardColumns((prevColumns) => {
+          const safeColumns = Array.isArray(prevColumns) ? prevColumns : [];
 
-        const sourceColIndex = safeColumns.findIndex((column) =>
-          (column.tasks || []).some((task) => String(task?.id || task?.supabaseId || '') === String(taskId))
-        );
+          const sourceColIndex = safeColumns.findIndex((column) =>
+            (column.tasks || []).some((task) => String(task?.id || task?.supabaseId || '') === String(taskId))
+          );
 
-        const targetColIndex = safeColumns.findIndex((column) => String(column?.id || '') === String(targetColId));
+          const targetColIndex = safeColumns.findIndex((column) => String(column?.id || '') === String(targetColId));
 
-        if (sourceColIndex === -1 || targetColIndex === -1) return prevColumns;
+          if (sourceColIndex === -1 || targetColIndex === -1) return prevColumns;
 
-        const sourceTasks = [...(safeColumns[sourceColIndex]?.tasks || [])];
-        const sourceTaskIndex = sourceTasks.findIndex((task) => String(task?.id || task?.supabaseId || '') === String(taskId));
+          const sourceTasks = [...(safeColumns[sourceColIndex]?.tasks || [])];
+          const sourceTaskIndex = sourceTasks.findIndex((task) => String(task?.id || task?.supabaseId || '') === String(taskId));
 
-        if (sourceTaskIndex === -1) return prevColumns;
+          if (sourceTaskIndex === -1) return prevColumns;
 
-        const [draggedTask] = sourceTasks.splice(sourceTaskIndex, 1);
+          const [draggedTask] = sourceTasks.splice(sourceTaskIndex, 1);
 
-        const nextColumns = safeColumns.map((column, index) =>
-          index === sourceColIndex
-            ? { ...column, tasks: sourceTasks }
-            : { ...column, tasks: [...(column.tasks || [])] }
-        );
+          const nextColumns = safeColumns.map((column, index) =>
+            index === sourceColIndex
+              ? { ...column, tasks: sourceTasks }
+              : { ...column, tasks: [...(column.tasks || [])] }
+          );
 
-        const targetTasks = nextColumns[targetColIndex].tasks;
-        let insertIndex = targetTasks.length;
+          const targetTasks = nextColumns[targetColIndex].tasks;
+          let insertIndex = targetTasks.length;
 
-        if (targetTaskId) {
-          const targetTaskIndex = targetTasks.findIndex((task) => String(task?.id || task?.supabaseId || '') === String(targetTaskId));
+          if (targetTaskId) {
+            const targetTaskIndex = targetTasks.findIndex((task) => String(task?.id || task?.supabaseId || '') === String(targetTaskId));
 
-          if (targetTaskIndex !== -1) {
-            insertIndex = placement === 'after' ? targetTaskIndex + 1 : targetTaskIndex;
+            if (targetTaskIndex !== -1) {
+              insertIndex = placement === 'after' ? targetTaskIndex + 1 : targetTaskIndex;
+            }
           }
-        }
 
-        insertIndex = Math.max(0, Math.min(targetTasks.length, insertIndex));
+          insertIndex = Math.max(0, Math.min(targetTasks.length, insertIndex));
 
-        if (sourceColIndex === targetColIndex && insertIndex === sourceTaskIndex) return prevColumns;
+          if (sourceColIndex === targetColIndex && insertIndex === sourceTaskIndex) return prevColumns;
 
-        const targetColumn = nextColumns[targetColIndex] || {};
-        const previewTask = {
-          ...draggedTask,
-          status: targetColumn.title || draggedTask.status,
-          columnTitle: targetColumn.title || draggedTask.columnTitle,
-          columnColor: targetColumn.color || draggedTask.columnColor
-        };
+          const targetColumn = nextColumns[targetColIndex] || {};
+          const previewTask = {
+            ...draggedTask,
+            status: targetColumn.title || draggedTask.status,
+            columnTitle: targetColumn.title || draggedTask.columnTitle,
+            columnColor: targetColumn.color || draggedTask.columnColor
+          };
 
-        targetTasks.splice(insertIndex, 0, previewTask);
+          targetTasks.splice(insertIndex, 0, previewTask);
 
-        nextColumnsForProject = nextColumns;
-        didMove = true;
+          nextColumnsForProject = nextColumns;
+          didMove = true;
 
-        draggedTaskInfo.current = {
-          ...draggedTaskInfo.current,
-          hasPreviewMoved: true,
-          currentColumnId: targetColId,
-          zrcSpringLastAppliedSlotKey: slotKey,
-          zrcSpringPendingSlotKey: null,
-          lastPreviewTargetColId: targetColId,
-          lastPreviewTargetTaskId: targetTaskId,
-          lastPreviewPlacement: placement
-        };
+          draggedTaskInfo.current = {
+            ...draggedTaskInfo.current,
+            hasPreviewMoved: true,
+            currentColumnId: targetColId,
+            zrcSpringLastAppliedSlotKey: slotKey,
+            zrcSpringPendingSlotKey: null,
+            lastPreviewTargetColId: targetColId,
+            lastPreviewTargetTaskId: targetTaskId,
+            lastPreviewPlacement: placement
+          };
 
-        return nextColumns;
-      });
+          return nextColumns;
+        });
+      };
+
+      if (typeof flushSync === 'function') {
+        flushSync(applySpringPreviewUpdate);
+      } else {
+        applySpringPreviewUpdate();
+      }
 
       if (didMove && nextColumnsForProject && typeof setProjectBoards === 'function' && typeof selectedProject !== 'undefined' && selectedProject) {
-        setProjectBoards((prevBoards) => ({
-          ...(prevBoards || {}),
-          [selectedProject]: {
-            ...((prevBoards || {})[selectedProject] || {}),
-            columns: nextColumnsForProject
-          }
-        }));
+        const applyProjectBoardPreviewUpdate = () => {
+          setProjectBoards((prevBoards) => ({
+            ...(prevBoards || {}),
+            [selectedProject]: {
+              ...((prevBoards || {})[selectedProject] || {}),
+              columns: nextColumnsForProject
+            }
+          }));
+        };
+
+        if (typeof flushSync === 'function') {
+          flushSync(applyProjectBoardPreviewUpdate);
+        } else {
+          applyProjectBoardPreviewUpdate();
+        }
       }
 
       if (didMove && beforeRects && typeof zrcAnimateTaskLayoutShift === 'function') {
         window.requestAnimationFrame(() => {
-          window.requestAnimationFrame(() => {
-            zrcAnimateTaskLayoutShift(beforeRects, {
-              duration: 275,
-              easing: 'cubic-bezier(0.18, 1, 0.22, 1)'
-            });
+          zrcAnimateTaskLayoutShift(beforeRects, {
+            duration: 315,
+            easing: 'cubic-bezier(0.2, 1.2, 0.22, 1)'
           });
         });
       }
     }, 90);
   };
-
 
   const handleDrop = (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
 
