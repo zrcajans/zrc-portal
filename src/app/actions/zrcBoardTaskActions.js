@@ -1080,9 +1080,9 @@ export function createZRCBoardTaskActions(deps) {
                   { transform: 'translate(0, 0)' }
                 ],
                 {
-                  duration: 230,
-                  easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                  fill: 'both'
+                  duration: 285,
+                  easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                  fill: 'both', composite: 'add'
                 }
               );
             }
