@@ -142,9 +142,14 @@ const zrcGetClearedBeforeMs = (readNotificationIds = []) => {
 
   for (const rawValue of readNotificationIds || []) {
     const value = String(rawValue || '');
-    if (!value.startsWith(ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX)) continue;
+    const isClearedBefore = value.startsWith(ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX);
+    const isClearAll = value.startsWith('clear-all:');
 
-    const parsed = Date.parse(value.slice(ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX.length));
+    if (!isClearedBefore && !isClearAll) continue;
+
+    const prefix = isClearAll ? 'clear-all:' : ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX;
+    const parsed = Date.parse(value.slice(prefix.length));
+
     if (Number.isFinite(parsed)) maxValue = Math.max(maxValue, parsed);
   }
 
@@ -157,7 +162,7 @@ const zrcIsNotificationCleared = (notification, readNotificationIds = []) => {
   const clearedBeforeMs = zrcGetClearedBeforeMs(readNotificationIds);
   const notificationTimeMs = zrcGetNotificationTimeMs(notification);
 
-  if (clearedBeforeMs && notificationTimeMs && notificationTimeMs <= clearedBeforeMs) return true;
+  if (clearedBeforeMs && (!notificationTimeMs || notificationTimeMs <= clearedBeforeMs)) return true;
 
   // zrc-notification-panel-cleared-before-fallback-v1
   // Temizle başka cihazdan geldiyse, zaman bilgisi olmayan eski activity kalemleri de id/key ile aşağıda yakalanır.

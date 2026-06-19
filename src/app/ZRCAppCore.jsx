@@ -7681,6 +7681,8 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
           text: task.title,
           meta: `${task.columnTitle} · ${getNotificationDateLabel(taskDate)}`,
           dateLabel: getNotificationDateLabel(taskDate),
+          date: taskDate.toISOString(),
+          time: taskDate.toISOString(),
           sortWeight: 500,
           task,
           projectName: task.projectName || selectedProject,
@@ -7697,6 +7699,8 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
           text: task.title,
           meta: `${task.columnTitle} · Bugün`,
           dateLabel: 'Bugün',
+          date: taskDate.toISOString(),
+          time: taskDate.toISOString(),
           sortWeight: 420,
           task,
           projectName: task.projectName || selectedProject,
@@ -7713,6 +7717,8 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
           text: task.title,
           meta: `${task.columnTitle} · ${getNotificationDateLabel(taskDate)}`,
           dateLabel: getNotificationDateLabel(taskDate),
+          date: taskDate.toISOString(),
+          time: taskDate.toISOString(),
           sortWeight: 360,
           task,
           projectName: task.projectName || selectedProject,
@@ -7776,9 +7782,14 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
 
     for (const rawValue of ids || []) {
       const value = String(rawValue || '');
-      if (!value.startsWith('cleared-before:')) continue;
+      const isClearedBefore = value.startsWith('cleared-before:');
+      const isClearAll = value.startsWith('clear-all:');
 
-      const parsed = Date.parse(value.slice('cleared-before:'.length));
+      if (!isClearedBefore && !isClearAll) continue;
+
+      const prefix = isClearAll ? 'clear-all:' : 'cleared-before:';
+      const parsed = Date.parse(value.slice(prefix.length));
+
       if (Number.isFinite(parsed)) maxValue = Math.max(maxValue, parsed);
     }
 
@@ -7791,7 +7802,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     const clearedBeforeMs = zrcCoreClearedBeforeMs(ids);
     const notificationTimeMs = zrcCoreNotificationTimeMs(notification);
 
-    if (clearedBeforeMs && notificationTimeMs && notificationTimeMs <= clearedBeforeMs) return true;
+    if (clearedBeforeMs && (!notificationTimeMs || notificationTimeMs <= clearedBeforeMs)) return true;
 
     return false;
   };
@@ -7805,6 +7816,8 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     const clearedKeys = normalizeStorageArray(preferences.clearedNotificationKeys || [], []);
 
     const clearedBeforeValue =
+      preferences.notificationClearAllAt ||
+      preferences.notificationsClearAllAt ||
       preferences.notificationsClearedBefore ||
       preferences.notificationsClearedAt ||
       preferences.notificationClearVersion ||
@@ -7840,6 +7853,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
 
     if (clearedBeforeValue) {
       nextIds.add(`cleared-before:${clearedBeforeValue}`);
+      nextIds.add(`clear-all:${clearedBeforeValue}`);
     }
 
     return Array.from(nextIds);
@@ -8089,6 +8103,83 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
       }
 
       window.clearInterval(fallbackInterval);
+      supabase.removeChannel(channel);
+    };
+  }, [isLoggedIn, authSessionLoading, supabase, supabaseWorkspaceId, currentUserId]);
+
+
+
+  // zrc-stable-clear-all-preference-sync-v1
+  // Diğer cihazda "Temizle" basılınca readNotificationIds içindeki clear-all tokenını bu cihaza taşır.
+  useEffect(() => {
+    if (!isLoggedIn || authSessionLoading || !supabase || !supabaseWorkspaceId || !isSupabaseUuid(currentUserId)) return undefined;
+
+    let cancelled = false;
+    let timerId = null;
+
+    const readRemoteNotificationPreferences = async () => {
+      try {
+        const { data: preferencesRecord, error } = await supabase
+          .from('user_preferences')
+          .select('preferences')
+          .eq('workspace_id', supabaseWorkspaceId)
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+
+        if (cancelled || error) return;
+
+        const preferences = normalizeStorageObject(preferencesRecord?.preferences || {}, {});
+        const remoteIds = Array.from(new Set([
+          ...normalizeStorageArray(preferences.readNotificationIds || [], []),
+          ...(preferences.notificationClearAllAt ? [`clear-all:${preferences.notificationClearAllAt}`, `cleared-before:${preferences.notificationClearAllAt}`] : []),
+          ...(preferences.notificationsClearAllAt ? [`clear-all:${preferences.notificationsClearAllAt}`, `cleared-before:${preferences.notificationsClearAllAt}`] : []),
+          ...(preferences.notificationsClearedBefore ? [`cleared-before:${preferences.notificationsClearedBefore}`, `clear-all:${preferences.notificationsClearedBefore}`] : [])
+        ]));
+
+        if (remoteIds.length === 0) return;
+
+        setReadNotificationIds((prevIds) => Array.from(new Set([...(prevIds || []), ...remoteIds])));
+      } catch (error) {
+        console.warn('[ZRC] Bildirim temizleme tercihi okunamadı.', error);
+      }
+    };
+
+    const scheduleRead = (delay = 120) => {
+      if (cancelled) return;
+
+      if (timerId) {
+        window.clearTimeout(timerId);
+      }
+
+      timerId = window.setTimeout(readRemoteNotificationPreferences, delay);
+    };
+
+    const channel = supabase.channel(`zrc-stable-notification-clear-${supabaseWorkspaceId}-${currentUserId}`);
+
+    channel
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_preferences',
+          filter: `user_id=eq.${currentUserId}`
+        },
+        () => scheduleRead(80)
+      )
+      .subscribe();
+
+    scheduleRead(80);
+    const intervalId = window.setInterval(() => scheduleRead(80), 2500);
+
+    return () => {
+      cancelled = true;
+
+      if (timerId) {
+        window.clearTimeout(timerId);
+      }
+
+      window.clearInterval(intervalId);
       supabase.removeChannel(channel);
     };
   }, [isLoggedIn, authSessionLoading, supabase, supabaseWorkspaceId, currentUserId]);
