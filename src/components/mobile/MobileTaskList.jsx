@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import MobileTaskCard from './MobileTaskCard';
 
 const zrcMobilePreserveIncomingTaskOrder = (tasks = []) => {
-  // zrc-mobile-stop-created-date-sort-v1
-  // Mobil kesinlikle oluşturulma tarihine göre yeniden sıralama yapmaz.
-  // Core/masaüstü/Supabase tarafından gelen görev dizilimini aynen gösterir.
+  // zrc-mobile-preserve-incoming-order-v3
+  // Mobil burada yeniden sıralama yapmaz.
+  // Masaüstü/Core/Supabase tarafından gelen görev sırası neyse onu aynen gösterir.
   return Array.isArray(tasks) ? tasks : [];
 };
 
@@ -23,8 +23,8 @@ export default function MobileTaskList({
   const safeAllBoardColumns = Array.isArray(allBoardColumns) ? allBoardColumns : safeBoardColumns;
 
   useEffect(() => {
-    // zrc-mobile-clear-created-date-sort-cache-v1
-    // Mobilde daha önce kalmış yerel sıra cache'i oluşturulma tarihine göre görünümü dayatmasın.
+    // zrc-mobile-clear-stale-order-cache-v3
+    // Mobilde kalmış eski local sıra/cache, DB'den gelen masaüstü sırasını gölgelemesin.
     if (typeof window === 'undefined') return;
 
     try {
@@ -43,9 +43,9 @@ export default function MobileTaskList({
 
       window.localStorage.removeItem('zrc-task-order-saving-until');
 
-      if (!window.sessionStorage.getItem('zrc-mobile-created-date-sort-cache-cleared-v1')) {
+      if (!window.sessionStorage.getItem('zrc-mobile-order-cache-cleared-v3')) {
         window.localStorage.removeItem('projectBoards');
-        window.sessionStorage.setItem('zrc-mobile-created-date-sort-cache-cleared-v1', '1');
+        window.sessionStorage.setItem('zrc-mobile-order-cache-cleared-v3', '1');
       }
     } catch (error) {}
   }, []);
@@ -68,7 +68,7 @@ export default function MobileTaskList({
       ) : (
         mobileTasks.map((task) => (
           <MobileTaskCard
-            key={task.id || task.title}
+            key={task.id || task.supabaseId || task.title}
             task={task}
             normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
             renderProfileAvatar={renderProfileAvatar}

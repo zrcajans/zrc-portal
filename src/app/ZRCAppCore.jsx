@@ -1628,6 +1628,116 @@ function App() {
         `${zrcGetColumnOrderKey(column)}:${(column?.tasks || []).map(zrcGetStableTaskOrderId).join(',')}`
       )
       .join('||');
+
+  /* === ZRC DESKTOP ORDER DB MIRROR START === */
+  const zrcDesktopOrderDbMirrorRef = useRef({ signature: '', timer: null, inFlight: false });
+  const zrcDesktopOrderDbMirrorSignature = zrcTaskOrderSignatureForColumns(boardColumns);
+
+  useEffect(() => {
+    // zrc-desktop-order-db-mirror-v1
+    // Masaüstü doğru sırayı localStorage ile koruyordu; mobil ise başka cihaz olduğu için bunu göremiyordu.
+    // Bu effect masaüstündeki mevcut sırayı DB task_order alanına aynalar. Mobil de DB'den aynı sırayı okur.
+    if (!selectedProject) return;
+    if (!Array.isArray(boardColumns) || boardColumns.length === 0) return;
+    if (typeof window === 'undefined') return;
+
+    try {
+      const isMobile =
+        window.matchMedia?.('(max-width: 768px)')?.matches ||
+        window.innerWidth <= 768 ||
+        /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || '');
+
+      if (isMobile) return;
+    } catch (error) {}
+
+    const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
+      ? getCurrentSupabaseWorkspaceId()
+      : '';
+
+    if (!workspaceId || !supabase) return;
+
+    const storedOrder = zrcReadStoredTaskOrder(selectedProject);
+    if (!storedOrder || Object.keys(storedOrder).length === 0) return;
+
+    const orderedColumns = zrcApplyStoredTaskOrderToColumns(boardColumns, selectedProject);
+    const orderSignature = `${selectedProject}::${zrcTaskOrderSignatureForColumns(orderedColumns)}`;
+
+    if (!orderSignature || zrcDesktopOrderDbMirrorRef.current.signature === orderSignature) return;
+
+    window.clearTimeout(zrcDesktopOrderDbMirrorRef.current.timer);
+
+    zrcDesktopOrderDbMirrorRef.current.timer = window.setTimeout(async () => {
+      if (zrcDesktopOrderDbMirrorRef.current.inFlight) return;
+
+      zrcDesktopOrderDbMirrorRef.current.inFlight = true;
+
+      try {
+        const projectId = await ensureSupabaseProject(selectedProject);
+        if (!projectId) return;
+
+        const updates = [];
+
+        for (const [columnIndex, column] of orderedColumns.entries()) {
+          if (!column) continue;
+
+          const columnId = await ensureSupabaseColumn(projectId, column, columnIndex);
+
+          for (const [taskIndex, task] of (column.tasks || []).entries()) {
+            const rawId = String(task?.id || '').trim();
+            const taskId = String(
+              task?.supabaseId ||
+              task?.supabase_id ||
+              (rawId.startsWith('supabase-') ? rawId.replace('supabase-', '') : '') ||
+              (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rawId) ? rawId : '') ||
+              ''
+            ).trim();
+
+            if (!taskId) continue;
+
+            updates.push({
+              taskId,
+              payload: {
+                task_order: taskIndex,
+                column_id: columnId || task?.column_id || null,
+                status: column?.title || task?.status || '',
+                updated_at: new Date().toISOString()
+              }
+            });
+          }
+        }
+
+        if (updates.length === 0) return;
+
+        await Promise.all(
+          updates.map(async ({ taskId, payload }) => {
+            const { error } = await supabase
+              .from('tasks')
+              .update(payload)
+              .eq('id', taskId)
+              .eq('workspace_id', workspaceId);
+
+            if (error) throw error;
+          })
+        );
+
+        zrcDesktopOrderDbMirrorRef.current.signature = orderSignature;
+
+        try {
+          window.localStorage.setItem('zrc-task-order-saving-until', String(Date.now() + 1500));
+        } catch (error) {}
+      } catch (error) {
+        console.warn('ZRC masaüstü görev sırası DB aynalama başarısız:', error);
+      } finally {
+        zrcDesktopOrderDbMirrorRef.current.inFlight = false;
+      }
+    }, 900);
+
+    return () => {
+      window.clearTimeout(zrcDesktopOrderDbMirrorRef.current.timer);
+    };
+  }, [selectedProject, zrcDesktopOrderDbMirrorSignature]);
+  /* === ZRC DESKTOP ORDER DB MIRROR END === */
+
   /* === ZRC TASK ORDER PERSISTENCE HELPERS END === */
 
   const setBoardColumns = (updater) => {
