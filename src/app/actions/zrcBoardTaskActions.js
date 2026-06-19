@@ -1080,8 +1080,8 @@ export function createZRCBoardTaskActions(deps) {
                   { transform: 'translate(0, 0)' }
                 ],
                 {
-                  duration: 230,
-                  easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                  duration: 275,
+                  easing: 'cubic-bezier(0.18, 1, 0.22, 1)',
                   fill: 'both'
                 }
               );
@@ -1154,56 +1154,137 @@ export function createZRCBoardTaskActions(deps) {
     if (!taskId || !targetColId || taskId === targetTaskId) return;
 
     const placement = insertPlacement === 'after' ? 'after' : 'before';
+    const slotKey = `${targetColId || ''}:${targetTaskId || '__end__'}:${placement}`;
 
-    // zrc-stable-slot-drag-preview-v1
-    // Drag sırasında state'i canlı canlı taşımıyoruz.
-    // Böylece kartlar sürekli yer değiştirip hedefi şaşırtmaz.
-    // Sadece hedef kartta sakin bir slot feedback gösterilir; asıl sıralama drop anında yapılır.
-    if (
-      draggedTaskInfo.current?.lastPreviewTargetColId === targetColId &&
-      draggedTaskInfo.current?.lastPreviewTargetTaskId === targetTaskId &&
-      draggedTaskInfo.current?.lastPreviewPlacement === placement
-    ) {
-      return;
+    // zrc-apple-spring-live-drag-v2
+    // Apple ana ekran hissi: kartlar canlı kayar ama hedef 90ms sabit kalmadan state değişmez.
+    // Bu sayede otomatik kayma var; fakat titreme/kafa karışıklığı azalır.
+    if (draggedTaskInfo.current?.zrcSpringLastAppliedSlotKey === slotKey) return;
+
+    if (draggedTaskInfo.current?.zrcSpringPreviewTimer) {
+      window.clearTimeout(draggedTaskInfo.current.zrcSpringPreviewTimer);
     }
 
     draggedTaskInfo.current = {
       ...draggedTaskInfo.current,
-      hasPreviewMoved: false,
+      zrcSpringPendingSlotKey: slotKey,
       lastPreviewTargetColId: targetColId,
       lastPreviewTargetTaskId: targetTaskId,
       lastPreviewPlacement: placement
     };
 
     if (typeof document !== 'undefined') {
-      document.documentElement.classList.add('zrc-desktop-task-live-previewing');
+      document.documentElement.classList.add('zrc-desktop-task-dragging');
+      document.documentElement.classList.add('zrc-apple-spring-task-dragging');
+    }
 
-      document
-        .querySelectorAll('.zrc-task-drop-before, .zrc-task-drop-after')
-        .forEach((element) => {
-          element.classList.remove('zrc-task-drop-before');
-          element.classList.remove('zrc-task-drop-after');
+    draggedTaskInfo.current.zrcSpringPreviewTimer = window.setTimeout(() => {
+      if (!draggedTaskInfo.current || draggedTaskInfo.current.zrcSpringPendingSlotKey !== slotKey) return;
 
-          if (element?.dataset) delete element.dataset.zrcDropPlacement;
-        });
+      const beforeRects =
+        typeof zrcCaptureTaskLayoutRects === 'function'
+          ? zrcCaptureTaskLayoutRects()
+          : null;
 
-      if (targetTaskId) {
-        const targetElement = Array.from(document.querySelectorAll('[data-zrc-task-card="true"]'))
-          .find((element) => String(element?.dataset?.zrcTaskId || '') === String(targetTaskId));
+      let didMove = false;
+      let nextColumnsForProject = null;
 
-        if (targetElement?.classList) {
-          targetElement.classList.add(placement === 'after' ? 'zrc-task-drop-after' : 'zrc-task-drop-before');
+      setBoardColumns((prevColumns) => {
+        const safeColumns = Array.isArray(prevColumns) ? prevColumns : [];
 
-          if (targetElement.dataset) {
-            targetElement.dataset.zrcDropPlacement = placement;
+        const sourceColIndex = safeColumns.findIndex((column) =>
+          (column.tasks || []).some((task) => String(task?.id || task?.supabaseId || '') === String(taskId))
+        );
+
+        const targetColIndex = safeColumns.findIndex((column) => String(column?.id || '') === String(targetColId));
+
+        if (sourceColIndex === -1 || targetColIndex === -1) return prevColumns;
+
+        const sourceTasks = [...(safeColumns[sourceColIndex]?.tasks || [])];
+        const sourceTaskIndex = sourceTasks.findIndex((task) => String(task?.id || task?.supabaseId || '') === String(taskId));
+
+        if (sourceTaskIndex === -1) return prevColumns;
+
+        const [draggedTask] = sourceTasks.splice(sourceTaskIndex, 1);
+
+        const nextColumns = safeColumns.map((column, index) =>
+          index === sourceColIndex
+            ? { ...column, tasks: sourceTasks }
+            : { ...column, tasks: [...(column.tasks || [])] }
+        );
+
+        const targetTasks = nextColumns[targetColIndex].tasks;
+        let insertIndex = targetTasks.length;
+
+        if (targetTaskId) {
+          const targetTaskIndex = targetTasks.findIndex((task) => String(task?.id || task?.supabaseId || '') === String(targetTaskId));
+
+          if (targetTaskIndex !== -1) {
+            insertIndex = placement === 'after' ? targetTaskIndex + 1 : targetTaskIndex;
           }
         }
+
+        insertIndex = Math.max(0, Math.min(targetTasks.length, insertIndex));
+
+        if (sourceColIndex === targetColIndex && insertIndex === sourceTaskIndex) return prevColumns;
+
+        const targetColumn = nextColumns[targetColIndex] || {};
+        const previewTask = {
+          ...draggedTask,
+          status: targetColumn.title || draggedTask.status,
+          columnTitle: targetColumn.title || draggedTask.columnTitle,
+          columnColor: targetColumn.color || draggedTask.columnColor
+        };
+
+        targetTasks.splice(insertIndex, 0, previewTask);
+
+        nextColumnsForProject = nextColumns;
+        didMove = true;
+
+        draggedTaskInfo.current = {
+          ...draggedTaskInfo.current,
+          hasPreviewMoved: true,
+          currentColumnId: targetColId,
+          zrcSpringLastAppliedSlotKey: slotKey,
+          zrcSpringPendingSlotKey: null,
+          lastPreviewTargetColId: targetColId,
+          lastPreviewTargetTaskId: targetTaskId,
+          lastPreviewPlacement: placement
+        };
+
+        return nextColumns;
+      });
+
+      if (didMove && nextColumnsForProject && typeof setProjectBoards === 'function' && typeof selectedProject !== 'undefined' && selectedProject) {
+        setProjectBoards((prevBoards) => ({
+          ...(prevBoards || {}),
+          [selectedProject]: {
+            ...((prevBoards || {})[selectedProject] || {}),
+            columns: nextColumnsForProject
+          }
+        }));
       }
-    }
+
+      if (didMove && beforeRects && typeof zrcAnimateTaskLayoutShift === 'function') {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            zrcAnimateTaskLayoutShift(beforeRects, {
+              duration: 275,
+              easing: 'cubic-bezier(0.18, 1, 0.22, 1)'
+            });
+          });
+        });
+      }
+    }, 90);
   };
 
 
   const handleDrop = (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
+
+    if (draggedTaskInfo.current?.zrcSpringPreviewTimer) {
+      window.clearTimeout(draggedTaskInfo.current.zrcSpringPreviewTimer);
+      draggedTaskInfo.current.zrcSpringPreviewTimer = null;
+    }
     e.preventDefault();
     e.stopPropagation();
 

@@ -1964,59 +1964,66 @@ body {
 }
 /* === ZRC PURE ORANGE DOT CURSOR END === */
 
-/* === ZRC STABLE SLOT DND START === */
+/* === ZRC APPLE SPRING DND START === */
 @media (min-width: 769px) and (prefers-reduced-motion: no-preference) {
   [data-zrc-task-card="true"] {
     transform-origin: center;
     backface-visibility: hidden;
+    will-change: auto;
   }
 
   html:not(.zrc-desktop-task-dragging) [data-zrc-task-card="true"] {
     transition:
-      transform 150ms cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 150ms ease,
-      opacity 150ms ease,
-      filter 150ms ease,
-      background-color 150ms ease !important;
+      transform 170ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 170ms ease,
+      filter 170ms ease,
+      opacity 170ms ease,
+      background-color 170ms ease !important;
   }
 
-  html.zrc-desktop-task-dragging .zrc-desktop-task-drag-source {
-    opacity: 0.22 !important;
-    transform: scale(0.99) !important;
-    filter: saturate(0.88) !important;
+  html.zrc-apple-spring-task-dragging [data-zrc-task-card="true"] {
+    transition:
+      transform 275ms cubic-bezier(0.18, 1, 0.22, 1),
+      box-shadow 175ms ease,
+      opacity 145ms ease,
+      filter 175ms ease,
+      background-color 175ms ease !important;
+    will-change: transform;
+  }
+
+  html.zrc-apple-spring-task-dragging .zrc-desktop-task-drag-source {
+    opacity: 0.18 !important;
+    transform: scale(0.985) !important;
+    filter: saturate(0.82) blur(0.1px) !important;
     box-shadow: none !important;
   }
 
-  html.zrc-desktop-task-dragging .zrc-desktop-task-drag-source * {
-    opacity: 0.28 !important;
+  html.zrc-apple-spring-task-dragging .zrc-desktop-task-drag-source * {
+    opacity: 0.18 !important;
   }
 
-  html.zrc-desktop-task-live-previewing [data-zrc-task-card="true"]:not(.zrc-desktop-task-drag-source) {
-    transition:
-      box-shadow 120ms ease,
-      background-color 120ms ease,
-      transform 120ms ease !important;
+  html.zrc-apple-spring-task-dragging [data-zrc-task-card="true"]:not(.zrc-desktop-task-drag-source) {
+    filter: saturate(1.01);
   }
 
-  html.zrc-desktop-task-live-previewing .zrc-task-drop-before,
-  html.zrc-desktop-task-live-previewing .zrc-task-drop-after {
-    background:
-      linear-gradient(180deg, rgba(255, 54, 0, 0.035), rgba(255, 255, 255, 0)) !important;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 54, 0, 0.22),
-      0 8px 20px rgba(255, 54, 0, 0.07) !important;
-  }
-
-  html.zrc-desktop-task-live-previewing .zrc-task-drop-before {
-    transform: translateY(2px) !important;
-  }
-
-  html.zrc-desktop-task-live-previewing .zrc-task-drop-after {
-    transform: translateY(-2px) !important;
-  }
-
-  html.zrc-desktop-task-dragging [draggable="true"] {
+  html.zrc-apple-spring-task-dragging [draggable="true"] {
     cursor: grabbing !important;
   }
 }
-/* === ZRC STABLE SLOT DND END === */
+
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .zrc-mobile-task-card {
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 200ms ease,
+      filter 200ms ease,
+      opacity 200ms ease !important;
+    backface-visibility: hidden;
+    transform-origin: center;
+  }
+
+  .zrc-mobile-task-card:active {
+    transform: scale(0.992);
+  }
+}
+/* === ZRC APPLE SPRING DND END === */
