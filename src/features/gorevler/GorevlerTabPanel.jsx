@@ -474,6 +474,32 @@ onDragOver={(e) => e.preventDefault()}
                                       if (isEditMode) return;
                                       openTaskDetail(task, column.title);
                                     }}
+                                    // zrc-task-card-edge-drop-zones-v1
+                                    // Kartın üst/alt kenarlarına yaklaşmak iki görev arasına bırakmak için yeterli olsun.
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+
+                                      if (typeof handleDragOverTaskPreview !== 'function') return;
+
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      const height = Math.max(rect.height || 1, 1);
+                                      const ratio = (e.clientY - rect.top) / height;
+
+                                      if (ratio <= 0.44) {
+                                        handleDragOverTaskPreview(e, column.id, task.id, 'before');
+                                        return;
+                                      }
+
+                                      if (ratio >= 0.56) {
+                                        handleDragOverTaskPreview(e, column.id, task.id, 'after');
+                                      }
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleDrop(e, column.id, task.id);
+                                    }}
                                     onDragStart={(e) => {
                                       if (!currentPermissions.editTasks || !canCurrentUserModifyTask(task, selectedProject)) {
                                         e.preventDefault();
