@@ -10252,6 +10252,11 @@ function ZRCAppShell() {
     const cleanupBadCursorDragClasses = () => {
       document.documentElement.classList.remove('zrc-task-native-dragging');
       document.documentElement.classList.remove('zrc-hide-custom-cursor-during-drag');
+      document.documentElement.classList.remove('zrc-desktop-task-dragging');
+      document.documentElement.classList.remove('zrc-apple-spring-task-dragging');
+      document.documentElement.classList.remove('zrc-task-drag-clone-hidden-active');
+      document.body?.classList?.remove('zrc-pure-dot-cursor-down');
+      document.body?.classList?.remove('zrc-pure-dot-cursor-clicked');
     };
 
     cleanupBadCursorDragClasses();
@@ -10268,6 +10273,48 @@ function ZRCAppShell() {
       window.removeEventListener('pointerup', cleanupBadCursorDragClasses, true);
       window.removeEventListener('mouseup', cleanupBadCursorDragClasses, true);
       window.removeEventListener('blur', cleanupBadCursorDragClasses, true);
+    };
+  }, []);
+
+
+  useEffect(() => {
+    // zrc-final-cursor-drag-class-cleanup-v1
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const cleanupDragCursorState = () => {
+      document.documentElement.classList.remove('zrc-task-native-dragging');
+      document.documentElement.classList.remove('zrc-hide-custom-cursor-during-drag');
+      document.documentElement.classList.remove('zrc-desktop-task-dragging');
+      document.documentElement.classList.remove('zrc-apple-spring-task-dragging');
+      document.documentElement.classList.remove('zrc-task-drag-clone-hidden-active');
+
+      document.body?.classList?.remove('zrc-pure-dot-cursor-down');
+      document.body?.classList?.remove('zrc-pure-dot-cursor-clicked');
+
+      document
+        .querySelectorAll('[data-zrc-drag-hidden-clone="true"], .zrc-task-drag-in-list-copy-hidden')
+        .forEach((element) => {
+          element.classList.remove('zrc-task-drag-in-list-copy-hidden');
+          element.removeAttribute('data-zrc-drag-hidden-clone');
+        });
+    };
+
+    window.addEventListener('drop', cleanupDragCursorState, true);
+    window.addEventListener('dragend', cleanupDragCursorState, true);
+    window.addEventListener('pointerup', cleanupDragCursorState, true);
+    window.addEventListener('mouseup', cleanupDragCursorState, true);
+    window.addEventListener('blur', cleanupDragCursorState, true);
+
+    document.addEventListener('keyup', (event) => {
+      if (event?.key === 'Escape') cleanupDragCursorState();
+    }, true);
+
+    return () => {
+      window.removeEventListener('drop', cleanupDragCursorState, true);
+      window.removeEventListener('dragend', cleanupDragCursorState, true);
+      window.removeEventListener('pointerup', cleanupDragCursorState, true);
+      window.removeEventListener('mouseup', cleanupDragCursorState, true);
+      window.removeEventListener('blur', cleanupDragCursorState, true);
     };
   }, []);
 

@@ -321,6 +321,16 @@ export default function ZRCPremiumCursor() {
       }
     };
 
+
+    // zrc-pure-dot-final-drag-release-v1
+    const zrcForceReleaseCursorState = () => {
+      body.classList.remove('zrc-pure-dot-cursor-down');
+      body.classList.remove('zrc-pure-dot-cursor-clicked');
+      body.classList.remove('zrc-pure-dot-cursor-interactive');
+
+      window.requestAnimationFrame(recalculateAtCurrentPoint);
+    };
+
     const onPointerUp = (event) => {
       body.classList.remove('zrc-pure-dot-cursor-down');
       if (event) applyTargetState(event);
@@ -399,6 +409,10 @@ export default function ZRCPremiumCursor() {
     window.addEventListener('pointermove', zrcUpdateLiquidCursor, { passive: true });
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
+    window.addEventListener('mouseup', zrcForceReleaseCursorState, true);
+    window.addEventListener('drop', zrcForceReleaseCursorState, true);
+    window.addEventListener('dragend', zrcForceReleaseCursorState, true);
+    window.addEventListener('blur', zrcForceReleaseCursorState, true);
     window.addEventListener('mouseleave', onMouseLeave);
     window.addEventListener('mouseenter', onMouseEnter);
     window.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -415,6 +429,10 @@ export default function ZRCPremiumCursor() {
       zrcResetLiquidCursor();
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('mouseup', zrcForceReleaseCursorState, true);
+      window.removeEventListener('drop', zrcForceReleaseCursorState, true);
+      window.removeEventListener('dragend', zrcForceReleaseCursorState, true);
+      window.removeEventListener('blur', zrcForceReleaseCursorState, true);
       window.removeEventListener('mouseleave', onMouseLeave);
       window.removeEventListener('mouseenter', onMouseEnter);
       window.removeEventListener('touchstart', onTouchStart);
