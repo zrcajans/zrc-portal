@@ -300,6 +300,33 @@ export default function ZRCPremiumCursor() {
       applyTargetState(event);
     };
 
+
+    // zrc-pure-dot-native-drag-shape-v1
+    const zrcStartNativeDragCursor = (event) => {
+      body.classList.add('zrc-pure-dot-cursor-dragging');
+      body.classList.add('zrc-pure-dot-cursor-visible');
+      body.classList.remove('zrc-pure-dot-cursor-text-mode');
+
+      if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+        onPointerMove(event);
+      }
+    };
+
+    const zrcMoveNativeDragCursor = (event) => {
+      if (!body.classList.contains('zrc-pure-dot-cursor-dragging')) return;
+
+      body.classList.add('zrc-pure-dot-cursor-visible');
+      body.classList.remove('zrc-pure-dot-cursor-text-mode');
+
+      if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+        onPointerMove(event);
+      }
+    };
+
+    const zrcStopNativeDragCursor = () => {
+      body.classList.remove('zrc-pure-dot-cursor-dragging');
+    };
+
     const onPointerDown = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
 
@@ -342,6 +369,13 @@ export default function ZRCPremiumCursor() {
     frameRef.current = window.requestAnimationFrame(animate);
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('dragstart', zrcStartNativeDragCursor, true);
+    window.addEventListener('dragover', zrcMoveNativeDragCursor, true);
+    window.addEventListener('drag', zrcMoveNativeDragCursor, true);
+    window.addEventListener('drop', zrcStopNativeDragCursor, true);
+    window.addEventListener('dragend', zrcStopNativeDragCursor, true);
+    window.addEventListener('pointerup', zrcStopNativeDragCursor, true);
+    window.addEventListener('blur', zrcStopNativeDragCursor, true);
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
     window.addEventListener('mouseleave', onMouseLeave);
@@ -355,6 +389,13 @@ export default function ZRCPremiumCursor() {
       window.clearTimeout(clickTimerRef.current);
 
       window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('dragstart', zrcStartNativeDragCursor, true);
+      window.removeEventListener('dragover', zrcMoveNativeDragCursor, true);
+      window.removeEventListener('drag', zrcMoveNativeDragCursor, true);
+      window.removeEventListener('drop', zrcStopNativeDragCursor, true);
+      window.removeEventListener('dragend', zrcStopNativeDragCursor, true);
+      window.removeEventListener('pointerup', zrcStopNativeDragCursor, true);
+      window.removeEventListener('blur', zrcStopNativeDragCursor, true);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('mouseleave', onMouseLeave);
