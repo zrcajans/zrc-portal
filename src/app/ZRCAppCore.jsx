@@ -1465,6 +1465,10 @@ function App() {
   // Sayfa yenilenince görev kartları Supabase beklemeden son yerel cache'ten anında gösterilir.
   // Supabase arkada güncel veriyi getirince mevcut akış zaten panoyu tazeler.
   useEffect(() => {
+    // zrc-mobile-follows-desktop-order-v2-skip-instant-cache
+    // Mobil eski local projectBoards cache'iyle açılış sırasını bozmasın.
+    if (zrcIsMobileTaskOrderFollowerDevice()) return;
+
     const cachedBoards = normalizeStorageObject(readStorageValue('projectBoards', null), null);
 
     if (!cachedBoards || typeof cachedBoards !== 'object' || Array.isArray(cachedBoards)) {
@@ -1545,6 +1549,23 @@ function App() {
   const zrcGetColumnOrderKey = (column = {}) =>
     String(column?.id || normalizeColumnTitleForDisplay(column?.title || '') || '').trim();
 
+  /* === ZRC MOBILE FOLLOWS DESKTOP ORDER START === */
+  const zrcIsMobileTaskOrderFollowerDevice = () => {
+    if (typeof window === 'undefined') return false;
+
+    try {
+      return Boolean(
+        window.matchMedia?.('(max-width: 768px)')?.matches ||
+        window.innerWidth <= 768 ||
+        /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || '')
+      );
+    } catch (error) {
+      return false;
+    }
+  };
+  /* === ZRC MOBILE FOLLOWS DESKTOP ORDER END === */
+
+
   const zrcReadStoredTaskOrder = (projectName = '') => {
     const storageKey = zrcTaskOrderStorageKeyForProject(projectName);
     const storedOrder = normalizeStorageObject(readStorageValue(storageKey, {}), {});
@@ -1556,6 +1577,10 @@ function App() {
 
   const zrcPersistTaskOrderForColumns = (columns = [], projectName = selectedProject) => {
     if (!projectName || !Array.isArray(columns)) return;
+
+    // zrc-mobile-follows-desktop-order-v2-persist-noop
+    // Mobil kendi local görev sırasını yazmaz; masaüstünün DB sırasını takip eder.
+    if (zrcIsMobileTaskOrderFollowerDevice()) return;
 
     const orderMap = {};
 
@@ -1577,6 +1602,10 @@ function App() {
 
   const zrcApplyStoredTaskOrderToColumns = (columns = [], projectName = selectedProject) => {
     if (!projectName || !Array.isArray(columns)) return columns;
+
+    // zrc-mobile-follows-desktop-order-v2-apply-noop
+    // Mobilde eski localStorage sırası DB/masaüstü sırasını ezmesin.
+    if (zrcIsMobileTaskOrderFollowerDevice()) return columns;
 
     const storedOrder = zrcReadStoredTaskOrder(projectName);
     let didChange = false;
@@ -1621,6 +1650,25 @@ function App() {
 
     return didChange ? orderedColumns : columns;
   };
+
+
+  useEffect(() => {
+    // zrc-mobile-follows-desktop-order-v2-clear-local-cache
+    // Mobilde eski sıra cache'leri masaüstü sırasını ezmesin.
+    if (!zrcIsMobileTaskOrderFollowerDevice()) return;
+    if (typeof window === 'undefined') return;
+
+    try {
+      Object.keys(window.localStorage || {}).forEach((key) => {
+        if (String(key).startsWith('zrc-task-order-v1:')) {
+          window.localStorage.removeItem(key);
+        }
+      });
+
+      window.localStorage.removeItem('projectBoards');
+      window.localStorage.removeItem('zrc-task-order-saving-until');
+    } catch (error) {}
+  }, []);
 
   const zrcTaskOrderSignatureForColumns = (columns = []) =>
     (Array.isArray(columns) ? columns : [])
@@ -1676,6 +1724,10 @@ function App() {
 
 
   useEffect(() => {
+    // zrc-mobile-follows-desktop-order-v2-no-projectboards-write
+    // Mobil kendi projectBoards cache'ini üretmesin; masaüstü/DB sırasını takip etsin.
+    if (zrcIsMobileTaskOrderFollowerDevice()) return;
+
     writeStorageValue('projectBoards', projectBoards);
   }, [projectBoards]);
 
@@ -6045,13 +6097,57 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
     }
   };
 
+
+  // zrc-mobile-follows-desktop-order-v2-visible-sort
+  const zrcGetDesktopTaskOrderValueForMobile = (task = {}, fallbackIndex = 0) => {
+    const candidates = [
+      task?.task_order,
+      task?.taskOrder,
+      task?.order,
+      task?.sort_order,
+      task?.sortOrder,
+      task?.position
+    ];
+
+    for (const value of candidates) {
+      if (value === null || value === undefined || value === '') continue;
+
+      const numericValue = Number(value);
+
+      if (Number.isFinite(numericValue)) return numericValue;
+    }
+
+    return fallbackIndex;
+  };
+
+  const zrcSortTasksByDesktopOrderForMobile = (tasks = []) => {
+    if (!zrcIsMobileTaskOrderFollowerDevice()) return tasks;
+    if (!Array.isArray(tasks) || tasks.length <= 1) return tasks;
+
+    return [...tasks]
+      .map((task, index) => ({
+        task,
+        index,
+        orderValue: zrcGetDesktopTaskOrderValueForMobile(task, index)
+      }))
+      .sort((first, second) => {
+        if (first.orderValue !== second.orderValue) return first.orderValue - second.orderValue;
+        return first.index - second.index;
+      })
+      .map((entry) => entry.task);
+  };
+
   // Mobil görünüm dahil tüm görünür kolonlarda DB task_order sırası korunur.
-  const visibleBoardColumns = boardColumns.map((column) => ({
-    ...column,
-    tasks: (
-      (column.tasks || []).filter((task) => isTaskVisibleForProject(task, selectedProject))
-    )
-  }));
+  const visibleBoardColumns = boardColumns.map((column) => {
+    const filteredVisibleTasks = (column.tasks || []).filter((task) =>
+      isTaskVisibleForProject(task, selectedProject)
+    );
+
+    return {
+      ...column,
+      tasks: zrcSortTasksByDesktopOrderForMobile(filteredVisibleTasks)
+    };
+  });
 
   // zrc-v454c-mobile-active-column-sync
   const mobileVisibleBoardColumnIds = visibleBoardColumns.map((column) => column.id).join('|');
