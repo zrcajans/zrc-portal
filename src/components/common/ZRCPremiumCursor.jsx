@@ -133,6 +133,8 @@ function isPointOnReadableText(x, y, target, editableSelector, interactiveSelect
 
   if (element.closest(editableSelector)) return true;
 
+  if (element.closest(interactiveSelector)) return false;
+
   const textTags = 'p,span,strong,em,b,i,small,label,h1,h2,h3,h4,h5,h6,li,td,th,blockquote,code,pre,div';
   const elementsAtPoint = document.elementsFromPoint?.(x, y) || [element];
 
@@ -194,18 +196,33 @@ export default function ZRCPremiumCursor() {
       'a',
       'button',
       '[role="button"]',
+      '[type="button"]',
+      '[type="submit"]',
+      '[type="reset"]',
       'select',
       'summary',
+      '[aria-haspopup]',
+      '[aria-expanded]',
       '[data-cursor="interactive"]',
+      '[data-state]',
+      '[tabindex]:not([tabindex="-1"])',
       '.cursor-pointer',
+      '.btn',
+      '.button',
+      '[class*="button"]',
+      '[class*="Button"]',
+      '[class*="btn"]',
+      '[class*="Btn"]',
       '[draggable="true"]'
     ].join(',');
 
     const applyTargetState = (event) => {
       const target = event.target;
       const element = target instanceof Element ? target : null;
-      const isTextMode = isPointOnReadableText(event.clientX, event.clientY, target, editableSelector, interactiveSelector);
-      const isInteractive = Boolean(element?.closest(interactiveSelector)) && !isTextMode;
+      const isEditable = Boolean(element?.closest(editableSelector));
+      const isClickable = Boolean(element?.closest(interactiveSelector)) && !isEditable;
+      const isTextMode = !isClickable && isPointOnReadableText(event.clientX, event.clientY, target, editableSelector, interactiveSelector);
+      const isInteractive = isClickable && !isTextMode;
       const needsWhiteOutline = !isTextMode && shouldUseWhiteOutline(target);
 
       body.classList.toggle('zrc-pure-dot-cursor-text-mode', isTextMode);
