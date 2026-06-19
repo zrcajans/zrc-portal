@@ -10133,6 +10133,71 @@ const filterTaskFollowersForSave = (people = []) =>
 }
 
 function ZRCAppShell() {
+  useEffect(() => {
+    // zrc-cursor-task-drag-follow-v1
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    let rafId = 0;
+    let lastX = -100;
+    let lastY = -100;
+
+    const setCursorPoint = (x, y) => {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+      lastX = x;
+      lastY = y;
+
+      if (rafId) return;
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        document.documentElement.style.setProperty('--zrc-cursor-x', `${lastX}px`);
+        document.documentElement.style.setProperty('--zrc-cursor-y', `${lastY}px`);
+      });
+    };
+
+    const startDragCursor = (event) => {
+      document.documentElement.classList.add('zrc-task-native-dragging');
+
+      if (event?.clientX || event?.clientY) {
+        setCursorPoint(event.clientX, event.clientY);
+      }
+    };
+
+    const moveDragCursor = (event) => {
+      if (!document.documentElement.classList.contains('zrc-desktop-task-dragging') && !document.documentElement.classList.contains('zrc-task-native-dragging')) {
+        return;
+      }
+
+      setCursorPoint(event.clientX, event.clientY);
+    };
+
+    const stopDragCursor = () => {
+      document.documentElement.classList.remove('zrc-task-native-dragging');
+    };
+
+    window.addEventListener('dragstart', startDragCursor, true);
+    window.addEventListener('dragover', moveDragCursor, true);
+    window.addEventListener('drag', moveDragCursor, true);
+    window.addEventListener('drop', stopDragCursor, true);
+    window.addEventListener('dragend', stopDragCursor, true);
+    window.addEventListener('pointerup', stopDragCursor, true);
+    window.addEventListener('blur', stopDragCursor, true);
+
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+
+      window.removeEventListener('dragstart', startDragCursor, true);
+      window.removeEventListener('dragover', moveDragCursor, true);
+      window.removeEventListener('drag', moveDragCursor, true);
+      window.removeEventListener('drop', stopDragCursor, true);
+      window.removeEventListener('dragend', stopDragCursor, true);
+      window.removeEventListener('pointerup', stopDragCursor, true);
+      window.removeEventListener('blur', stopDragCursor, true);
+    };
+  }, []);
+
+
   return (
     <ZRCErrorBoundary buildLabel={ZRC_APP_BUILD_LABEL}>
       <App />

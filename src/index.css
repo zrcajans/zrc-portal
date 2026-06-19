@@ -2067,3 +2067,36 @@ body {
 }
 /* === ZRC TASK DRAG HIDE DUPLICATE V2 END === */
 
+/* === ZRC CURSOR TASK DRAG FIX START === */
+@media (pointer: fine) {
+  html.zrc-desktop-task-dragging,
+  html.zrc-desktop-task-dragging *,
+  html.zrc-task-native-dragging,
+  html.zrc-task-native-dragging * {
+    cursor: none !important;
+  }
+
+  html.zrc-desktop-task-dragging input,
+  html.zrc-desktop-task-dragging textarea,
+  html.zrc-desktop-task-dragging [contenteditable="true"],
+  html.zrc-task-native-dragging input,
+  html.zrc-task-native-dragging textarea,
+  html.zrc-task-native-dragging [contenteditable="true"] {
+    cursor: none !important;
+  }
+
+  html.zrc-desktop-task-dragging .zrc-custom-cursor,
+  html.zrc-task-native-dragging .zrc-custom-cursor,
+  html.zrc-desktop-task-dragging [data-zrc-custom-cursor],
+  html.zrc-task-native-dragging [data-zrc-custom-cursor],
+  html.zrc-desktop-task-dragging #zrc-custom-cursor,
+  html.zrc-task-native-dragging #zrc-custom-cursor {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    pointer-events: none !important;
+    z-index: 2147483647 !important;
+    transform: translate3d(var(--zrc-cursor-x, -100px), var(--zrc-cursor-y, -100px), 0) scale(1.08) !important;
+  }
+}
+/* === ZRC CURSOR TASK DRAG FIX END === */
