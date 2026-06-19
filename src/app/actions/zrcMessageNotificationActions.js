@@ -203,9 +203,27 @@ export function createZRCMessageNotificationActions(deps) {
         clearedBeforeToken
       ]));
 
+      // zrc-notification-clear-sync-action-v1
+      // Temizle işlemi mobil/masaüstü aynı anda yürüsün diye temizlenen id/key listeleri
+      // sadece localStorage'da değil, Supabase user_preferences içinde de tutulur.
+      const nextClearedNotificationIds = Array.from(new Set([
+        ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY),
+        ...clearState.ids
+      ]));
+
+      const nextClearedNotificationKeys = Array.from(new Set([
+        ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY),
+        ...clearState.keys
+      ]));
+
       saveUserPreferencesToSupabase({
         readNotificationIds: nextIds,
-        notificationsClearedBefore: clearedBefore
+        notificationsClearedBefore: clearedBefore,
+        notificationsClearedAt: clearedBefore,
+        notificationClearVersion: clearedBefore,
+        notificationClearSource: currentUserId,
+        clearedNotificationIds: nextClearedNotificationIds,
+        clearedNotificationKeys: nextClearedNotificationKeys
       });
 
       return nextIds;

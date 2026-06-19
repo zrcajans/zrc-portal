@@ -3935,7 +3935,7 @@ function App() {
 
           if (!preferencesReadError) {
             const preferences = preferencesRecord?.preferences || {};
-            preferenceReadIds = normalizeStorageArray(preferences.readNotificationIds || [], []);
+            preferenceReadIds = zrcCoreBuildRemoteNotificationClearIds(preferences);
           }
         } catch (error) {
           preferenceReadIds = [];
@@ -7796,6 +7796,124 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     return false;
   };
 
+  // zrc-notification-clear-sync-core-v1
+  // Uzak cihazdan gelen bildirim temizleme bilgisini tek listeye çevirir.
+  // Böylece bir cihazda "Temizle" basılınca diğer cihazda id, key ve cleared-before tokenları aynı anda uygulanır.
+  const zrcCoreBuildRemoteNotificationClearIds = (preferences = {}) => {
+    const readIds = normalizeStorageArray(preferences.readNotificationIds || [], []);
+    const clearedIds = normalizeStorageArray(preferences.clearedNotificationIds || [], []);
+    const clearedKeys = normalizeStorageArray(preferences.clearedNotificationKeys || [], []);
+
+    const clearedBeforeValue =
+      preferences.notificationsClearedBefore ||
+      preferences.notificationsClearedAt ||
+      preferences.notificationClearVersion ||
+      '';
+
+    const nextIds = new Set(readIds.map(String));
+
+    clearedIds.forEach((id) => {
+      const value = String(id || '').trim();
+      if (!value) return;
+
+      nextIds.add(value);
+      nextIds.add(`cleared:${value}`);
+
+      if (value.startsWith('supabase-notification-')) {
+        const cleanId = value.replace('supabase-notification-', '');
+        if (cleanId) {
+          nextIds.add(cleanId);
+          nextIds.add(`cleared:${cleanId}`);
+        }
+      } else {
+        nextIds.add(`supabase-notification-${value}`);
+        nextIds.add(`cleared:supabase-notification-${value}`);
+      }
+    });
+
+    clearedKeys.forEach((key) => {
+      const value = String(key || '').trim();
+      if (!value) return;
+
+      nextIds.add(`cleared-key:${value}`);
+    });
+
+    if (clearedBeforeValue) {
+      nextIds.add(`cleared-before:${clearedBeforeValue}`);
+    }
+
+    return Array.from(nextIds);
+  };
+
+  const zrcCoreApplyRemoteNotificationClearState = (preferences = {}) => {
+    const remoteIds = zrcCoreBuildRemoteNotificationClearIds(preferences);
+
+    if (remoteIds.length === 0) return;
+
+    setReadNotificationIds((prevIds) => Array.from(new Set([...(prevIds || []), ...remoteIds])));
+
+    const clearedIdSet = new Set();
+    const clearedKeySet = new Set();
+
+    remoteIds.forEach((rawValue) => {
+      const value = String(rawValue || '');
+
+      if (value.startsWith('cleared:')) {
+        const cleanId = value.slice('cleared:'.length);
+        if (cleanId) clearedIdSet.add(cleanId);
+      }
+
+      if (value.startsWith('cleared-key:')) {
+        const cleanKey = value.slice('cleared-key:'.length);
+        if (cleanKey) clearedKeySet.add(cleanKey);
+      }
+    });
+
+    if (clearedIdSet.size === 0 && clearedKeySet.size === 0) return;
+
+    setActivityNotifications((prevNotifications) =>
+      (prevNotifications || []).filter((notification) => {
+        const rawId = String(notification?.id || '').trim();
+        const idVariants = new Set();
+
+        if (rawId) {
+          idVariants.add(rawId);
+
+          if (rawId.startsWith('supabase-notification-')) {
+            const cleanId = rawId.replace('supabase-notification-', '');
+            if (cleanId) idVariants.add(cleanId);
+          } else {
+            idVariants.add(`supabase-notification-${rawId}`);
+          }
+        }
+
+        const fingerprint = [
+          notification.id,
+          notification.type,
+          notification.title,
+          notification.text,
+          notification.meta,
+          notification.projectName,
+          notification.chatGroupId,
+          notification.task?.id,
+          notification.task?.title,
+          notification.createdAt,
+          notification.updatedAt,
+          notification.time
+        ]
+          .map((value) => String(value || '').trim().toLowerCase())
+          .join('|');
+
+        if (Array.from(idVariants).some((id) => clearedIdSet.has(String(id)))) return false;
+        if (clearedKeySet.has(String(fingerprint))) return false;
+
+        return true;
+      })
+    );
+  };
+
+
+
   useEffect(() => {
     if (!isLoggedIn || !supabase || !supabaseWorkspaceId || !currentUserId) return undefined;
 
@@ -7813,13 +7931,15 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
         if (cancelled || error) return;
 
         const preferences = normalizeStorageObject(preferencesRecord?.preferences || {}, {});
-        const remoteReadNotificationIds = normalizeStorageArray(preferences.readNotificationIds || [], []);
+        const remoteReadNotificationIds = zrcCoreBuildRemoteNotificationClearIds(preferences);
 
         if (remoteReadNotificationIds.length === 0) return;
 
         setReadNotificationIds((prevIds) =>
           Array.from(new Set([...(prevIds || []), ...remoteReadNotificationIds]))
         );
+
+        zrcCoreApplyRemoteNotificationClearState(preferences);
       } catch (error) {
         console.warn('[ZRC] Bildirim temizleme senkronu atlandı.', error);
       }
@@ -7859,13 +7979,15 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
         if (cancelled || error) return;
 
         const preferences = normalizeStorageObject(preferencesRecord?.preferences || {}, {});
-        const remoteReadNotificationIds = normalizeStorageArray(preferences.readNotificationIds || [], []);
+        const remoteReadNotificationIds = zrcCoreBuildRemoteNotificationClearIds(preferences);
 
         if (remoteReadNotificationIds.length === 0) return;
 
         setReadNotificationIds((prevIds) =>
           Array.from(new Set([...(prevIds || []), ...remoteReadNotificationIds]))
         );
+
+        zrcCoreApplyRemoteNotificationClearState(preferences);
       } catch (error) {
         console.warn('[ZRC] Canlı bildirim okundu senkronu atlandı.', error);
       }

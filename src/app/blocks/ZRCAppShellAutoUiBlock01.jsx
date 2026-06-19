@@ -159,6 +159,9 @@ const zrcIsNotificationCleared = (notification, readNotificationIds = []) => {
 
   if (clearedBeforeMs && notificationTimeMs && notificationTimeMs <= clearedBeforeMs) return true;
 
+  // zrc-notification-panel-cleared-before-fallback-v1
+  // Temizle başka cihazdan geldiyse, zaman bilgisi olmayan eski activity kalemleri de id/key ile aşağıda yakalanır.
+  // Burada fallback kasıtlı olarak tüm bildirimleri körlemesine gizlemez; yeni bildirimlerin yanlış kaybolmasını engeller.
   const state = zrcBuildClearedNotificationState(readNotificationIds);
   const variants = zrcNotificationIdVariants(notification);
   const fingerprint = zrcNotificationFingerprint(notification);
