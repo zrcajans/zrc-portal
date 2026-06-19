@@ -133,8 +133,6 @@ function isPointOnReadableText(x, y, target, editableSelector, interactiveSelect
 
   if (element.closest(editableSelector)) return true;
 
-  if (element.closest(interactiveSelector)) return false;
-
   const textTags = 'p,span,strong,em,b,i,small,label,h1,h2,h3,h4,h5,h6,li,td,th,blockquote,code,pre,div';
   const elementsAtPoint = document.elementsFromPoint?.(x, y) || [element];
 
@@ -182,9 +180,14 @@ export default function ZRCPremiumCursor() {
     if (reducedMotion && reducedMotion.matches) return undefined;
 
     const body = document.body;
-    const cursor = cursorRef.current;
+    const cursor = document.createElement('span');
 
-    if (!body || !cursor) return undefined;
+    cursor.className = 'zrc-pure-dot-cursor';
+    cursor.setAttribute('aria-hidden', 'true');
+    cursor.setAttribute('data-zrc-cursor-portal', 'true');
+
+    cursorRef.current = cursor;
+    body.appendChild(cursor);
 
     const editableSelector = [
       'input',
@@ -360,6 +363,9 @@ export default function ZRCPremiumCursor() {
       window.removeEventListener('scroll', onScroll, { capture: true });
       document.removeEventListener('selectionchange', onSelectionChange);
 
+      cursor.remove();
+      cursorRef.current = null;
+
       body.classList.remove(
         'zrc-pure-dot-cursor-enabled',
         'zrc-pure-dot-cursor-visible',
@@ -372,5 +378,5 @@ export default function ZRCPremiumCursor() {
     };
   }, []);
 
-  return <span ref={cursorRef} className="zrc-pure-dot-cursor" aria-hidden="true" />;
+  return null;
 }
