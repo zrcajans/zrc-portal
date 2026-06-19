@@ -2067,3 +2067,28 @@ body {
 }
 /* === ZRC TASK DRAG HIDE DUPLICATE V2 END === */
 
+/* === ZRC SAFE CURSOR DURING TASK DRAG START === */
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html.zrc-desktop-task-dragging body.zrc-pure-dot-cursor-enabled,
+  html.zrc-desktop-task-dragging body.zrc-pure-dot-cursor-enabled *,
+  html.zrc-apple-spring-task-dragging body.zrc-pure-dot-cursor-enabled,
+  html.zrc-apple-spring-task-dragging body.zrc-pure-dot-cursor-enabled * {
+    cursor: grabbing !important;
+  }
+
+  html.zrc-desktop-task-dragging body .zrc-pure-dot-cursor,
+  html.zrc-apple-spring-task-dragging body .zrc-pure-dot-cursor {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    display: block !important;
+    pointer-events: none !important;
+    transform: translate3d(-9999px, -9999px, 0) translate(-50%, -50%) !important;
+  }
+
+  html.zrc-desktop-task-dragging body .zrc-pure-dot-cursor::after,
+  html.zrc-apple-spring-task-dragging body .zrc-pure-dot-cursor::after {
+    opacity: 0 !important;
+    animation: none !important;
+  }
+}
+/* === ZRC SAFE CURSOR DURING TASK DRAG END === */
