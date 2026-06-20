@@ -25,7 +25,10 @@ export function createZRCHomeActions(deps) {
     setCalendarNewTaskDate,
     setIsTaskModalOpen,
     openCalendarQuickTaskCreator,
-    calendarFocusedDate
+    calendarFocusedDate,
+    quickNoteMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   } = deps;
 
   const openHomeTaskDetail = (task) => {
@@ -65,59 +68,101 @@ export function createZRCHomeActions(deps) {
     const detail = quickNoteDraft.trim();
 
     if (!title && !detail) return;
+    if (!tryAcquireActionLock(quickNoteMutationLockRef, 'save-quick-note')) return;
 
-    const safeTitle = title || detail.split('\n')[0]?.slice(0, 42) || 'Başlıksız not';
-    const text = buildQuickNoteText(safeTitle, detail);
+    try {
+      const safeTitle = title || detail.split('\n')[0]?.slice(0, 42) || 'Başlıksız not';
+      const text = buildQuickNoteText(safeTitle, detail);
 
-    if (editingQuickNoteId) {
-      const existingNote = quickNotes.find((note) => note.id === editingQuickNoteId);
-      const updatedNote = {
-        ...(existingNote || {}),
-        id: editingQuickNoteId,
+      if (editingQuickNoteId) {
+        const existingNote = quickNotes.find((note) => note.id === editingQuickNoteId);
+
+        if (!existingNote) {
+          await window.zrcAlert('Düzenlenecek not artık bulunamadı. Listeyi yenileyip tekrar deneyin.');
+          return;
+        }
+
+        const updatedNote = {
+          ...existingNote,
+          id: editingQuickNoteId,
+          title: safeTitle,
+          detail,
+          text,
+          updatedAt: new Date().toISOString()
+        };
+
+        setQuickNotes((prevNotes) =>
+          prevNotes.map((note) => (note.id === editingQuickNoteId ? updatedNote : note))
+        );
+
+        const didUpdateNote = await updateQuickNoteInSupabase(updatedNote);
+
+        if (!didUpdateNote) {
+          setQuickNotes((prevNotes) =>
+            prevNotes.map((note) => (note.id === editingQuickNoteId ? existingNote : note))
+          );
+          await window.zrcAlert('Not güncellenemedi. Taslak korundu; lütfen tekrar deneyin.');
+          return;
+        }
+
+        resetQuickNoteComposer();
+        setIsQuickNoteComposerOpen(false);
+        return;
+      }
+
+      const nextNote = {
+        id: `quick-note-${Date.now()}-${Math.random().toString(16).slice(2)}`,
         title: safeTitle,
         detail,
         text,
-        updatedAt: new Date().toISOString()
+        createdAt: new Date().toISOString()
       };
 
-      setQuickNotes((prevNotes) =>
-        prevNotes.map((note) => (note.id === editingQuickNoteId ? updatedNote : note))
-      );
+      setQuickNotes((prevNotes) => [
+        nextNote,
+        ...prevNotes
+      ]);
 
-      await updateQuickNoteInSupabase(updatedNote);
+      const didSaveNote = await saveQuickNoteToSupabase(nextNote);
+
+      if (!didSaveNote) {
+        setQuickNotes((prevNotes) => prevNotes.filter((note) => note.id !== nextNote.id));
+        await window.zrcAlert('Not kaydedilemedi. Taslak korundu; lütfen tekrar deneyin.');
+        return;
+      }
 
       resetQuickNoteComposer();
       setIsQuickNoteComposerOpen(false);
-      return;
+    } finally {
+      releaseActionLock(quickNoteMutationLockRef, 'save-quick-note');
     }
-
-    const nextNote = {
-      id: `quick-note-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      title: safeTitle,
-      detail,
-      text,
-      createdAt: new Date().toISOString()
-    };
-
-    setQuickNotes((prevNotes) => [
-      nextNote,
-      ...prevNotes
-    ]);
-
-    await saveQuickNoteToSupabase(nextNote);
-    resetQuickNoteComposer();
-    setIsQuickNoteComposerOpen(false);
   };
 
-  const deleteQuickNoteFromHome = (noteId) => {
+  const deleteQuickNoteFromHome = async (noteId) => {
     const noteToDelete = quickNotes.find((note) => note.id === noteId);
+    const actionKey = `delete-quick-note:${noteId}`;
 
-    if (noteToDelete) {
-      deleteQuickNoteFromSupabase(noteToDelete);
+    if (!noteToDelete || !tryAcquireActionLock(quickNoteMutationLockRef, actionKey)) return;
+
+    try {
+      const hasPersistedId = Boolean(
+        noteToDelete.supabaseId || String(noteToDelete.id || '').startsWith('supabase-note-')
+      );
+
+      if (hasPersistedId) {
+        const didDeleteNote = await deleteQuickNoteFromSupabase(noteToDelete);
+
+        if (!didDeleteNote) {
+          await window.zrcAlert('Not silinemedi. Sunucu kaydı korunuyor; lütfen tekrar deneyin.');
+          return;
+        }
+      }
+
+      setQuickNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
+      setPendingDeleteQuickNoteId(null);
+    } finally {
+      releaseActionLock(quickNoteMutationLockRef, actionKey);
     }
-
-    setQuickNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
-    setPendingDeleteQuickNoteId(null);
   };
 
   const openQuickTaskFromHome = () => {

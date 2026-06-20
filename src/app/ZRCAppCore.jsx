@@ -168,6 +168,7 @@ import {
 import { tryAcquireActionLock, releaseActionLock } from './utils/asyncActionLock.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
+  const quickNoteMutationLockRef = useRef(new Set());
 
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -3784,9 +3785,10 @@ function App() {
   };
 
   const updateQuickNoteInSupabase = async (note = {}) => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
     const noteId = note?.supabaseId || (String(note?.id || '').startsWith('supabase-note-') ? String(note.id).replace('supabase-note-', '') : '');
 
-    if (!isSupabaseUuid(noteId) || !String(note.text || '').trim()) return false;
+    if (!isSupabaseUuid(workspaceId) || !isSupabaseUuid(currentUserId) || !isSupabaseUuid(noteId) || !String(note.text || '').trim()) return false;
 
     try {
       const { error } = await supabase
@@ -3794,7 +3796,9 @@ function App() {
         .update({
           text: String(note.text || '').trim()
         })
-        .eq('id', noteId);
+        .eq('id', noteId)
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', currentUserId);
 
       if (error) throw error;
 
@@ -3807,15 +3811,18 @@ function App() {
   };
 
   const deleteQuickNoteFromSupabase = async (note = {}) => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
     const noteId = note?.supabaseId || (String(note?.id || '').startsWith('supabase-note-') ? String(note.id).replace('supabase-note-', '') : '');
 
-    if (!isSupabaseUuid(noteId)) return false;
+    if (!isSupabaseUuid(workspaceId) || !isSupabaseUuid(currentUserId) || !isSupabaseUuid(noteId)) return false;
 
     try {
       const { error } = await supabase
         .from('quick_notes')
         .delete()
-        .eq('id', noteId);
+        .eq('id', noteId)
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', currentUserId);
 
       if (error) throw error;
 
@@ -9244,7 +9251,10 @@ const filterTaskFollowersForSave = (people = []) =>
     setCalendarNewTaskDate,
     setIsTaskModalOpen,
     openCalendarQuickTaskCreator,
-    calendarFocusedDate
+    calendarFocusedDate,
+    quickNoteMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   });
 
   const menuCalendarStatusOptions = [
