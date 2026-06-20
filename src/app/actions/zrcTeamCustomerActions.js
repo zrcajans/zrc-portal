@@ -1,23 +1,3 @@
-
-const zrcIsMissingAuthUserError = (error) => {
-  const message = String(
-    error?.message ||
-    error?.error_description ||
-    error?.details ||
-    error ||
-    ''
-  ).toLowerCase();
-
-  return (
-    message.includes('user not found') ||
-    message.includes('auth user not found') ||
-    message.includes('auth kullanıcısı bulunamadı') ||
-    message.includes('auth kullanicisi bulunamadi') ||
-    (message.includes('not found') && message.includes('user')) ||
-    (message.includes('404') && message.includes('user'))
-  );
-};
-
 export function createZRCTeamCustomerActions(deps) {
   const {
     requirePermission,
@@ -84,9 +64,19 @@ export function createZRCTeamCustomerActions(deps) {
       throw new Error('workspaceId bulunamadı');
     }
 
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token || '';
+
+    if (!accessToken) {
+      throw new Error('Yönetici oturumu bulunamadı. Çıkış yapıp tekrar giriş yap.');
+    }
+
     const response = await fetch('/api/delete-workspace-member', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
       body: JSON.stringify({
         workspaceId,
         member,
@@ -98,6 +88,10 @@ export function createZRCTeamCustomerActions(deps) {
 
     const result = await response.json().catch(() => ({}));
 
+    if (response.status === 404) {
+      return { ok: true, alreadyDeleted: true };
+    }
+
     if (!response.ok || !result.ok) {
       throw new Error(result?.error || 'Veritabanı silme işlemi başarısız oldu');
     }
@@ -107,148 +101,6 @@ export function createZRCTeamCustomerActions(deps) {
     }
 
     return result;
-  };
-
-  // zrc-real-db-delete-sync-v1
-  const deleteWorkspaceMemberFromSupabase = async (member = {}) => {
-    const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
-      ? getCurrentSupabaseWorkspaceId()
-      : '';
-
-    if (!supabase || !workspaceId || !member) return false;
-
-    const normalizeValue = (value) => String(value || '').trim();
-    const username = typeof normalizeCredentialText === 'function'
-      ? normalizeCredentialText(member.username || member.name)
-      : normalizeValue(member.username || member.name).toLowerCase();
-
-    const possibleUserIds = [
-      member.userId,
-      member.user_id,
-      member.authUserId,
-      member.auth_user_id,
-      member.supabaseUserId,
-      member.supabase_user_id,
-      member.profileId,
-      member.profile_id,
-      member.id
-    ]
-      .map(normalizeValue)
-      .filter(Boolean)
-      .filter((value, index, arr) => arr.indexOf(value) === index)
-      .filter((value) =>
-        typeof isSupabaseUuid === 'function'
-          ? isSupabaseUuid(value)
-          : /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
-      );
-
-    let attempted = false;
-
-    for (const userId of possibleUserIds) {
-      attempted = true;
-      const { error } = await supabase
-        .from('workspace_members')
-        .delete()
-        .eq('workspace_id', workspaceId)
-        .eq('user_id', userId);
-
-      if (error) throw error;
-    }
-
-    if (username) {
-      attempted = true;
-      const { error } = await supabase
-        .from('workspace_members')
-        .delete()
-        .eq('workspace_id', workspaceId)
-        .eq('username', username);
-
-      if (error) throw error;
-    }
-
-    return attempted;
-  };
-
-  // zrc-db-delete-team-member-from-supabase
-  const deleteTeamMemberFromSupabase = async (member = {}) => {
-    const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
-      ? getCurrentSupabaseWorkspaceId()
-      : '';
-
-    if (!workspaceId || !supabase || !member) return false;
-
-    const normalizeValue = (value) => String(value || '').trim();
-
-    const possibleUserIds = [
-      member.userId,
-      member.user_id,
-      member.authUserId,
-      member.auth_user_id,
-      member.supabaseUserId,
-      member.supabase_user_id,
-      member.profileId,
-      member.profile_id,
-      member.id
-    ]
-      .map(normalizeValue)
-      .filter(Boolean)
-      .filter((value, index, arr) => arr.indexOf(value) === index)
-      .filter((value) => typeof isSupabaseUuid === 'function' ? isSupabaseUuid(value) : /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
-
-    const username = typeof normalizeCredentialText === 'function'
-      ? normalizeCredentialText(member.username || (typeof createUsernameFromMember === 'function' ? createUsernameFromMember(member) : member.name))
-      : normalizeValue(member.username || member.name).toLowerCase();
-
-    const email = normalizeValue(member.email).toLowerCase();
-
-    try {
-      let attempted = false;
-
-      for (const userId of possibleUserIds) {
-        attempted = true;
-        const { error } = await supabase
-          .from('workspace_members')
-          .delete()
-          .eq('workspace_id', workspaceId)
-          .eq('user_id', userId);
-
-        if (error) throw error;
-      }
-
-      if (username) {
-        attempted = true;
-        const { error } = await supabase
-          .from('workspace_members')
-          .delete()
-          .eq('workspace_id', workspaceId)
-          .eq('username', username);
-
-        if (error) throw error;
-      }
-
-      if (email) {
-        attempted = true;
-        const { error } = await supabase
-          .from('workspace_members')
-          .delete()
-          .eq('workspace_id', workspaceId)
-          .eq('username', email);
-
-        if (error) throw error;
-      }
-
-      if (attempted && typeof zrcSetSupabaseWriteInfo === 'function') {
-        zrcSetSupabaseWriteInfo('saved', 'Ekip/müşteri hesabı Supabase veritabanından silindi.');
-      }
-
-      return attempted;
-    } catch (error) {
-      if (typeof zrcSetSupabaseWriteInfo === 'function') {
-        zrcSetSupabaseWriteInfo('error', `Ekip/müşteri veritabanı silme hatası: ${error?.message || 'bilinmeyen hata'}`);
-      }
-
-      throw error;
-    }
   };
 
   const createTeamMemberFromCenter = async (event) => {
@@ -281,8 +133,8 @@ export function createZRCTeamCustomerActions(deps) {
       return;
     }
 
-    if (password.length < 4) {
-      await window.zrcAlert('Şifre en az 4 karakter olmalı.');
+    if (password.length < 8) {
+      await window.zrcAlert('Şifre en az 8 karakter olmalı.');
       return;
     }
 
@@ -420,30 +272,11 @@ export function createZRCTeamCustomerActions(deps) {
 
     if (targetMember) {
       try {
-        await deleteTeamMemberFromSupabase(targetMember);
-      } catch (error) {
-    if (zrcIsMissingAuthUserError(error)) {
-      console.warn('[ZRC] Auth kullanıcısı zaten yok. Portal kaydı silme akışı devam ediyor.', error);
-    } else {
-        await window.zrcAlert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
-        return;
-      
-    }
-}
-    }
-
-    if (targetMember) {
-      try {
         await deleteWorkspaceMemberFromDatabase(targetMember);
       } catch (error) {
-    if (zrcIsMissingAuthUserError(error)) {
-      console.warn('[ZRC] Auth kullanıcısı zaten yok. Portal kaydı silme akışı devam ediyor.', error);
-    } else {
         await window.zrcAlert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
-      
-    }
-}
+      }
     }
 
     setTeamMembers((prevMembers) => prevMembers.filter((member) => member.id !== memberId));
@@ -610,10 +443,18 @@ export function createZRCTeamCustomerActions(deps) {
       try {
         zrcSetSupabaseWriteInfo('saving', 'Ekip rolü Supabase kaydediliyor');
 
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || '';
+
+        if (!accessToken) {
+          throw new Error('Yönetici oturumu bulunamadı. Çıkış yapıp tekrar giriş yap.');
+        }
+
         const response = await fetch('/api/update-team-member', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
           },
           body: JSON.stringify({
             workspaceId: zrcWorkspaceIdForMemberUpdate,
@@ -713,8 +554,8 @@ export function createZRCTeamCustomerActions(deps) {
       return;
     }
 
-    if (wantsLoginAccount && accountPassword.length < 4) {
-      await window.zrcAlert('Müşteri giriş şifresi en az 4 karakter olmalı.');
+    if (wantsLoginAccount && accountPassword.length < 8) {
+      await window.zrcAlert('Müşteri giriş şifresi en az 8 karakter olmalı.');
       return;
     }
 
@@ -1036,81 +877,6 @@ export function createZRCTeamCustomerActions(deps) {
 
     if (deletedCustomer) {
       rememberDeletedCustomer(deletedCustomer);
-
-      // zrc-customer-guest-auth-delete-v1
-      const customerGuestAuthDeleteMember = {
-        id:
-          deletedCustomer.accountUserId ||
-          deletedCustomer.account_user_id ||
-          deletedCustomer.userId ||
-          deletedCustomer.user_id ||
-          deletedCustomer.authUserId ||
-          deletedCustomer.auth_user_id ||
-          deletedCustomer.supabaseUserId ||
-          deletedCustomer.supabase_user_id ||
-          '',
-        userId:
-          deletedCustomer.accountUserId ||
-          deletedCustomer.account_user_id ||
-          deletedCustomer.userId ||
-          deletedCustomer.user_id ||
-          deletedCustomer.authUserId ||
-          deletedCustomer.auth_user_id ||
-          deletedCustomer.supabaseUserId ||
-          deletedCustomer.supabase_user_id ||
-          '',
-        authUserId:
-          deletedCustomer.accountUserId ||
-          deletedCustomer.account_user_id ||
-          deletedCustomer.authUserId ||
-          deletedCustomer.auth_user_id ||
-          '',
-        username:
-          deletedCustomer.username ||
-          deletedCustomer.userName ||
-          deletedCustomer.email ||
-          deletedCustomer.mail ||
-          deletedCustomer.name ||
-          deletedCustomer.title ||
-          '',
-        email:
-          deletedCustomer.email ||
-          deletedCustomer.mail ||
-          deletedCustomer.username ||
-          deletedCustomer.userName ||
-          '',
-        name:
-          deletedCustomer.name ||
-          deletedCustomer.title ||
-          deletedCustomer.customerName ||
-          deletedCustomer.fullName ||
-          deletedCustomer.full_name ||
-          '',
-        customerId,
-        customer_id: customerId,
-        role: 'Müşteri/Misafir'
-      };
-
-      try {
-        await deleteWorkspaceMemberFromDatabase(customerGuestAuthDeleteMember);
-      } catch (error) {
-    if (zrcIsMissingAuthUserError(error)) {
-      console.warn('[ZRC] Auth kullanıcısı zaten yok. Portal kaydı silme akışı devam ediyor.', error);
-    } else {
-        await window.zrcAlert(`Müşteri/Misafir auth hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
-        return;
-      
-    }
-}
-
-      try {
-        if (typeof deleteCustomerFromSupabase === 'function') {
-          await deleteCustomerFromSupabase(deletedCustomer);
-        }
-      } catch (error) {
-        await window.zrcAlert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
-        return;
-      }
     }
 
     const linkedCustomerAccountIds = new Set(
@@ -1130,19 +896,35 @@ export function createZRCTeamCustomerActions(deps) {
     if (linkedCustomerAccountIds.size > 0) {
       const linkedCustomerMembers = teamMembers.filter((member) => linkedCustomerAccountIds.has(member.id));
 
+      for (const accountId of linkedCustomerAccountIds) {
+        if (!linkedCustomerMembers.some((member) => member.id === accountId)) {
+          linkedCustomerMembers.push({
+            id: accountId,
+            userId: accountId,
+            username: deletedCustomer?.username || deletedCustomer?.email || ''
+          });
+        }
+      }
+
       try {
         for (const member of linkedCustomerMembers) {
-          await deleteTeamMemberFromSupabase(member);
+          await deleteWorkspaceMemberFromDatabase(member);
         }
       } catch (error) {
-    if (zrcIsMissingAuthUserError(error)) {
-      console.warn('[ZRC] Auth kullanıcısı zaten yok. Portal kaydı silme akışı devam ediyor.', error);
-    } else {
         await window.zrcAlert(`Bağlı müşteri hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
         return;
-      
+      }
     }
-}
+
+    if (deletedCustomer) {
+      try {
+        if (typeof deleteCustomerFromSupabase === 'function') {
+          await deleteCustomerFromSupabase(deletedCustomer);
+        }
+      } catch (error) {
+        await window.zrcAlert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        return;
+      }
     }
 
     setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer.id !== customerId));

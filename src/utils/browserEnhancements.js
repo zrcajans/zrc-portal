@@ -508,10 +508,18 @@ const zrcV429RegisterAndSendTestPush = async (hint) => {
 
   zrcV429SetHintText(hint, 'Push aboneliği hazır. Test bildirimi gönderiliyor...');
 
+  const accessToken = zrcV442ReadSupabaseAccessToken();
+
+  if (!accessToken) {
+    zrcV429SetHintText(hint, 'Aktif oturum bulunamadı. Çıkış yapıp tekrar giriş yap.');
+    return;
+  }
+
   const pushResponse = await fetch('/api/send-test-push', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
     },
     body: JSON.stringify({
       subscription,
@@ -591,8 +599,18 @@ const zrcV442ReadSupabaseAccessToken = () => {
   return '';
 };
 
-export const zrcV442SendTaskSavePush = async ({ title = 'ZRC Portal', body = 'Görevlerde yeni bir işlem yapıldı.', type = 'task_save' } = {}) => {
+export const zrcV442SendTaskSavePush = async ({
+  title = 'ZRC Portal',
+  body = 'Görevlerde yeni bir işlem yapıldı.',
+  type = 'task_save',
+  workspaceId = ''
+} = {}) => {
   if (typeof window === 'undefined') return false;
+
+  if (!workspaceId) {
+    console.warn('[ZRC Push v442] Workspace yok, push atlanıyor.');
+    return false;
+  }
 
   const now = Date.now();
   const lastPushAt = Number(window.localStorage.getItem('zrc-v442-last-task-push-at') || '0');
@@ -623,6 +641,7 @@ export const zrcV442SendTaskSavePush = async ({ title = 'ZRC Portal', body = 'G�
         type,
         title,
         body,
+        workspaceId,
         url: '/'
       })
     });

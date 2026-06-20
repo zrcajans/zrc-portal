@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { authorizeWorkspaceRequest, isSupabaseUuid } from '../server/supabaseAuthorization.js';
 
 const normalizeCredentialText = (value = '') =>
   String(value || '')
@@ -10,7 +10,8 @@ const normalizeCredentialText = (value = '') =>
     .replace(/ı/g, 'i')
     .replace(/ö/g, 'o')
     .replace(/ç/g, 'c')
-    .replace(/[^a-z0-9._-]/g, '');
+    .replace(/[^a-z0-9._-]/g, '')
+    .slice(0, 120);
 
 const normalizeRole = (role = '') => {
   const cleanRole = String(role || '').trim();
@@ -58,23 +59,13 @@ export default async function handler(req, res) {
     });
   }
 
-  const authorizationHeader = req.headers.authorization || '';
-
-  if (!authorizationHeader.startsWith('Bearer ')) {
-    return sendJson(res, 401, { error: 'Yönetici oturumu bulunamadı.' });
-  }
-
   const body = typeof req.body === 'object' && req.body !== null ? req.body : {};
   const workspaceId = String(body.workspaceId || '').trim();
-  const name = String(body.name || '').trim();
+  const name = String(body.name || '').trim().slice(0, 120);
   const username = normalizeCredentialText(body.username || name);
   const password = String(body.password || '').trim();
   const role = normalizeRole(body.role);
-  const customerId = String(body.customerId || '').trim();
-
-  if (!workspaceId) {
-    return sendJson(res, 400, { error: 'Workspace bilgisi eksik.' });
-  }
+  const customerId = role === 'Müşteri/Misafir' ? String(body.customerId || '').trim() : '';
 
   if (!name) {
     return sendJson(res, 400, { error: 'Ad Soyad boş olamaz.' });
@@ -84,53 +75,28 @@ export default async function handler(req, res) {
     return sendJson(res, 400, { error: 'Kullanıcı adı en az 3 karakter olmalı.' });
   }
 
-  if (password.length < 4) {
-    return sendJson(res, 400, { error: 'Şifre en az 4 karakter olmalı.' });
+  if (password.length < 8) {
+    return sendJson(res, 400, { error: 'Şifre en az 8 karakter olmalı.' });
   }
 
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: authorizationHeader
-      }
-    },
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
+  if (role === 'Müşteri/Misafir' && !isSupabaseUuid(customerId)) {
+    return sendJson(res, 400, { error: 'Müşteri/Misafir rolü için geçerli müşteri gerekli.' });
+  }
+
+  const authorization = await authorizeWorkspaceRequest({
+    authorizationHeader: req.headers.authorization || '',
+    workspaceId,
+    supabaseUrl,
+    supabaseAnonKey,
+    serviceRoleKey,
+    requireAdmin: true
   });
 
-  const { data: authData, error: authError } = await userClient.auth.getUser();
-
-  if (authError || !authData?.user?.id) {
-    return sendJson(res, 401, { error: 'Yönetici oturumu doğrulanamadı.' });
+  if (authorization.error) {
+    return sendJson(res, authorization.status, { error: authorization.error });
   }
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  });
-
-  const { data: requesterMembership, error: requesterError } = await admin
-    .from('workspace_members')
-    .select('role, status')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', authData.user.id)
-    .maybeSingle();
-
-  if (requesterError) {
-    return sendJson(res, 500, { error: `Yetki kontrolü yapılamadı: ${requesterError.message}` });
-  }
-
-  if (
-    !requesterMembership ||
-    requesterMembership.status !== 'Aktif' ||
-    requesterMembership.role !== 'Yönetici'
-  ) {
-    return sendJson(res, 403, { error: 'Bu işlemi sadece aktif Yönetici hesabı yapabilir.' });
-  }
+  const admin = authorization.admin;
 
   const { data: existingUsername, error: duplicateError } = await admin
     .from('workspace_members')
@@ -140,11 +106,32 @@ export default async function handler(req, res) {
     .maybeSingle();
 
   if (duplicateError) {
-    return sendJson(res, 500, { error: `Kullanıcı adı kontrolü yapılamadı: ${duplicateError.message}` });
+    return sendJson(res, 500, { error: 'Kullanıcı adı kontrolü yapılamadı.' });
   }
 
   if (existingUsername?.user_id) {
     return sendJson(res, 409, { error: 'Bu kullanıcı adı zaten kullanılıyor.' });
+  }
+
+  if (customerId) {
+    const { data: customer, error: customerError } = await admin
+      .from('customers')
+      .select('id, account_user_id')
+      .eq('workspace_id', workspaceId)
+      .eq('id', customerId)
+      .maybeSingle();
+
+    if (customerError) {
+      return sendJson(res, 500, { error: 'Bağlı müşteri doğrulanamadı.' });
+    }
+
+    if (!customer) {
+      return sendJson(res, 400, { error: 'Bağlı müşteri bu workspace içinde bulunamadı.' });
+    }
+
+    if (customer.account_user_id) {
+      return sendJson(res, 409, { error: 'Bu müşteri zaten başka bir giriş hesabına bağlı.' });
+    }
   }
 
   const email = `${username}@zrc.local`;
@@ -168,7 +155,7 @@ export default async function handler(req, res) {
       return sendJson(res, 409, { error: 'Bu kullanıcı adı için giriş hesabı zaten var.' });
     }
 
-    return sendJson(res, 500, { error: message });
+    return sendJson(res, 500, { error: 'Supabase Auth kullanıcısı oluşturulamadı.' });
   }
 
   const userId = createdUserData.user.id;
@@ -187,7 +174,8 @@ export default async function handler(req, res) {
     );
 
   if (profileError) {
-    return sendJson(res, 500, { error: `Profil kaydı oluşturulamadı: ${profileError.message}` });
+    await admin.auth.admin.deleteUser(userId, false);
+    return sendJson(res, 500, { error: 'Profil kaydı oluşturulamadı; giriş hesabı geri alındı.' });
   }
 
   const membershipPayload = {
@@ -207,15 +195,34 @@ export default async function handler(req, res) {
     .insert(membershipPayload);
 
   if (membershipError) {
-    return sendJson(res, 500, { error: `Workspace üyeliği oluşturulamadı: ${membershipError.message}` });
+    await admin.from('profiles').delete().eq('id', userId);
+    await admin.auth.admin.deleteUser(userId, false);
+    return sendJson(res, 500, { error: 'Workspace üyeliği oluşturulamadı; giriş hesabı geri alındı.' });
   }
 
   if (customerId) {
-    await admin
+    const { data: linkedCustomer, error: customerLinkError } = await admin
       .from('customers')
       .update({ account_user_id: userId })
       .eq('id', customerId)
-      .eq('workspace_id', workspaceId);
+      .eq('workspace_id', workspaceId)
+      .is('account_user_id', null)
+      .select('id')
+      .maybeSingle();
+
+    if (customerLinkError || !linkedCustomer) {
+      await admin
+        .from('workspace_members')
+        .delete()
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', userId);
+      await admin.from('profiles').delete().eq('id', userId);
+      await admin.auth.admin.deleteUser(userId, false);
+
+      return sendJson(res, 409, {
+        error: 'Müşteri hesabı bağlanamadı; oluşturulan giriş hesabı geri alındı.'
+      });
+    }
   }
 
   return sendJson(res, 200, {

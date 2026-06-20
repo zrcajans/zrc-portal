@@ -5607,6 +5607,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
       zrcV442SendTaskSavePush({
         type: previousTask ? 'task_update' : 'task_create',
         title: 'ZRC',
+        workspaceId: getCurrentSupabaseWorkspaceId(),
         body: previousTask
           ? `Görev güncellendi: ${cleanedTaskData.title || 'Adsız görev'}`
           : `Yeni görev oluşturuldu: ${cleanedTaskData.title || 'Adsız görev'}`

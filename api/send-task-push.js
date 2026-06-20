@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import webPush from 'web-push';
+import { authorizeWorkspaceRequest } from '../server/supabaseAuthorization.js';
 
 const sendJson = (res, statusCode, payload) => {
   res.status(statusCode).json(payload);
@@ -42,28 +42,6 @@ const getVapidConfig = () => {
     privateKey,
     subject
   };
-};
-
-const getAuthUser = async ({ supabaseUrl, supabaseAnonKey, authorizationHeader }) => {
-  if (!authorizationHeader?.startsWith('Bearer ') || !supabaseAnonKey) return null;
-
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: authorizationHeader
-      }
-    },
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  });
-
-  const { data, error } = await userClient.auth.getUser();
-
-  if (error || !data?.user?.id) return null;
-
-  return data.user;
 };
 
 const cleanNotificationBody = (value = '') => {
@@ -118,6 +96,20 @@ export default async function handler(req, res) {
 
   const bodyPayload = parseBody(req);
   const authorizationHeader = req.headers.authorization || '';
+  const workspaceId = String(bodyPayload.workspaceId || '').trim();
+  const authorization = await authorizeWorkspaceRequest({
+    authorizationHeader,
+    workspaceId,
+    supabaseUrl,
+    supabaseAnonKey,
+    serviceRoleKey
+  });
+
+  if (authorization.error) {
+    return sendJson(res, authorization.status, { error: authorization.error });
+  }
+
+  const admin = authorization.admin;
 
   const notificationTitle = 'ZRC';
   const notificationType = String(bodyPayload.type || 'activity').trim();
@@ -136,40 +128,6 @@ export default async function handler(req, res) {
       type: notificationType,
       body: notificationBody
     });
-  }
-
-  let workspaceId = String(bodyPayload.workspaceId || '').trim();
-
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  });
-
-  const authUser = await getAuthUser({
-    supabaseUrl,
-    supabaseAnonKey,
-    authorizationHeader
-  });
-
-  if (!workspaceId && authUser?.id) {
-    const { data: membershipRows, error: membershipError } = await admin
-      .from('workspace_members')
-      .select('workspace_id, status')
-      .eq('user_id', authUser.id)
-      .eq('status', 'Aktif')
-      .limit(1);
-
-    if (membershipError) {
-      return sendJson(res, 500, { error: `Workspace üyeliği okunamadı: ${membershipError.message}` });
-    }
-
-    workspaceId = String(membershipRows?.[0]?.workspace_id || '').trim();
-  }
-
-  if (!workspaceId) {
-    return sendJson(res, 400, { error: 'Workspace bilgisi bulunamadı.' });
   }
 
   try {

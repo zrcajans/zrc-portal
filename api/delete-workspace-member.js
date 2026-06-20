@@ -1,19 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { authorizeWorkspaceRequest, isSupabaseUuid } from '../server/supabaseAuthorization.js';
 
-const SUPABASE_URL =
-  process.env.SUPABASE_URL ||
-  process.env.VITE_SUPABASE_URL ||
-  process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-const normalizeText = (value = '') =>
-  String(value || '').trim().toLowerCase();
-
-const normalizeUsername = (value = '') => {
-  const raw = normalizeText(value);
-
-  return raw
+const normalizeUsername = (value = '') =>
+  String(value || '')
+    .trim()
+    .toLocaleLowerCase('tr-TR')
     .replace(/ğ/g, 'g')
     .replace(/ü/g, 'u')
     .replace(/ş/g, 's')
@@ -22,53 +12,52 @@ const normalizeUsername = (value = '') => {
     .replace(/ç/g, 'c')
     .replace(/[^a-z0-9@._-]+/g, '')
     .slice(0, 120);
-};
 
-const isUuid = (value) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+const parseBody = (req) => {
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body);
+    } catch {
+      return {};
+    }
+  }
 
-const unique = (arr) =>
-  arr
-    .map((value) => String(value || '').trim())
-    .filter(Boolean)
-    .filter((value, index, list) => list.indexOf(value) === index);
-
-const isProtectedAccount = (member = {}, value = '') => {
-  const role = normalizeText(member.role || member.type || '');
-  const email = normalizeText(member.email || value);
-  const username = normalizeText(member.username || value);
-  const name = normalizeText(member.name || member.fullName || member.full_name || '');
-
-  if (role.includes('yönetici') || role.includes('yonetici') || role.includes('admin')) return true;
-  if (email === 'info@zrcajans.com') return true;
-  if (username === 'info@zrcajans.com') return true;
-  if (name.includes('zrc babaa')) return true;
-
-  return false;
+  return req.body && typeof req.body === 'object' ? req.body : {};
 };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+    return res.status(405).json({ ok: false, error: 'Sadece POST desteklenir.' });
   }
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    return res.status(500).json({
-      ok: false,
-      error: 'Supabase service role env eksik.'
-    });
-  }
-
-  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-
-  const body = req.body || {};
-  const member = body.member || {};
-  const customer = body.customer || {}; // zrc-customer-body-candidates-v1
+  const supabaseUrl =
+    process.env.SUPABASE_URL ||
+    process.env.VITE_SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey =
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const body = parseBody(req);
+  const member = body.member && typeof body.member === 'object' ? body.member : {};
   const workspaceId = String(body.workspaceId || '').trim();
 
-  const idCandidates = unique([
+  const authorization = await authorizeWorkspaceRequest({
+    authorizationHeader: req.headers.authorization || '',
+    workspaceId,
+    supabaseUrl,
+    supabaseAnonKey,
+    serviceRoleKey,
+    requireAdmin: true
+  });
+
+  if (authorization.error) {
+    return res.status(authorization.status).json({ ok: false, error: authorization.error });
+  }
+
+  const admin = authorization.admin;
+  const requestedUserId = [
     body.userId,
     member.userId,
     member.user_id,
@@ -78,215 +67,134 @@ export default async function handler(req, res) {
     member.supabase_user_id,
     member.profileId,
     member.profile_id,
-    member.id,
-    customer.accountUserId,
-    customer.account_user_id,
-    customer.userId,
-    customer.user_id,
-    customer.authUserId,
-    customer.auth_user_id,
-    customer.supabaseUserId,
-    customer.supabase_user_id,
-    customer.id
-  ]).filter(isUuid);
+    member.id
+  ]
+    .map((value) => String(value || '').trim())
+    .find(isSupabaseUuid);
+  const requestedUsername = normalizeUsername(
+    body.username || member.username || member.email || ''
+  );
 
-  const rawTextCandidates = unique([
-    body.username,
-    member.username,
-    member.email,
-    member.name,
-    member.fullName,
-    member.full_name,
-    customer.username,
-    customer.userName,
-    customer.email,
-    customer.mail,
-    customer.name,
-    customer.title,
-    customer.customerName,
-    customer.fullName,
-    customer.full_name
-  ]);
-
-  const usernameCandidates = unique([
-    ...rawTextCandidates.map(normalizeText),
-    ...rawTextCandidates.map(normalizeUsername),
-    ...rawTextCandidates.map((value) => {
-      const v = normalizeUsername(value);
-      return v && !v.startsWith('@') && !v.includes('@') ? `@${v}` : v;
-    }),
-    ...rawTextCandidates.map((value) => {
-      const v = normalizeUsername(value);
-      return v.startsWith('@') ? v.slice(1) : v;
-    })
-  ]);
-
-  const emailCandidates = usernameCandidates.filter((value) => value.includes('@'));
-
-  const customerCandidates = unique([
-    body.customerId,
-    member.customerId,
-    member.customer_id,
-    customer.id,
-    customer.customerId,
-    customer.customer_id
-  ]);
-
-  const deletedRows = [];
-  const deletedAuthUsers = [];
-  const attempts = [];
-
-  const ignoreMissingColumn = (error) => {
-    const msg = String(error?.message || '').toLowerCase();
-
-    return (
-      msg.includes('column') ||
-      msg.includes('schema cache') ||
-      msg.includes('does not exist') ||
-      msg.includes('not found')
-    );
-  };
-
-  const deleteFrom = async (table, column, value, workspaceScoped = false) => {
-    if (!value) return;
-
-    attempts.push(`${table}.${column}:${value}`);
-
-    let query = admin.from(table).delete();
-
-    if (workspaceScoped && workspaceId) {
-      query = query.eq('workspace_id', workspaceId);
-    }
-
-    const { data, error } = await query.eq(column, value).select('*');
-
-    if (error) {
-      if (ignoreMissingColumn(error)) return;
-      throw new Error(`${table}.${column} silme hatası: ${error.message}`);
-    }
-
-    if (Array.isArray(data) && data.length > 0) {
-      deletedRows.push(...data.map((row) => ({ table, ...row })));
-    }
-  };
-
-  const findAuthUsersByEmail = async () => {
-    const matches = [];
-    const emailSet = new Set(emailCandidates.map(normalizeText));
-
-    if (emailSet.size === 0) return matches;
-
-    for (let page = 1; page <= 20; page += 1) {
-      const { data, error } = await admin.auth.admin.listUsers({
-        page,
-        perPage: 1000
-      });
-
-      if (error) {
-        throw new Error(`Auth kullanıcı listesi okunamadı: ${error.message}`);
-      }
-
-      const users = data?.users || [];
-
-      for (const user of users) {
-        const email = normalizeText(user.email || '');
-        if (email && emailSet.has(email)) {
-          matches.push(user);
-        }
-      }
-
-      if (users.length < 1000) break;
-    }
-
-    return matches;
-  };
-
-  const deleteAuthUserById = async (userId, source = 'id') => {
-    if (!userId || !isUuid(userId)) return;
-
-    if (isProtectedAccount(member, userId)) {
-      attempts.push(`auth.users:${userId}:protected-skipped`);
-      return;
-    }
-
-    attempts.push(`auth.users.${source}:${userId}`);
-
-    const { error } = await admin.auth.admin.deleteUser(userId, false);
-
-    if (error) {
-      throw new Error(`Auth kullanıcısı silinemedi (${userId}): ${error.message}`);
-    }
-
-    deletedAuthUsers.push(userId);
-  };
-
-  try {
-    for (const id of idCandidates) {
-      await deleteFrom('workspace_members', 'user_id', id, true);
-      await deleteFrom('workspace_members', 'id', id, true);
-      await deleteFrom('profiles', 'id', id, false);
-      await deleteFrom('profiles', 'user_id', id, false);
-    }
-
-    for (const value of usernameCandidates) {
-      await deleteFrom('workspace_members', 'username', value, true);
-      await deleteFrom('workspace_members', 'email', value, true);
-      await deleteFrom('profiles', 'username', value, false);
-      await deleteFrom('profiles', 'email', value, false);
-      await deleteFrom('profiles', 'full_name', value, false);
-      await deleteFrom('profiles', 'name', value, false);
-    }
-
-    for (const customerId of customerCandidates) {
-      await deleteFrom('workspace_members', 'customer_id', customerId, true);
-    }
-
-    const authIdsFromDeletedRows = unique(
-      deletedRows.flatMap((row) => [
-        row.user_id,
-        row.id,
-        row.auth_user_id,
-        row.supabase_user_id,
-        row.profile_id
-      ])
-    ).filter(isUuid);
-
-    const authIds = unique([...idCandidates, ...authIdsFromDeletedRows]).filter(isUuid);
-
-    for (const authId of authIds) {
-      await deleteAuthUserById(authId, 'id');
-    }
-
-    const authUsersByEmail = await findAuthUsersByEmail();
-
-    for (const user of authUsersByEmail) {
-      if (isProtectedAccount(member, user.email)) {
-        attempts.push(`auth.users.email:${user.email}:protected-skipped`);
-        continue;
-      }
-
-      await deleteAuthUserById(user.id, 'email');
-    }
-
-    return res.status(200).json({
-      ok: true,
-      deletedCount: deletedRows.length,
-      deletedAuthUserCount: deletedAuthUsers.length,
-      deletedRows,
-      deletedAuthUsers,
-      attempts,
-      note:
-        deletedAuthUsers.length > 0
-          ? 'Portal kaydı ve Supabase Auth kullanıcısı silindi.'
-          : deletedRows.length > 0
-            ? 'Portal kaydı silindi. Eşleşen Auth kullanıcısı bulunamadı.'
-            : 'Veritabanında eşleşen kayıt bulunamadı; UI/local silmeye izin verildi.'
-    });
-  } catch (error) {
-    return res.status(500).json({
-      ok: false,
-      error: error?.message || 'Bilinmeyen silme hatası',
-      attempts
-    });
+  if (!requestedUserId && !requestedUsername) {
+    return res.status(400).json({ ok: false, error: 'Silinecek ekip üyesi doğrulanamadı.' });
   }
+
+  let targetQuery = admin
+    .from('workspace_members')
+    .select('user_id, role, status, username, customer_id')
+    .eq('workspace_id', workspaceId);
+
+  targetQuery = requestedUserId
+    ? targetQuery.eq('user_id', requestedUserId)
+    : targetQuery.eq('username', requestedUsername);
+
+  const { data: targetMember, error: targetError } = await targetQuery.maybeSingle();
+
+  if (targetError) {
+    return res.status(500).json({ ok: false, error: 'Ekip üyesi doğrulanamadı.' });
+  }
+
+  if (!targetMember?.user_id) {
+    return res.status(404).json({ ok: false, error: 'Bu workspace içinde ekip üyesi bulunamadı.' });
+  }
+
+  if (targetMember.role === 'Yönetici' && targetMember.status === 'Aktif') {
+    const { count, error: adminCountError } = await admin
+      .from('workspace_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .eq('role', 'Yönetici')
+      .eq('status', 'Aktif');
+
+    if (adminCountError) {
+      return res.status(500).json({ ok: false, error: 'Yönetici sayısı doğrulanamadı.' });
+    }
+
+    if ((count || 0) <= 1) {
+      return res.status(409).json({ ok: false, error: 'Son aktif yönetici silinemez.' });
+    }
+  }
+
+  const { data: deletedMembership, error: deleteError } = await admin
+    .from('workspace_members')
+    .delete()
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', targetMember.user_id)
+    .select('user_id')
+    .maybeSingle();
+
+  if (deleteError) {
+    return res.status(500).json({ ok: false, error: 'Workspace üyeliği silinemedi.' });
+  }
+
+  if (!deletedMembership) {
+    return res.status(409).json({ ok: false, error: 'Workspace üyeliği başka bir işlem tarafından değiştirildi.' });
+  }
+
+  if (targetMember.role === 'Yönetici' && targetMember.status === 'Aktif') {
+    const { count: remainingAdminCount, error: remainingAdminError } = await admin
+      .from('workspace_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .eq('role', 'Yönetici')
+      .eq('status', 'Aktif');
+
+    if (remainingAdminError || (remainingAdminCount || 0) === 0) {
+      const { error: restoreError } = await admin
+        .from('workspace_members')
+        .upsert(
+          {
+            workspace_id: workspaceId,
+            user_id: targetMember.user_id,
+            role: targetMember.role,
+            status: targetMember.status,
+            username: targetMember.username,
+            customer_id: targetMember.customer_id
+          },
+          { onConflict: 'workspace_id,user_id' }
+        );
+
+      if (restoreError) {
+        return res.status(500).json({
+          ok: false,
+          error: 'Son yönetici koruması doğrulanamadı ve üyelik geri yüklenemedi.'
+        });
+      }
+
+      return res.status(409).json({ ok: false, error: 'Son aktif yönetici silinemez.' });
+    }
+  }
+
+  const { error: customerUnlinkError } = await admin
+    .from('customers')
+    .update({ account_user_id: null })
+    .eq('workspace_id', workspaceId)
+    .eq('account_user_id', targetMember.user_id);
+
+  const { data: remainingMemberships, error: remainingError } = await admin
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', targetMember.user_id)
+    .limit(1);
+
+  let authDeleted = false;
+  let authCleanupPending = Boolean(remainingError);
+
+  if (!remainingError && (remainingMemberships || []).length === 0) {
+    const { error: authDeleteError } = await admin.auth.admin.deleteUser(
+      targetMember.user_id,
+      false
+    );
+
+    authDeleted = !authDeleteError;
+    authCleanupPending = Boolean(authDeleteError);
+  }
+
+  return res.status(200).json({
+    ok: true,
+    membershipDeleted: true,
+    authDeleted,
+    authCleanupPending,
+    customerCleanupPending: Boolean(customerUnlinkError)
+  });
 }
