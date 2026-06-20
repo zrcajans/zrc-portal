@@ -38,6 +38,7 @@ import {
   sanitizeProfileCredentials,
   sanitizeTeamMemberCredentials
 } from '../utils/credentialSafetyHelpers';
+import { getScopedStorageKey } from './utils/storageScopeHelpers.js';
 import '../zrc-mobile.css';
 import TopNavbar from '../components/Layout/TopNavbar';
 import TaskModal from '../components/Modals/TaskModal';
@@ -155,7 +156,11 @@ export const STORAGE_KEYS = {
   dataVersion: 'zrc-data-version'
 };
 
-export const getStorageKey = (key) => STORAGE_KEYS[key] || key;
+export const getStorageKey = (key) => {
+  const baseKey = STORAGE_KEYS[key] || key;
+
+  return baseKey === STORAGE_KEYS.dataVersion ? baseKey : getScopedStorageKey(baseKey);
+};
 
 export const readStorageValue = (key, fallbackValue) => {
   if (typeof window === 'undefined' || !window.localStorage) {

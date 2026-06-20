@@ -1,4 +1,5 @@
 import React from 'react';
+import { getScopedStorageKey } from '../../app/utils/storageScopeHelpers.js';
 
 class ZRCErrorBoundary extends React.Component {
   constructor(props) {
@@ -34,8 +35,14 @@ class ZRCErrorBoundary extends React.Component {
     });
 
     try {
-      window.localStorage.setItem('zrc-last-ui-error', JSON.stringify(errorPayload, null, 2));
-      window.localStorage.setItem('zrc-last-error-build', (this.props.buildLabel || 'unknown'));
+      window.localStorage.setItem(
+        getScopedStorageKey('zrc-last-ui-error'),
+        JSON.stringify(errorPayload, null, 2)
+      );
+      window.localStorage.setItem(
+        getScopedStorageKey('zrc-last-error-build'),
+        (this.props.buildLabel || 'unknown')
+      );
     } catch (storageError) {
       // localStorage erişimi yoksa sessiz geç.
     }
@@ -76,7 +83,7 @@ class ZRCErrorBoundary extends React.Component {
         'zrcLastActiveMenu',
         'zrcLastActiveContentMenu',
         'zrcLastActiveTab'
-      ].forEach((key) => window.localStorage.removeItem(key));
+      ].forEach((key) => window.localStorage.removeItem(getScopedStorageKey(key)));
     } catch (error) {
       // localStorage erişimi yoksa sessiz geç.
     }

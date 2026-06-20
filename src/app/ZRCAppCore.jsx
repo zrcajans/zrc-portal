@@ -156,6 +156,11 @@ import {
   getClientGeneratedTaskChildId,
   getPersistedTaskChildId
 } from './utils/taskPersistenceHelpers';
+import {
+  activateStorageScope,
+  clearActiveStorageScope,
+  getScopedStorageKey
+} from './utils/storageScopeHelpers.js';
 function App() {
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -1821,7 +1826,7 @@ function App() {
       if (shouldInsertTaskAtTop) {
         if (typeof window !== 'undefined') {
           try {
-            window.localStorage.setItem('zrc-task-order-saving-until', String(Date.now() + 5000));
+            window.localStorage.setItem(getScopedStorageKey('zrc-task-order-saving-until'), String(Date.now() + 5000));
           } catch (error) {}
         }
 
@@ -4690,7 +4695,7 @@ function App() {
 
     const zrcTaskOrderSavingUntil =
       tableName === 'tasks' && typeof window !== 'undefined'
-        ? Number(window.localStorage.getItem('zrc-task-order-saving-until') || 0)
+        ? Number(window.localStorage.getItem(getScopedStorageKey('zrc-task-order-saving-until')) || 0)
         : 0;
 
     const zrcRealtimeDefaultDelay =
@@ -5046,13 +5051,14 @@ function App() {
 
     try {
       const now = Date.now();
-      const rawItems = JSON.parse(window.localStorage.getItem('zrc-optimistic-hidden-task-ids') || '[]');
+      const storageKey = getScopedStorageKey('zrc-optimistic-hidden-task-ids');
+      const rawItems = JSON.parse(window.localStorage.getItem(storageKey) || '[]');
       const validItems = Array.isArray(rawItems)
         ? rawItems.filter((item) => item?.id && Number(item.until || 0) > now)
         : [];
 
       if (validItems.length !== rawItems.length) {
-        window.localStorage.setItem('zrc-optimistic-hidden-task-ids', JSON.stringify(validItems));
+        window.localStorage.setItem(storageKey, JSON.stringify(validItems));
       }
 
       return new Set(validItems.map((item) => String(item.id)));
@@ -5065,7 +5071,7 @@ function App() {
     if (typeof window === 'undefined') return false;
 
     try {
-      return Number(window.localStorage.getItem('zrc-task-order-saving-until') || 0) > Date.now();
+      return Number(window.localStorage.getItem(getScopedStorageKey('zrc-task-order-saving-until')) || 0) > Date.now();
     } catch (error) {
       return false;
     }
@@ -5080,14 +5086,15 @@ function App() {
     try {
       const now = Date.now();
       const until = now + durationMs;
-      const rawItems = JSON.parse(window.localStorage.getItem('zrc-optimistic-hidden-task-ids') || '[]');
+      const hiddenTaskStorageKey = getScopedStorageKey('zrc-optimistic-hidden-task-ids');
+      const rawItems = JSON.parse(window.localStorage.getItem(hiddenTaskStorageKey) || '[]');
       const validItems = Array.isArray(rawItems)
         ? rawItems.filter((item) => item?.id && Number(item.until || 0) > now && String(item.id) !== String(taskId))
         : [];
 
       validItems.push({ id: String(taskId), until });
-      window.localStorage.setItem('zrc-optimistic-hidden-task-ids', JSON.stringify(validItems));
-      window.localStorage.setItem('zrc-task-order-saving-until', String(until));
+      window.localStorage.setItem(hiddenTaskStorageKey, JSON.stringify(validItems));
+      window.localStorage.setItem(getScopedStorageKey('zrc-task-order-saving-until'), String(until));
     } catch (error) {}
   };
   /* === ZRC TASK FLICKER OPTIMISTIC GUARD END === */
@@ -9784,6 +9791,20 @@ const filterTaskFollowersForSave = (people = []) =>
     });
   };
 
+  const ensureMemberStorageScope = (member) => {
+    const scopeActivation = activateStorageScope({
+      workspaceId: member?.workspaceId,
+      userId: member?.id
+    });
+
+    if (scopeActivation.ok && scopeActivation.changed) {
+      window.location.reload();
+      return false;
+    }
+
+    return true;
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -9816,6 +9837,9 @@ const filterTaskFollowersForSave = (people = []) =>
         }
 
         const supabaseMember = await fetchSupabaseMemberForUser(authUser);
+
+        if (!ensureMemberStorageScope(supabaseMember)) return;
+
         const normalizedMember = mergeSupabaseMemberIntoLocalState(supabaseMember);
 
         if (isMounted) {
@@ -9935,6 +9959,8 @@ const filterTaskFollowersForSave = (people = []) =>
         return;
       }
 
+      if (!ensureMemberStorageScope(supabaseMember)) return;
+
       const normalizedMember = mergeSupabaseMemberIntoLocalState(supabaseMember);
       handleLoginAsMember(normalizedMember);
     } catch (error) {
@@ -9945,7 +9971,16 @@ const filterTaskFollowersForSave = (people = []) =>
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+
+      if (error) {
+        console.warn('[ZRC Auth] Supabase local sign-out tamamlanamadı.', error);
+      }
+    } catch (error) {
+      console.warn('[ZRC Auth] Supabase local sign-out hata verdi.', error);
+    }
+
     setAuthSessionLoading(false);
     setSupabaseWorkspaceId('');
     setSupabaseAuthUserId('');
@@ -9955,6 +9990,7 @@ const filterTaskFollowersForSave = (people = []) =>
     setCurrentUserId('');
     setCurrentAssignedSupabaseTaskIds([]);
     removeStorageValue('currentUserId');
+    clearActiveStorageScope();
     setLoginDraft({ username: '', password: '' });
     setLoginError('');
     setIsPanelOpen(false);
@@ -9963,6 +9999,7 @@ const filterTaskFollowersForSave = (people = []) =>
     setIsGlobalSearchOpen(false);
     setPendingTeamDeleteId(null);
     setPendingCustomerDeleteId(null);
+    window.location.reload();
   };
 
   const loginUsers = teamMembers.filter((member) => member.status !== 'Pasif');
@@ -10209,7 +10246,7 @@ const filterTaskFollowersForSave = (people = []) =>
 
   
 
-  if (!isLoggedIn) {
+  if (authSessionLoading || !isLoggedIn) {
     return (
       <ZRCAppLoginScreen
         renderSupabaseConnectionBadge={renderSupabaseConnectionBadge}

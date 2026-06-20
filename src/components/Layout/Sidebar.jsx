@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { getScopedStorageKey } from '../../app/utils/storageScopeHelpers.js';
 
 function Sidebar({
   activeMenu,
@@ -37,7 +38,7 @@ function Sidebar({
 
   const [highlightedProject, setHighlightedProject] = useState(() => {
     try {
-      const rawSelectedProject = window.localStorage.getItem('zrc-selected-project');
+      const rawSelectedProject = window.localStorage.getItem(getScopedStorageKey('zrc-selected-project'));
       if (!rawSelectedProject) return '';
 
       return JSON.parse(rawSelectedProject) || '';
@@ -105,7 +106,7 @@ function Sidebar({
     setHighlightedProject(cleanProjectName);
 
     try {
-      window.localStorage.setItem('zrc-selected-project', JSON.stringify(cleanProjectName));
+      window.localStorage.setItem(getScopedStorageKey('zrc-selected-project'), JSON.stringify(cleanProjectName));
     } catch (error) {
       // localStorage erişimi yoksa sessiz geç.
     }

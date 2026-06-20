@@ -1,4 +1,5 @@
 import { getNotificationTone } from '../../utils/dashboardHelpers.js';
+import { getScopedStorageKey } from '../utils/storageScopeHelpers.js';
 
 
 
@@ -48,7 +49,7 @@ const zrcNotificationIdVariants = (notification = {}) => {
 const zrcReadJsonArray = (storageKey) => {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return [];
-    const parsed = JSON.parse(window.localStorage.getItem(storageKey) || '[]');
+    const parsed = JSON.parse(window.localStorage.getItem(getScopedStorageKey(storageKey)) || '[]');
     return Array.isArray(parsed) ? parsed.map(String) : [];
   } catch {
     return [];
@@ -58,7 +59,10 @@ const zrcReadJsonArray = (storageKey) => {
 const zrcWriteJsonArray = (storageKey, values) => {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return;
-    window.localStorage.setItem(storageKey, JSON.stringify(Array.from(new Set((values || []).map(String)))));
+    window.localStorage.setItem(
+      getScopedStorageKey(storageKey),
+      JSON.stringify(Array.from(new Set((values || []).map(String))))
+    );
   } catch (error) {
     console.warn('[ZRC] Bildirim temizleme bilgisi kaydedilemedi.', error);
   }

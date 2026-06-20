@@ -1,3 +1,5 @@
+import { getScopedStorageKey } from '../app/utils/storageScopeHelpers.js';
+
 // zrc-v426-task-end-date-color
 const getZrcTaskEndDateValue = (task = {}) =>
   task?.dueDate ||
@@ -613,14 +615,15 @@ export const zrcV442SendTaskSavePush = async ({
   }
 
   const now = Date.now();
-  const lastPushAt = Number(window.localStorage.getItem('zrc-v442-last-task-push-at') || '0');
+  const lastPushStorageKey = getScopedStorageKey('zrc-v442-last-task-push-at');
+  const lastPushAt = Number(window.localStorage.getItem(lastPushStorageKey) || '0');
 
   if (now - lastPushAt < 3000) {
     console.info('[ZRC Push v442] Çift push engellendi.');
     return false;
   }
 
-  window.localStorage.setItem('zrc-v442-last-task-push-at', String(now));
+  window.localStorage.setItem(lastPushStorageKey, String(now));
 
   const accessToken = zrcV442ReadSupabaseAccessToken();
 
@@ -728,11 +731,12 @@ const zrcV447AutoRegisterMobilePush = async () => {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
 
   const now = Date.now();
-  const lastTryAt = Number(window.localStorage.getItem('zrc-v447-last-auto-register-try-at') || '0');
+  const lastTryStorageKey = getScopedStorageKey('zrc-v447-last-auto-register-try-at');
+  const lastTryAt = Number(window.localStorage.getItem(lastTryStorageKey) || '0');
 
   if (now - lastTryAt < 45000) return false;
 
-  window.localStorage.setItem('zrc-v447-last-auto-register-try-at', String(now));
+  window.localStorage.setItem(lastTryStorageKey, String(now));
 
   const accessToken = zrcV447ReadSupabaseAccessToken();
 
@@ -798,7 +802,10 @@ const zrcV447AutoRegisterMobilePush = async () => {
       return false;
     }
 
-    window.localStorage.setItem('zrc-v447-last-auto-register-success-at', new Date().toISOString());
+    window.localStorage.setItem(
+      getScopedStorageKey('zrc-v447-last-auto-register-success-at'),
+      new Date().toISOString()
+    );
     console.info('[ZRC Push v447] Mobil push otomatik kaydedildi.', registerResult);
     return true;
   } catch (error) {

@@ -1,4 +1,5 @@
 import { flushSync } from 'react-dom';
+import { getScopedStorageKey } from '../utils/storageScopeHelpers.js';
 export function createZRCBoardTaskActions(deps) {
   const {
     requirePermission,
@@ -741,7 +742,10 @@ export function createZRCBoardTaskActions(deps) {
     if (typeof window === 'undefined') return;
 
     try {
-      window.localStorage.setItem('zrc-task-order-saving-until', String(Date.now() + durationMs));
+      window.localStorage.setItem(
+        getScopedStorageKey('zrc-task-order-saving-until'),
+        String(Date.now() + durationMs)
+      );
     } catch {
       // Storage erişimi kapalıysa kısa süreli optimistic pencere olmadan devam et.
     }

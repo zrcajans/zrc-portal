@@ -1,4 +1,5 @@
 import { normalizeCredentialText } from './teamHelpers';
+import { getScopedStorageKey } from '../app/utils/storageScopeHelpers.js';
 
 const LEGACY_DEMO_CUSTOMER_NAME_KEYS = new Set(['orneksirket', 'afirmasi', 'bholding']);
 
@@ -6,7 +7,7 @@ const readCustomerStorageValue = (key, fallback = null) => {
   if (typeof window === 'undefined' || !window.localStorage) return fallback;
 
   try {
-    const rawValue = window.localStorage.getItem(key);
+    const rawValue = window.localStorage.getItem(getScopedStorageKey(key));
     if (!rawValue) return fallback;
     return JSON.parse(rawValue);
   } catch (error) {
@@ -19,7 +20,7 @@ const writeCustomerStorageValue = (key, value) => {
   if (typeof window === 'undefined' || !window.localStorage) return;
 
   try {
-    window.localStorage.setItem(key, JSON.stringify(value));
+    window.localStorage.setItem(getScopedStorageKey(key), JSON.stringify(value));
   } catch (error) {
     console.warn('[ZRC CustomerDeletion] Local storage yazılamadı.', key, error);
   }
@@ -31,7 +32,7 @@ export const isLegacyDemoCustomerRecord = (customer = {}) =>
   LEGACY_DEMO_CUSTOMER_NAME_KEYS.has(normalizeCredentialText(customer.name));
 
 export const getDeletedCustomerMarkers = () =>
-  normalizeCustomerStorageArray(readCustomerStorageValue('deletedCustomers', []), []);
+  normalizeCustomerStorageArray(readCustomerStorageValue('zrc-deleted-customers', []), []);
 
 export const buildDeletedCustomerMarker = (customer = {}) => ({
   id: String(customer.supabaseId || customer.id || ''),
