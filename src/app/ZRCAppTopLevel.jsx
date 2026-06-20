@@ -33,6 +33,11 @@ import {
   createDefaultTeamMembers,
   createDefaultCustomers
 } from '../utils/teamHelpers';
+import {
+  sanitizeClientPreferences,
+  sanitizeProfileCredentials,
+  sanitizeTeamMemberCredentials
+} from '../utils/credentialSafetyHelpers';
 import '../zrc-mobile.css';
 import TopNavbar from '../components/Layout/TopNavbar';
 import TaskModal from '../components/Modals/TaskModal';
@@ -255,7 +260,7 @@ export const createDataSnapshot = ({
   exportedAt: new Date().toISOString(),
   data: {
     projects,
-    teamMembers,
+    teamMembers: (Array.isArray(teamMembers) ? teamMembers : []).map(sanitizeTeamMemberCredentials),
     customers,
     selectedProject,
     projectSettings,
@@ -266,8 +271,8 @@ export const createDataSnapshot = ({
     projectMessages,
     readMessageIds,
     chatGroups,
-    profileDraft,
-    profilePreferences
+    profileDraft: sanitizeProfileCredentials(profileDraft),
+    profilePreferences: sanitizeClientPreferences(profilePreferences)
   }
 });
 

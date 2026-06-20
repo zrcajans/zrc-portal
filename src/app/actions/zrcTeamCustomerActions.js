@@ -355,7 +355,6 @@ export function createZRCTeamCustomerActions(deps) {
         ? (teamMemberEditDraft.email.trim() || linkedCustomer?.email || '')
         : teamMemberEditDraft.email.trim();
     const username = normalizeCredentialText(teamMemberEditDraft.username || name);
-    const password = String(teamMemberEditDraft.password || '').trim();
 
     if (role === 'Müşteri/Misafir' && !customerId) {
       await window.zrcAlert('Müşteri/Misafir hesabı için bağlı müşteri seçmelisin.');
@@ -369,11 +368,6 @@ export function createZRCTeamCustomerActions(deps) {
 
     if (!username) {
       await window.zrcAlert('Kullanıcı adı boş olamaz.');
-      return;
-    }
-
-    if (password.length < 4) {
-      await window.zrcAlert('Şifre en az 4 karakter olmalı.');
       return;
     }
 
@@ -430,7 +424,7 @@ export function createZRCTeamCustomerActions(deps) {
       name,
       email,
       username,
-      password,
+      password: '',
       role,
       customerId,
       avatar: editingTeamMember.avatar?.startsWith?.('data:image') ? editingTeamMember.avatar : createAvatarFromName(name)

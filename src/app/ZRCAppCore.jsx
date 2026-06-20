@@ -1298,6 +1298,7 @@ function App() {
   useEffect(() => {
     const safeProfileDraftForStorage = {
       ...profileDraft,
+      password: '',
       currentPassword: '',
       newPassword: '',
       repeatPassword: ''
@@ -9626,7 +9627,7 @@ const filterTaskFollowersForSave = (people = []) =>
       `Hesap tipi: ${accountType}`,
       linkedCustomer ? `Bağlı müşteri: ${linkedCustomer.name}` : '',
       `Kullanıcı adı: ${member.username || createUsernameFromMember(member)}`,
-      `Şifre: ${member.password || '1234'}`,
+      'Şifre: Güvenlik nedeniyle görüntülenemez; gerekirse Supabase üzerinden sıfırlayın.',
       '',
       'Giriş yaptıktan sonra size açık olan proje ve görevleri panelinizden takip edebilirsiniz.'
     ]
@@ -9895,17 +9896,6 @@ const filterTaskFollowersForSave = (people = []) =>
 
     try {
       const normalizedLoginIdentifier = normalizeCredentialText(loginIdentifier);
-      const localMember = teamMembers.find((member) => {
-        const isLocalAccount = member.authProvider === 'local' || String(member.id || '').startsWith('local-user-');
-
-        return (
-          isLocalAccount &&
-          member.status !== 'Pasif' &&
-          normalizeCredentialText(member.username) === normalizedLoginIdentifier &&
-          String(member.password || '') === password
-        );
-      });
-
       const email = loginIdentifier.includes('@')
         ? loginIdentifier
         : `${normalizedLoginIdentifier}@zrc.local`;
@@ -9917,12 +9907,6 @@ const filterTaskFollowersForSave = (people = []) =>
 
       if (signInError) {
         const cleanMessage = String(signInError.message || '').toLocaleLowerCase('tr-TR');
-
-        if (cleanMessage.includes('invalid login credentials') && localMember) {
-          setSupabaseAuthUserId('');
-          handleLoginAsMember(localMember);
-          return;
-        }
 
         if (cleanMessage.includes('invalid login credentials')) {
           setLoginError('Kullanıcı adı/e-posta veya şifre hatalı.');

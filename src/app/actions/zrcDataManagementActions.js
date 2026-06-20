@@ -1,3 +1,8 @@
+import {
+  sanitizeClientPreferences,
+  sanitizeProfileCredentials
+} from '../../utils/credentialSafetyHelpers.js';
+
 export function createZRCDataManagementActions(deps) {
   const {
     getCurrentSupabaseWorkspaceId,
@@ -365,10 +370,13 @@ export function createZRCDataManagementActions(deps) {
     writeStorageValue('projectMessages', normalizeStorageArray(data.projectMessages, []));
     writeStorageValue('readMessages', normalizeStorageArray(data.readMessageIds || data.readMessages, []));
     writeStorageValue('chatGroups', normalizeStorageArray(data.chatGroups, []));
-    writeStorageValue('profileDraft', normalizeStorageObject(data.profileDraft, profileDraft));
+    writeStorageValue(
+      'profileDraft',
+      sanitizeProfileCredentials(normalizeStorageObject(data.profileDraft, profileDraft))
+    );
     writeStorageValue('profilePreferences', {
-      ...profilePreferences,
-      ...normalizeStorageObject(data.profilePreferences, {}),
+      ...sanitizeClientPreferences(profilePreferences),
+      ...sanitizeClientPreferences(normalizeStorageObject(data.profilePreferences, {})),
       lastDataImportAt: new Date().toISOString(),
       lastSavedAt: new Date().toISOString()
     });

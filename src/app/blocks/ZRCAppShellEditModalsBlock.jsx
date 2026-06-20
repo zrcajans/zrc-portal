@@ -108,21 +108,12 @@ export default function ZRCAppShellEditModalsBlock({
                       className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
                     />
       
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        value={teamMemberEditDraft.username}
-                        onChange={(event) => setTeamMemberEditDraft((prev) => ({ ...prev, username: normalizeCredentialText(event.target.value) }))}
-                        placeholder="Kullanıcı adı"
-                        className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                      />
-      
-                      <input
-                        value={teamMemberEditDraft.password}
-                        onChange={(event) => setTeamMemberEditDraft((prev) => ({ ...prev, password: event.target.value }))}
-                        placeholder="Şifre"
-                        className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
-                      />
-                    </div>
+                    <input
+                      value={teamMemberEditDraft.username}
+                      onChange={(event) => setTeamMemberEditDraft((prev) => ({ ...prev, username: normalizeCredentialText(event.target.value) }))}
+                      placeholder="Kullanıcı adı"
+                      className="w-full h-10 rounded-[12px] border border-zinc-200 bg-zinc-50 px-3 text-[12px] font-bold text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:border-[#ff3600] focus:bg-white"
+                    />
                   </div>
       
                   <div className="h-14 px-5 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-2">

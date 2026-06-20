@@ -1,4 +1,5 @@
 import { createAvatarFromName } from './avatarHelpers.jsx';
+import { sanitizeTeamMemberCredentials } from './credentialSafetyHelpers.js';
 
 export const teamRoleOptions = ['Yönetici', 'Ekip Üyesi', 'Müşteri/Misafir'];
 
@@ -57,12 +58,11 @@ export const createUsernameFromMember = (member = {}) => {
   return normalizeCredentialText(member.username || emailName || member.name || member.id || 'kullanici');
 };
 
-export const normalizeTeamMember = (member = {}) => ({
+export const normalizeTeamMember = (member = {}) => sanitizeTeamMemberCredentials({
   ...member,
   role: normalizeTeamRole(member.role),
   avatar: member.avatar || createAvatarFromName(member.name),
   username: createUsernameFromMember(member),
-  password: String(member.password || '1234'),
   customerId: member.customerId || member.linkedCustomerId || ''
 });
 
@@ -149,7 +149,7 @@ export const getStartPanelForAccountType = () => ({
 });
 
 export const createDefaultTeamMembers = () => [
-  { id: 'user-1', name: 'ZRC AJANS', email: 'info@zrcajans.com', username: 'zrcajans', password: '1234', role: 'Yönetici', avatar: 'ZRC', status: 'Aktif' }
+  { id: 'user-1', name: 'ZRC AJANS', email: 'info@zrcajans.com', username: 'zrcajans', role: 'Yönetici', avatar: 'ZRC', status: 'Aktif' }
 ];
 
 export const createDefaultCustomers = () => [];
