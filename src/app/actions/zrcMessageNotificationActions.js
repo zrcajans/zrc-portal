@@ -155,6 +155,7 @@ export function createZRCMessageNotificationActions(deps) {
           .from('notifications')
           .update({ is_read: true })
           .eq('id', supabaseNotificationId)
+          .eq('workspace_id', getCurrentSupabaseWorkspaceId())
           .eq('user_id', currentUserId)
           .then(() => {});
       }
@@ -169,104 +170,76 @@ export function createZRCMessageNotificationActions(deps) {
     });
   };
 
-  const markAllNotificationsAsRead = () => {
+  const markAllNotificationsAsRead = async () => {
     const visibleNotifications = Array.isArray(notificationItems) ? notificationItems : [];
     const clearState = zrcClearedNotificationTokensFromItems(visibleNotifications);
     const clearedBefore = new Date().toISOString();
     const clearedBeforeToken = `${ZRC_CLEARED_NOTIFICATION_BEFORE_PREFIX}${clearedBefore}`;
     const clearAllToken = `${ZRC_CLEAR_ALL_NOTIFICATION_PREFIX}${clearedBefore}`;
-
-    zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY, [
-      ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY),
-      ...clearState.ids
-    ]);
-
-    zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY, [
-      ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY),
-      ...clearState.keys
-    ]);
-
-
-    // zrc-workspace-notification-clear-event-v1
-    // Temizle bilgisini user_preferences yerine workspace activity_logs üzerinden de yay.
-    // Böylece mobil/masaüstü currentUserId farklı olsa bile aynı workspace içindeki cihazlar temizlemeyi alır.
     const workspaceIdForNotificationClear =
       typeof getCurrentSupabaseWorkspaceId === 'function'
         ? getCurrentSupabaseWorkspaceId()
         : '';
 
-    if (supabase && isSupabaseUuid(workspaceIdForNotificationClear)) {
-      supabase
-        .from('activity_logs')
-        .insert({
-          workspace_id: workspaceIdForNotificationClear,
-          actor_id: isSupabaseUuid(currentUserId) ? currentUserId : null,
-          type: 'notification_clear_all',
-          title: 'Bildirimler temizlendi',
-          description: 'Bildirimler temizlendi',
-          payload: {
-            zrcNotificationClearAll: true,
-            clearedBefore,
-            clearAllToken,
-            clearedByUserId: currentUserId || ''
-          }
-        })
-        .then(({ error }) => {
-          if (error) {
-            console.warn('[ZRC] Bildirim temizleme workspace event kaydedilemedi.', error);
-          }
-        });
-    }
-
     const supabaseNotificationIds = clearState.ids
       .filter((id) => !String(id).startsWith('supabase-notification-'))
       .filter(isSupabaseUuid);
 
+    const nextClearedNotificationIds = Array.from(new Set([
+      ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY),
+      ...clearState.ids
+    ]));
+
+    const nextClearedNotificationKeys = Array.from(new Set([
+      ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY),
+      ...clearState.keys
+    ]));
+
+    const nextReadTokens = Array.from(new Set([
+      ...clearState.ids,
+      ...clearState.tokens,
+      clearedBeforeToken,
+      clearAllToken
+    ]));
+
+    const preferencesSaved = await saveUserPreferencesToSupabase({
+      readNotificationIds: nextReadTokens,
+      notificationsClearedBefore: clearedBefore,
+      notificationClearAllAt: clearedBefore,
+      notificationsClearAllAt: clearedBefore,
+      notificationsClearedAt: clearedBefore,
+      notificationClearVersion: clearedBefore,
+      notificationClearSource: currentUserId,
+      clearedNotificationIds: nextClearedNotificationIds,
+      clearedNotificationKeys: nextClearedNotificationKeys
+    });
+
+    if (!preferencesSaved) {
+      await window.zrcAlert('Bildirimler temizlenemedi. Sunucu kaydı tamamlanmadığı için liste değiştirilmedi.');
+      return;
+    }
+
     if (supabaseNotificationIds.length > 0 && supabase) {
-      supabase
+      const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
-        .in('id', supabaseNotificationIds)
-        .then(({ error }) => {
-          if (error) {
-            console.warn('[ZRC] Bildirimler Supabase tarafında okundu işaretlenemedi.', error);
-          }
-        });
+        .eq('workspace_id', workspaceIdForNotificationClear)
+        .eq('user_id', currentUserId)
+        .in('id', supabaseNotificationIds);
+
+      if (error) {
+        console.warn('[ZRC] Bildirimler Supabase tarafında okundu işaretlenemedi.', error);
+      }
     }
+
+    zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY, nextClearedNotificationIds);
+    zrcWriteJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY, nextClearedNotificationKeys);
 
     setReadNotificationIds((prevIds) => {
       const nextIds = Array.from(new Set([
         ...(prevIds || []),
-        ...clearState.ids,
-        ...clearState.tokens,
-        clearedBeforeToken,
-        clearAllToken
+        ...nextReadTokens
       ]));
-
-      // zrc-notification-clear-sync-action-v1
-      // Temizle işlemi mobil/masaüstü aynı anda yürüsün diye temizlenen id/key listeleri
-      // sadece localStorage'da değil, Supabase user_preferences içinde de tutulur.
-      const nextClearedNotificationIds = Array.from(new Set([
-        ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_IDS_KEY),
-        ...clearState.ids
-      ]));
-
-      const nextClearedNotificationKeys = Array.from(new Set([
-        ...zrcReadJsonArray(ZRC_CLEARED_NOTIFICATION_KEYS_KEY),
-        ...clearState.keys
-      ]));
-
-      saveUserPreferencesToSupabase({
-        readNotificationIds: nextIds,
-        notificationsClearedBefore: clearedBefore,
-        notificationClearAllAt: clearedBefore,
-        notificationsClearAllAt: clearedBefore,
-        notificationsClearedAt: clearedBefore,
-        notificationClearVersion: clearedBefore,
-        notificationClearSource: currentUserId,
-        clearedNotificationIds: nextClearedNotificationIds,
-        clearedNotificationKeys: nextClearedNotificationKeys
-      });
 
       return nextIds;
     });

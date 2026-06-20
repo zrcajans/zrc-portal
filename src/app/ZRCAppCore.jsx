@@ -161,6 +161,10 @@ import {
   clearActiveStorageScope,
   getScopedStorageKey
 } from './utils/storageScopeHelpers.js';
+import {
+  getNotificationClearTokensForUser,
+  isNotificationClearAllActivityLog
+} from './utils/notificationClearHelpers.js';
 function App() {
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -3983,38 +3987,10 @@ function App() {
 
 
   // zrc-workspace-notification-clear-event-core-v1
-  const zrcIsNotificationClearAllActivityLog = (log = {}) =>
-    log.type === 'notification_clear_all' ||
-    log.payload?.zrcNotificationClearAll === true ||
-    log.payload?.clearAllToken;
-
-  const zrcNotificationClearTokensFromActivityLogs = (logs = []) => {
-    const tokens = [];
-
-    (logs || []).forEach((log) => {
-      if (!zrcIsNotificationClearAllActivityLog(log)) return;
-
-      const payload = log.payload || {};
-      const clearedAt =
-        payload.clearedBefore ||
-        payload.notificationClearAllAt ||
-        payload.notificationsClearAllAt ||
-        log.created_at ||
-        '';
-
-      if (!clearedAt) return;
-
-      tokens.push(`clear-all:${clearedAt}`);
-      tokens.push(`cleared-before:${clearedAt}`);
-    });
-
-    return Array.from(new Set(tokens));
-  };
-
   const mapSupabaseActivityLogToLocal = (log = {}) => {
     const payload = log.payload || {};
 
-    if (zrcIsNotificationClearAllActivityLog(log)) return null;
+    if (isNotificationClearAllActivityLog(log)) return null;
 
     return {
       id: payload.localId || `supabase-activity-${log.id}`,
@@ -4053,7 +4029,7 @@ function App() {
 
       if (logsError) throw logsError;
 
-      const notificationClearTokens = zrcNotificationClearTokensFromActivityLogs(logs);
+      const notificationClearTokens = getNotificationClearTokensForUser(logs, currentUserId);
 
       if (notificationClearTokens.length > 0) {
         setReadNotificationIds((prevIds) => Array.from(new Set([...(prevIds || []), ...notificationClearTokens])));
