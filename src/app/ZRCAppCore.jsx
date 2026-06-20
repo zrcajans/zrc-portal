@@ -166,6 +166,7 @@ import {
   isNotificationClearAllActivityLog
 } from './utils/notificationClearHelpers.js';
 import { tryAcquireActionLock, releaseActionLock } from './utils/asyncActionLock.js';
+import { buildRelationshipSyncPlan } from './utils/relationshipSyncHelpers.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
@@ -2997,6 +2998,7 @@ function App() {
           .from('projects')
           .update(projectPayload)
           .eq('id', projectId)
+          .eq('workspace_id', workspaceId)
           .select('id')
           .single();
 
@@ -3016,9 +3018,6 @@ function App() {
       const savedProjectId = savedProject?.id || projectId;
 
       if (savedProjectId) {
-        await supabase.from('project_members').delete().eq('project_id', savedProjectId);
-        await supabase.from('project_customers').delete().eq('project_id', savedProjectId);
-
         const memberIds = Array.from(
           new Set(
             (Array.isArray(settings.teamMemberIds) ? settings.teamMemberIds : [])
@@ -3026,6 +3025,8 @@ function App() {
               .filter(isSupabaseUuid)
           )
         );
+
+        let desiredMemberIds = [];
 
         if (memberIds.length > 0) {
           const { data: workspaceMemberRows, error: workspaceMemberCheckError } = await supabase
@@ -3043,34 +3044,84 @@ function App() {
               .filter(isSupabaseUuid)
           );
 
-          const cleanMemberIds = memberIds.filter((memberId) => activeWorkspaceMemberIds.has(memberId));
-
-          if (cleanMemberIds.length > 0) {
-            const { error: membersError } = await supabase
-              .from('project_members')
-              .insert(
-                cleanMemberIds.map((userId) => ({
-                  workspace_id: workspaceId,
-                  project_id: savedProjectId,
-                  user_id: userId,
-                  role: 'Üye'
-                }))
-              );
-
-            if (membersError) throw membersError;
-          }
+          desiredMemberIds = memberIds.filter((memberId) => activeWorkspaceMemberIds.has(memberId));
         }
 
-        if (customerId) {
+        const { data: existingMemberLinks, error: existingMemberLinksError } = await supabase
+          .from('project_members')
+          .select('user_id')
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', savedProjectId);
+
+        if (existingMemberLinksError) throw existingMemberLinksError;
+
+        const memberSyncPlan = buildRelationshipSyncPlan(
+          (existingMemberLinks || []).map((link) => link.user_id),
+          desiredMemberIds
+        );
+
+        if (memberSyncPlan.toInsert.length > 0) {
+          const { error: memberInsertError } = await supabase
+            .from('project_members')
+            .insert(
+              memberSyncPlan.toInsert.map((userId) => ({
+                workspace_id: workspaceId,
+                project_id: savedProjectId,
+                user_id: userId,
+                role: 'Üye'
+              }))
+            );
+
+          if (memberInsertError) throw memberInsertError;
+        }
+
+        if (memberSyncPlan.toDelete.length > 0) {
+          const { error: memberDeleteError } = await supabase
+            .from('project_members')
+            .delete()
+            .eq('workspace_id', workspaceId)
+            .eq('project_id', savedProjectId)
+            .in('user_id', memberSyncPlan.toDelete);
+
+          if (memberDeleteError) throw memberDeleteError;
+        }
+
+        const { data: existingCustomerLinks, error: existingCustomerLinksError } = await supabase
+          .from('project_customers')
+          .select('customer_id')
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', savedProjectId);
+
+        if (existingCustomerLinksError) throw existingCustomerLinksError;
+
+        const customerSyncPlan = buildRelationshipSyncPlan(
+          (existingCustomerLinks || []).map((link) => link.customer_id),
+          customerId ? [customerId] : []
+        );
+
+        if (customerSyncPlan.toInsert.length > 0) {
           const { error: customerLinkError } = await supabase
             .from('project_customers')
-            .insert({
-              workspace_id: workspaceId,
-              project_id: savedProjectId,
-              customer_id: customerId
-            });
+            .insert(
+              customerSyncPlan.toInsert.map((nextCustomerId) => ({
+                workspace_id: workspaceId,
+                project_id: savedProjectId,
+                customer_id: nextCustomerId
+              }))
+            );
 
           if (customerLinkError) throw customerLinkError;
+        }
+
+        if (customerSyncPlan.toDelete.length > 0) {
+          const { error: customerLinkDeleteError } = await supabase
+            .from('project_customers')
+            .delete()
+            .eq('workspace_id', workspaceId)
+            .eq('project_id', savedProjectId)
+            .in('customer_id', customerSyncPlan.toDelete);
+
+          if (customerLinkDeleteError) throw customerLinkDeleteError;
         }
       }
 
