@@ -142,11 +142,14 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
 
       if (typeof onUploadFiles === 'function') {
         newFiles = await onUploadFiles(task, selectedFiles, getFileTypeLabel);
-      }
 
-      if (!Array.isArray(newFiles) || newFiles.length === 0) {
+        if (!Array.isArray(newFiles) || newFiles.length === 0) {
+          await window.zrcAlert('Dosyalar Supabase’e yüklenemedi; görev kaydına eklenmedi.');
+          return;
+        }
+      } else {
         newFiles = selectedFiles.map((file) => ({
-          id: `file-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          id: globalThis.crypto?.randomUUID?.() || `file-${Date.now()}-${Math.random().toString(16).slice(2)}`,
           name: file.name,
           type: getFileTypeLabel(file.name),
           size: file.size,
@@ -179,13 +182,18 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
     }
   };
 
-  const deleteTaskFile = (fileId) => {
+  const deleteTaskFile = async (fileId) => {
     if (!canManageFiles) return;
 
     const deletedFile = (task.files || []).find((file) => file.id === fileId);
 
     if (deletedFile && typeof onDeleteFile === 'function') {
-      onDeleteFile(deletedFile);
+      const deleted = await onDeleteFile(deletedFile);
+
+      if (!deleted) {
+        await window.zrcAlert('Dosya Supabase’den silinemedi; görev kaydı değiştirilmedi.');
+        return;
+      }
     }
 
     onUpdate(
@@ -214,7 +222,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
     if (!cleanStep) return;
 
     const newStep = {
-      id: `step-${Date.now()}`,
+      id: globalThis.crypto?.randomUUID?.() || `step-${Date.now()}`,
       text: cleanStep,
       completed: false
     };

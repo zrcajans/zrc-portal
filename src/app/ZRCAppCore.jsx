@@ -152,6 +152,10 @@ import {
   isReportTaskCompleted,
   getReportPriorityStyle
 } from './utils/zrcCorePureHelpers';
+import {
+  getClientGeneratedTaskChildId,
+  getPersistedTaskChildId
+} from './utils/taskPersistenceHelpers';
 function App() {
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -1889,6 +1893,7 @@ function App() {
     const { data: existingColumns, error: selectError } = await supabase
       .from('board_columns')
       .select('id, title, position')
+      .eq('workspace_id', workspaceId)
       .eq('project_id', projectId)
       .in('title', titleAliases)
       .order('position', { ascending: true });
@@ -1903,9 +1908,10 @@ function App() {
 
     if (preferredColumn?.id) {
       const { error: updateError } = await supabase
-        .from('board_columns')
-        .update(columnPayload)
-        .eq('id', preferredColumn.id);
+          .from('board_columns')
+          .update(columnPayload)
+          .eq('id', preferredColumn.id)
+          .eq('workspace_id', workspaceId);
 
       if (updateError) throw updateError;
 
@@ -1917,6 +1923,7 @@ function App() {
         await supabase
           .from('board_columns')
           .update({ is_archived: true })
+          .eq('workspace_id', workspaceId)
           .in('id', duplicateIds);
       }
 
@@ -1932,6 +1939,58 @@ function App() {
     if (insertError) throw insertError;
 
     return createdColumn?.id || null;
+  };
+
+  const syncTaskPeopleToSupabase = async (taskId, tableName, requestedUserIds = []) => {
+    if (!isSupabaseUuid(taskId) || !['task_assignees', 'task_followers'].includes(tableName)) {
+      throw new Error('Görev kişi bağlantısı doğrulanamadı.');
+    }
+
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+    const allowedUserIds = new Set(
+      (teamMembers || [])
+        .filter((member) => !member?.workspaceId || member.workspaceId === workspaceId)
+        .map((member) => member?.id || member?.userId)
+        .filter(isSupabaseUuid)
+    );
+
+    if (isSupabaseUuid(currentUserId)) allowedUserIds.add(currentUserId);
+    if (isSupabaseUuid(supabaseAuthUserId)) allowedUserIds.add(supabaseAuthUserId);
+
+    const desiredUserIds = Array.from(
+      new Set((requestedUserIds || []).filter((userId) => allowedUserIds.has(userId)))
+    );
+    const { data: existingRows, error: existingRowsError } = await supabase
+      .from(tableName)
+      .select('user_id')
+      .eq('task_id', taskId);
+
+    if (existingRowsError) throw existingRowsError;
+
+    const existingUserIds = new Set((existingRows || []).map((row) => row.user_id).filter(Boolean));
+    const userIdsToInsert = desiredUserIds.filter((userId) => !existingUserIds.has(userId));
+    const userIdsToDelete = Array.from(existingUserIds).filter((userId) => !desiredUserIds.includes(userId));
+
+    if (userIdsToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from(tableName)
+        .upsert(
+          userIdsToInsert.map((userId) => ({ task_id: taskId, user_id: userId })),
+          { onConflict: 'task_id,user_id', ignoreDuplicates: true }
+        );
+
+      if (insertError) throw insertError;
+    }
+
+    if (userIdsToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from(tableName)
+        .delete()
+        .eq('task_id', taskId)
+        .in('user_id', userIdsToDelete);
+
+      if (deleteError) throw deleteError;
+    }
   };
 
   const saveTaskToSupabase = async (taskData, targetStatus) => {
@@ -2015,6 +2074,7 @@ function App() {
           .from('tasks')
           .update(payload)
           .eq('id', existingSupabaseTaskId)
+          .eq('workspace_id', workspaceId)
           .select('id')
           .maybeSingle();
 
@@ -2075,27 +2135,8 @@ function App() {
         const assigneeIds = uniqueSupabaseUserIds(taskData.assignees || []);
         const followerIds = uniqueSupabaseUserIds(taskData.followers || []);
 
-        const { error: deleteAssigneesError } = await supabase.from('task_assignees').delete().eq('task_id', savedTask.id);
-        if (deleteAssigneesError) throw deleteAssigneesError;
-
-        const { error: deleteFollowersError } = await supabase.from('task_followers').delete().eq('task_id', savedTask.id);
-        if (deleteFollowersError) throw deleteFollowersError;
-
-        if (assigneeIds.length > 0) {
-          const { error: insertAssigneesError } = await supabase
-            .from('task_assignees')
-            .insert(assigneeIds.map((userId) => ({ task_id: savedTask.id, user_id: userId })));
-
-          if (insertAssigneesError) throw insertAssigneesError;
-        }
-
-        if (followerIds.length > 0) {
-          const { error: insertFollowersError } = await supabase
-            .from('task_followers')
-            .insert(followerIds.map((userId) => ({ task_id: savedTask.id, user_id: userId })));
-
-          if (insertFollowersError) throw insertFollowersError;
-        }
+        await syncTaskPeopleToSupabase(savedTask.id, 'task_assignees', assigneeIds);
+        await syncTaskPeopleToSupabase(savedTask.id, 'task_followers', followerIds);
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
@@ -2230,27 +2271,8 @@ function App() {
         const assigneeIds = uniqueSupabaseUserIds(taskData.assignees || []);
         const followerIds = uniqueSupabaseUserIds(taskData.followers || []);
 
-        const { error: deleteAssigneesError } = await supabase.from('task_assignees').delete().eq('task_id', data.id);
-        if (deleteAssigneesError) throw deleteAssigneesError;
-
-        const { error: deleteFollowersError } = await supabase.from('task_followers').delete().eq('task_id', data.id);
-        if (deleteFollowersError) throw deleteFollowersError;
-
-        if (assigneeIds.length > 0) {
-          const { error: insertAssigneesError } = await supabase
-            .from('task_assignees')
-            .insert(assigneeIds.map((userId) => ({ task_id: data.id, user_id: userId })));
-
-          if (insertAssigneesError) throw insertAssigneesError;
-        }
-
-        if (followerIds.length > 0) {
-          const { error: insertFollowersError } = await supabase
-            .from('task_followers')
-            .insert(followerIds.map((userId) => ({ task_id: data.id, user_id: userId })));
-
-          if (insertFollowersError) throw insertFollowersError;
-        }
+        await syncTaskPeopleToSupabase(data.id, 'task_assignees', assigneeIds);
+        await syncTaskPeopleToSupabase(data.id, 'task_followers', followerIds);
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
@@ -2291,7 +2313,8 @@ function App() {
         const { error: updateError } = await supabase
           .from('board_columns')
           .update(payload)
-          .eq('id', columnData.id);
+          .eq('id', columnData.id)
+          .eq('workspace_id', workspaceId);
 
         if (updateError) throw updateError;
 
@@ -2321,7 +2344,9 @@ function App() {
 
 
   const updateSupabaseTaskColumn = async (task, targetColumn, taskOrder = null) => {
-    if (!task?.supabaseId || !targetColumn?.title) return false;
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !task?.supabaseId || !targetColumn?.title) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev durumu güncelleniyor');
 
@@ -2344,7 +2369,8 @@ function App() {
       const { error } = await supabase
         .from('tasks')
         .update(updatePayload)
-        .eq('id', task.supabaseId);
+        .eq('id', task.supabaseId)
+        .eq('workspace_id', workspaceId);
 
       if (error) throw error;
 
@@ -2357,9 +2383,9 @@ function App() {
   };
 
   const archiveSupabaseTask = async (task) => {
-    zrcMarkOptimisticHiddenTask(task, 9000);
+    const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    if (!task?.supabaseId) return false;
+    if (!workspaceId || !task?.supabaseId) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev arşivleniyor');
 
@@ -2369,13 +2395,14 @@ function App() {
         .update({
           is_archived: true,
           archived_at: new Date().toISOString(),
-          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
-        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
+          updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
         })
-        .eq('id', task.supabaseId);
+        .eq('id', task.supabaseId)
+        .eq('workspace_id', workspaceId);
 
       if (error) throw error;
 
+      zrcMarkOptimisticHiddenTask(task, 9000);
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev arşivlendi');
       return true;
     } catch (error) {
@@ -2385,7 +2412,9 @@ function App() {
   };
 
   const restoreSupabaseTask = async (task, targetColumn) => {
-    if (!task?.supabaseId) return false;
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !task?.supabaseId) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev geri getiriliyor');
 
@@ -2393,6 +2422,8 @@ function App() {
       const projectId = await ensureSupabaseProject(selectedProject);
       const targetColumnIndex = Math.max(0, boardColumns.findIndex((column) => column.id === targetColumn?.id || column.title === targetColumn?.title));
       const columnId = await ensureSupabaseColumn(projectId, targetColumn || boardColumns[0], targetColumnIndex);
+      const targetTaskCount = Array.isArray(targetColumn?.tasks) ? targetColumn.tasks.length : 0;
+      const targetTaskOrder = Number.isFinite(task?.taskOrder) ? task.taskOrder : targetTaskCount;
 
       const { error } = await supabase
         .from('tasks')
@@ -2402,9 +2433,10 @@ function App() {
           is_archived: false,
           archived_at: null,
           updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
-        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
+          task_order: targetTaskOrder
         })
-        .eq('id', task.supabaseId);
+        .eq('id', task.supabaseId)
+        .eq('workspace_id', workspaceId);
 
       if (error) throw error;
 
@@ -2417,9 +2449,9 @@ function App() {
   };
 
   const deleteSupabaseTask = async (task) => {
-    zrcMarkOptimisticHiddenTask(task, 9000);
+    const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    if (!task?.supabaseId) return false;
+    if (!workspaceId || !task?.supabaseId) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev siliniyor');
 
@@ -2427,10 +2459,12 @@ function App() {
       const { error } = await supabase
         .from('tasks')
         .delete()
-        .eq('id', task.supabaseId);
+        .eq('id', task.supabaseId)
+        .eq('workspace_id', workspaceId);
 
       if (error) throw error;
 
+      zrcMarkOptimisticHiddenTask(task, 9000);
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev silindi');
       return true;
     } catch (error) {
@@ -2460,12 +2494,15 @@ function App() {
   };
 
   const getTaskProjectIdForSupabaseDetail = async (taskSupabaseId) => {
-    if (!taskSupabaseId) return null;
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (!workspaceId || !taskSupabaseId) return null;
 
     const { data, error } = await supabase
       .from('tasks')
       .select('project_id')
       .eq('id', taskSupabaseId)
+      .eq('workspace_id', workspaceId)
       .maybeSingle();
 
     if (error) throw error;
@@ -2533,65 +2570,155 @@ function App() {
           .from('tasks')
           .update({
             description: updates.description || '',
-            updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
-        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
+            updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
           })
-          .eq('id', taskSupabaseId);
+          .eq('id', taskSupabaseId)
+          .eq('workspace_id', workspaceId);
 
         if (descriptionError) throw descriptionError;
       }
 
       if (shouldSyncComments) {
-        await supabase.from('task_comments').delete().eq('task_id', taskSupabaseId);
+        const incomingComments = (updates.comments || []).filter((comment) => String(comment.text || '').trim());
+        const { data: existingComments, error: existingCommentsError } = await supabase
+          .from('task_comments')
+          .select('id')
+          .eq('workspace_id', workspaceId)
+          .eq('task_id', taskSupabaseId);
 
-        const commentsPayload = (updates.comments || [])
+        if (existingCommentsError) throw existingCommentsError;
+
+        const incomingCommentIds = new Set(
+          incomingComments
+            .map((comment) => getPersistedTaskChildId(comment, 'supabase-comment-') || getClientGeneratedTaskChildId(comment))
+            .filter(Boolean)
+        );
+        const commentsToDelete = (existingComments || [])
+          .map((comment) => comment.id)
+          .filter((commentId) => !incomingCommentIds.has(commentId));
+        const newCommentsPayload = incomingComments
+          .filter((comment) => !getPersistedTaskChildId(comment, 'supabase-comment-'))
           .map((comment) => ({
+            ...(getClientGeneratedTaskChildId(comment) ? { id: getClientGeneratedTaskChildId(comment) } : {}),
             workspace_id: workspaceId,
             task_id: taskSupabaseId,
             author_id: isSupabaseUuid(comment.userId) ? comment.userId : isSupabaseUuid(currentUserId) ? currentUserId : null,
             body: String(comment.text || '').trim(),
             created_at: comment.createdAt || new Date().toISOString()
-          }))
-          .filter((comment) => comment.body);
+          }));
 
-        if (commentsPayload.length > 0) {
+        if (newCommentsPayload.length > 0) {
           const { error: commentsError } = await supabase
             .from('task_comments')
-            .insert(commentsPayload);
+            .upsert(newCommentsPayload, { onConflict: 'id' });
 
           if (commentsError) throw commentsError;
+        }
+
+        if (commentsToDelete.length > 0) {
+          const { error: commentsDeleteError } = await supabase
+            .from('task_comments')
+            .delete()
+            .eq('workspace_id', workspaceId)
+            .eq('task_id', taskSupabaseId)
+            .in('id', commentsToDelete);
+
+          if (commentsDeleteError) throw commentsDeleteError;
         }
       }
 
       if (shouldSyncSteps) {
-        await supabase.from('task_steps').delete().eq('task_id', taskSupabaseId);
+        const incomingSteps = (updates.steps || []).filter((step) => String(step.text || '').trim());
+        const { data: existingSteps, error: existingStepsError } = await supabase
+          .from('task_steps')
+          .select('id')
+          .eq('workspace_id', workspaceId)
+          .eq('task_id', taskSupabaseId);
 
-        const stepsPayload = (updates.steps || [])
-          .map((step, index) => ({
+        if (existingStepsError) throw existingStepsError;
+
+        const incomingStepIds = new Set(
+          incomingSteps
+            .map((step) => getPersistedTaskChildId(step, 'supabase-step-') || getClientGeneratedTaskChildId(step))
+            .filter(Boolean)
+        );
+        const stepsToDelete = (existingSteps || [])
+          .map((step) => step.id)
+          .filter((stepId) => !incomingStepIds.has(stepId));
+        const existingStepUpdates = incomingSteps
+          .map((step, index) => ({ step, index, id: getPersistedTaskChildId(step, 'supabase-step-') }))
+          .filter((item) => item.id);
+
+        await Promise.all(
+          existingStepUpdates.map(async ({ step, index, id }) => {
+            const { error } = await supabase
+              .from('task_steps')
+              .update({
+                text: String(step.text || '').trim(),
+                is_completed: step.completed === true,
+                position: index
+              })
+              .eq('id', id)
+              .eq('workspace_id', workspaceId)
+              .eq('task_id', taskSupabaseId);
+
+            if (error) throw error;
+          })
+        );
+
+        const newStepsPayload = incomingSteps
+          .map((step, index) => ({ step, index }))
+          .filter(({ step }) => !getPersistedTaskChildId(step, 'supabase-step-'))
+          .map(({ step, index }) => ({
+            ...(getClientGeneratedTaskChildId(step) ? { id: getClientGeneratedTaskChildId(step) } : {}),
             workspace_id: workspaceId,
             task_id: taskSupabaseId,
             text: String(step.text || '').trim(),
             is_completed: step.completed === true,
             position: index,
             created_by: isSupabaseUuid(currentUserId) ? currentUserId : null
-          }))
-          .filter((step) => step.text);
+          }));
 
-        if (stepsPayload.length > 0) {
+        if (newStepsPayload.length > 0) {
           const { error: stepsError } = await supabase
             .from('task_steps')
-            .insert(stepsPayload);
+            .upsert(newStepsPayload, { onConflict: 'id' });
 
           if (stepsError) throw stepsError;
+        }
+
+        if (stepsToDelete.length > 0) {
+          const { error: stepsDeleteError } = await supabase
+            .from('task_steps')
+            .delete()
+            .eq('workspace_id', workspaceId)
+            .eq('task_id', taskSupabaseId)
+            .in('id', stepsToDelete);
+
+          if (stepsDeleteError) throw stepsDeleteError;
         }
       }
 
       if (shouldSyncFiles) {
         const projectId = await getTaskProjectIdForSupabaseDetail(taskSupabaseId);
+        const incomingFiles = updates.files || [];
+        const { data: existingFiles, error: existingFilesError } = await supabase
+          .from('files')
+          .select('id')
+          .eq('workspace_id', workspaceId)
+          .eq('task_id', taskSupabaseId);
 
-        await supabase.from('files').delete().eq('task_id', taskSupabaseId);
+        if (existingFilesError) throw existingFilesError;
 
-        const filesPayload = (updates.files || [])
+        const incomingFileIds = new Set(
+          incomingFiles.map((file) => getPersistedTaskChildId(file, 'supabase-file-')).filter(Boolean)
+        );
+        const filesToDelete = (existingFiles || [])
+          .map((file) => file.id)
+          .filter((fileId) => !incomingFileIds.has(fileId));
+        const newFilesPayload = incomingFiles
+          .filter((file) => !getPersistedTaskChildId(file, 'supabase-file-'))
+          .filter((file) => file.bucket === 'project-files' && String(file.storagePath || '').startsWith(`${workspaceId}/`))
           .map((file) => ({
             workspace_id: workspaceId,
             project_id: projectId,
@@ -2603,15 +2730,25 @@ function App() {
             file_type: file.type || 'Dosya',
             size_bytes: Number(file.size || 0),
             note: file.notes || ''
-          }))
-          .filter((file) => file.file_name);
+          }));
 
-        if (filesPayload.length > 0) {
+        if (newFilesPayload.length > 0) {
           const { error: filesError } = await supabase
             .from('files')
-            .insert(filesPayload);
+            .insert(newFilesPayload);
 
           if (filesError) throw filesError;
+        }
+
+        if (filesToDelete.length > 0) {
+          const { error: filesDeleteError } = await supabase
+            .from('files')
+            .delete()
+            .eq('workspace_id', workspaceId)
+            .eq('task_id', taskSupabaseId)
+            .in('id', filesToDelete);
+
+          if (filesDeleteError) throw filesDeleteError;
         }
       }
 
@@ -2643,8 +2780,14 @@ function App() {
 
     const now = new Date();
     const uploadedFiles = [];
+    const uploadedStoragePaths = [];
+    const insertedFileIds = [];
 
     try {
+      const projectId = await getTaskProjectIdForSupabaseDetail(taskSupabaseId);
+
+      if (!projectId) throw new Error('Dosyanın bağlı olduğu proje bulunamadı.');
+
       for (const file of selectedFiles) {
         const safeFileName = sanitizeStorageFileName(file.name);
         const storagePath = `${workspaceId}/tasks/${taskSupabaseId}/${Date.now()}-${Math.random().toString(16).slice(2)}-${safeFileName}`;
@@ -2659,8 +2802,34 @@ function App() {
 
         if (uploadError) throw uploadError;
 
+        uploadedStoragePaths.push(storagePath);
+
+        const { data: fileRecord, error: fileRecordError } = await supabase
+          .from('files')
+          .insert({
+            workspace_id: workspaceId,
+            project_id: projectId,
+            task_id: taskSupabaseId,
+            uploaded_by: isSupabaseUuid(currentActorId) ? currentActorId : isSupabaseUuid(currentUserId) ? currentUserId : null,
+            bucket: 'project-files',
+            storage_path: storagePath,
+            file_name: String(file.name || safeFileName).trim(),
+            file_type: getFileTypeLabel(file.name),
+            size_bytes: Number(file.size || 0),
+            note: ''
+          })
+          .select('id')
+          .single();
+
+        if (fileRecordError || !fileRecord?.id) {
+          throw fileRecordError || new Error('Dosya metadata kaydı oluşturulamadı.');
+        }
+
+        insertedFileIds.push(fileRecord.id);
+
         uploadedFiles.push({
-          id: `file-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          id: `supabase-file-${fileRecord.id}`,
+          supabaseId: fileRecord.id,
           name: file.name,
           type: getFileTypeLabel(file.name),
           size: file.size,
@@ -2677,6 +2846,28 @@ function App() {
       zrcSetSupabaseWriteInfo('saved', 'Supabase dosya yüklendi');
       return uploadedFiles;
     } catch (error) {
+      if (insertedFileIds.length > 0) {
+        const { error: metadataCleanupError } = await supabase
+          .from('files')
+          .delete()
+          .eq('workspace_id', workspaceId)
+          .in('id', insertedFileIds);
+
+        if (metadataCleanupError) {
+          console.warn('[ZRC Supabase] Başarısız upload metadata temizliği tamamlanamadı.', metadataCleanupError);
+        }
+      }
+
+      if (uploadedStoragePaths.length > 0) {
+        const { error: storageCleanupError } = await supabase.storage
+          .from('project-files')
+          .remove(uploadedStoragePaths);
+
+        if (storageCleanupError) {
+          console.warn('[ZRC Supabase] Başarısız upload Storage temizliği tamamlanamadı.', storageCleanupError);
+        }
+      }
+
       zrcSetSupabaseWriteInfo('error', `Supabase dosya yükleme hatası: ${error?.message || 'bilinmeyen hata'}`);
       return [];
     }
@@ -2691,8 +2882,14 @@ function App() {
     zrcSetSupabaseWriteInfo('saving', 'Supabase dosya indiriliyor');
 
     try {
+      const workspaceId = getCurrentSupabaseWorkspaceId();
+
+      if (!workspaceId || file.bucket !== 'project-files' || !file.storagePath.startsWith(`${workspaceId}/`)) {
+        throw new Error('Dosya yolu aktif workspace ile eşleşmiyor.');
+      }
+
       const { data, error } = await supabase.storage
-        .from(file.bucket || 'project-files')
+        .from('project-files')
         .download(file.storagePath);
 
       if (error) throw error;
@@ -2717,11 +2914,38 @@ function App() {
     if (!file?.storagePath) return false;
 
     try {
+      const workspaceId = getCurrentSupabaseWorkspaceId();
+
+      if (!workspaceId || file.bucket !== 'project-files' || !file.storagePath.startsWith(`${workspaceId}/`)) {
+        throw new Error('Dosya yolu aktif workspace ile eşleşmiyor.');
+      }
+
+      const rawFileId = String(file.supabaseId || file.id || '');
+      const fileId = rawFileId.startsWith('supabase-file-')
+        ? rawFileId.slice('supabase-file-'.length)
+        : rawFileId;
+
+      if (isSupabaseUuid(fileId)) {
+        const { error: metadataDeleteError } = await supabase
+          .from('files')
+          .delete()
+          .eq('id', fileId)
+          .eq('workspace_id', workspaceId);
+
+        if (metadataDeleteError) throw metadataDeleteError;
+      }
+
       const { error } = await supabase.storage
-        .from(file.bucket || 'project-files')
+        .from('project-files')
         .remove([file.storagePath]);
 
-      if (error) throw error;
+      if (error) {
+        zrcSetSupabaseWriteInfo(
+          'error',
+          'Dosya kaydı silindi; Storage nesnesi temizlenemedi ve sunucu temizliği gerekiyor.'
+        );
+        return true;
+      }
 
       return true;
     } catch (error) {
@@ -4478,6 +4702,10 @@ function App() {
     const columnIndex = Math.max(0, (projectBoards?.[projectName]?.columns || boardColumns).findIndex((item) => item.title === column.title));
     const columnId = isArchived ? null : await ensureSupabaseColumn(projectId, column || { title: task.status || 'Yeni Görev' }, columnIndex);
 
+    const localTaskIndex = Math.max(
+      0,
+      (column?.tasks || []).findIndex((columnTask) => columnTask?.id === task?.id)
+    );
     const payload = {
       workspace_id: workspaceId,
       project_id: projectId,
@@ -4495,7 +4723,7 @@ function App() {
       is_archived: isArchived || task.isArchived === true,
       archived_at: isArchived || task.isArchived === true ? new Date().toISOString() : null,
       updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null,
-        task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
+      task_order: Number.isFinite(task?.taskOrder) ? task.taskOrder : localTaskIndex
     };
 
     let savedTask = null;
@@ -4505,6 +4733,7 @@ function App() {
         .from('tasks')
         .update(payload)
         .eq('id', task.supabaseId)
+        .eq('workspace_id', workspaceId)
         .select('id')
         .single();
 
@@ -4538,24 +4767,8 @@ function App() {
       .map((person) => person?.id || person?.userId)
       .filter(isSupabaseUuid);
 
-    await supabase.from('task_assignees').delete().eq('task_id', savedTaskId);
-    await supabase.from('task_followers').delete().eq('task_id', savedTaskId);
-
-    if (assigneeIds.length > 0) {
-      const { error: assigneesError } = await supabase
-        .from('task_assignees')
-        .insert(assigneeIds.map((userId) => ({ task_id: savedTaskId, user_id: userId })));
-
-      if (assigneesError) throw assigneesError;
-    }
-
-    if (followerIds.length > 0) {
-      const { error: followersError } = await supabase
-        .from('task_followers')
-        .insert(followerIds.map((userId) => ({ task_id: savedTaskId, user_id: userId })));
-
-      if (followersError) throw followersError;
-    }
+    await syncTaskPeopleToSupabase(savedTaskId, 'task_assignees', assigneeIds);
+    await syncTaskPeopleToSupabase(savedTaskId, 'task_followers', followerIds);
 
     await syncTaskDetailsToSupabase(task.id, {
       ...task,
@@ -5304,6 +5517,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
       const { data: dbColumns, error: columnsError } = await supabase
         .from('board_columns')
         .select('id, title, description, color, position, is_archived')
+        .eq('workspace_id', workspaceId)
         .eq('project_id', projectRecord.id)
         .eq('is_archived', false)
         .order('position', { ascending: true });
@@ -5313,6 +5527,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
       const { data: dbTasks, error: tasksError } = await supabase
         .from('tasks')
         .select('id, column_id, title, description, rich_description, priority, status, start_date, due_date, end_date, tags, is_archived, customer_id, task_order, created_at, updated_at')
+        .eq('workspace_id', workspaceId)
         .eq('project_id', projectRecord.id)
         .order('task_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
@@ -5326,6 +5541,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         const { data: dbComments, error: commentsError } = await supabase
           .from('task_comments')
           .select('id, task_id, author_id, body, created_at')
+          .eq('workspace_id', workspaceId)
           .in('task_id', taskIds)
           .order('created_at', { ascending: true });
 
@@ -5334,6 +5550,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         const { data: dbSteps, error: stepsError } = await supabase
           .from('task_steps')
           .select('id, task_id, text, is_completed, position, created_at')
+          .eq('workspace_id', workspaceId)
           .in('task_id', taskIds)
           .order('position', { ascending: true });
 
@@ -5342,6 +5559,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         const { data: dbFiles, error: filesError } = await supabase
           .from('files')
           .select('id, task_id, uploaded_by, bucket, storage_path, file_name, file_type, size_bytes, note, created_at')
+          .eq('workspace_id', workspaceId)
           .in('task_id', taskIds)
           .order('created_at', { ascending: true });
 
@@ -6660,6 +6878,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
 
   // --- SÜRÜKLE BIRAK ---
   const draggedTaskInfo = useRef(null);
+  const taskDetailSyncQueueRef = useRef(new Map());
   const supabaseRealtimeRefreshTimer = useRef(null);
 
 
@@ -8850,6 +9069,7 @@ const {
     getCurrentSupabaseWorkspaceId,
     zrcSetSupabaseWriteInfo,
     ensureSupabaseProject,
+    ensureSupabaseColumn,
     supabase,
     isSupabaseUuid,
     currentActorName,
@@ -8887,7 +9107,9 @@ const {
     selectedTasks,
     restoreSupabaseTask,
     archivedTasks,
-    draggedTaskInfo
+    draggedTaskInfo,
+    setProjectBoards,
+    taskDetailSyncQueueRef
   });
 const filterTaskFollowersForSave = (people = []) =>
     uniqueTaskPeopleById(
