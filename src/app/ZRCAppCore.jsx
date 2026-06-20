@@ -165,7 +165,10 @@ import {
   getNotificationClearTokensForUser,
   isNotificationClearAllActivityLog
 } from './utils/notificationClearHelpers.js';
+import { tryAcquireActionLock, releaseActionLock } from './utils/asyncActionLock.js';
 function App() {
+  const messageMutationLockRef = useRef(new Set());
+
   // zrc-premium-dialog-install-v1
   useEffect(() => {
     installZRCPremiumDialogRuntime();
@@ -4234,7 +4237,7 @@ function App() {
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase mesaj kaydedildi');
-      return true;
+      return data?.id || null;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase mesaj hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
@@ -9527,7 +9530,10 @@ const filterTaskFollowersForSave = (people = []) =>
     selectedChatGroup,
     isChatGroupVisibleForCurrentUser,
     getProjectNameFromChatGroupId,
-    setChatPageDraft
+    setChatPageDraft,
+    messageMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   });
 
   const {

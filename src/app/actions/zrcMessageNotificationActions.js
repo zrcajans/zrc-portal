@@ -143,7 +143,10 @@ export function createZRCMessageNotificationActions(deps) {
     selectedChatGroup,
     isChatGroupVisibleForCurrentUser,
     getProjectNameFromChatGroupId,
-    setChatPageDraft
+    setChatPageDraft,
+    messageMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   } = deps;
 
   const markNotificationAsRead = (notificationId) => {
@@ -351,47 +354,59 @@ export function createZRCMessageNotificationActions(deps) {
 
     const text = messageDraft.trim();
     if (!text) return;
+    if (!tryAcquireActionLock(messageMutationLockRef, 'project-message')) return;
 
-    const messageProjectName = selectedMessageTask ? getProjectNameForTask(selectedMessageTask) : selectedProject;
+    try {
+      const messageProjectName = selectedMessageTask ? getProjectNameForTask(selectedMessageTask) : selectedProject;
 
-    if (!guardProjectAccess(messageProjectName, 'Bu projeye mesaj gönderme yetkin yok.')) return;
+      if (!guardProjectAccess(messageProjectName, 'Bu projeye mesaj gönderme yetkin yok.')) return;
 
-    if (selectedMessageTask && !isTaskAccessibleForCurrentUser(selectedMessageTask)) {
-      showPermissionWarning('Bu göreve mesaj bağlama yetkin yok.');
-      return;
+      if (selectedMessageTask && !isTaskAccessibleForCurrentUser(selectedMessageTask)) {
+        showPermissionWarning('Bu göreve mesaj bağlama yetkin yok.');
+        return;
+      }
+
+      const id = `project-message-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      const nextMessage = {
+        id,
+        senderId: currentActorId,
+        sender: currentProfileName,
+        avatar: currentProfileAvatar,
+        text,
+        projectName: messageProjectName,
+        taskId: messageLinkedTaskId || null,
+        createdAt: new Date().toISOString()
+      };
+
+      setProjectMessages((prevMessages) => [nextMessage, ...prevMessages]);
+      setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, id])));
+      const savedMessageId = await saveProjectMessageToSupabase(nextMessage);
+
+      if (!savedMessageId) {
+        setProjectMessages((prevMessages) => prevMessages.filter((message) => message.id !== id));
+        setReadMessageIds((prevIds) => prevIds.filter((messageId) => messageId !== id));
+        await window.zrcAlert('Mesaj gönderilemedi. Taslak korundu; lütfen tekrar deneyin.');
+        return;
+      }
+
+      createActivityNotification({
+        type: 'message',
+        title: 'Yeni mesaj',
+        text,
+        meta: selectedMessageTask ? selectedMessageTask.title : 'Genel proje mesajı',
+        task: selectedMessageTask,
+        projectName: messageProjectName,
+        columnTitle: selectedMessageTask?.columnTitle || '',
+        messageId: savedMessageId,
+        sortWeight: 760
+      });
+
+      setMessageDraft('');
+      setIsMessageTaskPickerOpen(false);
+    } finally {
+      releaseActionLock(messageMutationLockRef, 'project-message');
     }
-
-    const id = `project-message-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    const nextMessage = {
-      id,
-      senderId: currentActorId,
-      sender: currentProfileName,
-      avatar: currentProfileAvatar,
-      text,
-      projectName: messageProjectName,
-      taskId: messageLinkedTaskId || null,
-      createdAt: new Date().toISOString()
-    };
-
-    setProjectMessages((prevMessages) => [nextMessage, ...prevMessages]);
-    setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, id])));
-    await saveProjectMessageToSupabase(nextMessage);
-
-    createActivityNotification({
-      type: 'message',
-      title: 'Yeni mesaj',
-      text,
-      meta: selectedMessageTask ? selectedMessageTask.title : 'Genel proje mesajı',
-      task: selectedMessageTask,
-      projectName: messageProjectName,
-      columnTitle: selectedMessageTask?.columnTitle || '',
-      messageId: id,
-      sortWeight: 760
-    });
-
-    setMessageDraft('');
-    setIsMessageTaskPickerOpen(false);
   };
 
   const openMessagesPanel = () => {
@@ -478,31 +493,43 @@ export function createZRCMessageNotificationActions(deps) {
     const name = chatGroupDraft.trim();
 
     if (!name) return;
+    if (!tryAcquireActionLock(messageMutationLockRef, 'create-chat-group')) return;
 
-    const alreadyExists = allChatGroups.some(
-      (group) => group.name.toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR')
-    );
+    try {
+      const alreadyExists = allChatGroups.some(
+        (group) => group.name.toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR')
+      );
 
-    if (alreadyExists) {
-      await window.zrcAlert('Bu isimde bir yazışma grubu zaten var.');
-      return;
+      if (alreadyExists) {
+        await window.zrcAlert('Bu isimde bir yazışma grubu zaten var.');
+        return;
+      }
+
+      const nextGroup = {
+        id: `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        type: 'custom',
+        name,
+        avatar: createAvatarFromName(name),
+        members: [currentProfileName],
+        createdAt: new Date().toISOString()
+      };
+
+      setChatGroups((prevGroups) => [nextGroup, ...prevGroups]);
+      const savedGroupId = await saveChatGroupToSupabase(nextGroup);
+
+      if (!savedGroupId) {
+        setChatGroups((prevGroups) => prevGroups.filter((group) => group.id !== nextGroup.id));
+        await window.zrcAlert('Yazışma grubu oluşturulamadı. İsim taslağı korundu.');
+        return;
+      }
+
+      setSelectedChatGroupId(nextGroup.id);
+      setChatGroupDraft('');
+      setIsChatGroupModalOpen(false);
+      setIsChatActionMenuOpen(false);
+    } finally {
+      releaseActionLock(messageMutationLockRef, 'create-chat-group');
     }
-
-    const nextGroup = {
-      id: `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      type: 'custom',
-      name,
-      avatar: createAvatarFromName(name),
-      members: [currentProfileName],
-      createdAt: new Date().toISOString()
-    };
-
-    setChatGroups((prevGroups) => [nextGroup, ...prevGroups]);
-    await saveChatGroupToSupabase(nextGroup);
-    setSelectedChatGroupId(nextGroup.id);
-    setChatGroupDraft('');
-    setIsChatGroupModalOpen(false);
-    setIsChatActionMenuOpen(false);
   };
 
   const handleSendChatPageMessage = async (event) => {
@@ -516,45 +543,57 @@ export function createZRCMessageNotificationActions(deps) {
     const text = chatPageDraft.trim();
 
     if (!text || !selectedChatGroup) return;
+    if (!tryAcquireActionLock(messageMutationLockRef, 'chat-page-message')) return;
 
-    if (!isChatGroupVisibleForCurrentUser(selectedChatGroup)) {
-      showPermissionWarning('Bu yazışmaya mesaj gönderme yetkin yok.');
-      return;
+    try {
+      if (!isChatGroupVisibleForCurrentUser(selectedChatGroup)) {
+        showPermissionWarning('Bu yazışmaya mesaj gönderme yetkin yok.');
+        return;
+      }
+
+      const messageProjectName = getProjectNameFromChatGroupId(selectedChatGroup.id) || selectedChatGroup.projectName || '';
+
+      if (messageProjectName && !guardProjectAccess(messageProjectName, 'Bu projeye mesaj gönderme yetkin yok.')) return;
+
+      const id = `chat-message-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      const nextMessage = {
+        id,
+        senderId: currentActorId,
+        sender: currentProfileName,
+        avatar: currentProfileAvatar,
+        text,
+        projectName: messageProjectName,
+        chatGroupId: selectedChatGroup.id,
+        createdAt: new Date().toISOString()
+      };
+
+      setProjectMessages((prevMessages) => [...prevMessages, nextMessage]);
+      setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, id])));
+      const savedMessageId = await saveProjectMessageToSupabase(nextMessage);
+
+      if (!savedMessageId) {
+        setProjectMessages((prevMessages) => prevMessages.filter((message) => message.id !== id));
+        setReadMessageIds((prevIds) => prevIds.filter((messageId) => messageId !== id));
+        await window.zrcAlert('Mesaj gönderilemedi. Taslak korundu; lütfen tekrar deneyin.');
+        return;
+      }
+
+      createActivityNotification({
+        type: 'message',
+        title: 'Yazışmaya mesaj eklendi',
+        text,
+        meta: selectedChatGroup.name,
+        projectName: messageProjectName,
+        chatGroupId: selectedChatGroup.id,
+        messageId: savedMessageId,
+        sortWeight: 760
+      });
+
+      setChatPageDraft('');
+    } finally {
+      releaseActionLock(messageMutationLockRef, 'chat-page-message');
     }
-
-    const messageProjectName = getProjectNameFromChatGroupId(selectedChatGroup.id) || selectedChatGroup.projectName || '';
-
-    if (messageProjectName && !guardProjectAccess(messageProjectName, 'Bu projeye mesaj gönderme yetkin yok.')) return;
-
-    const id = `chat-message-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    const nextMessage = {
-      id,
-      senderId: currentActorId,
-      sender: currentProfileName,
-      avatar: currentProfileAvatar,
-      text,
-      projectName: messageProjectName,
-      chatGroupId: selectedChatGroup.id,
-      createdAt: new Date().toISOString()
-    };
-
-    setProjectMessages((prevMessages) => [...prevMessages, nextMessage]);
-    setReadMessageIds((prevIds) => Array.from(new Set([...prevIds, id])));
-    await saveProjectMessageToSupabase(nextMessage);
-
-    createActivityNotification({
-      type: 'message',
-      title: 'Yazışmaya mesaj eklendi',
-      text,
-      meta: selectedChatGroup.name,
-      projectName: messageProjectName,
-      chatGroupId: selectedChatGroup.id,
-      messageId: id,
-      sortWeight: 760
-    });
-
-    setChatPageDraft('');
   };
 
   return {
