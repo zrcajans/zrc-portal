@@ -167,6 +167,7 @@ import {
 } from './utils/notificationClearHelpers.js';
 import { tryAcquireActionLock, releaseActionLock } from './utils/asyncActionLock.js';
 import { buildRelationshipSyncPlan } from './utils/relationshipSyncHelpers.js';
+import { chunkValues, getSafeWorkspaceStoragePaths } from './utils/storageCleanupHelpers.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
@@ -3181,31 +3182,83 @@ function App() {
       const { data: projectTasks, error: taskSelectError } = await supabase
         .from('tasks')
         .select('id')
+        .eq('workspace_id', workspaceId)
         .in('project_id', projectIds);
 
       if (taskSelectError) throw taskSelectError;
 
       const taskIds = (projectTasks || []).map((task) => task.id).filter(isSupabaseUuid);
+      let storagePathsToDelete = [];
 
       if (taskIds.length > 0) {
-        await supabase.from('task_assignees').delete().in('task_id', taskIds);
-        await supabase.from('task_followers').delete().in('task_id', taskIds);
-        await supabase.from('task_comments').delete().in('task_id', taskIds);
-        await supabase.from('task_steps').delete().in('task_id', taskIds);
-        await supabase.from('files').delete().in('task_id', taskIds);
-        await supabase.from('tasks').delete().in('id', taskIds);
+        const { data: projectFiles, error: projectFilesError } = await supabase
+          .from('files')
+          .select('id, bucket, storage_path')
+          .eq('workspace_id', workspaceId)
+          .in('task_id', taskIds);
+
+        if (projectFilesError) throw projectFilesError;
+
+        storagePathsToDelete = getSafeWorkspaceStoragePaths(projectFiles, workspaceId);
+
+        for (const tableName of ['task_assignees', 'task_followers']) {
+          const { error } = await supabase
+            .from(tableName)
+            .delete()
+            .in('task_id', taskIds);
+
+          if (error) throw new Error(`${tableName} kayıtları silinemedi: ${error.message || 'bilinmeyen hata'}`);
+        }
+
+        for (const tableName of ['task_comments', 'task_steps', 'files']) {
+          const { error } = await supabase
+            .from(tableName)
+            .delete()
+            .eq('workspace_id', workspaceId)
+            .in('task_id', taskIds);
+
+          if (error) throw new Error(`${tableName} kayıtları silinemedi: ${error.message || 'bilinmeyen hata'}`);
+        }
+
+        const { error: tasksDeleteError } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('workspace_id', workspaceId)
+          .in('id', taskIds);
+
+        if (tasksDeleteError) throw tasksDeleteError;
       }
 
-      await supabase.from('board_columns').delete().in('project_id', projectIds);
-      await supabase.from('project_members').delete().in('project_id', projectIds);
-      await supabase.from('project_customers').delete().in('project_id', projectIds);
+      for (const tableName of ['board_columns', 'project_members', 'project_customers']) {
+        const { error } = await supabase
+          .from(tableName)
+          .delete()
+          .eq('workspace_id', workspaceId)
+          .in('project_id', projectIds);
+
+        if (error) throw new Error(`${tableName} kayıtları silinemedi: ${error.message || 'bilinmeyen hata'}`);
+      }
 
       const { error: projectDeleteError } = await supabase
         .from('projects')
         .delete()
+        .eq('workspace_id', workspaceId)
         .in('id', projectIds);
 
       if (projectDeleteError) throw projectDeleteError;
+
+      for (const storagePathChunk of chunkValues(storagePathsToDelete, 100)) {
+        const { error: storageDeleteError } = await supabase.storage
+          .from('project-files')
+          .remove(storagePathChunk);
+
+        if (storageDeleteError) {
+          console.warn('[ZRC Supabase] Silinen projeye ait bazı Storage nesneleri temizlenemedi.', storageDeleteError);
+          zrcSetSupabaseWriteInfo('error', 'Proje silindi; bazı Storage nesneleri için sunucu temizliği gerekiyor');
+          await window.zrcAlert('Proje veritabanından silindi; bazı dosya nesneleri Storage tarafında temizlenemedi. Yönetici kontrolü gerekiyor.');
+          return true;
+        }
+      }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase proje silindi');
       return true;
