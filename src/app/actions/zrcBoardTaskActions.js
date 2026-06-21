@@ -696,20 +696,20 @@ export function createZRCBoardTaskActions(deps) {
   };
 
   const updateTaskFromDetail = (taskId, updates, historyEntry = null) => {
-    if (historyEntry?.type?.startsWith('file') && !requirePermission('manageFiles', 'Bu rol dosya ekleyemez veya silemez.')) return;
-    if (['description', 'step', 'step-delete'].includes(historyEntry?.type) && !requirePermission('editTasks', 'Bu rol görev detaylarını düzenleyemez.')) return;
+    if (historyEntry?.type?.startsWith('file') && !requirePermission('manageFiles', 'Bu rol dosya ekleyemez veya silemez.')) return false;
+    if (['description', 'step', 'step-delete'].includes(historyEntry?.type) && !requirePermission('editTasks', 'Bu rol görev detaylarını düzenleyemez.')) return false;
 
     const sourceTask = detailTaskInfo?.task || reportTasks.find((task) => task.id === taskId) || null;
     const sourceColumnTitle = detailTaskInfo?.columnTitle || sourceTask?.columnTitle || '';
 
     if (sourceTask && !isTaskAccessibleForCurrentUser(sourceTask)) {
       showPermissionWarning('Bu görev üzerinde işlem yapma yetkin yok.');
-      return;
+      return false;
     }
 
     if (sourceTask && !canCurrentUserModifyTask(sourceTask, getProjectNameForTask(sourceTask) || selectedProject)) {
       showPermissionWarning('Bu görev sana atanmadığı için işlem yapamazsın.');
-      return;
+      return false;
     }
 
     setBoardColumns((prevColumns) =>
@@ -741,35 +741,37 @@ export function createZRCBoardTaskActions(deps) {
       return { ...prev, task: nextTask };
     });
 
-    if (historyEntry?.type === 'file') {
-      createActivityNotification({
-        type: 'file',
-        title: historyEntry.title || 'Dosya eklendi',
-        text: historyEntry.description || sourceTask?.title || 'Dosya',
-        meta: `${sourceTask?.title || 'Görev'} · ${selectedProject}`,
-        task: sourceTask ? { ...sourceTask, ...updates } : null,
-        columnTitle: sourceColumnTitle,
-        actor: getProfileNameForRecord(historyEntry, currentProfileName),
-        avatar: getProfileAvatarForRecord(historyEntry, currentProfileAvatar),
-        targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
-        sortWeight: 780
-      });
-    }
+    const createPersistedDetailActivity = () => {
+      if (historyEntry?.type === 'file') {
+        createActivityNotification({
+          type: 'file',
+          title: historyEntry.title || 'Dosya eklendi',
+          text: historyEntry.description || sourceTask?.title || 'Dosya',
+          meta: `${sourceTask?.title || 'Görev'} · ${selectedProject}`,
+          task: sourceTask ? { ...sourceTask, ...updates } : null,
+          columnTitle: sourceColumnTitle,
+          actor: getProfileNameForRecord(historyEntry, currentProfileName),
+          avatar: getProfileAvatarForRecord(historyEntry, currentProfileAvatar),
+          targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
+          sortWeight: 780
+        });
+      }
 
-    if (historyEntry?.type === 'description') {
-      createActivityNotification({
-        type: 'history',
-        title: historyEntry.title || 'Görev güncellendi',
-        text: sourceTask?.title || 'Görev',
-        meta: `${sourceColumnTitle || 'Görev'} · ${selectedProject}`,
-        task: sourceTask ? { ...sourceTask, ...updates } : null,
-        columnTitle: sourceColumnTitle,
-        actor: getProfileNameForRecord(historyEntry, currentProfileName),
-        avatar: getProfileAvatarForRecord(historyEntry, currentProfileAvatar),
-        targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
-        sortWeight: 520
-      });
-    }
+      if (historyEntry?.type === 'description') {
+        createActivityNotification({
+          type: 'history',
+          title: historyEntry.title || 'Görev güncellendi',
+          text: sourceTask?.title || 'Görev',
+          meta: `${sourceColumnTitle || 'Görev'} · ${selectedProject}`,
+          task: sourceTask ? { ...sourceTask, ...updates } : null,
+          columnTitle: sourceColumnTitle,
+          actor: getProfileNameForRecord(historyEntry, currentProfileName),
+          avatar: getProfileAvatarForRecord(historyEntry, currentProfileAvatar),
+          targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
+          sortWeight: 520
+        });
+      }
+    };
 
     const shouldSyncDetailUpdate =
       Array.isArray(updates.comments) ||
@@ -777,43 +779,51 @@ export function createZRCBoardTaskActions(deps) {
       Array.isArray(updates.files) ||
       historyEntry?.type === 'description';
 
-    if (shouldSyncDetailUpdate) {
-      const previousSync = taskDetailSyncQueueRef.current.get(taskId) || Promise.resolve(true);
-      const nextSync = previousSync
-        .catch(() => false)
-        .then(() =>
-          syncTaskDetailsToSupabase(taskId, updates, {
-            syncDescription: historyEntry?.type === 'description'
-          })
-        );
+    if (!shouldSyncDetailUpdate) {
+      createPersistedDetailActivity();
+      return true;
+    }
 
-      taskDetailSyncQueueRef.current.set(taskId, nextSync);
+    const previousSync = taskDetailSyncQueueRef.current.get(taskId) || Promise.resolve(true);
+    const nextSync = previousSync
+      .catch(() => false)
+      .then(() =>
+        syncTaskDetailsToSupabase(taskId, updates, {
+          syncDescription: historyEntry?.type === 'description'
+        })
+      )
+      .catch(() => false);
 
-      void nextSync
-        .then(async (saved) => {
-          if (saved) return;
+    taskDetailSyncQueueRef.current.set(taskId, nextSync);
 
+    return nextSync
+      .then(async (saved) => {
+        if (!saved) {
           await window.zrcAlert('Görev detayı Supabase’e kaydedilemedi. Güncel sunucu verisi yeniden yüklenecek.');
           await loadSelectedProjectBoardFromSupabase();
-        })
-        .finally(() => {
-          if (taskDetailSyncQueueRef.current.get(taskId) === nextSync) {
-            taskDetailSyncQueueRef.current.delete(taskId);
-          }
-        });
-    }
+          return false;
+        }
+
+        createPersistedDetailActivity();
+        return true;
+      })
+      .finally(() => {
+        if (taskDetailSyncQueueRef.current.get(taskId) === nextSync) {
+          taskDetailSyncQueueRef.current.delete(taskId);
+        }
+      });
   };
 
-  const addTaskComment = (taskId, commentText) => {
+  const addTaskComment = async (taskId, commentText) => {
     const sourceTask = detailTaskInfo?.task || reportTasks.find((task) => task.id === taskId) || null;
 
     if (sourceTask && !canCurrentUserModifyTask(sourceTask, getProjectNameForTask(sourceTask) || selectedProject)) {
       showPermissionWarning('Bu görev sana atanmadığı için yorum ekleyemezsin.');
-      return;
+      return false;
     }
 
     const cleanComment = commentText.trim();
-    if (!cleanComment) return;
+    if (!cleanComment) return false;
 
     const now = new Date();
     const commentId = globalThis.crypto?.randomUUID?.() || `comment-${Date.now()}`;
@@ -830,11 +840,13 @@ export function createZRCBoardTaskActions(deps) {
     };
 
     const currentComments = detailTaskInfo?.task?.comments || [];
-    updateTaskFromDetail(
+    const saved = await updateTaskFromDetail(
       taskId,
       { comments: [...currentComments, newComment] },
       createHistoryEntry('comment', 'Yorum eklendi', cleanComment)
     );
+
+    if (!saved) return false;
 
     createActivityNotification({
       type: 'comment',
@@ -846,20 +858,21 @@ export function createZRCBoardTaskActions(deps) {
       targetUserIds: getTaskAssigneeUserIdsForNotification(detailTaskInfo?.task || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
       sortWeight: 860
     });
+    return true;
   };
 
-  const deleteTaskComment = (taskId, commentId) => {
+  const deleteTaskComment = async (taskId, commentId) => {
     const sourceTask = detailTaskInfo?.task || reportTasks.find((task) => task.id === taskId) || null;
 
     if (sourceTask && !canCurrentUserModifyTask(sourceTask, getProjectNameForTask(sourceTask) || selectedProject)) {
       showPermissionWarning('Bu görev sana atanmadığı için yorum silemezsin.');
-      return;
+      return false;
     }
 
     const currentComments = detailTaskInfo?.task?.comments || [];
     const deletedComment = currentComments.find((comment) => comment.id === commentId);
 
-    updateTaskFromDetail(
+    return updateTaskFromDetail(
       taskId,
       {
         comments: currentComments.filter((comment) => comment.id !== commentId)

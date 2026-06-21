@@ -6970,11 +6970,13 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     if (sourceTask?.id) {
       const nextFiles = (sourceTask.files || []).filter((taskFile) => !isSameFile(taskFile));
 
-      updateTaskFromDetail(
+      const detailUpdated = await updateTaskFromDetail(
         sourceTask.id,
         { files: nextFiles },
         createHistoryEntry('file-delete', 'Dosya silindi', file.name || 'Dosya')
       );
+
+      if (!detailUpdated) return;
     } else {
       setBoardColumns((prevColumns) =>
         prevColumns.map((column) => ({

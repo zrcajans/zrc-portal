@@ -380,3 +380,50 @@ test('single task copy inserts a new Supabase row before updating the board', as
   assert.equal(currentColumns[0].tasks[1], sourceTask);
   assert.equal(deps.taskMutationLockRef.current.size, 0);
 });
+
+test('failed comment persistence reports failure without creating activity', async () => {
+  const task = { id: 'task-local', supabaseId: secondColumnId, title: 'Görev', comments: [], history: [] };
+  let board = [{ id: 'column', title: 'Aktif', tasks: [task] }];
+  let detail = { task, columnTitle: 'Aktif' };
+  let activityCount = 0;
+  let reloadCount = 0;
+  let alertCount = 0;
+  const previousWindow = globalThis.window;
+  globalThis.window = { zrcAlert: async () => { alertCount += 1; } };
+
+  try {
+    const deps = createBaseDeps({
+      boardColumns: board,
+      detailTaskInfo: detail,
+      reportTasks: [],
+      isTaskAccessibleForCurrentUser: () => true,
+      canCurrentUserModifyTask: () => true,
+      getProjectNameForTask: () => 'Portal',
+      showPermissionWarning: () => {},
+      currentProfileName: 'Kullanıcı',
+      currentProfileAvatar: 'KU',
+      currentActorId: 'actor',
+      createHistoryEntry: (type, title, description) => ({ type, title, description }),
+      setBoardColumns: (updater) => {
+        board = typeof updater === 'function' ? updater(board) : updater;
+      },
+      setDetailTaskInfo: (updater) => {
+        detail = typeof updater === 'function' ? updater(detail) : updater;
+      },
+      syncTaskDetailsToSupabase: async () => false,
+      taskDetailSyncQueueRef: { current: new Map() },
+      createActivityNotification: () => { activityCount += 1; },
+      loadSelectedProjectBoardFromSupabase: async () => { reloadCount += 1; }
+    });
+
+    const result = await createZRCBoardTaskActions(deps).addTaskComment(task.id, 'Kaydedilmeyen yorum');
+
+    assert.equal(result, false);
+    assert.equal(activityCount, 0);
+    assert.equal(reloadCount, 1);
+    assert.equal(alertCount, 1);
+    assert.equal(deps.taskDetailSyncQueueRef.current.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});

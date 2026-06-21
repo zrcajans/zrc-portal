@@ -1,5 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createAvatarFromName } from '../../utils/avatarHelpers';
+
+const createTaskDetailHistoryId = () =>
+  `history-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate, onAddComment, onDeleteComment, canEditTask = true, canManageFiles = true, canComment = true, currentAccountType = 'Patron', currentActorId = 'anonymous-user', currentActorName = 'Kullanıcı', currentActorAvatar = 'KU', onUploadFiles = null, onDownloadFile = null, onDeleteFile = null }) {
   const [isClosing, setIsClosing] = useState(false);
@@ -87,13 +90,15 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
     }, 160);
   };
 
-  const sendComment = () => {
+  const sendComment = async () => {
     if (!canComment) return;
 
     const cleanComment = commentText.trim();
     if (!cleanComment) return;
 
-    onAddComment(task.id, cleanComment);
+    const saved = await onAddComment(task.id, cleanComment);
+    if (!saved) return;
+
     setCommentText('');
     setOpenCommentMenuId(null);
 
@@ -161,11 +166,11 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
         }));
       }
 
-      onUpdate(
+      await onUpdate(
         task.id,
         { files: [...(task.files || []), ...newFiles] },
         {
-          id: `history-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          id: createTaskDetailHistoryId(),
           type: 'file',
           title: selectedFiles.length > 1 ? `${selectedFiles.length} dosya eklendi` : 'Dosya eklendi',
           description: selectedFiles.map((file) => file.name).join(', '),
@@ -196,13 +201,13 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
       }
     }
 
-    onUpdate(
+    await onUpdate(
       task.id,
       {
         files: (task.files || []).filter((file) => file.id !== fileId)
       },
       {
-        id: `history-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: createTaskDetailHistoryId(),
         type: 'file-delete',
         title: 'Dosya silindi',
         description: deletedFile?.name || '',
@@ -215,7 +220,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
     );
   };
 
-  const addTaskStep = () => {
+  const addTaskStep = async () => {
     if (!canEditTask) return;
 
     const cleanStep = newStepText.trim();
@@ -227,11 +232,11 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
       completed: false
     };
 
-    onUpdate(
+    const saved = await onUpdate(
       task.id,
       { steps: [...(task.steps || []), newStep] },
       {
-        id: `history-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: createTaskDetailHistoryId(),
         type: 'step',
         title: 'Adım eklendi',
         description: cleanStep,
@@ -243,16 +248,16 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
       }
     );
 
-    setNewStepText('');
+    if (saved) setNewStepText('');
   };
 
-  const toggleTaskStep = (stepId) => {
+  const toggleTaskStep = async (stepId) => {
     if (!canEditTask) return;
 
     const selectedStep = (task.steps || []).find((step) => step.id === stepId);
     const willComplete = !selectedStep?.completed;
 
-    onUpdate(
+    await onUpdate(
       task.id,
       {
         steps: (task.steps || []).map((step) =>
@@ -260,7 +265,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
         )
       },
       {
-        id: `history-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: createTaskDetailHistoryId(),
         type: 'step',
         title: willComplete ? 'Adım tamamlandı' : 'Adım tekrar açıldı',
         description: selectedStep?.text || '',
@@ -273,18 +278,18 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
     );
   };
 
-  const deleteTaskStep = (stepId) => {
+  const deleteTaskStep = async (stepId) => {
     if (!canEditTask) return;
 
     const deletedStep = (task.steps || []).find((step) => step.id === stepId);
 
-    onUpdate(
+    await onUpdate(
       task.id,
       {
         steps: (task.steps || []).filter((step) => step.id !== stepId)
       },
       {
-        id: `history-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: createTaskDetailHistoryId(),
         type: 'step-delete',
         title: 'Adım silindi',
         description: deletedStep?.text || '',
@@ -301,7 +306,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
   const totalStepsCount = (task.steps || []).length;
   const stepsProgress = totalStepsCount > 0 ? Math.round((completedStepsCount / totalStepsCount) * 100) : 0;
 
-  const saveDescriptionDraft = () => {
+  const saveDescriptionDraft = async () => {
     if (!canEditTask) return;
 
     const currentValue = descriptionDraft;
@@ -309,11 +314,11 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
 
     if (currentValue === previousValue) return;
 
-    onUpdate(
+    const saved = await onUpdate(
       task.id,
       { description: currentValue },
       {
-        id: `history-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: createTaskDetailHistoryId(),
         type: 'description',
         title: 'Açıklama güncellendi',
         description: currentValue ? 'Görev açıklaması düzenlendi.' : 'Görev açıklaması temizlendi.',
@@ -325,7 +330,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
       }
     );
 
-    lastSavedDescriptionRef.current = currentValue;
+    if (saved) lastSavedDescriptionRef.current = currentValue;
   };
 
   const getHistoryIcon = (type) => {
