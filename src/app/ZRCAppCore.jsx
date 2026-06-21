@@ -6312,40 +6312,47 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
       );
     };
 
-    setProjectBoards((prevBoards) => {
-      const existingBoard = prevBoards[activeProjectName] || createDefaultProjectBoard();
+    const commitMobileTaskMove = (persistedTask) => {
+      setProjectBoards((prevBoards) => {
+        const existingBoard = prevBoards[activeProjectName] || createDefaultProjectBoard();
 
-      const nextColumns = (existingBoard.columns || []).map((column) => ({
-        ...column,
-        tasks: (column.tasks || []).filter((task) => !isSameTask(task, movedTask))
-      }));
+        const nextColumns = (existingBoard.columns || []).map((column) => ({
+          ...column,
+          tasks: (column.tasks || []).filter((task) => !isSameTask(task, persistedTask))
+        }));
 
-      const targetIndex = nextColumns.findIndex((column) =>
-        String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
-        normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
-      );
+        const targetIndex = nextColumns.findIndex((column) =>
+          String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
+          normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
+        );
 
-      if (targetIndex < 0) return prevBoards;
+        if (targetIndex < 0) return prevBoards;
 
-      nextColumns[targetIndex] = {
-        ...nextColumns[targetIndex],
-        tasks: [...(nextColumns[targetIndex].tasks || []), movedTask]
-      };
+        nextColumns[targetIndex] = {
+          ...nextColumns[targetIndex],
+          tasks: [...(nextColumns[targetIndex].tasks || []), persistedTask]
+        };
 
-      return {
-        ...prevBoards,
-        [activeProjectName]: {
-          ...existingBoard,
-          columns: nextColumns
-        }
-      };
-    });
+        return {
+          ...prevBoards,
+          [activeProjectName]: {
+            ...existingBoard,
+            columns: nextColumns
+          }
+        };
+      });
+    };
+
+    const actionKey = `mobile-move-task-${taskToMove.id}`;
+    if (!tryAcquireActionLock(taskMutationLockRef, actionKey)) return false;
 
     try {
       const workspaceId = getCurrentSupabaseWorkspaceId();
+      let persistedMovedTask = movedTask;
 
       if (taskSupabaseId && workspaceId) {
         const projectId = await ensureSupabaseProject(activeProjectName);
+        if (!projectId) throw new Error('Proje kaydı bulunamadı');
         const targetColumnIndex = Math.max(
           0,
           (boardColumns || []).findIndex((column) =>
@@ -6354,8 +6361,9 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
           )
         );
         const targetSupabaseColumnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
+        if (!targetSupabaseColumnId) throw new Error('Hedef kolon kaydı bulunamadı');
 
-        const { error } = await supabase
+        const mutationResult = await supabase
           .from('tasks')
           .update({
             column_id: targetSupabaseColumnId,
@@ -6363,17 +6371,28 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
             updated_at: new Date().toISOString()
           })
           .eq('id', taskSupabaseId)
-          .eq('workspace_id', workspaceId);
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId)
+          .select('id')
+          .maybeSingle();
 
-        if (error) throw error;
+        requireMatchingMutationRow(mutationResult, taskSupabaseId, 'Mobil görev taşıma');
       } else {
-        await saveTaskToSupabaseForProject(activeProjectName, movedTask, targetStatus);
+        const savedTaskId = await saveTaskToSupabaseForProject(activeProjectName, movedTask, targetStatus);
+        if (!savedTaskId) throw new Error('Görev kaydı oluşturulamadı');
+        persistedMovedTask = { ...movedTask, supabaseId: savedTaskId };
       }
 
+      commitMobileTaskMove(persistedMovedTask);
       zrcSetSupabaseWriteInfo('saved', 'Görev Aktif kolonuna taşındı');
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
+      return true;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Görev Aktif kolonuna taşınamadı: ${error?.message || 'bilinmeyen hata'}`);
+      await window.zrcAlert('Görev taşınamadı; pano değiştirilmedi ve sunucudaki son hali korunuyor.');
+      return false;
+    } finally {
+      releaseActionLock(taskMutationLockRef, actionKey);
     }
   };
 
