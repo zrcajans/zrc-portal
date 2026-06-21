@@ -2857,6 +2857,7 @@ function App() {
           .from('customers')
           .update(payload)
           .eq('id', customerId)
+          .eq('workspace_id', workspaceId)
           .select('id, name, contact_name, email, phone, note, status, account_user_id')
           .single();
 
@@ -2886,9 +2887,10 @@ function App() {
   };
 
   const updateCustomerStatusInSupabase = async (customer = {}, nextStatus = 'Aktif') => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
     const customerId = getSupabaseCustomerId(customer);
 
-    if (!customerId) return false;
+    if (!isSupabaseUuid(workspaceId) || !customerId) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase müşteri durumu kaydediliyor');
 
@@ -2896,7 +2898,8 @@ function App() {
       const { error } = await supabase
         .from('customers')
         .update({ status: nextStatus === 'Pasif' ? 'Pasif' : 'Aktif' })
-        .eq('id', customerId);
+        .eq('id', customerId)
+        .eq('workspace_id', workspaceId);
 
       if (error) throw error;
 
@@ -2909,9 +2912,10 @@ function App() {
   };
 
   const deleteCustomerFromSupabase = async (customer = {}) => {
+    const workspaceId = getCurrentSupabaseWorkspaceId();
     const customerId = getSupabaseCustomerId(customer);
 
-    if (!customerId) return false;
+    if (!isSupabaseUuid(workspaceId) || !customerId) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase müşteri siliniyor');
 
@@ -2919,7 +2923,8 @@ function App() {
       const { error } = await supabase
         .from('customers')
         .delete()
-        .eq('id', customerId);
+        .eq('id', customerId)
+        .eq('workspace_id', workspaceId);
 
       if (error) throw error;
 

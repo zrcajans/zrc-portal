@@ -577,6 +577,14 @@ export function createZRCTeamCustomerActions(deps) {
     setPendingCustomerDeleteId(null);
 
     const savedCustomer = await saveCustomerToSupabase(nextCustomer);
+
+    if (!savedCustomer) {
+      setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer.id !== nextCustomer.id));
+      setSelectedCustomerId(null);
+      await window.zrcAlert('Müşteri kaydedilemedi. Form bilgileri korundu; lütfen tekrar deneyin.');
+      return;
+    }
+
     const savedCustomerId = savedCustomer?.id || nextCustomer.id;
 
     if (wantsLoginAccount) {
@@ -668,11 +676,21 @@ export function createZRCTeamCustomerActions(deps) {
   };
 
   const toggleCustomerStatus = async (customerId) => {
+    if (!requirePermission('manageCustomers', 'Müşteri durumunu sadece Yönetici değiştirebilir.')) return;
+
     const targetCustomer = customers.find((customer) => customer.id === customerId);
     const nextStatus = targetCustomer?.status === 'Pasif' ? 'Aktif' : 'Pasif';
 
     if (targetCustomer) {
-      await updateCustomerStatusInSupabase(targetCustomer, nextStatus);
+      const hasPersistedCustomerId = isSupabaseUuid(targetCustomer.supabaseId || targetCustomer.id);
+      const didUpdateStatus = hasPersistedCustomerId
+        ? await updateCustomerStatusInSupabase(targetCustomer, nextStatus)
+        : true;
+
+      if (!didUpdateStatus) {
+        await window.zrcAlert('Müşteri durumu veritabanına kaydedilemedi. Ekranda değişiklik yapılmadı.');
+        return;
+      }
     }
 
     setCustomers((prevCustomers) =>
@@ -869,9 +887,7 @@ export function createZRCTeamCustomerActions(deps) {
 
     const deletedCustomer = customers.find((customer) => customer.id === customerId);
 
-    if (deletedCustomer) {
-      rememberDeletedCustomer(deletedCustomer);
-    }
+    if (!deletedCustomer) return;
 
     const linkedCustomerAccountIds = new Set(
       teamMembers
@@ -910,16 +926,25 @@ export function createZRCTeamCustomerActions(deps) {
       }
     }
 
-    if (deletedCustomer) {
-      try {
-        if (typeof deleteCustomerFromSupabase === 'function') {
-          await deleteCustomerFromSupabase(deletedCustomer);
+    try {
+      const hasPersistedCustomerId = isSupabaseUuid(deletedCustomer.supabaseId || deletedCustomer.id);
+
+      if (hasPersistedCustomerId && typeof deleteCustomerFromSupabase === 'function') {
+        const didDeleteCustomer = await deleteCustomerFromSupabase(deletedCustomer);
+
+        if (!didDeleteCustomer) {
+          await window.zrcAlert('Müşteri veritabanından silinemedi. Ekranda değişiklik yapılmadı.');
+          window.location.reload();
+          return;
         }
-      } catch (error) {
-        await window.zrcAlert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
-        return;
       }
+    } catch (error) {
+      await window.zrcAlert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+      window.location.reload();
+      return;
     }
+
+    rememberDeletedCustomer(deletedCustomer);
 
     setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer.id !== customerId));
 
