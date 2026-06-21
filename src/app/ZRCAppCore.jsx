@@ -173,6 +173,7 @@ import {
   buildTaskOrderRollbackPlan,
   buildTopInsertTaskOrderShiftPlan
 } from './utils/taskOrderShiftHelpers.js';
+import { getColumnPersistencePosition } from './utils/columnPersistenceHelpers.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
@@ -2127,9 +2128,10 @@ function App() {
       const projectId = await ensureSupabaseProject(selectedProject);
       if (!projectId) return false;
 
-      const columnPosition = Math.max(
-        0,
-        boardColumns.findIndex((column) => column.id === columnData.id || column.title === columnData.title)
+      const columnPosition = getColumnPersistencePosition(
+        boardColumns,
+        columnData,
+        normalizeColumnTitleForDisplay
       );
 
       const payload = {
@@ -2138,7 +2140,7 @@ function App() {
         title: normalizeColumnTitleForDisplay(columnData.title || 'Yeni Görev'),
         description: columnData.desc || columnData.description || '',
         color: columnData.color || '#64748b',
-        position: columnPosition >= 0 ? columnPosition : boardColumns.length,
+        position: columnPosition,
         is_archived: false
       };
 
