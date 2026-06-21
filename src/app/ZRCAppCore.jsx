@@ -181,6 +181,7 @@ function App() {
   const taskMutationLockRef = useRef(new Set());
   const columnMutationLockRef = useRef(new Set());
   const projectMutationLockRef = useRef(new Set());
+  const profileMutationLockRef = useRef(new Set());
 
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -9814,7 +9815,10 @@ const filterTaskFollowersForSave = (people = []) =>
     saveProfileToSupabase,
     saveUserPreferencesToSupabase,
     emailAccountDraft,
-    setEmailAccountDraft
+    setEmailAccountDraft,
+    profileMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   });
 
 

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createZRCProfileActions } from '../src/app/actions/zrcProfileActions.js';
+import { releaseActionLock, tryAcquireActionLock } from '../src/app/utils/asyncActionLock.js';
 
 const createDeps = (overrides = {}) => ({
   normalizeStorageObject: (value, fallback) => value && typeof value === 'object' ? value : fallback,
@@ -21,6 +22,9 @@ const createDeps = (overrides = {}) => ({
   saveUserPreferencesToSupabase: async () => false,
   emailAccountDraft: '',
   setEmailAccountDraft: () => {},
+  profileMutationLockRef: { current: new Set() },
+  tryAcquireActionLock,
+  releaseActionLock,
   ...overrides
 });
 
@@ -42,4 +46,27 @@ test('failed profile persistence leaves all local profile state untouched', asyn
 
   assert.equal(result, false);
   assert.equal(localMutationCount, 0);
+});
+
+test('duplicate profile saves share one in-flight persistence request', async () => {
+  let resolveSave;
+  let saveCallCount = 0;
+  const saveResult = new Promise((resolve) => { resolveSave = resolve; });
+  const deps = createDeps({
+    saveProfileToSupabase: async () => {
+      saveCallCount += 1;
+      return saveResult;
+    }
+  });
+  const actions = createZRCProfileActions(deps);
+
+  const firstSave = actions.saveProfileSection({ profileDraft: { firstName: 'Yeni' } });
+  const duplicateSave = await actions.saveProfileSection({ profileDraft: { firstName: 'Yine' } });
+
+  assert.equal(duplicateSave, false);
+  assert.equal(saveCallCount, 1);
+
+  resolveSave(true);
+  assert.equal(await firstSave, true);
+  assert.equal(deps.profileMutationLockRef.current.size, 0);
 });

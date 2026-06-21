@@ -17,10 +17,16 @@ export function createZRCProfileActions(deps) {
     saveProfileToSupabase,
     saveUserPreferencesToSupabase,
     emailAccountDraft,
-    setEmailAccountDraft
+    setEmailAccountDraft,
+    profileMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   } = deps;
 
   const saveProfileSection = async (overrides = {}) => {
+    if (!tryAcquireActionLock(profileMutationLockRef, 'save-profile')) return false;
+
+    try {
     const overrideProfileDraft = normalizeStorageObject(overrides?.profileDraft || {}, {});
     const overrideProfilePreferences = normalizeStorageObject(overrides?.profilePreferences || {}, {});
 
@@ -153,6 +159,9 @@ export function createZRCProfileActions(deps) {
 
     setProfilePreferences(nextPreferences);
     return true;
+    } finally {
+      releaseActionLock(profileMutationLockRef, 'save-profile');
+    }
   };
 
   const toggleProfilePreference = (keyName) => {
@@ -257,35 +266,41 @@ export function createZRCProfileActions(deps) {
 
     const reader = new FileReader();
 
-    reader.onload = () => {
-      setProfileDraft((prev) => ({
-        ...prev,
-        avatarDataUrl: reader.result
-      }));
+    reader.onload = async () => {
+      if (!tryAcquireActionLock(profileMutationLockRef, 'save-profile')) return;
 
-      if (currentUserId) {
-        setTeamMembers((prevMembers) =>
-          prevMembers.map((member) =>
-            member.id === currentUserId
-              ? { ...member, avatar: reader.result }
-              : member
-          )
-        );
-      }
-
-      const nextPreferences = {
-        ...profilePreferences,
-        lastSavedAt: new Date().toISOString()
-      };
-
-      setProfilePreferences(nextPreferences);
-      saveProfileToSupabase(
-        {
+      try {
+        const nextProfileDraft = {
           ...profileDraft,
           avatarDataUrl: reader.result
-        },
-        nextPreferences
-      );
+        };
+        const nextPreferences = {
+          ...profilePreferences,
+          lastSavedAt: new Date().toISOString()
+        };
+        const profileSaved = await saveProfileToSupabase(nextProfileDraft, nextPreferences);
+
+        if (!profileSaved) {
+          await window.zrcAlert('Profil görseli kaydedilemedi; yerel profil değiştirilmedi.');
+          return;
+        }
+
+        setProfileDraft(nextProfileDraft);
+
+        if (currentUserId) {
+          setTeamMembers((prevMembers) =>
+            prevMembers.map((member) =>
+              member.id === currentUserId
+                ? { ...member, avatar: reader.result }
+                : member
+            )
+          );
+        }
+
+        setProfilePreferences(nextPreferences);
+      } finally {
+        releaseActionLock(profileMutationLockRef, 'save-profile');
+      }
     };
 
     reader.readAsDataURL(file);
