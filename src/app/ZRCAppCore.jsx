@@ -176,6 +176,7 @@ import {
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
+  const taskMutationLockRef = useRef(new Set());
 
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -1977,7 +1978,7 @@ function App() {
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
-      return true;
+      return savedTask?.id || false;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase görev hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
@@ -5666,43 +5667,10 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
     const addedAssigneeUserIds = nextAssigneeUserIds.filter((userId) => !previousAssigneeUserIds.includes(userId));
     const removedAssigneeUserIds = previousAssigneeUserIds.filter((userId) => !nextAssigneeUserIds.includes(userId));
 
-    setBoardColumns((prev) => {
-      const updatedCols = prev.map((col) => ({
-        ...col,
-        tasks: isEditingExistingTask
-          ? (col.tasks || []).filter((t) =>
-              t.id !== cleanedTaskData.id &&
-              !(cleanedTaskData.supabaseId && t.supabaseId === cleanedTaskData.supabaseId)
-            )
-          : [...(col.tasks || [])]
-      }));
-
-      const targetColIndex = updatedCols.findIndex((c) =>
-        c.title === finalTargetStatus ||
-        c.id === taskData.zrcNewTaskTargetColumnId ||
-        c.title === taskData.zrcNewTaskTargetStatus ||
-        c.title === taskData.columnTitle
-      );
-
-      const targetIndexForInsert = targetColIndex !== -1 ? targetColIndex : 0;
-
-      if (isEditingExistingTask) {
-        updatedCols[targetIndexForInsert].tasks.push(cleanedTaskData);
-      } else {
-        updatedCols[targetIndexForInsert].tasks = [cleanedTaskData, ...(updatedCols[targetIndexForInsert].tasks || [])];
-      }
-
-      return updatedCols.map((col) => ({
-        ...col,
-        tasks: (col.tasks || []).map((task, index) => ({
-          ...task,
-          taskOrder: index
-        }))
-      }));
-    });
+    const pendingActivityNotifications = [];
 
     if (!previousTask) {
-      createActivityNotification({
+      pendingActivityNotifications.push({
         type: 'task',
         title: 'Yeni görev oluşturuldu',
         text: cleanedTaskData.title || 'Adsız görev',
@@ -5715,7 +5683,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
     }
 
     if (addedAssigneeUserIds.length > 0) {
-      createActivityNotification({
+      pendingActivityNotifications.push({
         type: 'assignment',
         title: 'Sana yeni görev atandı',
         text: cleanedTaskData.title || 'Adsız görev',
@@ -5728,7 +5696,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
     }
 
     if (removedAssigneeUserIds.length > 0) {
-      createActivityNotification({
+      pendingActivityNotifications.push({
         type: 'assignment',
         title: 'Görev ataman kaldırıldı',
         text: cleanedTaskData.title || 'Adsız görev',
@@ -5741,7 +5709,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
     }
 
     if (previousTask && previousColumn?.title !== finalTargetStatus) {
-      createActivityNotification({
+      pendingActivityNotifications.push({
         type: 'status',
         title: 'Görev durumu değişti',
         text: cleanedTaskData.title || 'Adsız görev',
@@ -5752,10 +5720,72 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
       });
     }
 
-    const didSaveToSupabase = await saveTaskToSupabase(cleanedTaskData, finalTargetStatus || targetColumn?.title);
+    if (!tryAcquireActionLock(taskMutationLockRef, 'save-task')) return false;
+
+    let savedTaskId = '';
+
+    try {
+      savedTaskId = await saveTaskToSupabase(cleanedTaskData, finalTargetStatus || targetColumn?.title);
+    } finally {
+      releaseActionLock(taskMutationLockRef, 'save-task');
+    }
+
+    if (!savedTaskId) {
+      await window.zrcAlert('Görev veritabanına kaydedilemedi. Form açık ve bilgiler korunuyor; lütfen tekrar deneyin.');
+      await loadSelectedProjectBoardFromSupabase();
+      return false;
+    }
+
+    const persistedTaskData = {
+      ...cleanedTaskData,
+      supabaseId: savedTaskId
+    };
+
+    setBoardColumns((prev) => {
+      const updatedCols = prev.map((col) => ({
+        ...col,
+        tasks: (col.tasks || []).filter((task) => {
+          if (task.supabaseId === persistedTaskData.supabaseId) return false;
+          if (task.id === `supabase-${persistedTaskData.supabaseId}`) return false;
+          if (isEditingExistingTask && task.id === persistedTaskData.id) return false;
+
+          return true;
+        })
+      }));
+
+      const targetColIndex = updatedCols.findIndex((column) =>
+        column.title === finalTargetStatus ||
+        column.id === taskData.zrcNewTaskTargetColumnId ||
+        column.title === taskData.zrcNewTaskTargetStatus ||
+        column.title === taskData.columnTitle
+      );
+      const targetIndexForInsert = targetColIndex !== -1 ? targetColIndex : 0;
+
+      if (isEditingExistingTask) {
+        updatedCols[targetIndexForInsert].tasks.push(persistedTaskData);
+      } else {
+        updatedCols[targetIndexForInsert].tasks = [persistedTaskData, ...(updatedCols[targetIndexForInsert].tasks || [])];
+      }
+
+      return updatedCols.map((column) => ({
+        ...column,
+        tasks: (column.tasks || []).map((task, index) => ({
+          ...task,
+          taskOrder: index,
+          task_order: index
+        }))
+      }));
+    });
+
+    pendingActivityNotifications.forEach((notification) => {
+      createActivityNotification({
+        ...notification,
+        task: notification.task ? { ...notification.task, supabaseId: savedTaskId } : notification.task
+      });
+    });
 
     // zrc-v442-single-task-push-trigger
-    if (didSaveToSupabase) {
+    if (savedTaskId) {
       zrcV448PlayDesktopNotificationSound();
       zrcV442SendTaskSavePush({
         type: previousTask ? 'task_update' : 'task_create',
@@ -5768,11 +5798,8 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
     }
 
 
-    if (didSaveToSupabase) {
+    if (savedTaskId) {
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 1500);
-    } else if (existingSupabaseTaskId) {
-      await window.zrcAlert('Görev yerelde güncellendi ama Supabase kaydı tamamlanamadı. Sağ alttaki hata mesajını kontrol et.');
-      return;
     }
 
     setIsTaskModalOpen(false);
@@ -5783,6 +5810,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
       projectName: '',
       date: ''
     });
+    return true;
   };
 
 

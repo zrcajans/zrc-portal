@@ -218,7 +218,7 @@ export default function MobileTaskWizard({
             <button
               type="button"
               className="zrc-mobile-wizard-primary"
-              onClick={() => {
+              onClick={async () => {
                 const targetProjectName = selectedProject || mobileTaskWizardData.projectName;
                 const targetColumn = boardColumns?.[0] || {};
                 const targetStatus = targetColumn?.title || 'Yeni Görev';
@@ -233,7 +233,7 @@ export default function MobileTaskWizard({
                   setSelectedProject(targetProjectName);
                 }
 
-                handleSaveTask({
+                const didSave = await handleSaveTask({
                   title: String(mobileTaskWizardData.taskTitle || '').trim(),
                   project: targetProjectName,
                   projectName: targetProjectName,
@@ -248,6 +248,8 @@ export default function MobileTaskWizard({
                   assignedTo: selectedAssignees.map((item) => item.name).filter(Boolean).join(', '),
                   createdFrom: 'mobile-simple-wizard'
                 });
+
+                if (!didSave) return;
 
                 closeWizard();
                 setMobileTaskWizardStep(1);

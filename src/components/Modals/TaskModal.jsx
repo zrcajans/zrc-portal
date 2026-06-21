@@ -819,8 +819,11 @@ export default function TaskModal({
       ]
     };
 
-    draftMemoryRef.current = null;
-    onSave(task, form.status);
+    const didSave = await onSave(task, form.status);
+
+    if (didSave) {
+      draftMemoryRef.current = null;
+    }
   };
 
   const selectedPriority = priorityOptions.find((priority) => priority.label === form.priority) || priorityOptions[0];
