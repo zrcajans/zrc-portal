@@ -4062,6 +4062,8 @@ function App() {
 
     if (!workspaceId || !isSupabaseUuid(currentUserId)) return false;
 
+    let activityLogSaved = false;
+
     try {
       const projectId = notification.projectName
         ? await getSupabaseProjectIdForName(notification.projectName, false)
@@ -4079,7 +4081,7 @@ function App() {
         targetUserIds: Array.isArray(notification.targetUserIds) ? notification.targetUserIds : []
       };
 
-      await supabase
+      const { data: activityLog, error: activityLogInsertError } = await supabase
         .from('activity_logs')
         .insert({
           workspace_id: workspaceId,
@@ -4090,7 +4092,13 @@ function App() {
           title: notification.title || 'Aktivite',
           description: notification.text || notification.meta || '',
           payload
-        });
+        })
+        .select('id')
+        .single();
+
+      if (activityLogInsertError) throw activityLogInsertError;
+      if (!activityLog?.id) throw new Error('Aktivite kaydı doğrulanamadı');
+      activityLogSaved = true;
 
       const targetUserIds = Array.from(
         new Set(
@@ -4132,7 +4140,7 @@ function App() {
       return true;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase aktivite hatası: ${error?.message || 'bilinmeyen hata'}`);
-      return false;
+      return activityLogSaved;
     }
   };
 
@@ -6746,8 +6754,16 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     };
 
     setActivityNotifications((prevNotifications) => [nextNotification, ...prevNotifications].slice(0, 80));
-    zrcV448PlayDesktopNotificationSound();
-    saveActivityNotificationToSupabase(nextNotification);
+    void saveActivityNotificationToSupabase(nextNotification).then((saved) => {
+      if (saved) {
+        zrcV448PlayDesktopNotificationSound();
+        return;
+      }
+
+      setActivityNotifications((prevNotifications) =>
+        (prevNotifications || []).filter((notification) => notification.id !== nextNotification.id)
+      );
+    });
 
     return nextNotification;
   };
