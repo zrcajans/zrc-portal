@@ -91,6 +91,9 @@ export function createZRCProfileActions(deps) {
         : task.history
     });
 
+    const profileSaved = await saveProfileToSupabase(safeProfileDraftForState, nextPreferences);
+    if (!profileSaved) return false;
+
     setProfileDraft(safeProfileDraftForState);
 
     setTeamMembers((prevMembers) =>
@@ -149,8 +152,7 @@ export function createZRCProfileActions(deps) {
     );
 
     setProfilePreferences(nextPreferences);
-
-    await saveProfileToSupabase(safeProfileDraftForState, nextPreferences);
+    return true;
   };
 
   const toggleProfilePreference = (keyName) => {

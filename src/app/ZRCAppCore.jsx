@@ -3905,7 +3905,7 @@ function App() {
     try {
       const displayName = `${nextProfileDraft.firstName || ''} ${nextProfileDraft.lastName || ''}`.trim() || currentProfileName || 'Kullanıcı';
 
-      const { error: profileError } = await supabase
+      const profileMutationResult = await supabase
         .from('profiles')
         .update({
           display_name: displayName,
@@ -3914,14 +3914,18 @@ function App() {
           title: nextProfileDraft.title || '',
           status: 'Aktif'
         })
-        .eq('id', currentUserId);
+        .eq('id', currentUserId)
+        .select('id')
+        .maybeSingle();
 
-      if (profileError) throw profileError;
+      requireMatchingMutationRow(profileMutationResult, currentUserId, 'Profil güncelleme');
 
-      await saveUserPreferencesToSupabase({
+      const preferencesSaved = await saveUserPreferencesToSupabase({
         profileDraft: nextProfileDraft,
         profilePreferences: nextPreferences
       });
+
+      if (!preferencesSaved) throw new Error('Profil tercihleri kaydedilemedi');
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase profil kaydedildi');
       return true;
