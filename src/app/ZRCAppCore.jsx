@@ -169,6 +169,10 @@ import { tryAcquireActionLock, releaseActionLock } from './utils/asyncActionLock
 import { buildRelationshipSyncPlan } from './utils/relationshipSyncHelpers.js';
 import { chunkValues, getSafeWorkspaceStoragePaths } from './utils/storageCleanupHelpers.js';
 import { mergeAuthoritativeServerRecords } from './utils/authoritativeMergeHelpers.js';
+import {
+  buildTaskOrderRollbackPlan,
+  buildTopInsertTaskOrderShiftPlan
+} from './utils/taskOrderShiftHelpers.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
@@ -1791,6 +1795,48 @@ function App() {
     }
   };
 
+  const rollbackTaskOrderShift = async (workspaceId, appliedShiftPlan = []) => {
+    for (const rollbackItem of buildTaskOrderRollbackPlan(appliedShiftPlan)) {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          task_order: rollbackItem.nextOrder,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', rollbackItem.taskId)
+        .eq('workspace_id', workspaceId);
+
+      if (error) {
+        console.warn('[ZRC Supabase] Görev sırası rollback tamamlanamadı.', error);
+      }
+    }
+  };
+
+  const shiftTaskOrdersForTopInsert = async (workspaceId, existingTasks = []) => {
+    const shiftPlan = buildTopInsertTaskOrderShiftPlan(existingTasks);
+    const appliedShiftPlan = [];
+
+    for (const shiftItem of shiftPlan) {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          task_order: shiftItem.nextOrder,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', shiftItem.taskId)
+        .eq('workspace_id', workspaceId);
+
+      if (error) {
+        await rollbackTaskOrderShift(workspaceId, appliedShiftPlan);
+        throw error;
+      }
+
+      appliedShiftPlan.push(shiftItem);
+    }
+
+    return appliedShiftPlan;
+  };
+
   const saveTaskToSupabase = async (taskData, targetStatus) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
@@ -1826,6 +1872,7 @@ function App() {
       };
 
       let savedTask = null;
+      let appliedTopInsertShiftPlan = [];
       const existingSupabaseTaskId = getSupabaseTaskIdFromLocalTask(taskData) || getSupabaseTaskIdFromLocalTask(taskData.id);
 
       const shouldInsertTaskAtTop =
@@ -1853,18 +1900,7 @@ function App() {
 
         if (existingOrderTasksError) throw existingOrderTasksError;
 
-        await Promise.all(
-          (existingOrderTasks || []).map((item, index) =>
-            supabase
-              .from('tasks')
-              .update({
-                task_order: index + 1,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', item.id)
-              .eq('workspace_id', workspaceId)
-          )
-        );
+        appliedTopInsertShiftPlan = await shiftTaskOrdersForTopInsert(workspaceId, existingOrderTasks);
       }
 
       if (existingSupabaseTaskId) {
@@ -1888,7 +1924,10 @@ function App() {
           .select('id')
           .single();
 
-        if (error) throw error;
+        if (error) {
+          await rollbackTaskOrderShift(workspaceId, appliedTopInsertShiftPlan);
+          throw error;
+        }
         savedTask = data;
       }
 
@@ -1982,6 +2021,8 @@ function App() {
         task_order: typeof taskData?.taskOrder === 'number' ? taskData.taskOrder : ((targetColumn?.tasks || []).length || 0)
       };
 
+      let appliedTopInsertShiftPlan = [];
+
       if (taskData?.zrcInsertAtTop === true && payload.task_order === 0 && columnId) {
         const { data: existingOrderTasks, error: existingOrderTasksError } = await supabase
           .from('tasks')
@@ -1995,18 +2036,7 @@ function App() {
 
         if (existingOrderTasksError) throw existingOrderTasksError;
 
-        await Promise.all(
-          (existingOrderTasks || []).map((item, index) =>
-            supabase
-              .from('tasks')
-              .update({
-                task_order: index + 1,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', item.id)
-              .eq('workspace_id', workspaceId)
-          )
-        );
+        appliedTopInsertShiftPlan = await shiftTaskOrdersForTopInsert(workspaceId, existingOrderTasks);
       }
 
       const { data, error } = await supabase
@@ -2018,7 +2048,10 @@ function App() {
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        await rollbackTaskOrderShift(workspaceId, appliedTopInsertShiftPlan);
+        throw error;
+      }
 
       if (data?.id) {
         setProjectBoards((prevBoards) => {
