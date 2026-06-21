@@ -2,6 +2,7 @@ import { flushSync } from 'react-dom';
 import { getScopedStorageKey } from '../utils/storageScopeHelpers.js';
 import { chunkValues, getSafeWorkspaceStoragePaths } from '../utils/storageCleanupHelpers.js';
 import { buildPersistableColumnCopy, buildPersistableTaskCopy } from '../utils/columnCopyHelpers.js';
+import { requireMatchingMutationRow } from '../utils/supabaseMutationHelpers.js';
 export function createZRCBoardTaskActions(deps) {
   const {
     requirePermission,
@@ -183,9 +184,14 @@ export function createZRCBoardTaskActions(deps) {
           query = query.eq('title', columnTitle);
         }
 
-        const { error } = await query;
+        const mutationResult = await query.select('id').maybeSingle();
 
-        if (error) throw error;
+        if (mutationResult?.error) throw mutationResult.error;
+        if (isUuid(columnId)) {
+          requireMatchingMutationRow(mutationResult, columnId, 'Kolon sırası');
+        } else if (!mutationResult?.data?.id) {
+          throw new Error('Kolon sırası yazması doğrulanamadı');
+        }
       }
 
       setBoardColumns(nextColumns);

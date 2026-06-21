@@ -69,6 +69,7 @@ test('column reorder reaches the database before committing UI order', async () 
     { id: secondColumnId, title: 'İkinci' }
   ];
   const writes = [];
+  let writeIndex = 0;
   const uiOrders = [];
   const deps = createBaseDeps({
     boardColumns,
@@ -77,7 +78,9 @@ test('column reorder reaches the database before committing UI order', async () 
       from: () => ({
         update: (payload) => {
           writes.push(payload.position);
-          return createQuery({ error: null });
+          const persistedColumnId = [secondColumnId, firstColumnId][writeIndex];
+          writeIndex += 1;
+          return createQuery({ data: { id: persistedColumnId }, error: null });
         }
       })
     }
@@ -112,7 +115,10 @@ test('failed column reorder leaves UI untouched and reloads authoritative state'
         from: () => ({
           update: () => {
             writeCount += 1;
-            return createQuery({ error: writeCount === 2 ? new Error('write failed') : null });
+            return createQuery({
+              data: { id: writeCount === 1 ? secondColumnId : firstColumnId },
+              error: writeCount === 2 ? new Error('write failed') : null
+            });
           }
         })
       }

@@ -1713,24 +1713,33 @@ function App() {
     const preferredColumn = exactColumn || fallbackColumn;
 
     if (preferredColumn?.id) {
-      const { error: updateError } = await supabase
+      const updateResult = await supabase
           .from('board_columns')
           .update(columnPayload)
           .eq('id', preferredColumn.id)
-          .eq('workspace_id', workspaceId);
+          .eq('workspace_id', workspaceId)
+          .select('id')
+          .maybeSingle();
 
-      if (updateError) throw updateError;
+      requireMatchingMutationRow(updateResult, preferredColumn.id, 'Kolon güncelleme');
 
       const duplicateIds = (existingColumns || [])
         .filter((item) => item.id && item.id !== preferredColumn.id)
         .map((item) => item.id);
 
       if (duplicateIds.length > 0) {
-        await supabase
+        const { data: archivedDuplicates, error: duplicateArchiveError } = await supabase
           .from('board_columns')
           .update({ is_archived: true })
           .eq('workspace_id', workspaceId)
-          .in('id', duplicateIds);
+          .in('id', duplicateIds)
+          .select('id');
+
+        if (duplicateArchiveError) throw duplicateArchiveError;
+        const archivedDuplicateIds = new Set((archivedDuplicates || []).map((column) => column.id));
+        if (duplicateIds.some((columnId) => !archivedDuplicateIds.has(columnId))) {
+          throw new Error('Yinelenen kolon arşivleme yazması doğrulanamadı');
+        }
       }
 
       return preferredColumn.id;
@@ -2153,13 +2162,16 @@ function App() {
       };
 
       if (isSupabaseUuid(columnData.id)) {
-        const { error: updateError } = await supabase
+        const updateResult = await supabase
           .from('board_columns')
           .update(payload)
           .eq('id', columnData.id)
-          .eq('workspace_id', workspaceId);
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId)
+          .select('id')
+          .maybeSingle();
 
-        if (updateError) throw updateError;
+        requireMatchingMutationRow(updateResult, columnData.id, 'Kolon güncelleme');
 
         zrcSetSupabaseWriteInfo('saved', 'Supabase kolon güncellendi');
         return columnData.id;
