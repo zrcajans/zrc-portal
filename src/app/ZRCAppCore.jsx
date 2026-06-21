@@ -2780,13 +2780,15 @@ function App() {
         : rawFileId;
 
       if (isSupabaseUuid(fileId)) {
-        const { error: metadataDeleteError } = await supabase
+        const metadataDeleteResult = await supabase
           .from('files')
           .delete()
           .eq('id', fileId)
-          .eq('workspace_id', workspaceId);
+          .eq('workspace_id', workspaceId)
+          .select('id')
+          .maybeSingle();
 
-        if (metadataDeleteError) throw metadataDeleteError;
+        requireMatchingMutationRow(metadataDeleteResult, fileId, 'Dosya metadata silme');
       }
 
       const { error } = await supabase.storage
@@ -2951,13 +2953,15 @@ function App() {
     zrcSetSupabaseWriteInfo('saving', 'Supabase müşteri durumu kaydediliyor');
 
     try {
-      const { error } = await supabase
+      const mutationResult = await supabase
         .from('customers')
         .update({ status: nextStatus === 'Pasif' ? 'Pasif' : 'Aktif' })
         .eq('id', customerId)
-        .eq('workspace_id', workspaceId);
+        .eq('workspace_id', workspaceId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, customerId, 'Müşteri durumu');
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase müşteri durumu kaydedildi');
       return true;
@@ -2976,13 +2980,15 @@ function App() {
     zrcSetSupabaseWriteInfo('saving', 'Supabase müşteri siliniyor');
 
     try {
-      const { error } = await supabase
+      const mutationResult = await supabase
         .from('customers')
         .delete()
         .eq('id', customerId)
-        .eq('workspace_id', workspaceId);
+        .eq('workspace_id', workspaceId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, customerId, 'Müşteri silme');
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase müşteri silindi');
       return true;
@@ -3957,16 +3963,18 @@ function App() {
     if (!isSupabaseUuid(workspaceId) || !isSupabaseUuid(currentUserId) || !isSupabaseUuid(noteId) || !String(note.text || '').trim()) return false;
 
     try {
-      const { error } = await supabase
+      const mutationResult = await supabase
         .from('quick_notes')
         .update({
           text: String(note.text || '').trim()
         })
         .eq('id', noteId)
         .eq('workspace_id', workspaceId)
-        .eq('user_id', currentUserId);
+        .eq('user_id', currentUserId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, noteId, 'Hızlı not güncelleme');
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase not güncellendi');
       return true;
@@ -3983,14 +3991,16 @@ function App() {
     if (!isSupabaseUuid(workspaceId) || !isSupabaseUuid(currentUserId) || !isSupabaseUuid(noteId)) return false;
 
     try {
-      const { error } = await supabase
+      const mutationResult = await supabase
         .from('quick_notes')
         .delete()
         .eq('id', noteId)
         .eq('workspace_id', workspaceId)
-        .eq('user_id', currentUserId);
+        .eq('user_id', currentUserId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, noteId, 'Hızlı not silme');
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase not silindi');
       return true;
