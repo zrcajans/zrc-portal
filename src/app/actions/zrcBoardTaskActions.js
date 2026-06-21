@@ -1,5 +1,6 @@
 import { flushSync } from 'react-dom';
 import { getScopedStorageKey } from '../utils/storageScopeHelpers.js';
+import { chunkValues, getSafeWorkspaceStoragePaths } from '../utils/storageCleanupHelpers.js';
 export function createZRCBoardTaskActions(deps) {
   const {
     requirePermission,
@@ -273,39 +274,30 @@ export function createZRCBoardTaskActions(deps) {
   };
 
   const handleDeleteColumn = async (columnId) => {
-    if (!requirePermission('manageColumns', 'Kolon silme yetkisi sadece Yönetici rolünde var.')) return;
+    if (!requirePermission('manageColumns', 'Kolon silme yetkisi sadece Yönetici rolünde var.')) return false;
 
     const columnToDelete = boardColumns.find((column) => column.id === columnId);
-    const confirmed = await window.zrcConfirm('Bu kolonu ve içindeki tüm görevleri kalıcı olarak silmek istediğine emin misin?');
-    if (!confirmed) return;
-
-    const deletedColumnTitleKey = normalizeColumnTitleForDisplay(columnToDelete?.title || '');
-    const deletedColumnStorageKey = `zrc-deleted-column-titles-${selectedProject}`;
-    const previousDeletedColumnTitles = normalizeStorageArray(readStorageValue(deletedColumnStorageKey, []), []);
-
-    if (deletedColumnTitleKey && !previousDeletedColumnTitles.map(normalizeColumnTitleForDisplay).includes(deletedColumnTitleKey)) {
-      writeStorageValue(deletedColumnStorageKey, [...previousDeletedColumnTitles, deletedColumnTitleKey]);
-    }
-
-    setBoardColumns((prev) => prev.filter((col) => col.id !== columnId));
-    setOpenMenuColumnId(null);
-
-    const workspaceId = getCurrentSupabaseWorkspaceId();
-
-    if (!workspaceId || !selectedProject || !columnToDelete) {
-      zrcSetSupabaseWriteInfo('saved', 'Kolon yerelden silindi');
-      return;
-    }
-
-    zrcSetSupabaseWriteInfo('saving', 'Supabase kolon siliniyor');
+    if (!columnToDelete) return false;
+    if (!tryAcquireActionLock(columnMutationLockRef, 'delete-column')) return false;
 
     try {
+      const confirmed = await window.zrcConfirm('Bu kolonu ve içindeki tüm görevleri kalıcı olarak silmek istediğine emin misin?');
+      if (!confirmed) return false;
+
+      const workspaceId = getCurrentSupabaseWorkspaceId();
+      if (!workspaceId || !selectedProject || !supabase) {
+        throw new Error('Aktif çalışma alanı veya proje bulunamadı');
+      }
+
+      zrcSetSupabaseWriteInfo('saving', 'Supabase kolon siliniyor');
+
       const projectId = await ensureSupabaseProject(selectedProject);
       if (!projectId) throw new Error('Proje ID bulunamadı');
 
       const { data: projectColumns, error: columnsSelectError } = await supabase
         .from('board_columns')
         .select('id, title')
+        .eq('workspace_id', workspaceId)
         .eq('project_id', projectId);
 
       if (columnsSelectError) throw columnsSelectError;
@@ -313,35 +305,68 @@ export function createZRCBoardTaskActions(deps) {
       const targetTitleKey = normalizeColumnTitleForDisplay(columnToDelete.title);
       const columnIdsToDelete = (projectColumns || [])
         .filter((column) => {
+          if (isSupabaseUuid(columnId)) return column.id === columnId;
+
           const columnTitleKey = normalizeColumnTitleForDisplay(column.title);
-          return column.id === columnId || columnTitleKey === targetTitleKey;
+          return columnTitleKey === targetTitleKey;
         })
         .map((column) => column.id)
         .filter(isSupabaseUuid);
 
-      const localTaskIdsToDelete = (columnToDelete.tasks || [])
-        .map((task) => task.supabaseId)
-        .filter(isSupabaseUuid);
-
-      let dbTaskIdsToDelete = [];
+      const verifiedTaskIdsToDelete = new Set();
 
       if (columnIdsToDelete.length > 0) {
         const { data: columnTasks, error: columnTasksError } = await supabase
           .from('tasks')
           .select('id')
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId)
           .in('column_id', columnIdsToDelete);
 
         if (columnTasksError) throw columnTasksError;
 
-        dbTaskIdsToDelete = (columnTasks || []).map((task) => task.id).filter(isSupabaseUuid);
+        (columnTasks || []).map((task) => task.id).filter(isSupabaseUuid).forEach((taskId) => {
+          verifiedTaskIdsToDelete.add(taskId);
+        });
       }
 
-      const taskIdsToDelete = [...new Set([...localTaskIdsToDelete, ...dbTaskIdsToDelete])];
+      const taskIdsToDelete = [...verifiedTaskIdsToDelete];
+      let storagePathsToDelete = [];
 
       if (taskIdsToDelete.length > 0) {
+        const { data: taskFiles, error: taskFilesError } = await supabase
+          .from('files')
+          .select('id, bucket, storage_path')
+          .eq('workspace_id', workspaceId)
+          .in('task_id', taskIdsToDelete);
+
+        if (taskFilesError) throw taskFilesError;
+        storagePathsToDelete = getSafeWorkspaceStoragePaths(taskFiles, workspaceId);
+
+        for (const tableName of ['task_assignees', 'task_followers']) {
+          const { error } = await supabase
+            .from(tableName)
+            .delete()
+            .in('task_id', taskIdsToDelete);
+
+          if (error) throw new Error(`${tableName} kayıtları silinemedi: ${error.message || 'bilinmeyen hata'}`);
+        }
+
+        for (const tableName of ['task_comments', 'task_steps', 'files']) {
+          const { error } = await supabase
+            .from(tableName)
+            .delete()
+            .eq('workspace_id', workspaceId)
+            .in('task_id', taskIdsToDelete);
+
+          if (error) throw new Error(`${tableName} kayıtları silinemedi: ${error.message || 'bilinmeyen hata'}`);
+        }
+
         const { error: taskDeleteError } = await supabase
           .from('tasks')
           .delete()
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId)
           .in('id', taskIdsToDelete);
 
         if (taskDeleteError) throw taskDeleteError;
@@ -351,29 +376,58 @@ export function createZRCBoardTaskActions(deps) {
         const { error: columnDeleteError } = await supabase
           .from('board_columns')
           .delete()
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId)
           .in('id', columnIdsToDelete);
 
         if (columnDeleteError) throw columnDeleteError;
-      } else {
-        const titleCandidates = [...new Set([
-          columnToDelete.title,
-          normalizeColumnTitleForDisplay(columnToDelete.title),
-          targetTitleKey === 'Yeni Görev' ? 'Bekliyor' : ''
-        ].filter(Boolean))];
-
-        const { error: titleDeleteError } = await supabase
-          .from('board_columns')
-          .delete()
-          .eq('project_id', projectId)
-          .in('title', titleCandidates);
-
-        if (titleDeleteError) throw titleDeleteError;
       }
 
-      zrcSetSupabaseWriteInfo('saved', 'Supabase kolon silindi');
+      let storageCleanupFailed = false;
+      for (const storagePathChunk of chunkValues(storagePathsToDelete, 100)) {
+        try {
+          const { error: storageDeleteError } = await supabase.storage
+            .from('project-files')
+            .remove(storagePathChunk);
+
+          if (storageDeleteError) throw storageDeleteError;
+        } catch (storageDeleteError) {
+          console.warn('[ZRC Supabase] Silinen kolona ait bazı Storage nesneleri temizlenemedi.', storageDeleteError);
+          storageCleanupFailed = true;
+        }
+      }
+
+      const deletedColumnTitleKey = normalizeColumnTitleForDisplay(columnToDelete.title || '');
+      const deletedColumnStorageKey = `zrc-deleted-column-titles-${selectedProject}`;
+      const previousDeletedColumnTitles = normalizeStorageArray(readStorageValue(deletedColumnStorageKey, []), []);
+
+      if (deletedColumnTitleKey && !previousDeletedColumnTitles.map(normalizeColumnTitleForDisplay).includes(deletedColumnTitleKey)) {
+        writeStorageValue(deletedColumnStorageKey, [...previousDeletedColumnTitles, deletedColumnTitleKey]);
+      }
+
+      setBoardColumns((prev) => prev.filter((col) => col.id !== columnId));
+      setOpenMenuColumnId(null);
+
+      zrcSetSupabaseWriteInfo(
+        storageCleanupFailed ? 'error' : 'saved',
+        storageCleanupFailed
+          ? 'Kolon silindi; bazı Storage nesneleri için sunucu temizliği gerekiyor'
+          : 'Supabase kolon silindi'
+      );
+
+      if (storageCleanupFailed) {
+        await window.zrcAlert('Kolon veritabanından silindi; bazı dosya nesneleri Storage tarafında temizlenemedi. Yönetici kontrolü gerekiyor.');
+      }
+
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
+      return true;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase kolon silme hatası: ${error?.message || 'bilinmeyen hata'}`);
+      await window.zrcAlert('Kolon silinemedi. Liste sunucudaki son haliyle yenilenecek.');
+      await loadSelectedProjectBoardFromSupabase();
+      return false;
+    } finally {
+      releaseActionLock(columnMutationLockRef, 'delete-column');
     }
   };
 

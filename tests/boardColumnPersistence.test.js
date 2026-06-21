@@ -10,9 +10,16 @@ const secondColumnId = '44444444-4444-4444-8444-444444444444';
 
 const normalizeTitle = (value = '') => String(value || '').trim();
 
-const createQuery = (result) => {
+const createQuery = (result, recordFilter = () => {}) => {
   const query = {
-    eq: () => query,
+    eq: (column, value) => {
+      recordFilter('eq', column, value);
+      return query;
+    },
+    in: (column, value) => {
+      recordFilter('in', column, value);
+      return query;
+    },
     then: (resolve, reject) => Promise.resolve(result).then(resolve, reject)
   };
   return query;
@@ -22,6 +29,7 @@ const createBaseDeps = (overrides = {}) => ({
   requirePermission: () => true,
   boardColumns: [],
   setBoardColumns: () => {},
+  setOpenMenuColumnId: () => {},
   normalizeColumnTitleForDisplay: normalizeTitle,
   selectedProject: 'Portal',
   normalizeStorageArray: (value, fallback) => Array.isArray(value) ? value : fallback,
@@ -164,4 +172,99 @@ test('successful stage save commits the persisted column id before closing', asy
   assert.equal(activeColumnId, firstColumnId);
   assert.equal(modalOpen, false);
   assert.equal(deps.columnMutationLockRef.current.size, 0);
+});
+
+test('failed column delete keeps local UI and deletion marker untouched', async () => {
+  let uiCommitCount = 0;
+  let storageWriteCount = 0;
+  let reloadCount = 0;
+  let alertCount = 0;
+  const previousWindow = globalThis.window;
+  globalThis.window = {
+    zrcConfirm: async () => true,
+    zrcAlert: async () => { alertCount += 1; }
+  };
+
+  try {
+    const deps = createBaseDeps({
+      boardColumns: [{ id: firstColumnId, title: 'Silinecek', tasks: [] }],
+      setBoardColumns: () => { uiCommitCount += 1; },
+      writeStorageValue: () => { storageWriteCount += 1; },
+      loadSelectedProjectBoardFromSupabase: async () => { reloadCount += 1; },
+      supabase: {
+        from: () => ({
+          select: () => createQuery({ data: null, error: new Error('read failed') })
+        })
+      }
+    });
+
+    const result = await createZRCBoardTaskActions(deps).handleDeleteColumn(firstColumnId);
+
+    assert.equal(result, false);
+    assert.equal(uiCommitCount, 0);
+    assert.equal(storageWriteCount, 0);
+    assert.equal(reloadCount, 1);
+    assert.equal(alertCount, 1);
+    assert.equal(deps.columnMutationLockRef.current.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});
+
+test('successful column delete scopes reads and writes before committing UI', async () => {
+  let currentColumns = [{ id: firstColumnId, title: 'Silinecek', tasks: [] }];
+  let storageWriteCount = 0;
+  const filters = [];
+  const previousWindow = globalThis.window;
+  globalThis.window = {
+    zrcConfirm: async () => true,
+    zrcAlert: async () => {}
+  };
+
+  try {
+    const makeTableQuery = (table, operation, result) => createQuery(
+      result,
+      (filter, column, value) => filters.push({ table, operation, filter, column, value })
+    );
+    const deps = createBaseDeps({
+      boardColumns: currentColumns,
+      setBoardColumns: (updater) => {
+        currentColumns = typeof updater === 'function' ? updater(currentColumns) : updater;
+      },
+      writeStorageValue: () => { storageWriteCount += 1; },
+      supabase: {
+        from: (table) => ({
+          select: () => makeTableQuery(
+            table,
+            'select',
+            table === 'board_columns'
+              ? { data: [{ id: firstColumnId, title: 'Silinecek' }], error: null }
+              : { data: [], error: null }
+          ),
+          delete: () => makeTableQuery(table, 'delete', { error: null })
+        }),
+        storage: {
+          from: () => ({ remove: async () => ({ error: null }) })
+        }
+      }
+    });
+
+    const result = await createZRCBoardTaskActions(deps).handleDeleteColumn(firstColumnId);
+
+    assert.equal(result, true);
+    assert.deepEqual(currentColumns, []);
+    assert.equal(storageWriteCount, 1);
+    assert.ok(filters.some(({ table, operation, column, value }) =>
+      table === 'board_columns' && operation === 'select' && column === 'workspace_id' && value === workspaceId
+    ));
+    assert.ok(filters.some(({ table, operation, column, value }) =>
+      table === 'tasks' && operation === 'select' && column === 'project_id' && value === projectId
+    ));
+    assert.ok(filters.some(({ table, operation, column, value }) =>
+      table === 'board_columns' && operation === 'delete' && column === 'workspace_id' && value === workspaceId
+    ));
+    assert.equal(deps.columnMutationLockRef.current.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
 });
