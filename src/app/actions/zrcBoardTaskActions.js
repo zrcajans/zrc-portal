@@ -62,7 +62,10 @@ export function createZRCBoardTaskActions(deps) {
     archivedTasks,
     draggedTaskInfo,
     setProjectBoards,
-    taskDetailSyncQueueRef
+    taskDetailSyncQueueRef,
+    columnMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   } = deps;
 
   const persistTaskBatch = async (tasks = [], mutation) => {
@@ -118,78 +121,86 @@ export function createZRCBoardTaskActions(deps) {
     setOpenMenuColumnId(null);
   };
 
-  const handleMoveColumn = (index, direction) => {
-    if (!requirePermission('manageColumns', 'Kolon sıralama yetkisi sadece Yönetici rolünde var.')) return;
+  const handleMoveColumn = async (index, direction) => {
+    if (!requirePermission('manageColumns', 'Kolon sıralama yetkisi sadece Yönetici rolünde var.')) return false;
 
     const targetIndex = index + direction;
-    if (targetIndex < 0 || targetIndex >= boardColumns.length) return;
+    if (targetIndex < 0 || targetIndex >= boardColumns.length) return false;
+    if (!tryAcquireActionLock(columnMutationLockRef, 'move-column')) return false;
 
     const nextColumns = [...boardColumns];
     [nextColumns[index], nextColumns[targetIndex]] = [nextColumns[targetIndex], nextColumns[index]];
 
-    setBoardColumns(nextColumns);
-
-    const persistColumnOrderToSupabase = async () => {
+    try {
       const workspaceId =
         typeof getCurrentSupabaseWorkspaceId === 'function'
           ? getCurrentSupabaseWorkspaceId()
           : null;
 
-      if (!workspaceId || !selectedProject || !supabase) return;
+      if (!workspaceId || !selectedProject || !supabase) {
+        throw new Error('Aktif çalışma alanı veya proje bulunamadı');
+      }
 
       const isUuid = (value = '') =>
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || '').trim());
 
-      try {
-        if (typeof zrcSetSupabaseWriteInfo === 'function') {
-          zrcSetSupabaseWriteInfo('saving', 'Supabase kolon sırası kaydediliyor');
-        }
-
-        const projectId =
-          typeof ensureSupabaseProject === 'function'
-            ? await ensureSupabaseProject(selectedProject)
-            : null;
-
-        if (!projectId) return;
-
-        for (const [position, column] of nextColumns.entries()) {
-          const columnTitle = normalizeColumnTitleForDisplay(column?.title || 'Yeni Görev');
-          const columnId = String(column?.id || '').trim();
-
-          let query = supabase
-            .from('board_columns')
-            .update({ position })
-            .eq('workspace_id', workspaceId)
-            .eq('project_id', projectId);
-
-          if (isUuid(columnId)) {
-            query = query.eq('id', columnId);
-          } else {
-            query = query.eq('title', columnTitle);
-          }
-
-          const { error } = await query;
-
-          if (error) throw error;
-        }
-
-        if (typeof zrcSetSupabaseWriteInfo === 'function') {
-          zrcSetSupabaseWriteInfo('saved', 'Supabase kolon sırası kaydedildi');
-        }
-      } catch (error) {
-        console.warn('Kolon sırası Supabase kaydı başarısız:', error);
-
-        if (typeof zrcSetSupabaseWriteInfo === 'function') {
-          zrcSetSupabaseWriteInfo('error', `Supabase kolon sırası kaydedilemedi: ${error?.message || 'bilinmeyen hata'}`);
-        }
+      if (typeof zrcSetSupabaseWriteInfo === 'function') {
+        zrcSetSupabaseWriteInfo('saving', 'Supabase kolon sırası kaydediliyor');
       }
-    };
 
-    persistColumnOrderToSupabase();
+      const projectId =
+        typeof ensureSupabaseProject === 'function'
+          ? await ensureSupabaseProject(selectedProject)
+          : null;
+
+      if (!projectId) throw new Error('Proje ID bulunamadı');
+
+      for (const [position, column] of nextColumns.entries()) {
+        const columnTitle = normalizeColumnTitleForDisplay(column?.title || 'Yeni Görev');
+        const columnId = String(column?.id || '').trim();
+
+        let query = supabase
+          .from('board_columns')
+          .update({ position })
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId);
+
+        if (isUuid(columnId)) {
+          query = query.eq('id', columnId);
+        } else {
+          query = query.eq('title', columnTitle);
+        }
+
+        const { error } = await query;
+
+        if (error) throw error;
+      }
+
+      setBoardColumns(nextColumns);
+
+      if (typeof zrcSetSupabaseWriteInfo === 'function') {
+        zrcSetSupabaseWriteInfo('saved', 'Supabase kolon sırası kaydedildi');
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('Kolon sırası Supabase kaydı başarısız:', error);
+
+      if (typeof zrcSetSupabaseWriteInfo === 'function') {
+        zrcSetSupabaseWriteInfo('error', `Supabase kolon sırası kaydedilemedi: ${error?.message || 'bilinmeyen hata'}`);
+      }
+
+      await window.zrcAlert('Kolon sırası kaydedilemedi. Liste sunucudaki son haliyle yenilenecek.');
+      await loadSelectedProjectBoardFromSupabase();
+      return false;
+    } finally {
+      releaseActionLock(columnMutationLockRef, 'move-column');
+    }
   };
 
   const handleSaveStage = async (updatedColumn) => {
-    if (!requirePermission('manageColumns', 'Kolonları sadece Yönetici düzenleyebilir.')) return;
+    if (!requirePermission('manageColumns', 'Kolonları sadece Yönetici düzenleyebilir.')) return false;
+    if (!tryAcquireActionLock(columnMutationLockRef, 'save-stage')) return false;
 
     const columnToSave = {
       ...(editingColumn || {}),
@@ -199,49 +210,66 @@ export function createZRCBoardTaskActions(deps) {
       tasks: updatedColumn?.tasks || editingColumn?.tasks || []
     };
 
-    const deletedColumnStorageKey = `zrc-deleted-column-titles-${selectedProject}`;
-    const savedColumnTitleKey = normalizeColumnTitleForDisplay(columnToSave.title);
-    const cleanedDeletedColumnTitles = normalizeStorageArray(readStorageValue(deletedColumnStorageKey, []), [])
-      .filter((title) => normalizeColumnTitleForDisplay(title) !== savedColumnTitleKey);
-    writeStorageValue(deletedColumnStorageKey, cleanedDeletedColumnTitles);
-
     const zrcV458IsNewColumn = !boardColumns.some(
       (col) => col.id === columnToSave.id || normalizeColumnTitleForDisplay(col.title) === normalizeColumnTitleForDisplay(columnToSave.title)
     );
 
-    setBoardColumns((prev) => {
-      const exists = prev.some((col) => col.id === columnToSave.id);
+    try {
+      const savedColumnId = await saveStageToSupabase(columnToSave);
 
-      if (exists) {
-        return prev.map((col) => (col.id === columnToSave.id ? { ...col, ...columnToSave } : col));
+      if (!savedColumnId) {
+        await window.zrcAlert('Kolon kaydedilemedi. Bilgileriniz açık formda korunuyor.');
+        return false;
       }
 
-      return [...prev, { ...columnToSave, tasks: columnToSave.tasks || [] }];
-    });
+      const persistedColumn = {
+        ...columnToSave,
+        id: isSupabaseUuid(savedColumnId) ? savedColumnId : columnToSave.id
+      };
+      const deletedColumnStorageKey = `zrc-deleted-column-titles-${selectedProject}`;
+      const savedColumnTitleKey = normalizeColumnTitleForDisplay(persistedColumn.title);
+      const cleanedDeletedColumnTitles = normalizeStorageArray(readStorageValue(deletedColumnStorageKey, []), [])
+        .filter((title) => normalizeColumnTitleForDisplay(title) !== savedColumnTitleKey);
+      writeStorageValue(deletedColumnStorageKey, cleanedDeletedColumnTitles);
 
-    // zrc-v458-mobile-new-column-live-capsule
-    if (zrcV458IsNewColumn) {
-      setMobileActiveColumnId(columnToSave.id);
-    }
+      setBoardColumns((prev) => {
+        const exists = prev.some((col) => col.id === columnToSave.id);
 
-    setZrcMobileColumnRefreshKey((value) => value + 1);
+        if (exists) {
+          return prev.map((col) => (col.id === columnToSave.id ? { ...col, ...persistedColumn } : col));
+        }
 
-    window.setTimeout(() => {
+        return [...prev, { ...persistedColumn, tasks: persistedColumn.tasks || [] }];
+      });
+
+      // zrc-v458-mobile-new-column-live-capsule
+      if (zrcV458IsNewColumn) {
+        setMobileActiveColumnId(persistedColumn.id);
+      }
+
       setZrcMobileColumnRefreshKey((value) => value + 1);
-    }, 120);
 
-    const didSaveStageToSupabase = await saveStageToSupabase(columnToSave);
+      setTimeout(() => {
+        setZrcMobileColumnRefreshKey((value) => value + 1);
+      }, 120);
 
-    if (didSaveStageToSupabase) {
       setTimeout(() => {
         loadSelectedProjectBoardFromSupabase();
         // zrc-v458-mobile-refresh-after-supabase-reload
         setZrcMobileColumnRefreshKey((value) => value + 1);
       }, 500);
-    }
 
-    setIsStageModalOpen(false);
-    setEditingColumn(null);
+      setIsStageModalOpen(false);
+      setEditingColumn(null);
+      return true;
+    } catch (error) {
+      console.warn('Kolon Supabase kaydı başarısız:', error);
+      zrcSetSupabaseWriteInfo('error', `Supabase kolon hatası: ${error?.message || 'bilinmeyen hata'}`);
+      await window.zrcAlert('Kolon kaydedilemedi. Bilgileriniz açık formda korunuyor.');
+      return false;
+    } finally {
+      releaseActionLock(columnMutationLockRef, 'save-stage');
+    }
   };
 
   const handleDeleteColumn = async (columnId) => {

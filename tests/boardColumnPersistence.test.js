@@ -1,0 +1,167 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createZRCBoardTaskActions } from '../src/app/actions/zrcBoardTaskActions.js';
+import { releaseActionLock, tryAcquireActionLock } from '../src/app/utils/asyncActionLock.js';
+
+const workspaceId = '11111111-1111-4111-8111-111111111111';
+const projectId = '22222222-2222-4222-8222-222222222222';
+const firstColumnId = '33333333-3333-4333-8333-333333333333';
+const secondColumnId = '44444444-4444-4444-8444-444444444444';
+
+const normalizeTitle = (value = '') => String(value || '').trim();
+
+const createQuery = (result) => {
+  const query = {
+    eq: () => query,
+    then: (resolve, reject) => Promise.resolve(result).then(resolve, reject)
+  };
+  return query;
+};
+
+const createBaseDeps = (overrides = {}) => ({
+  requirePermission: () => true,
+  boardColumns: [],
+  setBoardColumns: () => {},
+  normalizeColumnTitleForDisplay: normalizeTitle,
+  selectedProject: 'Portal',
+  normalizeStorageArray: (value, fallback) => Array.isArray(value) ? value : fallback,
+  readStorageValue: () => [],
+  writeStorageValue: () => {},
+  setMobileActiveColumnId: () => {},
+  setZrcMobileColumnRefreshKey: () => {},
+  setEditingColumn: () => {},
+  setIsStageModalOpen: () => {},
+  saveStageToSupabase: async () => false,
+  setTimeout: () => {},
+  loadSelectedProjectBoardFromSupabase: async () => {},
+  getCurrentSupabaseWorkspaceId: () => workspaceId,
+  zrcSetSupabaseWriteInfo: () => {},
+  ensureSupabaseProject: async () => projectId,
+  isSupabaseUuid: (value = '') => /^[0-9a-f-]{36}$/i.test(String(value)),
+  columnMutationLockRef: { current: new Set() },
+  tryAcquireActionLock,
+  releaseActionLock,
+  ...overrides
+});
+
+test('column reorder reaches the database before committing UI order', async () => {
+  const boardColumns = [
+    { id: firstColumnId, title: 'İlk' },
+    { id: secondColumnId, title: 'İkinci' }
+  ];
+  const writes = [];
+  const uiOrders = [];
+  const deps = createBaseDeps({
+    boardColumns,
+    setBoardColumns: (columns) => uiOrders.push(columns.map((column) => column.id)),
+    supabase: {
+      from: () => ({
+        update: (payload) => {
+          writes.push(payload.position);
+          return createQuery({ error: null });
+        }
+      })
+    }
+  });
+
+  const result = await createZRCBoardTaskActions(deps).handleMoveColumn(0, 1);
+
+  assert.equal(result, true);
+  assert.deepEqual(writes, [0, 1]);
+  assert.deepEqual(uiOrders, [[secondColumnId, firstColumnId]]);
+  assert.equal(deps.columnMutationLockRef.current.size, 0);
+});
+
+test('failed column reorder leaves UI untouched and reloads authoritative state', async () => {
+  const boardColumns = [
+    { id: firstColumnId, title: 'İlk' },
+    { id: secondColumnId, title: 'İkinci' }
+  ];
+  let writeCount = 0;
+  let uiCommitCount = 0;
+  let reloadCount = 0;
+  let alertCount = 0;
+  const previousWindow = globalThis.window;
+  globalThis.window = { zrcAlert: async () => { alertCount += 1; } };
+
+  try {
+    const deps = createBaseDeps({
+      boardColumns,
+      setBoardColumns: () => { uiCommitCount += 1; },
+      loadSelectedProjectBoardFromSupabase: async () => { reloadCount += 1; },
+      supabase: {
+        from: () => ({
+          update: () => {
+            writeCount += 1;
+            return createQuery({ error: writeCount === 2 ? new Error('write failed') : null });
+          }
+        })
+      }
+    });
+
+    const result = await createZRCBoardTaskActions(deps).handleMoveColumn(0, 1);
+
+    assert.equal(result, false);
+    assert.equal(uiCommitCount, 0);
+    assert.equal(reloadCount, 1);
+    assert.equal(alertCount, 1);
+    assert.equal(deps.columnMutationLockRef.current.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});
+
+test('failed stage save preserves the open form and current board', async () => {
+  let uiCommitCount = 0;
+  let modalCloseCount = 0;
+  let storageWriteCount = 0;
+  let alertCount = 0;
+  const previousWindow = globalThis.window;
+  globalThis.window = { zrcAlert: async () => { alertCount += 1; } };
+
+  try {
+    const deps = createBaseDeps({
+      editingColumn: { id: 'local-column', title: 'Taslak', tasks: [] },
+      setBoardColumns: () => { uiCommitCount += 1; },
+      setIsStageModalOpen: () => { modalCloseCount += 1; },
+      writeStorageValue: () => { storageWriteCount += 1; }
+    });
+
+    const result = await createZRCBoardTaskActions(deps).handleSaveStage({ title: 'Taslak' });
+
+    assert.equal(result, false);
+    assert.equal(uiCommitCount, 0);
+    assert.equal(modalCloseCount, 0);
+    assert.equal(storageWriteCount, 0);
+    assert.equal(alertCount, 1);
+    assert.equal(deps.columnMutationLockRef.current.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});
+
+test('successful stage save commits the persisted column id before closing', async () => {
+  let currentColumns = [];
+  let modalOpen = true;
+  let activeColumnId = '';
+  const deps = createBaseDeps({
+    saveStageToSupabase: async () => firstColumnId,
+    setBoardColumns: (updater) => {
+      currentColumns = typeof updater === 'function' ? updater(currentColumns) : updater;
+    },
+    setIsStageModalOpen: (value) => { modalOpen = value; },
+    setMobileActiveColumnId: (value) => { activeColumnId = value; }
+  });
+
+  const result = await createZRCBoardTaskActions(deps).handleSaveStage({
+    id: 'local-column',
+    title: 'Yeni',
+    tasks: []
+  });
+
+  assert.equal(result, true);
+  assert.equal(currentColumns[0].id, firstColumnId);
+  assert.equal(activeColumnId, firstColumnId);
+  assert.equal(modalOpen, false);
+  assert.equal(deps.columnMutationLockRef.current.size, 0);
+});

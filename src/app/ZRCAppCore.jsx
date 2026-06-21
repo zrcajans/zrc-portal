@@ -177,6 +177,7 @@ function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
   const taskMutationLockRef = useRef(new Set());
+  const columnMutationLockRef = useRef(new Set());
 
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -2151,23 +2152,14 @@ function App() {
         if (updateError) throw updateError;
 
         zrcSetSupabaseWriteInfo('saved', 'Supabase kolon güncellendi');
-        return true;
+        return columnData.id;
       }
 
       const savedColumnId = await ensureSupabaseColumn(projectId, payload, payload.position);
-
-      if (savedColumnId) {
-        setBoardColumns((prevColumns) =>
-          prevColumns.map((column) =>
-            column.id === columnData.id || column.title === columnData.title
-              ? { ...column, id: savedColumnId }
-              : column
-          )
-        );
-      }
+      if (!savedColumnId) throw new Error('Kolon ID oluşturulamadı');
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase kolon kaydedildi');
-      return true;
+      return savedColumnId;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase kolon hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
@@ -9075,7 +9067,10 @@ const {
     archivedTasks,
     draggedTaskInfo,
     setProjectBoards,
-    taskDetailSyncQueueRef
+    taskDetailSyncQueueRef,
+    columnMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   });
 const filterTaskFollowersForSave = (people = []) =>
     uniqueTaskPeopleById(

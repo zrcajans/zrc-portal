@@ -49,7 +49,7 @@ function StageModal({ isOpen, onClose, onSave, columnData }) {
       return;
     }
 
-    onSave({
+    await onSave({
       ...formData,
       title: cleanTitle,
       desc: formData.desc?.trim() || 'Bu aşamada bekleyen işler yer alır.',
