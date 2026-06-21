@@ -30,6 +30,7 @@ const createBaseDeps = (overrides = {}) => ({
   boardColumns: [],
   setBoardColumns: () => {},
   setOpenMenuColumnId: () => {},
+  setOpenTaskMenuId: () => {},
   normalizeColumnTitleForDisplay: normalizeTitle,
   selectedProject: 'Portal',
   normalizeStorageArray: (value, fallback) => Array.isArray(value) ? value : fallback,
@@ -42,6 +43,10 @@ const createBaseDeps = (overrides = {}) => ({
   saveStageToSupabase: async () => false,
   saveTaskToSupabaseForProject: async () => false,
   syncTaskDetailsToSupabase: async () => false,
+  ensureCanCreateTaskInSelectedProject: () => true,
+  normalizeAssigneesForCurrentAccountSave: (people) => people,
+  currentAccountType: 'Patron',
+  taskMutationLockRef: { current: new Set() },
   setTimeout: () => {},
   loadSelectedProjectBoardFromSupabase: async () => {},
   getCurrentSupabaseWorkspaceId: () => workspaceId,
@@ -331,4 +336,47 @@ test('column copy persists sanitized records before adding them to the board', a
   } finally {
     globalThis.window = previousWindow;
   }
+});
+
+test('single task copy inserts a new Supabase row before updating the board', async () => {
+  const timeline = [];
+  const sourceTask = {
+    id: 'source-task',
+    supabaseId: '55555555-5555-4555-8555-555555555555',
+    title: 'Görev',
+    assignees: [{ id: 'member' }],
+    steps: [{ id: 'source-step', supabaseId: '66666666-6666-4666-8666-666666666666', text: 'Adım' }],
+    files: [{ storagePath: `${workspaceId}/tasks/file.pdf` }]
+  };
+  let currentColumns = [{ id: 'source-column', title: 'Aktif', tasks: [sourceTask] }];
+  const deps = createBaseDeps({
+    boardColumns: currentColumns,
+    saveTaskToSupabaseForProject: async (projectName, task, status, options) => {
+      timeline.push('task');
+      assert.equal(projectName, 'Portal');
+      assert.equal(task.supabaseId, undefined);
+      assert.deepEqual(task.files, []);
+      assert.equal(task.steps[0].supabaseId, undefined);
+      assert.equal(status, 'Aktif');
+      assert.equal(options.targetColumn.id, 'source-column');
+      return secondColumnId;
+    },
+    syncTaskDetailsToSupabase: async (taskId, updates) => {
+      timeline.push('details');
+      assert.ok(taskId.startsWith('task-'));
+      assert.equal(updates.supabaseId, secondColumnId);
+      return true;
+    },
+    setBoardColumns: (updater) => {
+      timeline.push('ui');
+      currentColumns = typeof updater === 'function' ? updater(currentColumns) : updater;
+    }
+  });
+
+  await createZRCBoardTaskActions(deps).handleTaskAction('kopyala', 'source-column', sourceTask);
+
+  assert.deepEqual(timeline, ['task', 'details', 'ui']);
+  assert.equal(currentColumns[0].tasks[0].supabaseId, secondColumnId);
+  assert.equal(currentColumns[0].tasks[1], sourceTask);
+  assert.equal(deps.taskMutationLockRef.current.size, 0);
 });

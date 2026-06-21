@@ -9039,8 +9039,6 @@ const {
     ensureSupabaseColumn,
     supabase,
     isSupabaseUuid,
-    currentActorName,
-    currentActorAvatar,
     currentActorId,
     setArchivedTasks,
     archiveSupabaseTask,
@@ -9080,7 +9078,8 @@ const {
     columnMutationLockRef,
     tryAcquireActionLock,
     releaseActionLock,
-    saveTaskToSupabaseForProject
+    saveTaskToSupabaseForProject,
+    taskMutationLockRef
   });
 const filterTaskFollowersForSave = (people = []) =>
     uniqueTaskPeopleById(
