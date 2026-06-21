@@ -84,6 +84,16 @@ export function createZRCBoardTaskActions(deps) {
     };
   };
 
+  const runWithActionLock = async (lockRef, actionKey, mutation) => {
+    if (!tryAcquireActionLock(lockRef, actionKey)) return false;
+
+    try {
+      return await mutation();
+    } finally {
+      releaseActionLock(lockRef, actionKey);
+    }
+  };
+
   const zrcClearDesktopDragSource = () => {
     if (typeof document === 'undefined') return;
 
@@ -535,70 +545,30 @@ export function createZRCBoardTaskActions(deps) {
   };
 
   const handleArchiveColumnTasks = async (column) => {
-    if (!requirePermission('deleteTasks', 'Kolondaki görevleri arşivleme yetkisi sadece Yönetici rolünde var.')) return;
+    if (!requirePermission('deleteTasks', 'Kolondaki görevleri arşivleme yetkisi sadece Yönetici rolünde var.')) return false;
+    const actionKey = `archive-column-tasks-${column?.id || 'unknown'}`;
 
-    const tasksToArchive = column.tasks || [];
+    return runWithActionLock(columnMutationLockRef, actionKey, async () => {
+      const tasksToArchive = column.tasks || [];
 
-    if (tasksToArchive.length === 0) {
-      await window.zrcAlert('Bu kolonda arşivlenecek görev yok.');
-      setOpenMenuColumnId(null);
-      return;
-    }
+      if (tasksToArchive.length === 0) {
+        await window.zrcAlert('Bu kolonda arşivlenecek görev yok.');
+        setOpenMenuColumnId(null);
+        return false;
+      }
 
-    const confirmed = await window.zrcConfirm(`${column.title} kolonundaki tüm görevleri arşivlemek istediğine emin misin?`);
-    if (!confirmed) return;
+      const confirmed = await window.zrcConfirm(`${column.title} kolonundaki tüm görevleri arşivlemek istediğine emin misin?`);
+      if (!confirmed) return false;
 
-    const { succeeded, failed } = await persistTaskBatch(tasksToArchive, (task) =>
-      archiveSupabaseTask({
-        ...task,
-        sourceColumnId: column.id,
-        sourceColumnTitle: column.title
-      })
-    );
-    const succeededIds = new Set(succeeded.map((task) => task.id));
+      const { succeeded, failed } = await persistTaskBatch(tasksToArchive, (task) =>
+        archiveSupabaseTask({
+          ...task,
+          sourceColumnId: column.id,
+          sourceColumnTitle: column.title
+        })
+      );
+      const succeededIds = new Set(succeeded.map((task) => task.id));
 
-    setArchivedTasks((prev) => [
-      ...succeeded.map((task) => ({
-        ...task,
-        archivedAt: new Date().toISOString(),
-        sourceColumnId: column.id,
-        sourceColumnTitle: column.title
-      })),
-      ...prev
-    ]);
-
-    setBoardColumns((prev) =>
-      prev.map((col) =>
-        col.id === column.id
-          ? { ...col, tasks: col.tasks.filter((task) => !succeededIds.has(task.id)) }
-          : col
-      )
-    );
-
-    setOpenMenuColumnId(null);
-
-    if (failed.length > 0) {
-      await window.zrcAlert(`${failed.length} görev Supabase'e kaydedilemedi ve kolonda bırakıldı.`);
-    }
-  };
-
-  const handleArchiveColumn = async (column) => {
-    if (!requirePermission('manageColumns', 'Kolon arşivleme yetkisi sadece Yönetici rolünde var.')) return;
-
-    const confirmed = await window.zrcConfirm(`${column.title} kolonunu arşivlemek istediğine emin misin? Kolondaki görevler de Arşiv sekmesine taşınır.`);
-    if (!confirmed) return;
-
-    const tasksToArchive = column.tasks || [];
-    const { succeeded, failed } = await persistTaskBatch(tasksToArchive, (task) =>
-      archiveSupabaseTask({
-        ...task,
-        sourceColumnId: column.id,
-        sourceColumnTitle: column.title
-      })
-    );
-    const succeededIds = new Set(succeeded.map((task) => task.id));
-
-    if (succeeded.length > 0) {
       setArchivedTasks((prev) => [
         ...succeeded.map((task) => ({
           ...task,
@@ -608,53 +578,118 @@ export function createZRCBoardTaskActions(deps) {
         })),
         ...prev
       ]);
-    }
 
-    if (failed.length > 0) {
       setBoardColumns((prev) =>
-        prev.map((item) =>
-          item.id === column.id
-            ? { ...item, tasks: item.tasks.filter((task) => !succeededIds.has(task.id)) }
-            : item
+        prev.map((col) =>
+          col.id === column.id
+            ? { ...col, tasks: col.tasks.filter((task) => !succeededIds.has(task.id)) }
+            : col
         )
       );
+
       setOpenMenuColumnId(null);
-      await window.zrcAlert(`${failed.length} görev Supabase'e kaydedilemedi; kolon arşivlenmedi.`);
-      return;
-    }
 
-    setOpenMenuColumnId(null);
+      if (failed.length > 0) {
+        await window.zrcAlert(`${failed.length} görev Supabase'e kaydedilemedi ve kolonda bırakıldı.`);
+      }
 
-    if (!isSupabaseUuid(column.id)) {
-      setBoardColumns((prev) => prev.filter((col) => col.id !== column.id));
-      return;
-    }
+      return failed.length === 0;
+    });
+  };
 
-    zrcSetSupabaseWriteInfo('saving', 'Supabase kolon arşivleniyor');
+  const handleArchiveColumn = async (column) => {
+    if (!requirePermission('manageColumns', 'Kolon arşivleme yetkisi sadece Yönetici rolünde var.')) return false;
+    const actionKey = `archive-column-${column?.id || 'unknown'}`;
 
-    try {
-      const { error } = await supabase
-        .from('board_columns')
-        .update({ is_archived: true })
-        .eq('id', column.id)
-        .eq('workspace_id', getCurrentSupabaseWorkspaceId());
+    return runWithActionLock(columnMutationLockRef, actionKey, async () => {
+      const confirmed = await window.zrcConfirm(`${column.title} kolonunu arşivlemek istediğine emin misin? Kolondaki görevler de Arşiv sekmesine taşınır.`);
+      if (!confirmed) return false;
 
-      if (error) throw error;
+      if (!isSupabaseUuid(column.id)) {
+        await window.zrcAlert('Kolonun Supabase kimliği bulunamadı; pano değiştirilmedi ve güncel veri yeniden yüklenecek.');
+        await loadSelectedProjectBoardFromSupabase();
+        return false;
+      }
 
-      setBoardColumns((prev) => prev.filter((col) => col.id !== column.id));
-      zrcSetSupabaseWriteInfo('saved', 'Supabase kolon arşivlendi');
-      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
-    } catch (error) {
-      setBoardColumns((prev) =>
-        prev.map((item) =>
-          item.id === column.id
-            ? { ...item, tasks: item.tasks.filter((task) => !succeededIds.has(task.id)) }
-            : item
-        )
+      const workspaceId = getCurrentSupabaseWorkspaceId();
+      const projectId = workspaceId && selectedProject
+        ? await ensureSupabaseProject(selectedProject)
+        : null;
+
+      if (!workspaceId || !projectId) {
+        await window.zrcAlert('Aktif çalışma alanı veya proje bulunamadı; kolon arşivlenmedi.');
+        return false;
+      }
+
+      const tasksToArchive = column.tasks || [];
+      const { succeeded, failed } = await persistTaskBatch(tasksToArchive, (task) =>
+        archiveSupabaseTask({
+          ...task,
+          sourceColumnId: column.id,
+          sourceColumnTitle: column.title
+        })
       );
-      zrcSetSupabaseWriteInfo('error', `Supabase kolon arşiv hatası: ${error?.message || 'bilinmeyen hata'}`);
-      await window.zrcAlert('Görevler arşivlendi ancak kolon Supabase’e kaydedilemedi; kolon aktif bırakıldı.');
-    }
+      const succeededIds = new Set(succeeded.map((task) => task.id));
+
+      if (succeeded.length > 0) {
+        setArchivedTasks((prev) => [
+          ...succeeded.map((task) => ({
+            ...task,
+            archivedAt: new Date().toISOString(),
+            sourceColumnId: column.id,
+            sourceColumnTitle: column.title
+          })),
+          ...prev
+        ]);
+      }
+
+      if (failed.length > 0) {
+        setBoardColumns((prev) =>
+          prev.map((item) =>
+            item.id === column.id
+              ? { ...item, tasks: item.tasks.filter((task) => !succeededIds.has(task.id)) }
+              : item
+          )
+        );
+        setOpenMenuColumnId(null);
+        await window.zrcAlert(`${failed.length} görev Supabase'e kaydedilemedi; kolon arşivlenmedi.`);
+        return false;
+      }
+
+      setOpenMenuColumnId(null);
+
+      zrcSetSupabaseWriteInfo('saving', 'Supabase kolon arşivleniyor');
+
+      try {
+        const { data: archivedColumn, error } = await supabase
+          .from('board_columns')
+          .update({ is_archived: true })
+          .eq('id', column.id)
+          .eq('workspace_id', workspaceId)
+          .eq('project_id', projectId)
+          .select('id')
+          .maybeSingle();
+
+        if (error) throw error;
+        if (archivedColumn?.id !== column.id) throw new Error('Kolon arşivleme yazması doğrulanamadı');
+
+        setBoardColumns((prev) => prev.filter((col) => col.id !== column.id));
+        zrcSetSupabaseWriteInfo('saved', 'Supabase kolon arşivlendi');
+        setTimeout(() => loadSelectedProjectBoardFromSupabase(), 500);
+        return true;
+      } catch (error) {
+        setBoardColumns((prev) =>
+          prev.map((item) =>
+            item.id === column.id
+              ? { ...item, tasks: item.tasks.filter((task) => !succeededIds.has(task.id)) }
+              : item
+          )
+        );
+        zrcSetSupabaseWriteInfo('error', `Supabase kolon arşiv hatası: ${error?.message || 'bilinmeyen hata'}`);
+        await window.zrcAlert('Görevler arşivlendi ancak kolon Supabase’e kaydedilemedi; kolon aktif bırakıldı.');
+        return false;
+      }
+    });
   };
 
   const openTaskDetail = (task, columnTitle) => {
@@ -951,7 +986,8 @@ export function createZRCBoardTaskActions(deps) {
             .from('tasks')
             .update(updatePayload)
             .eq('id', taskId)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace_id', workspaceId)
+            .eq('project_id', projectId);
 
           if (error) throw error;
         })
@@ -1190,64 +1226,73 @@ export function createZRCBoardTaskActions(deps) {
     if (action === 'arsivle') {
       if (!requirePermission('deleteTasks', 'Görev arşivleme yetkisi sadece Yönetici rolünde var.')) return;
 
-      if (!task.supabaseId) {
-        await window.zrcAlert('Görevin Supabase kaydı bulunamadı; pano değiştirilmedi ve güncel veri yeniden yüklenecek.');
-        await loadSelectedProjectBoardFromSupabase();
-        return;
-      }
+      return runWithActionLock(taskMutationLockRef, `archive-task-${task.id}`, async () => {
+        if (!task.supabaseId) {
+          await window.zrcAlert('Görevin Supabase kaydı bulunamadı; pano değiştirilmedi ve güncel veri yeniden yüklenecek.');
+          await loadSelectedProjectBoardFromSupabase();
+          return false;
+        }
 
-      if (!(await archiveSupabaseTask({ ...task, sourceColumnId: columnId, sourceColumnTitle: columnTitle }))) {
-        await window.zrcAlert('Görev Supabase’e arşivlenemedi; yerel pano değiştirilmedi.');
-        return;
-      }
+        if (!(await archiveSupabaseTask({ ...task, sourceColumnId: columnId, sourceColumnTitle: columnTitle }))) {
+          await window.zrcAlert('Görev Supabase’e arşivlenemedi; yerel pano değiştirilmedi.');
+          return false;
+        }
 
-      setArchivedTasks((prev) => [{ ...task, archivedAt: new Date().toISOString(), sourceColumnId: columnId, sourceColumnTitle: columnTitle }, ...prev]);
+        setArchivedTasks((prev) => [{ ...task, archivedAt: new Date().toISOString(), sourceColumnId: columnId, sourceColumnTitle: columnTitle }, ...prev]);
 
-      setBoardColumns((prev) =>
-        prev.map((col) =>
-          col.id === columnId
-            ? { ...col, tasks: col.tasks.filter((item) => item.id !== task.id) }
-            : col
-        )
-      );
-      setSelectedTasks((prev) => prev.filter((id) => id !== task.id));
-      if (detailTaskInfo?.task?.id === task.id) setDetailTaskInfo(null);
-      return;
+        setBoardColumns((prev) =>
+          prev.map((col) =>
+            col.id === columnId
+              ? { ...col, tasks: col.tasks.filter((item) => item.id !== task.id) }
+              : col
+          )
+        );
+        setSelectedTasks((prev) => prev.filter((id) => id !== task.id));
+        if (detailTaskInfo?.task?.id === task.id) setDetailTaskInfo(null);
+        return true;
+      });
     }
 
     if (action === 'sil') {
       if (!requirePermission('deleteTasks', 'Görev silme yetkisi sadece Yönetici rolünde var.')) return;
 
-      const confirmed = await window.zrcConfirm('Bu görevi silmek istediğine emin misin?');
-      if (!confirmed) return;
+      return runWithActionLock(taskMutationLockRef, `delete-task-${task.id}`, async () => {
+        const confirmed = await window.zrcConfirm('Bu görevi silmek istediğine emin misin?');
+        if (!confirmed) return false;
 
-      if (!task.supabaseId) {
-        await window.zrcAlert('Görevin Supabase kaydı bulunamadı; pano değiştirilmedi ve güncel veri yeniden yüklenecek.');
-        await loadSelectedProjectBoardFromSupabase();
-        return;
-      }
+        if (!task.supabaseId) {
+          await window.zrcAlert('Görevin Supabase kaydı bulunamadı; pano değiştirilmedi ve güncel veri yeniden yüklenecek.');
+          await loadSelectedProjectBoardFromSupabase();
+          return false;
+        }
 
-      if (!(await deleteSupabaseTask(task))) {
-        await window.zrcAlert('Görev Supabase’den silinemedi; yerel pano değiştirilmedi.');
-        return;
-      }
+        if (!(await deleteSupabaseTask(task))) {
+          await window.zrcAlert('Görev Supabase’den silinemedi; yerel pano değiştirilmedi.');
+          return false;
+        }
 
-      setBoardColumns((prev) =>
-        prev.map((col) =>
-          col.id === columnId
-            ? { ...col, tasks: col.tasks.filter((item) => item.id !== task.id) }
-            : col
-        )
-      );
-      setSelectedTasks((prev) => prev.filter((id) => id !== task.id));
-      if (detailTaskInfo?.task?.id === task.id) setDetailTaskInfo(null);
+        setBoardColumns((prev) =>
+          prev.map((col) =>
+            col.id === columnId
+              ? { ...col, tasks: col.tasks.filter((item) => item.id !== task.id) }
+              : col
+          )
+        );
+        setSelectedTasks((prev) => prev.filter((id) => id !== task.id));
+        if (detailTaskInfo?.task?.id === task.id) setDetailTaskInfo(null);
+        return true;
+      });
     }
   };
 
   const handleBulkDelete = async () => {
     if (!requirePermission('deleteTasks', 'Toplu görev silme yetkisi sadece Yönetici rolünde var.')) return;
 
-    if (await window.zrcConfirm(`${selectedTasks.length} görevi silmek istediğinize emin misiniz?`)) {
+    return runWithActionLock(taskMutationLockRef, 'bulk-delete-tasks', async () => {
+      if (!(await window.zrcConfirm(`${selectedTasks.length} görevi silmek istediğinize emin misiniz?`))) {
+        return false;
+      }
+
       const tasksToDelete = [];
 
       boardColumns.forEach((col) => {
@@ -1273,100 +1318,111 @@ export function createZRCBoardTaskActions(deps) {
       if (failed.length > 0) {
         await window.zrcAlert(`${failed.length} görev Supabase’den silinemedi ve panoda bırakıldı.`);
       }
-    }
+
+      return failed.length === 0;
+    });
   };
 
   const handleBulkArchive = async () => {
     if (!requirePermission('deleteTasks', 'Toplu görev arşivleme yetkisi sadece Yönetici rolünde var.')) return;
 
-    const tasksToArchive = [];
+    return runWithActionLock(taskMutationLockRef, 'bulk-archive-tasks', async () => {
+      const tasksToArchive = [];
 
-    boardColumns.forEach((col) => {
-      col.tasks.forEach((t) => {
-        if (selectedTasks.includes(t.id)) {
-          tasksToArchive.push({
-            ...t,
-            archivedAt: new Date().toISOString(),
-            sourceColumnId: col.id,
-            sourceColumnTitle: col.title
-          });
-        }
+      boardColumns.forEach((col) => {
+        col.tasks.forEach((t) => {
+          if (selectedTasks.includes(t.id)) {
+            tasksToArchive.push({
+              ...t,
+              archivedAt: new Date().toISOString(),
+              sourceColumnId: col.id,
+              sourceColumnTitle: col.title
+            });
+          }
+        });
       });
+
+      const { succeeded, failed } = await persistTaskBatch(tasksToArchive, archiveSupabaseTask);
+      const succeededIds = new Set(succeeded.map((task) => task.id));
+
+      setArchivedTasks((prev) => [...prev, ...succeeded]);
+
+      setBoardColumns((prev) =>
+        prev.map((col) => ({
+          ...col,
+          tasks: col.tasks.filter((task) => !succeededIds.has(task.id))
+        }))
+      );
+
+      setSelectedTasks(failed.map((task) => task.id));
+      await window.zrcAlert(
+        failed.length > 0
+          ? `${succeeded.length} görev arşivlendi; ${failed.length} görev Supabase hatası nedeniyle panoda bırakıldı.`
+          : `${succeeded.length} görev arşivlendi.`
+      );
+      return failed.length === 0;
     });
-
-    const { succeeded, failed } = await persistTaskBatch(tasksToArchive, archiveSupabaseTask);
-    const succeededIds = new Set(succeeded.map((task) => task.id));
-
-    setArchivedTasks((prev) => [...prev, ...succeeded]);
-
-    setBoardColumns((prev) =>
-      prev.map((col) => ({
-        ...col,
-        tasks: col.tasks.filter((task) => !succeededIds.has(task.id))
-      }))
-    );
-
-    setSelectedTasks(failed.map((task) => task.id));
-    await window.zrcAlert(
-      failed.length > 0
-        ? `${succeeded.length} görev arşivlendi; ${failed.length} görev Supabase hatası nedeniyle panoda bırakıldı.`
-        : `${succeeded.length} görev arşivlendi.`
-    );
   };
 
   const handleRestoreArchivedTask = async (task) => {
     if (!requirePermission('deleteTasks', 'Arşivden geri getirme yetkisi sadece Yönetici rolünde var.')) return;
 
-    const restoredTask = { ...task };
-    delete restoredTask.archivedAt;
-    delete restoredTask.sourceColumnId;
-    delete restoredTask.sourceColumnTitle;
+    return runWithActionLock(taskMutationLockRef, `restore-task-${task.id}`, async () => {
+      const restoredTask = { ...task };
+      delete restoredTask.archivedAt;
+      delete restoredTask.sourceColumnId;
+      delete restoredTask.sourceColumnTitle;
 
-    const originalColumnIndex = boardColumns.findIndex((column) => column.id === task.sourceColumnId);
-    const waitingColumnIndex = boardColumns.findIndex((column) => column.title === 'Bekliyor' || column.title.includes('Bekliyor'));
-    const targetIndex = originalColumnIndex !== -1 ? originalColumnIndex : waitingColumnIndex !== -1 ? waitingColumnIndex : 0;
-    const targetColumn = boardColumns[targetIndex];
+      const originalColumnIndex = boardColumns.findIndex((column) => column.id === task.sourceColumnId);
+      const waitingColumnIndex = boardColumns.findIndex((column) => column.title === 'Bekliyor' || column.title.includes('Bekliyor'));
+      const targetIndex = originalColumnIndex !== -1 ? originalColumnIndex : waitingColumnIndex !== -1 ? waitingColumnIndex : 0;
+      const targetColumn = boardColumns[targetIndex];
 
-    if (!targetColumn) {
-      await window.zrcAlert('Görevin geri getirileceği aktif kolon bulunamadı.');
-      return;
-    }
+      if (!targetColumn) {
+        await window.zrcAlert('Görevin geri getirileceği aktif kolon bulunamadı.');
+        return false;
+      }
 
-    if (!task.supabaseId) {
-      await window.zrcAlert('Arşiv kaydının Supabase kimliği bulunamadı; kayıt korunuyor.');
-      return;
-    }
+      if (!task.supabaseId) {
+        await window.zrcAlert('Arşiv kaydının Supabase kimliği bulunamadı; kayıt korunuyor.');
+        return false;
+      }
 
-    if (!(await restoreSupabaseTask(restoredTask, targetColumn))) {
-      await window.zrcAlert('Görev Supabase’den geri getirilemedi; arşiv kaydı korundu.');
-      return;
-    }
+      if (!(await restoreSupabaseTask(restoredTask, targetColumn))) {
+        await window.zrcAlert('Görev Supabase’den geri getirilemedi; arşiv kaydı korundu.');
+        return false;
+      }
 
-    setArchivedTasks((prev) => prev.filter((archivedTask) => archivedTask.id !== task.id));
-    setBoardColumns((prev) =>
-      prev.map((column, index) =>
-        index === targetIndex ? { ...column, tasks: [...column.tasks, restoredTask] } : column
-      )
-    );
+      setArchivedTasks((prev) => prev.filter((archivedTask) => archivedTask.id !== task.id));
+      setBoardColumns((prev) =>
+        prev.map((column, index) =>
+          index === targetIndex ? { ...column, tasks: [...column.tasks, restoredTask] } : column
+        )
+      );
+      return true;
+    });
   };
 
   const handleDeleteArchivedTask = async (taskId) => {
-    const confirmed = await window.zrcConfirm('Bu arşiv kaydını kalıcı olarak silmek istediğine emin misin?');
-    if (!confirmed) return;
+    return runWithActionLock(taskMutationLockRef, `delete-archived-task-${taskId}`, async () => {
+      const confirmed = await window.zrcConfirm('Bu arşiv kaydını kalıcı olarak silmek istediğine emin misin?');
+      if (!confirmed) return false;
 
-    const archivedTask = archivedTasks.find((task) => task.id === taskId);
+      const archivedTask = archivedTasks.find((task) => task.id === taskId);
 
-    if (!archivedTask?.supabaseId) {
-      await window.zrcAlert('Arşiv kaydının Supabase kimliği bulunamadı; kayıt korunuyor.');
-      return;
-    }
+      if (!archivedTask?.supabaseId) {
+        await window.zrcAlert('Arşiv kaydının Supabase kimliği bulunamadı; kayıt korunuyor.');
+        return false;
+      }
 
-    if (!(await deleteSupabaseTask(archivedTask))) {
-      await window.zrcAlert('Arşiv kaydı Supabase’den silinemedi; kayıt korundu.');
-      return;
-    }
+      if (!(await deleteSupabaseTask(archivedTask))) {
+        await window.zrcAlert('Arşiv kaydı Supabase’den silinemedi; kayıt korundu.');
+        return false;
+      }
 
-    setArchivedTasks((prev) => prev.filter((archivedTask) => archivedTask.id !== taskId));
+      setArchivedTasks((prev) => prev.filter((archivedTask) => archivedTask.id !== taskId));
+      return true;
+    });
   };
 
 

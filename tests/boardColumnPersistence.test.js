@@ -20,6 +20,8 @@ const createQuery = (result, recordFilter = () => {}) => {
       recordFilter('in', column, value);
       return query;
     },
+    select: () => query,
+    maybeSingle: () => query,
     then: (resolve, reject) => Promise.resolve(result).then(resolve, reject)
   };
   return query;
@@ -31,6 +33,8 @@ const createBaseDeps = (overrides = {}) => ({
   setBoardColumns: () => {},
   setOpenMenuColumnId: () => {},
   setOpenTaskMenuId: () => {},
+  setArchivedTasks: () => {},
+  setSelectedTasks: () => {},
   normalizeColumnTitleForDisplay: normalizeTitle,
   selectedProject: 'Portal',
   normalizeStorageArray: (value, fallback) => Array.isArray(value) ? value : fallback,
@@ -423,6 +427,69 @@ test('failed comment persistence reports failure without creating activity', asy
     assert.equal(reloadCount, 1);
     assert.equal(alertCount, 1);
     assert.equal(deps.taskDetailSyncQueueRef.current.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});
+
+test('duplicate task archive clicks share a single in-flight mutation', async () => {
+  const task = { id: 'task-local', supabaseId: secondColumnId, title: 'Görev' };
+  let resolveArchive;
+  let archiveCallCount = 0;
+  let boardCommitCount = 0;
+  const archiveResult = new Promise((resolve) => { resolveArchive = resolve; });
+  const deps = createBaseDeps({
+    boardColumns: [{ id: 'column', title: 'Aktif', tasks: [task] }],
+    archiveSupabaseTask: async () => {
+      archiveCallCount += 1;
+      return archiveResult;
+    },
+    setBoardColumns: () => { boardCommitCount += 1; }
+  });
+  const actions = createZRCBoardTaskActions(deps);
+
+  const firstArchive = actions.handleTaskAction('arsivle', 'column', task);
+  const duplicateArchive = await actions.handleTaskAction('arsivle', 'column', task);
+
+  assert.equal(duplicateArchive, false);
+  assert.equal(archiveCallCount, 1);
+  assert.equal(boardCommitCount, 0);
+
+  resolveArchive(true);
+  assert.equal(await firstArchive, true);
+  assert.equal(boardCommitCount, 1);
+  assert.equal(deps.taskMutationLockRef.current.size, 0);
+});
+
+test('column archive write is scoped to workspace and project', async () => {
+  const filters = [];
+  let currentColumns = [{ id: firstColumnId, title: 'Aktif', tasks: [] }];
+  const previousWindow = globalThis.window;
+  globalThis.window = { zrcConfirm: async () => true, zrcAlert: async () => {} };
+
+  try {
+    const deps = createBaseDeps({
+      boardColumns: currentColumns,
+      setBoardColumns: (updater) => {
+        currentColumns = typeof updater === 'function' ? updater(currentColumns) : updater;
+      },
+      supabase: {
+        from: (table) => ({
+          update: () => createQuery(
+            { data: { id: firstColumnId }, error: null },
+            (filter, column, value) => filters.push({ table, filter, column, value })
+          )
+        })
+      }
+    });
+
+    const result = await createZRCBoardTaskActions(deps).handleArchiveColumn(currentColumns[0]);
+
+    assert.equal(result, true);
+    assert.deepEqual(currentColumns, []);
+    assert.ok(filters.some(({ column, value }) => column === 'workspace_id' && value === workspaceId));
+    assert.ok(filters.some(({ column, value }) => column === 'project_id' && value === projectId));
+    assert.equal(deps.columnMutationLockRef.current.size, 0);
   } finally {
     globalThis.window = previousWindow;
   }
