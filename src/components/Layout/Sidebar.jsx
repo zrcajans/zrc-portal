@@ -128,7 +128,9 @@ function Sidebar({
       return;
     }
 
-    setProjects((prevProjects) => [...prevProjects, cleanName]);
+    const projectCreated = await setProjects((prevProjects) => [...prevProjects, cleanName]);
+    if (!projectCreated) return;
+
     rememberSelectedProject(cleanName);
     setSelectedProject(cleanName);
     setActiveMenu('Projeler');

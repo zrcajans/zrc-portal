@@ -180,6 +180,7 @@ function App() {
   const quickNoteMutationLockRef = useRef(new Set());
   const taskMutationLockRef = useRef(new Set());
   const columnMutationLockRef = useRef(new Set());
+  const projectMutationLockRef = useRef(new Set());
 
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -3357,18 +3358,20 @@ function App() {
     zrcSetSupabaseWriteInfo('saving', 'Supabase proje oluşturuluyor');
 
     try {
-      await saveProjectSettingsToSupabase(
+      const settingsSaved = await saveProjectSettingsToSupabase(
         cleanProjectName,
         projectSettings[cleanProjectName] || createDefaultProjectSettings(cleanProjectName),
         cleanProjectName
       );
 
-      const projectId = await ensureSupabaseProject(cleanProjectName);
+      if (!settingsSaved) throw new Error('Proje ayarları kaydedilemedi');
 
-      if (projectId) {
-        for (const [columnIndex, column] of defaultBoardColumns.entries()) {
-          await ensureSupabaseColumn(projectId, column, columnIndex);
-        }
+      const projectId = await ensureSupabaseProject(cleanProjectName);
+      if (!projectId) throw new Error('Proje kaydı oluşturulamadı');
+
+      for (const [columnIndex, column] of defaultBoardColumns.entries()) {
+        const columnId = await ensureSupabaseColumn(projectId, column, columnIndex);
+        if (!columnId) throw new Error(`${column.title || 'Varsayılan kolon'} oluşturulamadı`);
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase proje oluşturuldu');
@@ -3379,32 +3382,28 @@ function App() {
     }
   };
 
-  const syncProjectListChangeToSupabase = (previousProjects = [], nextProjects = []) => {
-    if (currentAccountType !== 'Patron') return;
+  const handleSidebarProjectsChange = async (updater) => {
+    if (!tryAcquireActionLock(projectMutationLockRef, 'sidebar-project-list')) return false;
 
-    const previousProjectNames = normalizeProjectNameList(previousProjects);
-    const nextProjectNames = normalizeProjectNameList(nextProjects);
-
-    const addedProjects = nextProjectNames.filter((projectName) => !previousProjectNames.includes(projectName));
-    const removedProjects = previousProjectNames.filter((projectName) => !nextProjectNames.includes(projectName));
-
-    if (addedProjects.length === 0 && removedProjects.length === 0) return;
-
-    addedProjects.forEach((projectName) => {
-      createSupabaseProjectWithDefaultColumns(projectName);
-    });
-
-    removedProjects.forEach((projectName) => {
-      deleteProjectFromSupabase(projectName);
-    });
-  };
-
-  const handleSidebarProjectsChange = (updater) => {
-    setProjects((prevProjects) => {
-      const previousProjectNames = normalizeProjectNameList(prevProjects);
+    try {
+      const previousProjectNames = normalizeProjectNameList(projects);
       const rawNextProjects = typeof updater === 'function' ? updater(previousProjectNames) : updater;
       const nextProjectNames = normalizeProjectNameList(rawNextProjects);
       const addedProjectNames = nextProjectNames.filter((projectName) => !previousProjectNames.includes(projectName));
+      const removedProjectNames = previousProjectNames.filter((projectName) => !nextProjectNames.includes(projectName));
+
+      if (removedProjectNames.length > 0) {
+        await window.zrcAlert('Proje silme işlemi yalnızca proje ayarlarından yapılabilir.');
+        return false;
+      }
+
+      for (const projectName of addedProjectNames) {
+        const projectCreated = await createSupabaseProjectWithDefaultColumns(projectName);
+        if (!projectCreated) {
+          await window.zrcAlert(`${projectName} projesi Supabase’e kaydedilemedi; yerel liste değiştirilmedi.`);
+          return false;
+        }
+      }
 
       if (addedProjectNames.length > 0) {
         setProjectSettings((prevSettings) => {
@@ -3434,12 +3433,11 @@ function App() {
         });
       }
 
-      window.setTimeout(() => {
-        syncProjectListChangeToSupabase(previousProjectNames, nextProjectNames);
-      }, 0);
-
-      return nextProjectNames;
-    });
+      setProjects(nextProjectNames);
+      return true;
+    } finally {
+      releaseActionLock(projectMutationLockRef, 'sidebar-project-list');
+    }
   };
 
   const loadWorkspaceStructureFromSupabase = async () => {
