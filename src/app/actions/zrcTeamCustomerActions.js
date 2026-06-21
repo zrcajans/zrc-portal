@@ -228,13 +228,57 @@ export function createZRCTeamCustomerActions(deps) {
     }
   };
 
-  const toggleTeamMemberStatus = (memberId) => {
+  const toggleTeamMemberStatus = async (memberId) => {
     if (!requirePermission('manageTeam', 'Ekip durumunu sadece Yönetici değiştirebilir.')) return;
 
     const targetMember = teamMembers.find((member) => member.id === memberId);
+    if (!targetMember) return;
+
     if (targetMember?.status !== 'Pasif' && isLastActiveAdmin(targetMember)) {
       showPermissionWarning('Son aktif yöneticiyi pasif yapamazsın.');
       return;
+    }
+
+    const nextStatus = targetMember.status === 'Pasif' ? 'Aktif' : 'Pasif';
+    const workspaceId = getCurrentSupabaseWorkspaceId();
+
+    if (isSupabaseUuid(targetMember.id) && isSupabaseUuid(workspaceId)) {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || '';
+
+        if (!accessToken) {
+          throw new Error('Yönetici oturumu bulunamadı. Çıkış yapıp tekrar giriş yap.');
+        }
+
+        const response = await fetch('/api/update-team-member', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({
+            workspaceId,
+            userId: targetMember.id,
+            name: targetMember.name,
+            username: targetMember.username || createUsernameFromMember(targetMember),
+            role: normalizeTeamRole(targetMember.role),
+            status: nextStatus,
+            customerId: targetMember.customerId || ''
+          })
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || result?.error) {
+          throw new Error(result?.error || 'Ekip üyesi durumu güncellenemedi.');
+        }
+      } catch (error) {
+        const message = error?.message || 'Ekip üyesi durumu güncellenemedi.';
+        zrcSetSupabaseWriteInfo('error', message);
+        await window.zrcAlert(message);
+        return;
+      }
     }
 
     setTeamMembers((prevMembers) =>
@@ -242,17 +286,26 @@ export function createZRCTeamCustomerActions(deps) {
         member.id === memberId
           ? {
               ...member,
-              status: member.status === 'Pasif' ? 'Aktif' : 'Pasif'
+              status: nextStatus
             }
           : member
       )
     );
 
-    if (currentUserId === memberId && targetMember?.status !== 'Pasif') {
+    if (currentUserId === memberId && nextStatus === 'Pasif') {
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch (error) {
+        console.warn('[ZRC Auth] Pasifleştirilen kullanıcı oturumu kapatılamadı.', error);
+      }
+
       setCurrentUserId('');
       removeStorageValue('currentUserId');
+      window.location.reload();
+      return;
     }
 
+    zrcSetSupabaseWriteInfo('saved', 'Ekip üyesi durumu kaydedildi');
     setPendingTeamDeleteId(null);
   };
 
