@@ -182,6 +182,7 @@ function App() {
   const columnMutationLockRef = useRef(new Set());
   const projectMutationLockRef = useRef(new Set());
   const profileMutationLockRef = useRef(new Set());
+  const teamCustomerMutationLockRef = useRef(new Set());
 
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -9243,7 +9244,10 @@ const filterTaskFollowersForSave = (people = []) =>
     pendingCustomerDeleteId,
     rememberDeletedCustomer,
     deleteCustomerFromSupabase,
-    selectedCustomerId
+    selectedCustomerId,
+    teamCustomerMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   });
 
 

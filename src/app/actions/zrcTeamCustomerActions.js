@@ -48,7 +48,10 @@ export function createZRCTeamCustomerActions(deps) {
     pendingCustomerDeleteId,
     rememberDeletedCustomer,
     deleteCustomerFromSupabase,
-    selectedCustomerId
+    selectedCustomerId,
+    teamCustomerMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   } = deps;
 
 
@@ -164,6 +167,8 @@ export function createZRCTeamCustomerActions(deps) {
       return;
     }
 
+    if (!tryAcquireActionLock(teamCustomerMutationLockRef, 'team-customer-mutation')) return false;
+
     try {
       zrcSetSupabaseWriteInfo('saving', 'Merkezi ekip hesabı oluşturuluyor');
 
@@ -173,7 +178,7 @@ export function createZRCTeamCustomerActions(deps) {
       if (!accessToken) {
         await window.zrcAlert('Yönetici oturumu bulunamadı. Çıkış yapıp ZRC AJANS hesabıyla tekrar giriş yap.');
         zrcSetSupabaseWriteInfo('error', 'Yönetici oturumu bulunamadı');
-        return;
+        return false;
       }
 
       const response = await fetch('/api/create-team-member', {
@@ -221,10 +226,14 @@ export function createZRCTeamCustomerActions(deps) {
       setSelectedTeamMemberId(nextMember.id);
       setPendingTeamDeleteId(null);
       zrcSetSupabaseWriteInfo('saved', 'Merkezi ekip hesabı oluşturuldu');
+      return true;
     } catch (error) {
       const errorMessage = error?.message || 'Merkezi ekip hesabı oluşturulamadı.';
       await window.zrcAlert(errorMessage);
       zrcSetSupabaseWriteInfo('error', errorMessage);
+      return false;
+    } finally {
+      releaseActionLock(teamCustomerMutationLockRef, 'team-customer-mutation');
     }
   };
 
@@ -614,31 +623,40 @@ export function createZRCTeamCustomerActions(deps) {
       return;
     }
 
-    const nextCustomer = {
-      id: `customer-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      name,
-      contact,
-      email,
-      phone,
-      note,
-      accountUserId: '',
-      status: 'Aktif'
-    };
+    if (!tryAcquireActionLock(teamCustomerMutationLockRef, 'team-customer-mutation')) return false;
 
-    setCustomers((prevCustomers) => [nextCustomer, ...prevCustomers]);
-    setSelectedCustomerId(nextCustomer.id);
-    setPendingCustomerDeleteId(null);
+    try {
+      const nextCustomer = {
+        id: `customer-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name,
+        contact,
+        email,
+        phone,
+        note,
+        accountUserId: '',
+        status: 'Aktif'
+      };
 
-    const savedCustomer = await saveCustomerToSupabase(nextCustomer);
+      const savedCustomer = await saveCustomerToSupabase(nextCustomer);
 
-    if (!savedCustomer) {
-      setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer.id !== nextCustomer.id));
-      setSelectedCustomerId(null);
-      await window.zrcAlert('Müşteri kaydedilemedi. Form bilgileri korundu; lütfen tekrar deneyin.');
-      return;
-    }
+      if (!savedCustomer) {
+        await window.zrcAlert('Müşteri kaydedilemedi. Form bilgileri korundu; lütfen tekrar deneyin.');
+        return false;
+      }
 
-    const savedCustomerId = savedCustomer?.id || nextCustomer.id;
+      const savedCustomerId = savedCustomer?.id || nextCustomer.id;
+      const persistedCustomer = {
+        ...nextCustomer,
+        id: savedCustomerId,
+        supabaseId: savedCustomerId
+      };
+
+      setCustomers((prevCustomers) => [
+        persistedCustomer,
+        ...prevCustomers.filter((customer) => customer.id !== savedCustomerId)
+      ]);
+      setSelectedCustomerId(savedCustomerId);
+      setPendingCustomerDeleteId(null);
 
     if (wantsLoginAccount) {
       const workspaceId = getCurrentSupabaseWorkspaceId();
@@ -688,6 +706,17 @@ export function createZRCTeamCustomerActions(deps) {
           authProvider: 'supabase'
         });
 
+        const customerLinkSaved = await saveCustomerToSupabase({
+          ...nextCustomer,
+          id: savedCustomerId,
+          accountUserId: nextMember.id
+        });
+
+        if (!customerLinkSaved) {
+          await window.zrcAlert('Giriş hesabı oluşturuldu ancak müşteri bağlantısı kaydedilemedi. Liste sunucudan yenilenmelidir.');
+          return false;
+        }
+
         setTeamMembers((prevMembers) => {
           const withoutSameMember = (prevMembers || []).filter((member) => member.id !== nextMember.id);
           return [nextMember, ...withoutSameMember].map(normalizeTeamMember);
@@ -700,12 +729,6 @@ export function createZRCTeamCustomerActions(deps) {
               : customer
           )
         );
-
-        await saveCustomerToSupabase({
-          ...nextCustomer,
-          id: savedCustomerId,
-          accountUserId: nextMember.id
-        });
 
         setSelectedTeamMemberId(nextMember.id);
         zrcSetSupabaseWriteInfo('saved', 'Müşteri ve giriş hesabı oluşturuldu');
@@ -726,6 +749,10 @@ export function createZRCTeamCustomerActions(deps) {
       note: '',
       accountUserId: ''
     });
+      return true;
+    } finally {
+      releaseActionLock(teamCustomerMutationLockRef, 'team-customer-mutation');
+    }
   };
 
   const toggleCustomerStatus = async (customerId) => {
