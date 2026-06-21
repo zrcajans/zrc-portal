@@ -23,13 +23,19 @@ export function createZRCProjectSettingsActions(deps) {
     setProjectSettingsDraft,
     deleteProjectFromSupabase,
     setActivityNotifications,
-    setActiveTab
+    setActiveTab,
+    projectMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   } = deps;
 
   const handleSaveProjectSettings = async () => {
     if (!requirePermission('manageProjectSettings', 'Proje ayarlarını sadece Yönetici düzenleyebilir.')) return;
 
-    if (!selectedProject) return;
+    if (!selectedProject) return false;
+    if (!tryAcquireActionLock(projectMutationLockRef, 'project-mutation')) return false;
+
+    try {
 
     const cleanTitle = projectSettingsDraft.title.trim();
 
@@ -91,27 +97,39 @@ export function createZRCProjectSettingsActions(deps) {
 
     if (isRenaming && projects.includes(cleanTitle)) {
       await window.zrcAlert('Bu isimde başka bir proje zaten var.');
-      return;
+      return false;
+    }
+
+    const nextProjectSettings = {
+      ...projectSettingsDraft,
+      title: cleanTitle,
+      description: projectSettingsDraft.description?.trim() || '',
+      customer: projectSettingsDraft.customer?.trim() || '',
+      customerId: projectSettingsDraft.customerId || linkedProjectCustomer?.id || '',
+      teamMemberIds: nextTeamMemberIds,
+      teamHistory: [
+        ...teamHistoryEntries,
+        ...(Array.isArray(previousSettings.teamHistory) ? previousSettings.teamHistory : [])
+      ].slice(0, 60),
+      status: projectSettingsDraft.status || 'Aktif',
+      color: projectSettingsDraft.color || '#ff3600'
+    };
+    const projectSettingsSupabaseSaved = await saveProjectSettingsToSupabase(
+      cleanTitle,
+      nextProjectSettings,
+      selectedProject
+    );
+
+    if (!projectSettingsSupabaseSaved) {
+      await loadWorkspaceStructureFromSupabase();
+      await window.zrcAlert('Proje ayarları veritabanına kaydedilemedi. Ekran veritabanındaki son sağlam hale geri senkronlandı.');
+      return false;
     }
 
     setProjectSettings((prevSettings) => {
       const nextSettings = { ...prevSettings };
       delete nextSettings[selectedProject];
-
-      nextSettings[cleanTitle] = {
-        ...projectSettingsDraft,
-        title: cleanTitle,
-        description: projectSettingsDraft.description?.trim() || '',
-        customer: projectSettingsDraft.customer?.trim() || '',
-        customerId: projectSettingsDraft.customerId || linkedProjectCustomer?.id || '',
-        teamMemberIds: nextTeamMemberIds,
-        teamHistory: [
-          ...teamHistoryEntries,
-          ...(Array.isArray(previousSettings.teamHistory) ? previousSettings.teamHistory : [])
-        ].slice(0, 60),
-        status: projectSettingsDraft.status || 'Aktif',
-        color: projectSettingsDraft.color || '#ff3600'
-      };
+      nextSettings[cleanTitle] = nextProjectSettings;
 
       return nextSettings;
     });
@@ -160,27 +178,6 @@ export function createZRCProjectSettingsActions(deps) {
       setSelectedProject(cleanTitle);
     }
 
-    const projectSettingsSupabaseSaved = await saveProjectSettingsToSupabase(
-      cleanTitle,
-      {
-        ...projectSettingsDraft,
-        title: cleanTitle,
-        description: projectSettingsDraft.description?.trim() || '',
-        customer: projectSettingsDraft.customer?.trim() || '',
-        customerId: projectSettingsDraft.customerId || linkedProjectCustomer?.id || '',
-        teamMemberIds: nextTeamMemberIds,
-        status: projectSettingsDraft.status || 'Aktif',
-        color: projectSettingsDraft.color || '#ff3600'
-      },
-      selectedProject
-    );
-
-    if (!projectSettingsSupabaseSaved) {
-      await loadWorkspaceStructureFromSupabase();
-      await window.zrcAlert('Proje ayarları veritabanına kaydedilemedi. Ekran veritabanındaki son sağlam hale geri senkronlandı.');
-      return;
-    }
-
     await loadWorkspaceStructureFromSupabase();
 
     await window.zrcAlert(
@@ -188,12 +185,19 @@ export function createZRCProjectSettingsActions(deps) {
         ? 'Proje ayarları kaydedildi. Çıkarılan kişiler görevli/takipçi listelerinden temizlendi.'
         : 'Proje ayarları kaydedildi.'
     );
+    return true;
+    } finally {
+      releaseActionLock(projectMutationLockRef, 'project-mutation');
+    }
   };
 
   const handleArchiveProject = async () => {
     if (!requirePermission('manageProjectSettings', 'Projeyi sadece Yönetici arşivleyebilir.')) return;
 
-    if (!selectedProject) return;
+    if (!selectedProject) return false;
+    if (!tryAcquireActionLock(projectMutationLockRef, 'project-mutation')) return false;
+
+    try {
 
     const projectNameToArchive = selectedProject;
 
@@ -201,7 +205,7 @@ export function createZRCProjectSettingsActions(deps) {
 
     if (!didArchiveProject) {
       await window.zrcAlert('Proje arşivlenemedi. Veritabanı kaydı tamamlanmadığı için ekranda değişiklik yapılmadı.');
-      return;
+      return false;
     }
 
     setProjectSettingsDraft((prevDraft) => ({
@@ -217,23 +221,30 @@ export function createZRCProjectSettingsActions(deps) {
         status: 'Arşiv'
       }
     }));
+    return true;
+    } finally {
+      releaseActionLock(projectMutationLockRef, 'project-mutation');
+    }
   };
 
   const handleDeleteProject = async () => {
     if (!requirePermission('manageProjects', 'Projeyi sadece Yönetici silebilir.')) return;
 
-    if (!selectedProject) return;
+    if (!selectedProject) return false;
+    if (!tryAcquireActionLock(projectMutationLockRef, 'project-mutation')) return false;
+
+    try {
 
     const projectNameToDelete = selectedProject;
 
     const confirmed = await window.zrcConfirm(`"${projectNameToDelete}" projesi silinsin mi? Bu işlem projedeki görevleri de kaldırır.`);
-    if (!confirmed) return;
+    if (!confirmed) return false;
 
     const didDeleteProject = await deleteProjectFromSupabase(projectNameToDelete);
 
     if (!didDeleteProject) {
       await window.zrcAlert('Proje veritabanından silinemedi. Ekranda değişiklik yapılmadı.');
-      return;
+      return false;
     }
 
     const remainingProjects = projects.filter((project) => project !== projectNameToDelete);
@@ -259,6 +270,10 @@ export function createZRCProjectSettingsActions(deps) {
 
     setSelectedProject(nextSelectedProject);
     setActiveTab('Görevler');
+    return true;
+    } finally {
+      releaseActionLock(projectMutationLockRef, 'project-mutation');
+    }
   };
 
   return {

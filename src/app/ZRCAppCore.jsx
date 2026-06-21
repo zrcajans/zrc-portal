@@ -3384,7 +3384,7 @@ function App() {
   };
 
   const handleSidebarProjectsChange = async (updater) => {
-    if (!tryAcquireActionLock(projectMutationLockRef, 'sidebar-project-list')) return false;
+    if (!tryAcquireActionLock(projectMutationLockRef, 'project-mutation')) return false;
 
     try {
       const previousProjectNames = normalizeProjectNameList(projects);
@@ -3437,7 +3437,7 @@ function App() {
       setProjects(nextProjectNames);
       return true;
     } finally {
-      releaseActionLock(projectMutationLockRef, 'sidebar-project-list');
+      releaseActionLock(projectMutationLockRef, 'project-mutation');
     }
   };
 
@@ -8915,7 +8915,10 @@ const {
     setProjectSettingsDraft,
     deleteProjectFromSupabase,
     setActivityNotifications,
-    setActiveTab
+    setActiveTab,
+    projectMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   });
 const selectedProjectSettings = projectSettings[selectedProject] || createDefaultProjectSettings(selectedProject);
   const draftProjectTeamMemberIds = Array.isArray(projectSettingsDraft?.teamMemberIds)
