@@ -70,3 +70,26 @@ test('duplicate profile saves share one in-flight persistence request', async ()
   assert.equal(await firstSave, true);
   assert.equal(deps.profileMutationLockRef.current.size, 0);
 });
+
+test('failed preference persistence leaves local preferences untouched', async () => {
+  let preferenceMutationCount = 0;
+  let alertCount = 0;
+  const previousWindow = globalThis.window;
+  globalThis.window = { zrcAlert: async () => { alertCount += 1; } };
+
+  try {
+    const deps = createDeps({
+      profilePreferences: { compactMode: false },
+      setProfilePreferences: () => { preferenceMutationCount += 1; }
+    });
+
+    const result = await createZRCProfileActions(deps).toggleProfilePreference('compactMode');
+
+    assert.equal(result, false);
+    assert.equal(preferenceMutationCount, 0);
+    assert.equal(alertCount, 1);
+    assert.equal(deps.profileMutationLockRef.current.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});

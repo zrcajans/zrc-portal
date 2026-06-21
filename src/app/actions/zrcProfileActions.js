@@ -164,17 +164,34 @@ export function createZRCProfileActions(deps) {
     }
   };
 
-  const toggleProfilePreference = (keyName) => {
-    setProfilePreferences((prev) => {
-      const nextPreferences = {
-        ...prev,
-        [keyName]: !prev[keyName],
-        lastSavedAt: new Date().toISOString()
-      };
+  const persistProfilePreferences = async (nextPreferences) => {
+    if (!tryAcquireActionLock(profileMutationLockRef, 'save-profile')) return false;
 
-      saveUserPreferencesToSupabase({ profilePreferences: nextPreferences });
-      return nextPreferences;
-    });
+    try {
+      const preferencesSaved = await saveUserPreferencesToSupabase({
+        profilePreferences: nextPreferences
+      });
+
+      if (!preferencesSaved) {
+        await window.zrcAlert('Profil tercihleri kaydedilemedi; yerel ayarlar değiştirilmedi.');
+        return false;
+      }
+
+      setProfilePreferences(nextPreferences);
+      return true;
+    } finally {
+      releaseActionLock(profileMutationLockRef, 'save-profile');
+    }
+  };
+
+  const toggleProfilePreference = async (keyName) => {
+    const nextPreferences = {
+      ...profilePreferences,
+      [keyName]: !profilePreferences[keyName],
+      lastSavedAt: new Date().toISOString()
+    };
+
+    return persistProfilePreferences(nextPreferences);
   };
 
   const addProfileEmailAccount = async (event) => {
@@ -189,69 +206,57 @@ export function createZRCProfileActions(deps) {
       return;
     }
 
-    if (profilePreferences.emailAccounts.some((account) => account.email.toLocaleLowerCase('tr-TR') === cleanEmail.toLocaleLowerCase('tr-TR'))) {
+    if ((profilePreferences.emailAccounts || []).some((account) => account.email.toLocaleLowerCase('tr-TR') === cleanEmail.toLocaleLowerCase('tr-TR'))) {
       await window.zrcAlert('Bu e-posta hesabı zaten ekli.');
       return;
     }
 
-    setProfilePreferences((prev) => {
-      const nextPreferences = {
-        ...prev,
-        emailAccounts: [
-          ...prev.emailAccounts,
-          {
-            id: `mailbox-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-            email: cleanEmail,
-            status: 'Bağlı'
-          }
-        ],
-        lastSavedAt: new Date().toISOString()
-      };
+    const nextPreferences = {
+      ...profilePreferences,
+      emailAccounts: [
+        ...(profilePreferences.emailAccounts || []),
+        {
+          id: `mailbox-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          email: cleanEmail,
+          status: 'Bağlı'
+        }
+      ],
+      lastSavedAt: new Date().toISOString()
+    };
 
-      saveUserPreferencesToSupabase({ profilePreferences: nextPreferences });
-      return nextPreferences;
-    });
-
-    setEmailAccountDraft('');
+    const preferencesSaved = await persistProfilePreferences(nextPreferences);
+    if (preferencesSaved) setEmailAccountDraft('');
+    return preferencesSaved;
   };
 
-  const removeProfileEmailAccount = (accountId) => {
-    setProfilePreferences((prev) => {
-      const nextPreferences = {
-        ...prev,
-        emailAccounts: prev.emailAccounts.filter((account) => account.id !== accountId),
-        lastSavedAt: new Date().toISOString()
-      };
+  const removeProfileEmailAccount = async (accountId) => {
+    const nextPreferences = {
+      ...profilePreferences,
+      emailAccounts: (profilePreferences.emailAccounts || []).filter((account) => account.id !== accountId),
+      lastSavedAt: new Date().toISOString()
+    };
 
-      saveUserPreferencesToSupabase({ profilePreferences: nextPreferences });
-      return nextPreferences;
-    });
+    return persistProfilePreferences(nextPreferences);
   };
 
-  const removeProfileSession = (sessionId) => {
-    setProfilePreferences((prev) => {
-      const nextPreferences = {
-        ...prev,
-        sessions: prev.sessions.filter((session) => session.id !== sessionId),
-        lastSavedAt: new Date().toISOString()
-      };
+  const removeProfileSession = async (sessionId) => {
+    const nextPreferences = {
+      ...profilePreferences,
+      sessions: (profilePreferences.sessions || []).filter((session) => session.id !== sessionId),
+      lastSavedAt: new Date().toISOString()
+    };
 
-      saveUserPreferencesToSupabase({ profilePreferences: nextPreferences });
-      return nextPreferences;
-    });
+    return persistProfilePreferences(nextPreferences);
   };
 
-  const markSuspiciousEventAsMine = (eventId) => {
-    setProfilePreferences((prev) => {
-      const nextPreferences = {
-        ...prev,
-        suspiciousEvents: prev.suspiciousEvents.filter((event) => event.id !== eventId),
-        lastSavedAt: new Date().toISOString()
-      };
+  const markSuspiciousEventAsMine = async (eventId) => {
+    const nextPreferences = {
+      ...profilePreferences,
+      suspiciousEvents: (profilePreferences.suspiciousEvents || []).filter((event) => event.id !== eventId),
+      lastSavedAt: new Date().toISOString()
+    };
 
-      saveUserPreferencesToSupabase({ profilePreferences: nextPreferences });
-      return nextPreferences;
-    });
+    return persistProfilePreferences(nextPreferences);
   };
 
   const handleProfileAvatarChange = async (event) => {
