@@ -168,6 +168,7 @@ import {
 import { tryAcquireActionLock, releaseActionLock } from './utils/asyncActionLock.js';
 import { buildRelationshipSyncPlan } from './utils/relationshipSyncHelpers.js';
 import { chunkValues, getSafeWorkspaceStoragePaths } from './utils/storageCleanupHelpers.js';
+import { mergeAuthoritativeServerRecords } from './utils/authoritativeMergeHelpers.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
@@ -3957,7 +3958,13 @@ function App() {
       const mappedNotes = (data || []).map(mapSupabaseQuickNoteToLocal);
 
       setQuickNotes((prevNotes) =>
-        mergeUniqueByKey(prevNotes, mappedNotes, (note) => note.supabaseId || note.id)
+        mergeAuthoritativeServerRecords({
+          serverRecords: mappedNotes,
+          localRecords: prevNotes,
+          getKey: (note) => note.supabaseId || note.id,
+          isPersistedLocalRecord: (note) =>
+            Boolean(note?.supabaseId || String(note?.id || '').startsWith('supabase-note-'))
+        })
       );
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase not okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
@@ -4409,7 +4416,12 @@ function App() {
       }));
 
       setChatGroups((prevGroups) =>
-        mergeUniqueByKey(prevGroups, mappedGroups, (group) => group.supabaseId || `${group.type}-${group.name}`)
+        mergeAuthoritativeServerRecords({
+          serverRecords: mappedGroups,
+          localRecords: prevGroups,
+          getKey: (group) => group.supabaseId || group.id || `${group.type}-${group.name}`,
+          isPersistedLocalRecord: (group) => Boolean(group?.supabaseId || isSupabaseUuid(group?.id))
+        })
       );
 
       const { data: dbMessages, error: messagesError } = await supabase
@@ -4423,7 +4435,13 @@ function App() {
       const mappedMessages = (dbMessages || []).map((message) => mapSupabaseMessageToLocal(message, projectNameById));
 
       setProjectMessages((prevMessages) =>
-        mergeUniqueByKey(prevMessages, mappedMessages, (message) => message.supabaseId || message.id)
+        mergeAuthoritativeServerRecords({
+          serverRecords: mappedMessages,
+          localRecords: prevMessages,
+          getKey: (message) => message.supabaseId || message.id,
+          isPersistedLocalRecord: (message) =>
+            Boolean(message?.supabaseId || String(message?.id || '').startsWith('supabase-message-'))
+        })
       );
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase yazışmalar yüklendi');
