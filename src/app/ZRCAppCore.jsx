@@ -3208,13 +3208,25 @@ function App() {
     if (!workspaceId || !projectName) return false;
 
     try {
-      const { error } = await supabase
+      const { data: projectRecord, error: projectSelectError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('name', projectName)
+        .maybeSingle();
+
+      if (projectSelectError) throw projectSelectError;
+      if (!projectRecord?.id) throw new Error('Proje kaydı bulunamadı');
+
+      const mutationResult = await supabase
         .from('projects')
         .update({ status })
+        .eq('id', projectRecord.id)
         .eq('workspace_id', workspaceId)
-        .eq('name', projectName);
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, projectRecord.id, 'Proje durumu');
       zrcSetSupabaseWriteInfo('saved', 'Supabase proje durumu kaydedildi');
       return true;
     } catch (error) {
