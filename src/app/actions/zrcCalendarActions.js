@@ -21,7 +21,10 @@ export function createZRCCalendarActions(deps) {
     normalizeAssigneesForCurrentAccountSave,
     setProjectBoards,
     createActivityNotification,
-    saveTaskToSupabaseForProject
+    saveTaskToSupabaseForProject,
+    taskMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   } = deps;
 
   const goToPreviousCalendarPeriod = () => {
@@ -202,6 +205,26 @@ export function createZRCCalendarActions(deps) {
       createdAt: new Date().toISOString()
     };
 
+    if (!tryAcquireActionLock(taskMutationLockRef, 'save-task')) return false;
+
+    let savedTaskId;
+
+    try {
+      savedTaskId = await saveTaskToSupabaseForProject(projectName, nextTask, targetColumn.title);
+    } finally {
+      releaseActionLock(taskMutationLockRef, 'save-task');
+    }
+
+    if (!savedTaskId) {
+      await window.zrcAlert('Takvim görevi veritabanına kaydedilemedi. Form bilgileri korundu.');
+      return false;
+    }
+
+    const persistedTask = {
+      ...nextTask,
+      supabaseId: savedTaskId
+    };
+
     setProjectBoards((prevBoards) => {
       const existingBoard = prevBoards[projectName] || createDefaultProjectBoard();
       const existingColumns = existingBoard.columns || createDefaultProjectBoard().columns || [];
@@ -218,7 +241,7 @@ export function createZRCCalendarActions(deps) {
                   ...column,
                   tasks: [
                     ...(column.tasks || []),
-                    nextTask
+                    persistedTask
                   ]
                 }
               : column
@@ -232,15 +255,15 @@ export function createZRCCalendarActions(deps) {
     createActivityNotification({
       type: 'task',
       title: 'Yeni görev oluşturuldu',
-      text: nextTask.title,
+      text: persistedTask.title,
       meta: `${projectName} · ${targetColumn.title}`,
-      task: { ...nextTask, projectName, columnTitle: targetColumn.title },
+      task: { ...persistedTask, projectName, columnTitle: targetColumn.title },
       columnTitle: targetColumn.title,
       sortWeight: 740
     });
 
-    await saveTaskToSupabaseForProject(projectName, nextTask, targetColumn.title);
     closeCalendarQuickTaskCreator();
+    return true;
   };
 
   return {

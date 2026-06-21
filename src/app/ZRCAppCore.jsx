@@ -2108,7 +2108,7 @@ function App() {
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev kaydedildi');
-      return true;
+      return data?.id || false;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase görev hatası: ${error?.message || 'bilinmeyen hata'}`);
       return false;
@@ -8985,7 +8985,10 @@ const {
     normalizeAssigneesForCurrentAccountSave,
     setProjectBoards,
     createActivityNotification,
-    saveTaskToSupabaseForProject
+    saveTaskToSupabaseForProject,
+    taskMutationLockRef,
+    tryAcquireActionLock,
+    releaseActionLock
   });
 const {
     openAddStageModal,
