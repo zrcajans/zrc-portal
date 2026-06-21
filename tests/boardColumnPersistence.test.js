@@ -40,6 +40,8 @@ const createBaseDeps = (overrides = {}) => ({
   setEditingColumn: () => {},
   setIsStageModalOpen: () => {},
   saveStageToSupabase: async () => false,
+  saveTaskToSupabaseForProject: async () => false,
+  syncTaskDetailsToSupabase: async () => false,
   setTimeout: () => {},
   loadSelectedProjectBoardFromSupabase: async () => {},
   getCurrentSupabaseWorkspaceId: () => workspaceId,
@@ -263,6 +265,68 @@ test('successful column delete scopes reads and writes before committing UI', as
     assert.ok(filters.some(({ table, operation, column, value }) =>
       table === 'board_columns' && operation === 'delete' && column === 'workspace_id' && value === workspaceId
     ));
+    assert.equal(deps.columnMutationLockRef.current.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});
+
+test('column copy persists sanitized records before adding them to the board', async () => {
+  const timeline = [];
+  let currentColumns = [{
+    id: 'source-column',
+    title: 'Aktif',
+    tasks: [{
+      id: 'source-task',
+      supabaseId: '55555555-5555-4555-8555-555555555555',
+      title: 'Görev',
+      comments: [{ id: 'source-comment', supabaseId: '66666666-6666-4666-8666-666666666666', text: 'Not' }],
+      steps: [],
+      files: [{ id: 'source-file', storagePath: `${workspaceId}/tasks/file.pdf` }]
+    }]
+  }];
+  let alertCount = 0;
+  const previousWindow = globalThis.window;
+  globalThis.window = { zrcAlert: async () => { alertCount += 1; } };
+
+  try {
+    const deps = createBaseDeps({
+      boardColumns: currentColumns,
+      saveStageToSupabase: async (column) => {
+        timeline.push('column');
+        assert.deepEqual(column.tasks, []);
+        return firstColumnId;
+      },
+      saveTaskToSupabaseForProject: async (projectName, task, status, options) => {
+        timeline.push('task');
+        assert.equal(projectName, 'Portal');
+        assert.equal(task.supabaseId, undefined);
+        assert.deepEqual(task.files, []);
+        assert.equal(status, 'Aktif - Kopya');
+        assert.equal(options.targetColumn.id, firstColumnId);
+        return secondColumnId;
+      },
+      syncTaskDetailsToSupabase: async (taskId, updates) => {
+        timeline.push('details');
+        assert.ok(taskId.startsWith('task-'));
+        assert.equal(updates.supabaseId, secondColumnId);
+        assert.equal(updates.comments[0].supabaseId, undefined);
+        return true;
+      },
+      setBoardColumns: (updater) => {
+        timeline.push('ui');
+        currentColumns = typeof updater === 'function' ? updater(currentColumns) : updater;
+      }
+    });
+
+    const result = await createZRCBoardTaskActions(deps).handleCopyColumn(currentColumns[0], 0);
+
+    assert.equal(result, true);
+    assert.deepEqual(timeline, ['column', 'task', 'details', 'ui']);
+    assert.equal(currentColumns[1].id, firstColumnId);
+    assert.equal(currentColumns[1].tasks[0].supabaseId, secondColumnId);
+    assert.deepEqual(currentColumns[1].tasks[0].files, []);
+    assert.equal(alertCount, 1);
     assert.equal(deps.columnMutationLockRef.current.size, 0);
   } finally {
     globalThis.window = previousWindow;

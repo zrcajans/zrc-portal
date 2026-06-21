@@ -1,6 +1,7 @@
 import { flushSync } from 'react-dom';
 import { getScopedStorageKey } from '../utils/storageScopeHelpers.js';
 import { chunkValues, getSafeWorkspaceStoragePaths } from '../utils/storageCleanupHelpers.js';
+import { buildPersistableColumnCopy } from '../utils/columnCopyHelpers.js';
 export function createZRCBoardTaskActions(deps) {
   const {
     requirePermission,
@@ -66,7 +67,8 @@ export function createZRCBoardTaskActions(deps) {
     taskDetailSyncQueueRef,
     columnMutationLockRef,
     tryAcquireActionLock,
-    releaseActionLock
+    releaseActionLock,
+    saveTaskToSupabaseForProject
   } = deps;
 
   const persistTaskBatch = async (tasks = [], mutation) => {
@@ -431,44 +433,106 @@ export function createZRCBoardTaskActions(deps) {
     }
   };
 
-  const handleCopyColumn = (column, index) => {
-    if (!requirePermission('manageColumns', 'Kolon kopyalama yetkisi sadece Yönetici rolünde var.')) return;
+  const handleCopyColumn = async (column, index) => {
+    if (!requirePermission('manageColumns', 'Kolon kopyalama yetkisi sadece Yönetici rolünde var.')) return false;
+    if (!column || !tryAcquireActionLock(columnMutationLockRef, 'copy-column')) return false;
 
-    const now = Date.now();
+    try {
+      const copiedColumn = {
+        ...buildPersistableColumnCopy(column, boardColumns),
+        position: index + 1
+      };
+      const savedColumnId = await saveStageToSupabase({ ...copiedColumn, tasks: [] });
 
-    const copiedColumn = {
-      id: `col-${now}`,
-      title: `${column.title} - Kopya`,
-      color: column.color,
-      desc: column.desc,
-      tasks: (column.tasks || []).map((task, taskIndex) => ({
-        ...task,
-        id: `task-${now}-${taskIndex}`,
-        title: `${task.title} - Kopya`,
-        history: [
+      if (!savedColumnId) {
+        await window.zrcAlert('Kolon kopyası kaydedilemedi; panoda değişiklik yapılmadı.');
+        return false;
+      }
+
+      const persistedTasks = [];
+      let failedTaskCount = 0;
+      let failedDetailCount = 0;
+
+      for (const copiedTask of copiedColumn.tasks) {
+        const savedTaskId = await saveTaskToSupabaseForProject(
+          selectedProject,
+          copiedTask,
+          copiedColumn.title,
           {
-            id: `history-${now}-${taskIndex}`,
-            type: 'description',
-            title: 'Görev kopyalandı',
-            description: `${task.title} görevinden kolon kopyası içinde yeni görev oluşturuldu.`,
-            actor: currentActorName,
-            avatar: currentActorAvatar,
-            userId: currentActorId,
-            date: `${new Date().getDate()} ${new Date().toLocaleString('tr-TR', { month: 'long' })} ${new Date().getFullYear()}`,
-            time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-          },
-          ...(task.history || [])
-        ]
-      }))
-    };
+            targetColumn: { ...copiedColumn, id: savedColumnId, tasks: [] },
+            targetColumnIndex: index + 1
+          }
+        );
 
-    setBoardColumns((prev) => {
-      const updated = [...prev];
-      updated.splice(index + 1, 0, copiedColumn);
-      return updated;
-    });
+        if (!savedTaskId) {
+          failedTaskCount += 1;
+          continue;
+        }
 
-    setOpenMenuColumnId(null);
+        let persistedComments = copiedTask.comments || [];
+        let persistedSteps = copiedTask.steps || [];
+        const hasTaskDetails = persistedComments.length > 0 || persistedSteps.length > 0;
+
+        if (hasTaskDetails) {
+          const didSaveDetails = await syncTaskDetailsToSupabase(
+            copiedTask.id,
+            {
+              supabaseId: savedTaskId,
+              comments: persistedComments,
+              steps: persistedSteps
+            }
+          );
+
+          if (!didSaveDetails) {
+            failedDetailCount += 1;
+            persistedComments = [];
+            persistedSteps = [];
+          }
+        }
+
+        persistedTasks.push({
+          ...copiedTask,
+          supabaseId: savedTaskId,
+          comments: persistedComments,
+          steps: persistedSteps
+        });
+      }
+
+      const persistedColumn = {
+        ...copiedColumn,
+        id: savedColumnId,
+        tasks: persistedTasks
+      };
+
+      setBoardColumns((prev) => {
+        const updated = [...prev];
+        updated.splice(Math.min(index + 1, updated.length), 0, persistedColumn);
+        return updated;
+      });
+      setOpenMenuColumnId(null);
+
+      const warningParts = [];
+      if ((column.files || []).length > 0 || (column.tasks || []).some((task) => (task.files || []).length > 0)) {
+        warningParts.push('dosya ekleri güvenlik nedeniyle kopyalanmadı');
+      }
+      if (failedTaskCount > 0) warningParts.push(`${failedTaskCount} görev kaydedilemedi`);
+      if (failedDetailCount > 0) warningParts.push(`${failedDetailCount} görevin yorum/adımları kopyalanamadı`);
+
+      if (warningParts.length > 0) {
+        await window.zrcAlert(`Kolon kopyalandı; ${warningParts.join(', ')}.`);
+      }
+
+      setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
+      return true;
+    } catch (error) {
+      console.warn('Kolon kopyalama Supabase kaydı başarısız:', error);
+      zrcSetSupabaseWriteInfo('error', `Supabase kolon kopyalama hatası: ${error?.message || 'bilinmeyen hata'}`);
+      await window.zrcAlert('Kolon kopyalanamadı. Liste sunucudaki son haliyle yenilenecek.');
+      await loadSelectedProjectBoardFromSupabase();
+      return false;
+    } finally {
+      releaseActionLock(columnMutationLockRef, 'copy-column');
+    }
   };
 
   const handleArchiveColumnTasks = async (column) => {

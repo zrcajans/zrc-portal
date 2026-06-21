@@ -1988,7 +1988,7 @@ function App() {
   };
 
 
-  const saveTaskToSupabaseForProject = async (projectName, taskData, targetStatus) => {
+  const saveTaskToSupabaseForProject = async (projectName, taskData, targetStatus, options = {}) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (!workspaceId || !projectName || !taskData?.title) return false;
@@ -1999,8 +1999,15 @@ function App() {
       const projectId = await ensureSupabaseProject(projectName);
       const projectBoard = projectBoards[projectName] || (projectName === selectedProject ? currentBoard : null) || createDefaultProjectBoard();
       const projectColumns = projectName === selectedProject ? boardColumns : (projectBoard.columns || createDefaultProjectBoard().columns || []);
-      const targetColumn = projectColumns.find((column) => column.title === targetStatus) || projectColumns[0] || { title: targetStatus || 'Yeni Görev' };
-      const targetColumnIndex = Math.max(0, projectColumns.findIndex((column) => column.title === targetColumn.title));
+      const existingTargetColumnIndex = projectColumns.findIndex((column) => column.title === targetStatus);
+      const targetColumn = existingTargetColumnIndex >= 0
+        ? projectColumns[existingTargetColumnIndex]
+        : options.targetColumn || { title: targetStatus || 'Yeni Görev' };
+      const targetColumnIndex = existingTargetColumnIndex >= 0
+        ? existingTargetColumnIndex
+        : Number.isInteger(options.targetColumnIndex) && options.targetColumnIndex >= 0
+          ? options.targetColumnIndex
+          : 0;
       const columnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
 
       if (!projectId) return false;
@@ -9072,7 +9079,8 @@ const {
     taskDetailSyncQueueRef,
     columnMutationLockRef,
     tryAcquireActionLock,
-    releaseActionLock
+    releaseActionLock,
+    saveTaskToSupabaseForProject
   });
 const filterTaskFollowersForSave = (people = []) =>
     uniqueTaskPeopleById(
