@@ -174,6 +174,7 @@ import {
   buildTopInsertTaskOrderShiftPlan
 } from './utils/taskOrderShiftHelpers.js';
 import { getColumnPersistencePosition } from './utils/columnPersistenceHelpers.js';
+import { requireMatchingMutationRow } from './utils/supabaseMutationHelpers.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
@@ -2199,13 +2200,15 @@ function App() {
         updatePayload.task_order = taskOrder;
       }
 
-      const { error } = await supabase
+      const mutationResult = await supabase
         .from('tasks')
         .update(updatePayload)
         .eq('id', task.supabaseId)
-        .eq('workspace_id', workspaceId);
+        .eq('workspace_id', workspaceId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, task.supabaseId, 'Görev durumu');
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev durumu kaydedildi');
       return true;
@@ -2223,7 +2226,7 @@ function App() {
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev arşivleniyor');
 
     try {
-      const { error } = await supabase
+      const mutationResult = await supabase
         .from('tasks')
         .update({
           is_archived: true,
@@ -2231,9 +2234,11 @@ function App() {
           updated_by: isSupabaseUuid(currentUserId) ? currentUserId : null
         })
         .eq('id', task.supabaseId)
-        .eq('workspace_id', workspaceId);
+        .eq('workspace_id', workspaceId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, task.supabaseId, 'Görev arşivleme');
 
       zrcMarkOptimisticHiddenTask(task, 9000);
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev arşivlendi');
@@ -2258,7 +2263,7 @@ function App() {
       const targetTaskCount = Array.isArray(targetColumn?.tasks) ? targetColumn.tasks.length : 0;
       const targetTaskOrder = Number.isFinite(task?.taskOrder) ? task.taskOrder : targetTaskCount;
 
-      const { error } = await supabase
+      const mutationResult = await supabase
         .from('tasks')
         .update({
           column_id: columnId || null,
@@ -2269,9 +2274,11 @@ function App() {
           task_order: targetTaskOrder
         })
         .eq('id', task.supabaseId)
-        .eq('workspace_id', workspaceId);
+        .eq('workspace_id', workspaceId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, task.supabaseId, 'Görev geri getirme');
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev geri getirildi');
       return true;
@@ -2289,13 +2296,15 @@ function App() {
     zrcSetSupabaseWriteInfo('saving', 'Supabase görev siliniyor');
 
     try {
-      const { error } = await supabase
+      const mutationResult = await supabase
         .from('tasks')
         .delete()
         .eq('id', task.supabaseId)
-        .eq('workspace_id', workspaceId);
+        .eq('workspace_id', workspaceId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      requireMatchingMutationRow(mutationResult, task.supabaseId, 'Görev silme');
 
       zrcMarkOptimisticHiddenTask(task, 9000);
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev silindi');
