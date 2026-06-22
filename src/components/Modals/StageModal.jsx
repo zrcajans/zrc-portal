@@ -63,13 +63,16 @@ function StageModal({ isOpen, onClose, onSave, columnData }) {
       onMouseDown={onClose}
     >
       <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="stage-modal-title"
         onSubmit={handleSubmit}
         onMouseDown={(event) => event.stopPropagation()}
         className="w-full max-w-[360px] bg-white rounded-[13px] shadow-[0_24px_80px_rgba(15,23,42,0.24)] overflow-hidden animate-modal"
       >
         <div className="h-[56px] px-4 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 className="text-[14px] font-black text-slate-800 tracking-tight">
+            <h3 id="stage-modal-title" className="text-[14px] font-black text-slate-800 tracking-tight">
               {isNewColumn ? 'Kolon Ekle' : 'Kolonu Düzenle'}
             </h3>
             <p className="mt-0.5 text-[10px] font-bold text-slate-400">
@@ -79,6 +82,7 @@ function StageModal({ isOpen, onClose, onSave, columnData }) {
 
           <button
             type="button"
+            aria-label="Kolon penceresini kapat"
             onClick={onClose}
             className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:bg-white hover:text-slate-900 transition-all flex items-center justify-center"
           >

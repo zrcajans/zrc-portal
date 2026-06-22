@@ -888,6 +888,9 @@ export default function TaskModal({
       `}</style>
 
       <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-modal-title"
         onSubmit={handleSubmit}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => {
@@ -901,6 +904,7 @@ export default function TaskModal({
         <div className="relative h-[66px] rounded-t-[13px] bg-white border-b border-slate-100">
           <button
             type="button"
+            aria-label="Görev penceresini kapat"
             onClick={handleClose}
             className="absolute -right-3 -top-3 max-[720px]:right-2 max-[720px]:top-2 w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-white transition-all flex items-center justify-center shadow-[0_10px_24px_rgba(15,23,42,0.16)] z-20"
           >
@@ -910,7 +914,7 @@ export default function TaskModal({
           </button>
 
           <div className="absolute left-5 right-14 top-[14px]">
-            <h3 className="text-[15px] font-black text-slate-800 tracking-tight">
+            <h3 id="task-modal-title" className="text-[15px] font-black text-slate-800 tracking-tight">
               {initialData?.id ? 'Görev Düzenle' : 'Görev Ekle'}
             </h3>
             <p className="mt-0.5 text-[10.5px] font-bold text-slate-400">

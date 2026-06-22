@@ -15,6 +15,18 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
   const lastSavedDescriptionRef = useRef('');
   const commentsEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const closeTimerRef = useRef(null);
+
+  const handleClose = () => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+
+    setIsClosing(true);
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
+      setIsClosing(false);
+      onClose();
+    }, 160);
+  };
 
   const getDetailProfileNameForRecord = (record = {}, fallback = 'Kullanıcı') => {
     if (
@@ -66,6 +78,25 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
   }, [isOpen, task?.id]);
 
   useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleEscapeKey = (event) => {
+      if (event.key !== 'Escape') return;
+
+      event.preventDefault();
+      handleClose();
+    };
+
+    window.addEventListener('keydown', handleEscapeKey);
+    return () => window.removeEventListener('keydown', handleEscapeKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+  }, []);
+
+  useEffect(() => {
     if (isOpen && activeDetailTab === 'Yorumlar') {
       commentsEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
@@ -80,15 +111,6 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
 
   if (!isOpen && !isClosing) return null;
   if (!task) return null;
-
-  const handleClose = () => {
-    setIsClosing(true);
-
-    setTimeout(() => {
-      setIsClosing(false);
-      onClose();
-    }, 160);
-  };
 
   const sendComment = async () => {
     if (!canComment) return;
@@ -396,12 +418,16 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
       onMouseDown={handleClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-detail-modal-title"
         onMouseDown={(event) => event.stopPropagation()}
         className={`w-full max-w-[790px] max-h-[82vh] bg-white rounded-[13px] shadow-[0_26px_90px_rgba(15,23,42,0.24)] overflow-visible flex flex-col ${isClosing ? 'animate-modal-out' : 'animate-modal'}`}
       >
         <div className="relative h-[90px] bg-white border-b border-slate-100 shrink-0">
           <button
             type="button"
+            aria-label="Görev detayını kapat"
             onClick={handleClose}
             className="absolute right-3 top-3 w-7 h-7 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-white transition-all flex items-center justify-center shadow-sm z-30"
           >
@@ -424,7 +450,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
                 )}
               </div>
 
-              <h3 className="text-[17px] font-black text-slate-800 tracking-tight truncate">
+              <h3 id="task-detail-modal-title" className="text-[17px] font-black text-slate-800 tracking-tight truncate">
                 {task.title}
               </h3>
             </div>
