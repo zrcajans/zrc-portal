@@ -332,37 +332,44 @@ export function createZRCTeamCustomerActions(deps) {
       return;
     }
 
-    if (targetMember) {
-      try {
-        await deleteWorkspaceMemberFromDatabase(targetMember);
-      } catch (error) {
-        await window.zrcAlert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
-        return;
+    if (!tryAcquireActionLock(teamCustomerMutationLockRef, 'team-customer-mutation')) return false;
+
+    try {
+      if (targetMember) {
+        try {
+          await deleteWorkspaceMemberFromDatabase(targetMember);
+        } catch (error) {
+          await window.zrcAlert(`Ekip üyesi veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+          return false;
+        }
       }
+
+      setTeamMembers((prevMembers) => prevMembers.filter((member) => member.id !== memberId));
+
+      if (targetMember) {
+        setCustomers((prevCustomers) =>
+          prevCustomers.map((customer) =>
+            customer.accountUserId === memberId || customer.id === targetMember.customerId
+              ? { ...customer, accountUserId: '' }
+              : customer
+          )
+        );
+      }
+
+      if (currentUserId === memberId) {
+        setCurrentUserId('');
+        removeStorageValue('currentUserId');
+      }
+
+      if (selectedTeamMemberId === memberId) {
+        setSelectedTeamMemberId(null);
+      }
+
+      setPendingTeamDeleteId(null);
+      return true;
+    } finally {
+      releaseActionLock(teamCustomerMutationLockRef, 'team-customer-mutation');
     }
-
-    setTeamMembers((prevMembers) => prevMembers.filter((member) => member.id !== memberId));
-
-    if (targetMember) {
-      setCustomers((prevCustomers) =>
-        prevCustomers.map((customer) =>
-          customer.accountUserId === memberId || customer.id === targetMember.customerId
-            ? { ...customer, accountUserId: '' }
-            : customer
-        )
-      );
-    }
-
-    if (currentUserId === memberId) {
-      setCurrentUserId('');
-      removeStorageValue('currentUserId');
-    }
-
-    if (selectedTeamMemberId === memberId) {
-      setSelectedTeamMemberId(null);
-    }
-
-    setPendingTeamDeleteId(null);
   };
 
   const openTeamMemberEditModal = (member) => {
@@ -969,91 +976,98 @@ export function createZRCTeamCustomerActions(deps) {
 
     if (!deletedCustomer) return;
 
-    const linkedCustomerAccountIds = new Set(
-      teamMembers
-        .filter((member) =>
-          member.customerId === customerId &&
-          normalizeTeamRole(member.role) === 'Müşteri/Misafir'
-        )
-        .map((member) => member.id)
-        .filter(Boolean)
-    );
+    if (!tryAcquireActionLock(teamCustomerMutationLockRef, 'team-customer-mutation')) return false;
 
-    if (deletedCustomer?.accountUserId) {
-      linkedCustomerAccountIds.add(deletedCustomer.accountUserId);
-    }
+    try {
+      const linkedCustomerAccountIds = new Set(
+        teamMembers
+          .filter((member) =>
+            member.customerId === customerId &&
+            normalizeTeamRole(member.role) === 'Müşteri/Misafir'
+          )
+          .map((member) => member.id)
+          .filter(Boolean)
+      );
 
-    if (linkedCustomerAccountIds.size > 0) {
-      const linkedCustomerMembers = teamMembers.filter((member) => linkedCustomerAccountIds.has(member.id));
+      if (deletedCustomer?.accountUserId) {
+        linkedCustomerAccountIds.add(deletedCustomer.accountUserId);
+      }
 
-      for (const accountId of linkedCustomerAccountIds) {
-        if (!linkedCustomerMembers.some((member) => member.id === accountId)) {
-          linkedCustomerMembers.push({
-            id: accountId,
-            userId: accountId,
-            username: deletedCustomer?.username || deletedCustomer?.email || ''
-          });
+      if (linkedCustomerAccountIds.size > 0) {
+        const linkedCustomerMembers = teamMembers.filter((member) => linkedCustomerAccountIds.has(member.id));
+
+        for (const accountId of linkedCustomerAccountIds) {
+          if (!linkedCustomerMembers.some((member) => member.id === accountId)) {
+            linkedCustomerMembers.push({
+              id: accountId,
+              userId: accountId,
+              username: deletedCustomer?.username || deletedCustomer?.email || ''
+            });
+          }
+        }
+
+        try {
+          for (const member of linkedCustomerMembers) {
+            await deleteWorkspaceMemberFromDatabase(member);
+          }
+        } catch (error) {
+          await window.zrcAlert(`Bağlı müşteri hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+          return false;
         }
       }
 
       try {
-        for (const member of linkedCustomerMembers) {
-          await deleteWorkspaceMemberFromDatabase(member);
+        const hasPersistedCustomerId = isSupabaseUuid(deletedCustomer.supabaseId || deletedCustomer.id);
+
+        if (hasPersistedCustomerId && typeof deleteCustomerFromSupabase === 'function') {
+          const didDeleteCustomer = await deleteCustomerFromSupabase(deletedCustomer);
+
+          if (!didDeleteCustomer) {
+            await window.zrcAlert('Müşteri veritabanından silinemedi. Ekranda değişiklik yapılmadı.');
+            window.location.reload();
+            return false;
+          }
         }
       } catch (error) {
-        await window.zrcAlert(`Bağlı müşteri hesabı veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
-        return;
+        await window.zrcAlert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
+        window.location.reload();
+        return false;
       }
-    }
 
-    try {
-      const hasPersistedCustomerId = isSupabaseUuid(deletedCustomer.supabaseId || deletedCustomer.id);
+      rememberDeletedCustomer(deletedCustomer);
 
-      if (hasPersistedCustomerId && typeof deleteCustomerFromSupabase === 'function') {
-        const didDeleteCustomer = await deleteCustomerFromSupabase(deletedCustomer);
+      setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer.id !== customerId));
 
-        if (!didDeleteCustomer) {
-          await window.zrcAlert('Müşteri veritabanından silinemedi. Ekranda değişiklik yapılmadı.');
-          window.location.reload();
-          return;
-        }
-      }
-    } catch (error) {
-      await window.zrcAlert(`Müşteri veritabanından silinemedi: ${error?.message || 'bilinmeyen hata'}`);
-      window.location.reload();
-      return;
-    }
+      setTeamMembers((prevMembers) =>
+        prevMembers
+          .filter((member) => !linkedCustomerAccountIds.has(member.id))
+          .map((member) =>
+            member.customerId === customerId
+              ? { ...member, customerId: '' }
+              : member
+          )
+      );
 
-    rememberDeletedCustomer(deletedCustomer);
-
-    setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer.id !== customerId));
-
-    setTeamMembers((prevMembers) =>
-      prevMembers
-        .filter((member) => !linkedCustomerAccountIds.has(member.id))
-        .map((member) =>
-          member.customerId === customerId
-            ? { ...member, customerId: '' }
-            : member
+      setProjectSettings((prevSettings) =>
+        Object.fromEntries(
+          Object.entries(prevSettings).map(([projectName, settings]) => [
+            projectName,
+            settings.customerId === customerId || settings.customer === deletedCustomer?.name
+              ? { ...settings, customer: '', customerId: '' }
+              : settings
+          ])
         )
-    );
+      );
 
-    setProjectSettings((prevSettings) =>
-      Object.fromEntries(
-        Object.entries(prevSettings).map(([projectName, settings]) => [
-          projectName,
-          settings.customerId === customerId || settings.customer === deletedCustomer?.name
-            ? { ...settings, customer: '', customerId: '' }
-            : settings
-        ])
-      )
-    );
+      if (selectedCustomerId === customerId) {
+        setSelectedCustomerId(null);
+      }
 
-    if (selectedCustomerId === customerId) {
-      setSelectedCustomerId(null);
+      setPendingCustomerDeleteId(null);
+      return true;
+    } finally {
+      releaseActionLock(teamCustomerMutationLockRef, 'team-customer-mutation');
     }
-
-    setPendingCustomerDeleteId(null);
   };
 
   return {

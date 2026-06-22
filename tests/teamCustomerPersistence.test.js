@@ -31,6 +31,13 @@ const createDeps = (overrides = {}) => ({
   setTeamMemberDraft: () => {},
   setSelectedTeamMemberId: () => {},
   setPendingTeamDeleteId: () => {},
+  isLastActiveAdmin: () => false,
+  showPermissionWarning: () => {},
+  currentUserId: '',
+  setCurrentUserId: () => {},
+  removeStorageValue: () => {},
+  pendingTeamDeleteId: '',
+  selectedTeamMemberId: '',
   customerDraft: {
     name: 'Müşteri',
     contact: '',
@@ -41,6 +48,11 @@ const createDeps = (overrides = {}) => ({
   },
   setSelectedCustomerId: () => {},
   setPendingCustomerDeleteId: () => {},
+  setProjectSettings: () => {},
+  pendingCustomerDeleteId: '',
+  rememberDeletedCustomer: () => {},
+  deleteCustomerFromSupabase: async () => false,
+  selectedCustomerId: '',
   saveCustomerToSupabase: async () => false,
   setCustomerDraft: () => {},
   teamCustomerMutationLockRef: { current: new Set() },
@@ -107,6 +119,73 @@ test('duplicate customer submits create only one persisted and local record', as
 
   resolveSave({ id: '22222222-2222-4222-8222-222222222222' });
   assert.equal(await firstSubmit, true);
+  assert.equal(localCustomerCommitCount, 1);
+  assert.equal(deps.teamCustomerMutationLockRef.current.size, 0);
+});
+
+test('duplicate confirmed team member deletes call the account API only once', async (t) => {
+  let resolveResponse;
+  let fetchCallCount = 0;
+  let localMemberCommitCount = 0;
+  const responseResult = new Promise((resolve) => { resolveResponse = resolve; });
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => {
+    fetchCallCount += 1;
+    return responseResult;
+  };
+
+  const targetMember = { id: 'member-1', name: 'Ekip Üyesi', role: 'Ekip Üyesi' };
+  const deps = createDeps({
+    teamMembers: [targetMember],
+    pendingTeamDeleteId: targetMember.id,
+    setTeamMembers: () => { localMemberCommitCount += 1; }
+  });
+  const actions = createZRCTeamCustomerActions(deps);
+
+  const firstDelete = actions.deleteTeamMemberFromCenter(targetMember.id);
+  const duplicateDelete = await actions.deleteTeamMemberFromCenter(targetMember.id);
+
+  assert.equal(duplicateDelete, false);
+  assert.equal(fetchCallCount, 1);
+  assert.equal(localMemberCommitCount, 0);
+
+  resolveResponse({
+    ok: true,
+    status: 200,
+    json: async () => ({ ok: true })
+  });
+  assert.equal(await firstDelete, true);
+  assert.equal(localMemberCommitCount, 1);
+  assert.equal(deps.teamCustomerMutationLockRef.current.size, 0);
+});
+
+test('duplicate confirmed customer deletes persist and commit only once', async () => {
+  let resolveDelete;
+  let deleteCallCount = 0;
+  let localCustomerCommitCount = 0;
+  const deleteResult = new Promise((resolve) => { resolveDelete = resolve; });
+  const customerId = '33333333-3333-4333-8333-333333333333';
+  const deps = createDeps({
+    customers: [{ id: customerId, supabaseId: customerId, name: 'Müşteri', accountUserId: '' }],
+    pendingCustomerDeleteId: customerId,
+    deleteCustomerFromSupabase: async () => {
+      deleteCallCount += 1;
+      return deleteResult;
+    },
+    setCustomers: () => { localCustomerCommitCount += 1; }
+  });
+  const actions = createZRCTeamCustomerActions(deps);
+
+  const firstDelete = actions.deleteCustomerFromCenter(customerId);
+  const duplicateDelete = await actions.deleteCustomerFromCenter(customerId);
+
+  assert.equal(duplicateDelete, false);
+  assert.equal(deleteCallCount, 1);
+  assert.equal(localCustomerCommitCount, 0);
+
+  resolveDelete(true);
+  assert.equal(await firstDelete, true);
   assert.equal(localCustomerCommitCount, 1);
   assert.equal(deps.teamCustomerMutationLockRef.current.size, 0);
 });
