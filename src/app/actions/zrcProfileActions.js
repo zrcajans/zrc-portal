@@ -36,6 +36,7 @@ export function createZRCProfileActions(deps) {
     };
 
     const pendingAvatarDataUrl = String(mergedProfileDraft.pendingAvatarDataUrl || '').trim();
+    const shouldShowProfileAvatarSavedToast = Boolean(pendingAvatarDataUrl);
     const nextProfileDraftBase = {
       ...mergedProfileDraft
     };
@@ -174,6 +175,11 @@ export function createZRCProfileActions(deps) {
     );
 
     setProfilePreferences(nextPreferences);
+
+    if (shouldShowProfileAvatarSavedToast) {
+      zrcShowProfileAvatarSavedToast();
+    }
+
     return true;
     } finally {
       releaseActionLock(profileMutationLockRef, 'save-profile');
@@ -316,3 +322,70 @@ export function createZRCProfileActions(deps) {
     handleProfileAvatarChange
   };
 }
+
+const zrcShowProfileAvatarSavedToast = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  const toastId = 'zrc-profile-avatar-saved-toast';
+  document.getElementById(toastId)?.remove();
+
+  const toast = document.createElement('div');
+  toast.id = toastId;
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+  toast.textContent = 'Profil fotoğrafı güncellendi';
+
+  Object.assign(toast.style, {
+    position: 'fixed',
+    top: '18px',
+    left: '50%',
+    zIndex: '2147483646',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 14px',
+    border: '1px solid rgba(255,255,255,0.9)',
+    borderRadius: '999px',
+    background: '#1f2937',
+    color: '#ffffff',
+    fontFamily: 'inherit',
+    fontSize: '12px',
+    fontWeight: '700',
+    boxShadow: '0 12px 28px rgba(15, 23, 42, 0.18)',
+    pointerEvents: 'none',
+    opacity: '0',
+    transform: 'translate(-50%, -12px)',
+    transition: 'opacity 180ms ease, transform 180ms ease'
+  });
+
+  const check = document.createElement('span');
+  check.textContent = '✓';
+
+  Object.assign(check.style, {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '16px',
+    height: '16px',
+    borderRadius: '999px',
+    background: '#45bd78',
+    color: '#ffffff',
+    fontSize: '11px',
+    lineHeight: '1'
+  });
+
+  toast.prepend(check);
+  document.body.appendChild(toast);
+
+  window.requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translate(-50%, 0)';
+  });
+
+  window.setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate(-50%, -12px)';
+
+    window.setTimeout(() => toast.remove(), 220);
+  }, 2400);
+};

@@ -281,5 +281,112 @@ export default function ZRCPremiumCursor() {
     };
   }, []);
 
+
+  useEffect(() => {
+    const cleanupSmartCursorOutline = zrcInstallSmartCursorOutline();
+
+    return () => {
+      cleanupSmartCursorOutline();
+    };
+  }, []);
+
   return null;
 }
+
+const zrcInstallSmartCursorOutline = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return () => {};
+
+  const orange = { r: 255, g: 54, b: 0 };
+  let lastTarget = null;
+
+  const parseRgb = (value) => {
+    const match = String(value || '').match(/rgba?\(([^)]+)\)/i);
+    if (!match) return null;
+
+    const parts = match[1].split(',').map((part) => Number.parseFloat(part.trim()));
+    if (parts.length < 3 || parts.slice(0, 3).some((part) => Number.isNaN(part))) return null;
+
+    const alpha = Number.isFinite(parts[3]) ? parts[3] : 1;
+    if (alpha <= 0.06) return null;
+
+    return {
+      r: Math.max(0, Math.min(255, parts[0])),
+      g: Math.max(0, Math.min(255, parts[1])),
+      b: Math.max(0, Math.min(255, parts[2]))
+    };
+  };
+
+  const toLinear = (channel) => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+
+  const luminance = (color) => (
+    0.2126 * toLinear(color.r) +
+    0.7152 * toLinear(color.g) +
+    0.0722 * toLinear(color.b)
+  );
+
+  const calculateOutlineNeed = (target) => {
+    let current = target instanceof Element ? target : null;
+
+    for (let depth = 0; current && current !== document.documentElement && depth < 6; depth += 1) {
+      try {
+        const background = parseRgb(window.getComputedStyle(current).backgroundColor);
+
+        if (background) {
+          const orangeLuminance = luminance(orange);
+          const backgroundLuminance = luminance(background);
+          const contrast = (
+            Math.max(orangeLuminance, backgroundLuminance) + 0.05
+          ) / (
+            Math.min(orangeLuminance, backgroundLuminance) + 0.05
+          );
+
+          const distance = Math.hypot(
+            orange.r - background.r,
+            orange.g - background.g,
+            orange.b - background.b
+          );
+
+          return contrast < 2.15 || distance < 116;
+        }
+      } catch {
+        return false;
+      }
+
+      current = current.parentElement;
+    }
+
+    return false;
+  };
+
+  const onPointerMove = (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+
+    if (target === lastTarget) return;
+
+    lastTarget = target;
+    document.body.classList.toggle(
+      'zrc-smart-cursor-outline-active',
+      calculateOutlineNeed(target)
+    );
+  };
+
+  const clear = () => {
+    document.body.classList.remove('zrc-smart-cursor-outline-active');
+  };
+
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('blur', clear);
+  document.addEventListener('mouseleave', clear);
+
+  return () => {
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('blur', clear);
+    document.removeEventListener('mouseleave', clear);
+    document.body.classList.remove('zrc-smart-cursor-outline-active');
+  };
+};
