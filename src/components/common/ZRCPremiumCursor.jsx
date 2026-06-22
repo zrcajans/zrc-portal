@@ -96,11 +96,39 @@ export default function ZRCPremiumCursor() {
       }
     };
 
+    const hasDirectReadableText = (startElement) => {
+      let current = startElement;
+
+      // Pahalı genel DOM taraması yerine yalnızca hedef + en yakın 4 üst katman.
+      // Bu, div içine doğrudan yazılmış "Gösterilecek görev yok" gibi metinleri yakalar.
+      for (let depth = 0; current && current !== document.body && depth < 4; depth += 1) {
+        if (current.matches?.(TEXT_SELECTOR)) {
+          return true;
+        }
+
+        const hasOwnTextNode = Array.from(current.childNodes || []).some((node) => (
+          node.nodeType === Node.TEXT_NODE &&
+          String(node.nodeValue || '').trim().length > 0
+        ));
+
+        if (hasOwnTextNode) {
+          return true;
+        }
+
+        current = current.parentElement;
+      }
+
+      return false;
+    };
+
     const setModeFromTarget = (target) => {
       const element = target instanceof Element ? target : null;
       const isEditable = Boolean(element?.closest(EDITABLE_SELECTOR));
       const isInteractive = !isEditable && Boolean(element?.closest(INTERACTIVE_SELECTOR));
-      const isText = !isEditable && !isInteractive && Boolean(element?.closest(TEXT_SELECTOR));
+
+      // Önce etkileşimli elemanları ele; geri kalan okunabilir normal metinlerde
+      // ince/uzun turuncu imleç görünür.
+      const isText = !isEditable && !isInteractive && hasDirectReadableText(element);
 
       body.classList.toggle('zrc-dynamic-orange-cursor-text-mode', isText);
       body.classList.toggle('zrc-dynamic-orange-cursor-interactive', isInteractive);
