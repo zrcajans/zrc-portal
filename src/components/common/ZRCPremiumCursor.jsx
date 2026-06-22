@@ -193,6 +193,15 @@ export default function ZRCPremiumCursor() {
       return { isEditable, isText };
     };
 
+    const hide = () => {
+      body.classList.remove(
+        'zrc-dynamic-orange-cursor-visible',
+        'zrc-dynamic-orange-cursor-interactive',
+        'zrc-dynamic-orange-cursor-text-mode',
+        'zrc-dynamic-orange-cursor-down'
+      );
+    };
+
     const onPointerMove = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') {
         hide();
