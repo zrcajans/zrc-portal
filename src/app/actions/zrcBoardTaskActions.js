@@ -1483,10 +1483,42 @@ export function createZRCBoardTaskActions(deps) {
 
 
   /* === ZRC PREMIUM LIVE TASK REORDER HELPERS START === */
+  const zrcClearTaskLayoutAnimation = (element) => {
+    const activeAnimation = element?.__zrcTaskLayoutAnimation;
+
+    if (activeAnimation && typeof activeAnimation.cancel === 'function') {
+      try {
+        activeAnimation.cancel();
+      } catch {
+        // Tarayıcı animasyon temizliğini desteklemiyorsa doğal akışla devam et.
+      }
+    }
+
+    if (element && Object.prototype.hasOwnProperty.call(element, '__zrcTaskLayoutAnimation')) {
+      delete element.__zrcTaskLayoutAnimation;
+    }
+  };
+
+  const zrcCancelActiveTaskLayoutAnimations = () => {
+    if (typeof document === 'undefined') return;
+
+    try {
+      document
+        .querySelectorAll('[data-zrc-task-card="true"]')
+        .forEach((element) => zrcClearTaskLayoutAnimation(element));
+    } catch {
+      // DOM ölçümü animasyonsuz devam eder.
+    }
+  };
+
   const zrcCaptureTaskLayoutRects = () => {
     if (typeof document === 'undefined') return new Map();
 
     try {
+      // Önceki FLIP transform'u DOM ölçümünü etkilemesin.
+      // Böylece mouse sabitken kartlar ileri-geri titremez.
+      zrcCancelActiveTaskLayoutAnimations();
+
       return new Map(
         Array.from(document.querySelectorAll('[data-zrc-task-card="true"]'))
           .map((element) => {
@@ -1503,8 +1535,13 @@ export function createZRCBoardTaskActions(deps) {
     }
   };
 
-  const zrcAnimateTaskLayoutShift = (previousRects) => {
+  const zrcAnimateTaskLayoutShift = (previousRects, options = {}) => {
     if (typeof document === 'undefined' || !previousRects || previousRects.size === 0) return;
+
+    const duration = Number.isFinite(Number(options.duration))
+      ? Math.max(160, Math.min(420, Number(options.duration)))
+      : 280;
+    const easing = options.easing || 'cubic-bezier(0.22, 0.9, 0.28, 1)';
 
     window.requestAnimationFrame(() => {
       try {
@@ -1523,18 +1560,33 @@ export function createZRCBoardTaskActions(deps) {
 
             if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
 
+            // Aynı karta üst üste Web Animation ekleme.
+            zrcClearTaskLayoutAnimation(element);
+
             if (typeof element.animate === 'function') {
-              element.animate(
+              const animation = element.animate(
                 [
                   { transform: `translate(${deltaX}px, ${deltaY}px)` },
                   { transform: 'translate(0, 0)' }
                 ],
                 {
-                  duration: 315,
-                  easing: 'cubic-bezier(0.2, 1.2, 0.22, 1)',
-                  fill: 'both'
+                  duration,
+                  easing,
+                  fill: 'none'
                 }
               );
+
+              element.__zrcTaskLayoutAnimation = animation;
+
+              if (animation?.finished) {
+                animation.finished
+                  .catch(() => undefined)
+                  .then(() => {
+                    if (element.__zrcTaskLayoutAnimation === animation) {
+                      delete element.__zrcTaskLayoutAnimation;
+                    }
+                  });
+              }
             }
           });
       } catch {
@@ -1684,12 +1736,26 @@ export function createZRCBoardTaskActions(deps) {
 
     const placement = insertPlacement === 'after' ? 'after' : 'before';
     const slotKey = `${targetColId || ''}:${targetTaskId || '__end__'}:${placement}`;
+    const pointerY = Number(e?.clientY || 0);
+    const lastAppliedSlotKey = draggedTaskInfo.current?.zrcSpringLastAppliedSlotKey;
+    const lastAppliedPointerY = Number(draggedTaskInfo.current?.zrcSpringLastAppliedPointerY);
+
+    // Kartlar animasyonla yer değiştirirken mouse sabitse yeni DOM konumu farklı hedef
+    // gibi algılanabilir. Kullanıcı gerçekten en az 14 px ilerlemeden slot değişmesin.
+    if (
+      lastAppliedSlotKey &&
+      lastAppliedSlotKey !== slotKey &&
+      Number.isFinite(lastAppliedPointerY) &&
+      Math.abs(pointerY - lastAppliedPointerY) < 14
+    ) {
+      return;
+    }
 
     // zrc-apple-spring-live-drag-v3
     // V2'de hedef 70ms bekleyince state değişimi doğru yapılıyordu ama DOM animasyon yakalamadan
     // bir anda yer değiştiriyordu. Burada state değişimini flushSync ile DOM'a bastırıp
     // hemen ardından FLIP animasyonunu başlatıyoruz; böylece "tak" değil kayarak yer değiştirir.
-    if (draggedTaskInfo.current?.zrcSpringLastAppliedSlotKey === slotKey) return;
+    if (lastAppliedSlotKey === slotKey) return;
 
     if (draggedTaskInfo.current?.zrcSpringPreviewTimer) {
       window.clearTimeout(draggedTaskInfo.current.zrcSpringPreviewTimer);
@@ -1698,6 +1764,7 @@ export function createZRCBoardTaskActions(deps) {
     draggedTaskInfo.current = {
       ...draggedTaskInfo.current,
       zrcSpringPendingSlotKey: slotKey,
+      zrcSpringPendingPointerY: pointerY,
       lastPreviewTargetColId: targetColId,
       lastPreviewTargetTaskId: targetTaskId,
       lastPreviewPlacement: placement
@@ -1779,7 +1846,9 @@ export function createZRCBoardTaskActions(deps) {
             hasPreviewMoved: true,
             currentColumnId: targetColId,
             zrcSpringLastAppliedSlotKey: slotKey,
+            zrcSpringLastAppliedPointerY: pointerY,
             zrcSpringPendingSlotKey: null,
+            zrcSpringPendingPointerY: null,
             lastPreviewTargetColId: targetColId,
             lastPreviewTargetTaskId: targetTaskId,
             lastPreviewPlacement: placement
@@ -1825,7 +1894,7 @@ export function createZRCBoardTaskActions(deps) {
           });
         });
       }
-    }, 0);
+    }, 32);
   };
 
   const handleDrop = async (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
