@@ -1,4 +1,5 @@
 import { authorizeWorkspaceRequest, isSupabaseUuid } from '../server/supabaseAuthorization.js';
+import { syncCustomerAccountLink } from '../server/teamCustomerLink.js';
 
 const normalizeCredentialText = (value = '') =>
   String(value || '')
@@ -93,7 +94,7 @@ export default async function handler(req, res) {
   if (customerId) {
     const { data: customer, error: customerError } = await supabaseAdmin
       .from('customers')
-      .select('id')
+      .select('id, account_user_id')
       .eq('workspace_id', workspaceId)
       .eq('id', customerId)
       .maybeSingle();
@@ -105,6 +106,20 @@ export default async function handler(req, res) {
     if (!customer) {
       return res.status(400).json({ error: 'Bağlı müşteri bu workspace içinde bulunamadı.' });
     }
+
+    if (customer.account_user_id && customer.account_user_id !== userId) {
+      return res.status(409).json({ error: 'Bu müşteri zaten başka bir giriş hesabına bağlı.' });
+    }
+  }
+
+  const { data: previousLinkedCustomers, error: previousLinksError } = await supabaseAdmin
+    .from('customers')
+    .select('id')
+    .eq('workspace_id', workspaceId)
+    .eq('account_user_id', userId);
+
+  if (previousLinksError) {
+    return res.status(500).json({ error: 'Mevcut müşteri hesabı bağlantısı doğrulanamadı.' });
   }
 
   const removesActiveAdmin =
@@ -231,6 +246,39 @@ export default async function handler(req, res) {
     }
 
     return res.status(500).json({ error: 'Profil güncellenemedi; ekip üyesi değişikliği geri alındı.' });
+  }
+
+  const customerLinkResult = await syncCustomerAccountLink({
+    admin: supabaseAdmin,
+    workspaceId,
+    userId,
+    nextCustomerId: role === 'Müşteri/Misafir' ? customerId : '',
+    previousCustomerIds: (previousLinkedCustomers || []).map((customer) => customer.id)
+  });
+
+  if (!customerLinkResult.ok) {
+    const { error: memberRollbackError } = await supabaseAdmin
+      .from('workspace_members')
+      .update({
+        username: currentMember.username,
+        role: currentMember.role,
+        status: currentMember.status,
+        customer_id: currentMember.customer_id
+      })
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId);
+    const { error: profileRollbackError } = await supabaseAdmin
+      .from('profiles')
+      .update({ display_name: previousProfile?.display_name ?? null })
+      .eq('id', userId);
+
+    if (memberRollbackError || profileRollbackError) {
+      return res.status(500).json({
+        error: `${customerLinkResult.error} Ekip üyesi değişikliği de geri alınamadı.`
+      });
+    }
+
+    return res.status(409).json({ error: customerLinkResult.error });
   }
 
   return res.status(200).json({
