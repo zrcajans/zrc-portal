@@ -47,6 +47,7 @@ export default function ZRCAppShellIsMessagesOpenSection(props) {
     mesajlar,
     okundu,
     markAllMessagesAsRead,
+    clearAllMessages,
     full,
     transition,
     all,
@@ -133,13 +134,25 @@ export default function ZRCAppShellIsMessagesOpenSection(props) {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={markAllMessagesAsRead}
-                className="h-7 px-3 rounded-full bg-zinc-50 border border-zinc-100 text-[9.5px] font-black text-zinc-500 hover:text-zinc-800 hover:bg-white transition-all"
-              >
-                Tümünü Okundu Yap
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={clearAllMessages}
+                  disabled={messageItems.length === 0}
+                  className="h-7 px-2.5 rounded-full bg-red-50 border border-red-100 text-[9.5px] font-black text-red-500 hover:text-red-700 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  Temizle
+                </button>
+
+                <button
+                  type="button"
+                  onClick={markAllMessagesAsRead}
+                  disabled={messageItems.length === 0}
+                  className="h-7 px-2.5 rounded-full bg-zinc-50 border border-zinc-100 text-[9.5px] font-black text-zinc-500 hover:text-zinc-800 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  Tümünü Okundu Yap
+                </button>
+              </div>
             </div>
 
             <div className="max-h-[300px] overflow-y-auto custom-scrollbar p-2 bg-[#fbfcfd]">

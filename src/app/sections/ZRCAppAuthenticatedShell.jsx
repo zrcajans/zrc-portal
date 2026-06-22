@@ -108,6 +108,7 @@ export default function ZRCAppAuthenticatedShell({
     mesajlar,
     okundu,
     markAllMessagesAsRead,
+    clearAllMessages,
     full,
     transition,
     all,
@@ -594,6 +595,7 @@ export default function ZRCAppAuthenticatedShell({
           mesajlar={typeof mesajlar !== 'undefined' ? mesajlar : undefined}
           okundu={typeof okundu !== 'undefined' ? okundu : undefined}
           markAllMessagesAsRead={typeof markAllMessagesAsRead !== 'undefined' ? markAllMessagesAsRead : undefined}
+          clearAllMessages={typeof clearAllMessages !== 'undefined' ? clearAllMessages : undefined}
           full={typeof full !== 'undefined' ? full : undefined}
           transition={typeof transition !== 'undefined' ? transition : undefined}
           all={typeof all !== 'undefined' ? all : undefined}

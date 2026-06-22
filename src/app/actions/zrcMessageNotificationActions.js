@@ -105,6 +105,8 @@ export function createZRCMessageNotificationActions(deps) {
     readMessageIds,
     setReadMessageIds,
     messageItems,
+    profilePreferences,
+    setProfilePreferences,
     isProjectMessageVisibleForCurrentUser,
     setIsMessagesOpen,
     setIsMessageTaskPickerOpen,
@@ -339,6 +341,63 @@ export function createZRCMessageNotificationActions(deps) {
     setReadMessageIds((prevIds) =>
       Array.from(new Set([...prevIds, ...nextIds]))
     );
+    return true;
+  };
+
+  const clearAllMessages = async () => {
+    const visibleMessageIds = Array.from(new Set(
+      (Array.isArray(messageItems) ? messageItems : [])
+        .map((message) => String(message?.id || '').trim())
+        .filter(Boolean)
+    ));
+
+    if (visibleMessageIds.length === 0) {
+      setIsMessagesOpen(false);
+      setIsMessageTaskPickerOpen(false);
+      return true;
+    }
+
+    const confirmed = await window.zrcConfirm(
+      'Mesaj listesini temizlemek istiyor musun? Bu işlem yalnızca senin hesabındaki mesaj görünümünü temizler; diğer kullanıcıların mesajları silinmez.'
+    );
+
+    if (!confirmed) return false;
+
+    const existingClearedIds = Array.isArray(profilePreferences?.clearedMessageIds)
+      ? profilePreferences.clearedMessageIds.map((id) => String(id))
+      : [];
+
+    // Son 500 temizleme kaydı tutulur. Yeni mesajların görünmesi engellenmez.
+    const nextClearedMessageIds = Array.from(new Set([
+      ...existingClearedIds,
+      ...visibleMessageIds
+    ])).slice(-500);
+
+    const preferencesSaved = await saveUserPreferencesToSupabase({
+      profilePreferences: {
+        clearedMessageIds: nextClearedMessageIds
+      }
+    });
+
+    if (!preferencesSaved) {
+      await window.zrcAlert(
+        'Mesajlar temizlenemedi. Sunucu kaydı tamamlanmadığı için liste değiştirilmedi.'
+      );
+      return false;
+    }
+
+    setProfilePreferences((previousPreferences) => ({
+      ...(previousPreferences || {}),
+      clearedMessageIds: nextClearedMessageIds
+    }));
+
+    setReadMessageIds((previousIds) => Array.from(new Set([
+      ...(previousIds || []),
+      ...visibleMessageIds
+    ])));
+
+    setIsMessagesOpen(false);
+    setIsMessageTaskPickerOpen(false);
     return true;
   };
 
@@ -623,6 +682,7 @@ export function createZRCMessageNotificationActions(deps) {
     handleNotificationClick,
     markMessageAsRead,
     markAllMessagesAsRead,
+    clearAllMessages,
     handleMessageClick,
     handleSendProjectMessage,
     openMessagesPanel,

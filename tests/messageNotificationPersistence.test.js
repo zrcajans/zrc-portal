@@ -13,6 +13,10 @@ const createDeps = (overrides = {}) => ({
   readMessageIds: [],
   setReadMessageIds: () => {},
   messageItems: [],
+  profilePreferences: {},
+  setProfilePreferences: () => {},
+  setIsMessagesOpen: () => {},
+  setIsMessageTaskPickerOpen: () => {},
   ...overrides
 });
 
@@ -138,4 +142,60 @@ test('marking all messages persists the complete id set before local commit', as
   assert.equal(await actions.markAllMessagesAsRead(), true);
   assert.deepEqual(persistedIds, ['message-1', 'message-2']);
   assert.equal(localCommitCount, 1);
+});
+
+test('clearing messages saves hidden ids without deleting shared messages', async () => {
+  const previousWindow = globalThis.window;
+  let persistedPatch = null;
+  let committedPreferences = null;
+  let committedReadIds = [];
+  let panelClosed = false;
+
+  globalThis.window = {
+    zrcConfirm: async () => true,
+    zrcAlert: async () => {}
+  };
+
+  try {
+    const actions = createZRCMessageNotificationActions(createDeps({
+      profilePreferences: {
+        clearedMessageIds: ['old-message']
+      },
+      messageItems: [
+        { id: 'message-1' },
+        { id: 'message-2' }
+      ],
+      saveUserPreferencesToSupabase: async (patch) => {
+        persistedPatch = patch;
+        return true;
+      },
+      setProfilePreferences: (updater) => {
+        committedPreferences = updater({
+          clearedMessageIds: ['old-message']
+        });
+      },
+      setReadMessageIds: (updater) => {
+        committedReadIds = updater([]);
+      },
+      setIsMessagesOpen: (value) => {
+        panelClosed = value === false;
+      },
+      setIsMessageTaskPickerOpen: () => {}
+    }));
+
+    assert.equal(await actions.clearAllMessages(), true);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+
+  assert.deepEqual(
+    persistedPatch.profilePreferences.clearedMessageIds,
+    ['old-message', 'message-1', 'message-2']
+  );
+  assert.deepEqual(
+    committedPreferences.clearedMessageIds,
+    ['old-message', 'message-1', 'message-2']
+  );
+  assert.deepEqual(committedReadIds, ['message-1', 'message-2']);
+  assert.equal(panelClosed, true);
 });
