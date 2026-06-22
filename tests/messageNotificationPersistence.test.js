@@ -26,6 +26,85 @@ test('failed notification preference persistence leaves local read state untouch
   assert.equal(localCommitCount, 0);
 });
 
+test('clearing notifications persists the current user scope and updates only matching rows', async () => {
+  const notificationId = '11111111-1111-4111-8111-111111111111';
+  const workspaceId = '22222222-2222-4222-8222-222222222222';
+  const currentUserId = '33333333-3333-4333-8333-333333333333';
+  const notification = {
+    id: `supabase-notification-${notificationId}`,
+    title: 'Görev güncellendi',
+    createdAt: '2026-06-22T10:00:00.000Z'
+  };
+  const storage = new Map();
+  const previousWindow = globalThis.window;
+  const filters = [];
+  let persistedPreferences = null;
+  let committedReadIds = [];
+  let remainingNotifications = [notification];
+
+  globalThis.window = {
+    localStorage: {
+      getItem: (key) => storage.get(key) || null,
+      setItem: (key, value) => storage.set(key, value)
+    },
+    zrcAlert: async () => {}
+  };
+
+  const mutation = {
+    eq(column, value) {
+      filters.push([column, value]);
+      return this;
+    },
+    async in(column, values) {
+      filters.push([column, values]);
+      return { error: null };
+    }
+  };
+
+  try {
+    const actions = createZRCMessageNotificationActions(createDeps({
+      isSupabaseUuid: (value) => value === notificationId,
+      supabase: {
+        from: (table) => ({
+          update: (values) => {
+            assert.equal(table, 'notifications');
+            assert.deepEqual(values, { is_read: true });
+            return mutation;
+          }
+        })
+      },
+      currentUserId,
+      getCurrentSupabaseWorkspaceId: () => workspaceId,
+      notificationItems: [notification],
+      saveUserPreferencesToSupabase: async (preferences) => {
+        persistedPreferences = preferences;
+        return true;
+      },
+      setReadNotificationIds: (updater) => {
+        committedReadIds = updater([]);
+      },
+      setActivityNotifications: (updater) => {
+        remainingNotifications = updater(remainingNotifications);
+      }
+    }));
+
+    await actions.markAllNotificationsAsRead();
+  } finally {
+    globalThis.window = previousWindow;
+  }
+
+  assert.equal(persistedPreferences.notificationClearSource, currentUserId);
+  assert.ok(persistedPreferences.readNotificationIds.includes(notificationId));
+  assert.ok(persistedPreferences.readNotificationIds.some((id) => id.startsWith('clear-all:')));
+  assert.deepEqual(filters, [
+    ['workspace_id', workspaceId],
+    ['user_id', currentUserId],
+    ['id', [notificationId]]
+  ]);
+  assert.ok(committedReadIds.includes(notificationId));
+  assert.deepEqual(remainingNotifications, []);
+});
+
 test('message read state commits only after preference persistence', async () => {
   let resolveSave;
   let localCommitCount = 0;

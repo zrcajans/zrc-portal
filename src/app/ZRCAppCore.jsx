@@ -176,6 +176,7 @@ import {
 import { getColumnPersistencePosition } from './utils/columnPersistenceHelpers.js';
 import { requireMatchingMutationRow } from './utils/supabaseMutationHelpers.js';
 import { triggerBrowserDownload } from './utils/browserDownloadHelpers.js';
+import { upsertUserPreferencesForUser } from './utils/userPreferencesPersistence.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
@@ -3569,19 +3570,12 @@ function App() {
         updatedAt: nowIso
       };
 
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert(
-          {
-            workspace_id: workspaceId,
-            user_id: cleanUserId,
-            preferences: nextPreferences,
-            updated_at: nowIso
-          },
-          {
-            onConflict: 'workspace_id,user_id'
-          }
-        );
+      const { error } = await upsertUserPreferencesForUser(supabase, {
+        workspaceId,
+        userId: cleanUserId,
+        preferences: nextPreferences,
+        updatedAt: nowIso
+      });
 
       if (error) throw error;
 
