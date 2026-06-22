@@ -30,9 +30,25 @@ export function createZRCProfileActions(deps) {
     const overrideProfileDraft = normalizeStorageObject(overrides?.profileDraft || {}, {});
     const overrideProfilePreferences = normalizeStorageObject(overrides?.profilePreferences || {}, {});
 
-    const nextProfileDraft = {
+    const mergedProfileDraft = {
       ...profileDraft,
       ...overrideProfileDraft
+    };
+
+    const pendingAvatarDataUrl = String(mergedProfileDraft.pendingAvatarDataUrl || '').trim();
+    const nextProfileDraftBase = {
+      ...mergedProfileDraft
+    };
+
+    // Bekleyen taslak alanı yalnızca kayıt anında gerçek avatarDataUrl'e çevrilir.
+    // Kalıcı profil verisine pendingAvatarDataUrl olarak taşınmaz.
+    delete nextProfileDraftBase.pendingAvatarDataUrl;
+
+    // Seçilen görsel yalnızca Güncelle'ye basıldığında gerçek avatar olur.
+    // Böylece dosya seçmek tek başına sidebar / ekip / Supabase profilini değiştirmez.
+    const nextProfileDraft = {
+      ...nextProfileDraftBase,
+      avatarDataUrl: pendingAvatarDataUrl || nextProfileDraftBase.avatarDataUrl || ''
     };
 
     const nextProfileNameParts = [nextProfileDraft.firstName, nextProfileDraft.lastName]
@@ -266,46 +282,24 @@ export function createZRCProfileActions(deps) {
 
     if (!file.type.startsWith('image/')) {
       await window.zrcAlert('Lütfen bir görsel dosyası seç.');
+      event.target.value = '';
       return;
     }
 
     const reader = new FileReader();
 
-    reader.onload = async () => {
-      if (!tryAcquireActionLock(profileMutationLockRef, 'save-profile')) return;
+    reader.onload = () => {
+      const pendingAvatarDataUrl = String(reader.result || '').trim();
 
-      try {
-        const nextProfileDraft = {
-          ...profileDraft,
-          avatarDataUrl: reader.result
-        };
-        const nextPreferences = {
-          ...profilePreferences,
-          lastSavedAt: new Date().toISOString()
-        };
-        const profileSaved = await saveProfileToSupabase(nextProfileDraft, nextPreferences);
+      if (!pendingAvatarDataUrl) return;
 
-        if (!profileSaved) {
-          await window.zrcAlert('Profil görseli kaydedilemedi; yerel profil değiştirilmedi.');
-          return;
-        }
-
-        setProfileDraft(nextProfileDraft);
-
-        if (currentUserId) {
-          setTeamMembers((prevMembers) =>
-            prevMembers.map((member) =>
-              member.id === currentUserId
-                ? { ...member, avatar: reader.result }
-                : member
-            )
-          );
-        }
-
-        setProfilePreferences(nextPreferences);
-      } finally {
-        releaseActionLock(profileMutationLockRef, 'save-profile');
-      }
+      // Burada kesinlikle Supabase kaydı, ekip güncellemesi veya global avatar değişimi yok.
+      // Görsel yalnızca taslağa alınır; kullanıcı Güncelle'ye basınca saveProfileSection
+      // bunu gerçek avatarDataUrl alanına taşıyıp kaydeder.
+      setProfileDraft((prev) => ({
+        ...(prev || {}),
+        pendingAvatarDataUrl
+      }));
     };
 
     reader.readAsDataURL(file);

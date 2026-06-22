@@ -140,6 +140,12 @@ export default function ZRCAppProfilePageSection({
                         onChange={handleProfileAvatarChange}
                         className="hidden"
                       />
+
+                      {profileDraft.pendingAvatarDataUrl && (
+                        <div className="mt-2 max-w-[148px] text-center text-[9px] leading-3 font-bold text-[#f08a3c]">
+                          Yeni fotoğraf seçildi. Güncelle&apos;ye basınca uygulanacak.
+                        </div>
+                      )}
                     </div>
 
                     <div className="min-w-0">

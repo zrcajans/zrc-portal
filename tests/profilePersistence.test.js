@@ -71,6 +71,50 @@ test('duplicate profile saves share one in-flight persistence request', async ()
   assert.equal(deps.profileMutationLockRef.current.size, 0);
 });
 
+test('avatar selection stages the image until profile update is saved', async () => {
+  const previousFileReader = globalThis.FileReader;
+  const previousWindow = globalThis.window;
+
+  let savedProfileCallCount = 0;
+  let stagedDraft = null;
+
+  globalThis.window = { zrcAlert: async () => {} };
+  globalThis.FileReader = class {
+    readAsDataURL() {
+      this.result = 'data:image/png;base64,staged-avatar';
+      this.onload();
+    }
+  };
+
+  try {
+    const deps = createDeps({
+      setProfileDraft: (updater) => {
+        stagedDraft = typeof updater === 'function'
+          ? updater({ firstName: 'Eski', avatarDataUrl: 'old-avatar' })
+          : updater;
+      },
+      saveProfileToSupabase: async () => {
+        savedProfileCallCount += 1;
+        return true;
+      }
+    });
+
+    await createZRCProfileActions(deps).handleProfileAvatarChange({
+      target: {
+        files: [{ type: 'image/png' }],
+        value: 'selected-file'
+      }
+    });
+
+    assert.equal(savedProfileCallCount, 0);
+    assert.equal(stagedDraft.avatarDataUrl, 'old-avatar');
+    assert.equal(stagedDraft.pendingAvatarDataUrl, 'data:image/png;base64,staged-avatar');
+  } finally {
+    globalThis.FileReader = previousFileReader;
+    globalThis.window = previousWindow;
+  }
+});
+
 test('failed preference persistence leaves local preferences untouched', async () => {
   let preferenceMutationCount = 0;
   let alertCount = 0;
