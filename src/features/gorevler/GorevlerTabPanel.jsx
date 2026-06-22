@@ -468,9 +468,45 @@ export default function GorevlerTabPanel(props) {
                                 e.preventDefault();
                                 e.stopPropagation();
 
-                                if (typeof handleDragOverTaskPreview === 'function') {
+                                if (typeof handleDragOverTaskPreview !== 'function') return;
+
+                                // Kartların arasındaki boşluğa gelindiğinde dragover hedefi kart değil
+                                // kolon listesi olur. Bırakmayı beklemeden en yakın sırayı burada çöz.
+                                const pointerY = Number(e.clientY || 0);
+                                const taskCards = Array.from(
+                                  e.currentTarget.querySelectorAll('[data-zrc-task-card="true"]')
+                                ).filter((card) => {
+                                  if (!(card instanceof Element)) return false;
+
+                                  return !card.classList.contains('zrc-desktop-task-drag-source') &&
+                                    !card.classList.contains('zrc-task-drag-in-list-copy-hidden');
+                                });
+
+                                if (taskCards.length === 0) {
                                   handleDragOverTaskPreview(e, column.id, null, 'after');
+                                  return;
                                 }
+
+                                let targetTaskId = null;
+                                let placement = 'after';
+
+                                for (const card of taskCards) {
+                                  const rect = card.getBoundingClientRect();
+                                  const cardTaskId = String(card.dataset.zrcTaskId || '').trim();
+
+                                  if (!cardTaskId) continue;
+
+                                  if (pointerY < rect.top + rect.height / 2) {
+                                    targetTaskId = cardTaskId;
+                                    placement = 'before';
+                                    break;
+                                  }
+
+                                  targetTaskId = cardTaskId;
+                                  placement = 'after';
+                                }
+
+                                handleDragOverTaskPreview(e, column.id, targetTaskId, placement);
                               }}
                               onDrop={(e) => {
                                 e.preventDefault();

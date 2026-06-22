@@ -1825,7 +1825,7 @@ export function createZRCBoardTaskActions(deps) {
           });
         });
       }
-    }, 70);
+    }, 0);
   };
 
   const handleDrop = async (e, targetColId, targetTaskId = null, insertPlacement = 'before') => {
