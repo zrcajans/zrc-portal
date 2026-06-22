@@ -8356,50 +8356,6 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     );
   };
 
-
-
-  useEffect(() => {
-    if (!isLoggedIn || !supabase || !supabaseWorkspaceId || !currentUserId) return undefined;
-
-    let cancelled = false;
-
-    const zrcSyncNotificationClearsAcrossDevices = async () => {
-      try {
-        const { data: preferencesRecord, error } = await supabase
-          .from('user_preferences')
-          .select('preferences')
-          .eq('workspace_id', supabaseWorkspaceId)
-          .eq('user_id', currentUserId)
-          .maybeSingle();
-
-        if (cancelled || error) return;
-
-        const preferences = normalizeStorageObject(preferencesRecord?.preferences || {}, {});
-        const remoteReadNotificationIds = zrcCoreBuildRemoteNotificationClearIds(preferences);
-
-        if (remoteReadNotificationIds.length === 0) return;
-
-        setReadNotificationIds((prevIds) =>
-          Array.from(new Set([...(prevIds || []), ...remoteReadNotificationIds]))
-        );
-
-        zrcCoreApplyRemoteNotificationClearState(preferences);
-      } catch (error) {
-        console.warn('[ZRC] Bildirim temizleme senkronu atlandı.', error);
-      }
-    };
-
-    zrcSyncNotificationClearsAcrossDevices();
-    const intervalId = window.setInterval(zrcSyncNotificationClearsAcrossDevices, 2500);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, [isLoggedIn, supabase, supabaseWorkspaceId, currentUserId]);
-
-
-
   // zrc-notification-live-sync-v1
   // Bildirim sayısı ve okundu bilgisi mobil/masaüstü aynı anda yürüsün diye
   // notifications, activity_logs ve user_preferences için ayrı hızlı senkron katmanı.
@@ -8533,83 +8489,6 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
       }
 
       window.clearInterval(fallbackInterval);
-      supabase.removeChannel(channel);
-    };
-  }, [isLoggedIn, authSessionLoading, supabase, supabaseWorkspaceId, currentUserId]);
-
-
-
-  // zrc-stable-clear-all-preference-sync-v1
-  // Diğer cihazda "Temizle" basılınca readNotificationIds içindeki clear-all tokenını bu cihaza taşır.
-  useEffect(() => {
-    if (!isLoggedIn || authSessionLoading || !supabase || !supabaseWorkspaceId || !isSupabaseUuid(currentUserId)) return undefined;
-
-    let cancelled = false;
-    let timerId = null;
-
-    const readRemoteNotificationPreferences = async () => {
-      try {
-        const { data: preferencesRecord, error } = await supabase
-          .from('user_preferences')
-          .select('preferences')
-          .eq('workspace_id', supabaseWorkspaceId)
-          .eq('user_id', currentUserId)
-          .maybeSingle();
-
-        if (cancelled || error) return;
-
-        const preferences = normalizeStorageObject(preferencesRecord?.preferences || {}, {});
-        const remoteIds = Array.from(new Set([
-          ...normalizeStorageArray(preferences.readNotificationIds || [], []),
-          ...(preferences.notificationClearAllAt ? [`clear-all:${preferences.notificationClearAllAt}`, `cleared-before:${preferences.notificationClearAllAt}`] : []),
-          ...(preferences.notificationsClearAllAt ? [`clear-all:${preferences.notificationsClearAllAt}`, `cleared-before:${preferences.notificationsClearAllAt}`] : []),
-          ...(preferences.notificationsClearedBefore ? [`cleared-before:${preferences.notificationsClearedBefore}`, `clear-all:${preferences.notificationsClearedBefore}`] : [])
-        ]));
-
-        if (remoteIds.length === 0) return;
-
-        setReadNotificationIds((prevIds) => Array.from(new Set([...(prevIds || []), ...remoteIds])));
-      } catch (error) {
-        console.warn('[ZRC] Bildirim temizleme tercihi okunamadı.', error);
-      }
-    };
-
-    const scheduleRead = (delay = 120) => {
-      if (cancelled) return;
-
-      if (timerId) {
-        window.clearTimeout(timerId);
-      }
-
-      timerId = window.setTimeout(readRemoteNotificationPreferences, delay);
-    };
-
-    const channel = supabase.channel(`zrc-stable-notification-clear-${supabaseWorkspaceId}-${currentUserId}`);
-
-    channel
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_preferences',
-          filter: `user_id=eq.${currentUserId}`
-        },
-        () => scheduleRead(80)
-      )
-      .subscribe();
-
-    scheduleRead(80);
-    const intervalId = window.setInterval(() => scheduleRead(80), 2500);
-
-    return () => {
-      cancelled = true;
-
-      if (timerId) {
-        window.clearTimeout(timerId);
-      }
-
-      window.clearInterval(intervalId);
       supabase.removeChannel(channel);
     };
   }, [isLoggedIn, authSessionLoading, supabase, supabaseWorkspaceId, currentUserId]);
