@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function MobileTaskCard({
   task,
@@ -8,7 +8,6 @@ export default function MobileTaskCard({
   getMobileTaskCardAssignees,
   moveMobileTaskToActiveColumn,
   allBoardColumns,
-  setMobileActiveColumnId,
   onMobileTaskMoveToast
 }) {
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
@@ -90,9 +89,10 @@ export default function MobileTaskCard({
 
     const targetTitle = normalizeTitle(targetColumn.title || 'Kolon');
 
-    if (typeof moveMobileTaskToActiveColumn === 'function') {
-      await moveMobileTaskToActiveColumn(task, targetColumn.id);
-    }
+    if (typeof moveMobileTaskToActiveColumn !== 'function') return;
+
+    const moved = await moveMobileTaskToActiveColumn(task, targetColumn.id);
+    if (!moved) return;
 
     setIsColumnMenuOpen(false);
 
