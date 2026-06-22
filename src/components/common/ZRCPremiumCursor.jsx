@@ -29,33 +29,30 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-function parseRgbColor(value) {
-  if (!value || value === 'transparent') return null;
-
-  const match = String(value).match(/rgba?\(([^)]+)\)/i);
+function parseRgb(value) {
+  const match = String(value || '').match(/rgba?\(([^)]+)\)/i);
   if (!match) return null;
 
-  const values = match[1]
-    .split(',')
-    .map((part) => Number.parseFloat(part.trim()));
-
-  if (values.length < 3 || values.slice(0, 3).some((part) => Number.isNaN(part))) {
+  const parts = match[1].split(',').map((part) => Number.parseFloat(part.trim()));
+  if (parts.length < 3 || parts.slice(0, 3).some((part) => Number.isNaN(part))) {
     return null;
   }
 
-  const alpha = Number.isFinite(values[3]) ? values[3] : 1;
+  const alpha = Number.isFinite(parts[3]) ? parts[3] : 1;
   if (alpha <= 0.06) return null;
 
   return {
-    r: clamp(values[0], 0, 255),
-    g: clamp(values[1], 0, 255),
-    b: clamp(values[2], 0, 255)
+    r: clamp(parts[0], 0, 255),
+    g: clamp(parts[1], 0, 255),
+    b: clamp(parts[2], 0, 255)
   };
 }
 
 function toLinear(channel) {
-  const value = channel / 255;
-  return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  const normalized = channel / 255;
+  return normalized <= 0.03928
+    ? normalized / 12.92
+    : ((normalized + 0.055) / 1.055) ** 2.4;
 }
 
 function getLuminance(color) {
@@ -67,20 +64,18 @@ function getLuminance(color) {
 }
 
 function getContrastRatio(first, second) {
-  const firstLum = getLuminance(first);
-  const secondLum = getLuminance(second);
-  const lighter = Math.max(firstLum, secondLum);
-  const darker = Math.min(firstLum, secondLum);
-
-  return (lighter + 0.05) / (darker + 0.05);
+  const light = Math.max(getLuminance(first), getLuminance(second));
+  const dark = Math.min(getLuminance(first), getLuminance(second));
+  return (light + 0.05) / (dark + 0.05);
 }
 
-function getBackgroundAnchor(target) {
+function findBackgroundElement(target) {
   let current = target instanceof Element ? target : null;
 
+  // Sadece hedef + en yakın 6 katman: düşük maliyetli kontrast tespiti.
   for (let depth = 0; current && current !== document.documentElement && depth < 6; depth += 1) {
     try {
-      if (parseRgbColor(window.getComputedStyle(current).backgroundColor)) {
+      if (parseRgb(window.getComputedStyle(current).backgroundColor)) {
         return current;
       }
     } catch {
@@ -93,19 +88,21 @@ function getBackgroundAnchor(target) {
   return document.body;
 }
 
-function needsWhiteOutline(anchor) {
+function needsWhiteOutline(target) {
   try {
-    const background = parseRgbColor(window.getComputedStyle(anchor).backgroundColor);
+    const backgroundElement = findBackgroundElement(target);
+    const background = parseRgb(window.getComputedStyle(backgroundElement).backgroundColor);
     if (!background) return false;
 
     const contrast = getContrastRatio(ZRC_ORANGE, background);
-    const colorDistance = Math.hypot(
+    const distance = Math.hypot(
       ZRC_ORANGE.r - background.r,
       ZRC_ORANGE.g - background.g,
       ZRC_ORANGE.b - background.b
     );
 
-    return contrast < 2.15 || colorDistance < 116;
+    // Turuncu ya da benzeri zeminler / düşük kontrastlı tonlar.
+    return contrast < 2.15 || distance < 116;
   } catch {
     return false;
   }
@@ -115,7 +112,6 @@ function getCaretAtPoint(clientX, clientY) {
   try {
     if (typeof document.caretPositionFromPoint === 'function') {
       const position = document.caretPositionFromPoint(clientX, clientY);
-
       if (position?.offsetNode) {
         return {
           node: position.offsetNode,
@@ -126,7 +122,6 @@ function getCaretAtPoint(clientX, clientY) {
 
     if (typeof document.caretRangeFromPoint === 'function') {
       const range = document.caretRangeFromPoint(clientX, clientY);
-
       if (range?.startContainer) {
         return {
           node: range.startContainer,
@@ -135,13 +130,13 @@ function getCaretAtPoint(clientX, clientY) {
       }
     }
   } catch {
-    // Tarayıcı desteklemezse normal nokta modunda kalır.
+    // Destek yoksa normal nokta imleci kullanılır.
   }
 
   return null;
 }
 
-function isPointerExactlyOnText(clientX, clientY) {
+function isExactlyOverText(clientX, clientY) {
   const caret = getCaretAtPoint(clientX, clientY);
   const textNode = caret?.node;
 
@@ -151,17 +146,17 @@ function isPointerExactlyOnText(clientX, clientY) {
   if (!text) return false;
 
   const offset = clamp(Number(caret.offset || 0), 0, text.length);
-  const candidateIndexes = [offset, offset - 1]
+  const indexes = [offset, offset - 1]
     .filter((index) => index >= 0 && index < text.length)
-    .filter((index, indexPosition, allIndexes) => allIndexes.indexOf(index) === indexPosition)
+    .filter((index, position, all) => all.indexOf(index) === position)
     .filter((index) => !/\s/.test(text[index] || ''));
 
-  if (!candidateIndexes.length) return false;
+  if (!indexes.length) return false;
 
   try {
     const range = document.createRange();
 
-    return candidateIndexes.some((index) => {
+    return indexes.some((index) => {
       range.setStart(textNode, index);
       range.setEnd(textNode, index + 1);
 
@@ -181,17 +176,16 @@ function isPointerExactlyOnText(clientX, clientY) {
 }
 
 export default function ZRCPremiumCursor() {
-  const animationFrameRef = useRef(0);
-
+  const frameRef = useRef(0);
   const stateRef = useRef({
     x: -80,
     y: -80,
-    previousX: -80,
-    previousY: -80,
+    previousX: null,
+    previousY: null,
     speed: 0,
     angle: 0,
     target: null,
-    lastBackgroundTarget: null,
+    lastContrastTarget: null,
     lowContrast: false
   });
 
@@ -207,16 +201,16 @@ export default function ZRCPremiumCursor() {
 
     const body = document.body;
     const cursor = document.createElement('span');
-    const shape = document.createElement('span');
+    const dot = document.createElement('span');
 
-    cursor.className = 'zrc-smooth-liquid-cursor';
+    cursor.className = 'zrc-classic-orange-cursor';
     cursor.setAttribute('aria-hidden', 'true');
     cursor.setAttribute('data-zrc-cursor-portal', 'true');
 
-    shape.className = 'zrc-smooth-liquid-cursor__shape';
-    cursor.appendChild(shape);
+    dot.className = 'zrc-classic-orange-cursor__dot';
+    cursor.appendChild(dot);
     body.appendChild(cursor);
-    body.classList.add('zrc-smooth-liquid-cursor-enabled');
+    body.classList.add('zrc-classic-orange-cursor-enabled');
 
     const hide = () => {
       cursor.classList.remove(
@@ -229,41 +223,40 @@ export default function ZRCPremiumCursor() {
     };
 
     const render = () => {
-      animationFrameRef.current = 0;
+      frameRef.current = 0;
 
       const state = stateRef.current;
       const target = state.target instanceof Element ? state.target : null;
       const editable = Boolean(target?.closest(EDITABLE_SELECTOR));
       const interactive = !editable && Boolean(target?.closest(INTERACTIVE_SELECTOR));
-      const textMode = !editable && !interactive && isPointerExactlyOnText(state.x, state.y);
+      const textMode = !editable && !interactive && isExactlyOverText(state.x, state.y);
 
-      if (target && target !== state.lastBackgroundTarget) {
-        state.lastBackgroundTarget = target;
-        state.lowContrast = needsWhiteOutline(getBackgroundAnchor(target));
+      if (target && target !== state.lastContrastTarget) {
+        state.lastContrastTarget = target;
+        state.lowContrast = needsWhiteOutline(target);
       }
 
-      const normalizedSpeed = clamp(state.speed, 0, 32);
-      const stretch = textMode ? 1 : 1 + Math.min(0.28, normalizedSpeed / 104);
-      const squash = textMode ? 1 : 1 - Math.min(0.16, normalizedSpeed / 178);
-      const angle = textMode ? 0 : state.angle;
-      const skew = textMode ? 0 : clamp(normalizedSpeed / 12, 0, 3.2);
+      const speed = clamp(state.speed, 0, 34);
+      const stretch = textMode ? 1 : 1 + Math.min(0.28, speed / 108);
+      const squash = textMode ? 1 : 1 - Math.min(0.14, speed / 190);
 
       cursor.style.setProperty('--zrc-cursor-x', `${state.x}px`);
       cursor.style.setProperty('--zrc-cursor-y', `${state.y}px`);
-      shape.style.setProperty('--zrc-liquid-rotation', `${angle.toFixed(2)}deg`);
-      shape.style.setProperty('--zrc-liquid-scale-x', stretch.toFixed(3));
-      shape.style.setProperty('--zrc-liquid-scale-y', squash.toFixed(3));
-      shape.style.setProperty('--zrc-liquid-skew', `${skew.toFixed(2)}deg`);
+      dot.style.setProperty('--zrc-cursor-angle', `${textMode ? 0 : state.angle}deg`);
+      dot.style.setProperty('--zrc-cursor-scale-x', stretch.toFixed(3));
+      dot.style.setProperty('--zrc-cursor-scale-y', squash.toFixed(3));
 
       cursor.classList.toggle('is-visible', !editable);
       cursor.classList.toggle('is-interactive', interactive);
       cursor.classList.toggle('is-text', textMode);
+
+      // Metin çizgisi zaten ince olduğu için kontur yalnızca normal imleçte görünür.
       cursor.classList.toggle('is-low-contrast', Boolean(state.lowContrast) && !textMode);
     };
 
     const scheduleRender = () => {
-      if (!animationFrameRef.current) {
-        animationFrameRef.current = window.requestAnimationFrame(render);
+      if (!frameRef.current) {
+        frameRef.current = window.requestAnimationFrame(render);
       }
     };
 
@@ -276,8 +269,8 @@ export default function ZRCPremiumCursor() {
       const state = stateRef.current;
       const nextX = event.clientX;
       const nextY = event.clientY;
-      const deltaX = nextX - state.previousX;
-      const deltaY = nextY - state.previousY;
+      const deltaX = state.previousX === null ? 0 : nextX - state.previousX;
+      const deltaY = state.previousY === null ? 0 : nextY - state.previousY;
 
       state.x = nextX;
       state.y = nextY;
@@ -285,7 +278,7 @@ export default function ZRCPremiumCursor() {
       state.previousY = nextY;
       state.speed = Math.hypot(deltaX, deltaY);
 
-      if (state.speed > 0.25) {
+      if (state.speed > 0.3) {
         state.angle = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
       }
 
@@ -310,8 +303,8 @@ export default function ZRCPremiumCursor() {
     document.addEventListener('mouseleave', hide);
 
     return () => {
-      if (animationFrameRef.current) {
-        window.cancelAnimationFrame(animationFrameRef.current);
+      if (frameRef.current) {
+        window.cancelAnimationFrame(frameRef.current);
       }
 
       window.removeEventListener('pointermove', onPointerMove);
@@ -321,7 +314,7 @@ export default function ZRCPremiumCursor() {
       document.removeEventListener('mouseleave', hide);
 
       cursor.remove();
-      body.classList.remove('zrc-smooth-liquid-cursor-enabled');
+      body.classList.remove('zrc-classic-orange-cursor-enabled');
     };
   }, []);
 

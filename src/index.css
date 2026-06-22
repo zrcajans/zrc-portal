@@ -2178,21 +2178,24 @@ body {
 
 
 
-/* === ZRC SMOOTH LIQUID CURSOR START === */
+
+
+
+/* === ZRC CLASSIC DYNAMIC CURSOR START === */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  body.zrc-smooth-liquid-cursor-enabled,
-  body.zrc-smooth-liquid-cursor-enabled * {
+  body.zrc-classic-orange-cursor-enabled,
+  body.zrc-classic-orange-cursor-enabled * {
     cursor: none !important;
   }
 
-  body.zrc-smooth-liquid-cursor-enabled input,
-  body.zrc-smooth-liquid-cursor-enabled textarea,
-  body.zrc-smooth-liquid-cursor-enabled select,
-  body.zrc-smooth-liquid-cursor-enabled [contenteditable="true"] {
+  body.zrc-classic-orange-cursor-enabled input,
+  body.zrc-classic-orange-cursor-enabled textarea,
+  body.zrc-classic-orange-cursor-enabled select,
+  body.zrc-classic-orange-cursor-enabled [contenteditable="true"] {
     cursor: text !important;
   }
 
-  .zrc-smooth-liquid-cursor {
+  .zrc-classic-orange-cursor {
     --zrc-cursor-x: -80px;
     --zrc-cursor-y: -80px;
 
@@ -2207,27 +2210,25 @@ body {
     contain: layout style paint;
   }
 
-  .zrc-smooth-liquid-cursor.is-visible {
+  .zrc-classic-orange-cursor.is-visible {
     opacity: 1;
   }
 
-  .zrc-smooth-liquid-cursor__shape {
-    --zrc-liquid-rotation: 0deg;
-    --zrc-liquid-scale-x: 1;
-    --zrc-liquid-scale-y: 1;
-    --zrc-liquid-skew: 0deg;
+  .zrc-classic-orange-cursor__dot {
+    --zrc-cursor-angle: 0deg;
+    --zrc-cursor-scale-x: 1;
+    --zrc-cursor-scale-y: 1;
 
     display: block;
     width: 10px;
     height: 10px;
     box-sizing: border-box;
+    border: 1.5px solid transparent;
 
     /*
-      Kritik kural:
-      Border-radius daima %50. Böylece imleç asla çeyrek daire, yarım daire
-      veya köşeli bir parçaya dönüşmez. Sıvı hissi sadece transform ile gelir.
+      Bu değer hiçbir zaman değişmez: imleç daima tam yuvarlak/oval kalır.
+      Dinamik hissi yalnızca rotation + scale ile oluşur.
     */
-    border: 1.5px solid transparent;
     border-radius: 50%;
     background: #ff3600;
     box-shadow: none;
@@ -2235,44 +2236,43 @@ body {
 
     transform:
       translate(-50%, -50%)
-      rotate(var(--zrc-liquid-rotation))
-      skewX(var(--zrc-liquid-skew))
-      scaleX(var(--zrc-liquid-scale-x))
-      scaleY(var(--zrc-liquid-scale-y));
+      rotate(var(--zrc-cursor-angle))
+      scaleX(var(--zrc-cursor-scale-x))
+      scaleY(var(--zrc-cursor-scale-y));
 
     transition:
-      width 140ms cubic-bezier(0.22, 1, 0.36, 1),
-      height 140ms cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 170ms ease,
-      border-radius 140ms cubic-bezier(0.22, 1, 0.36, 1);
+      width 150ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 150ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 180ms ease,
+      border-radius 150ms cubic-bezier(0.22, 1, 0.36, 1);
 
     will-change: transform, width, height;
   }
 
-  /* Turuncu zeminde veya düşük kontrastta beyaz kontur yumuşakça açılır. */
-  .zrc-smooth-liquid-cursor.is-low-contrast .zrc-smooth-liquid-cursor__shape {
-    border-color: rgba(255, 255, 255, 0.96);
+  /* İmleç turuncu/düşük kontrast zemine girince yalnızca ince beyaz kontur eklenir. */
+  .zrc-classic-orange-cursor.is-low-contrast .zrc-classic-orange-cursor__dot {
+    border-color: rgba(255, 255, 255, 0.98);
   }
 
-  .zrc-smooth-liquid-cursor.is-interactive .zrc-smooth-liquid-cursor__shape {
+  .zrc-classic-orange-cursor.is-interactive .zrc-classic-orange-cursor__dot {
     width: 14px;
     height: 14px;
   }
 
-  .zrc-smooth-liquid-cursor.is-text .zrc-smooth-liquid-cursor__shape {
+  .zrc-classic-orange-cursor.is-text .zrc-classic-orange-cursor__dot {
     width: 3px;
     height: 22px;
     border-radius: 999px;
   }
 
-  .zrc-smooth-liquid-cursor.is-pressed .zrc-smooth-liquid-cursor__shape {
+  .zrc-classic-orange-cursor.is-pressed .zrc-classic-orange-cursor__dot {
     width: 7px;
     height: 7px;
   }
 
-  .zrc-smooth-liquid-cursor.is-text.is-pressed .zrc-smooth-liquid-cursor__shape {
+  .zrc-classic-orange-cursor.is-text.is-pressed .zrc-classic-orange-cursor__dot {
     width: 3px;
     height: 16px;
   }
 }
-/* === ZRC SMOOTH LIQUID CURSOR END === */
+/* === ZRC CLASSIC DYNAMIC CURSOR END === */
