@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "lint:safety": "eslint api server tests src/app/actions src/app/utils src/pwaRegister.js src/components/ZRCGlobalRuntimeBoundary.jsx",
     "test": "node --test",
     "preview": "vite preview"
   },
