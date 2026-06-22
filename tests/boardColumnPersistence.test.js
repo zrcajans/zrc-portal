@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createZRCBoardTaskActions } from '../src/app/actions/zrcBoardTaskActions.js';
+import {
+  createZRCBoardTaskActions,
+  persistVerifiedTaskOrderUpdates
+} from '../src/app/actions/zrcBoardTaskActions.js';
 import { releaseActionLock, tryAcquireActionLock } from '../src/app/utils/asyncActionLock.js';
 
 const workspaceId = '11111111-1111-4111-8111-111111111111';
@@ -61,6 +64,31 @@ const createBaseDeps = (overrides = {}) => ({
   tryAcquireActionLock,
   releaseActionLock,
   ...overrides
+});
+
+test('task order persistence rejects zero-row Supabase updates', async () => {
+  const filters = [];
+  const supabase = {
+    from: (table) => ({
+      update: () => createQuery(
+        { data: null, error: null },
+        (filter, column, value) => filters.push({ table, filter, column, value })
+      )
+    })
+  };
+
+  await assert.rejects(
+    persistVerifiedTaskOrderUpdates({
+      supabase,
+      workspaceId,
+      projectId,
+      updates: [{ taskId: secondColumnId, updatePayload: { task_order: 0 } }]
+    }),
+    /Görev sırası yazması doğrulanamadı/
+  );
+
+  assert.ok(filters.some(({ column, value }) => column === 'workspace_id' && value === workspaceId));
+  assert.ok(filters.some(({ column, value }) => column === 'project_id' && value === projectId));
 });
 
 test('column reorder reaches the database before committing UI order', async () => {

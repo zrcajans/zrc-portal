@@ -3,6 +3,29 @@ import { getScopedStorageKey } from '../utils/storageScopeHelpers.js';
 import { chunkValues, getSafeWorkspaceStoragePaths } from '../utils/storageCleanupHelpers.js';
 import { buildPersistableColumnCopy, buildPersistableTaskCopy } from '../utils/columnCopyHelpers.js';
 import { requireMatchingMutationRow } from '../utils/supabaseMutationHelpers.js';
+
+export const persistVerifiedTaskOrderUpdates = async ({
+  supabase,
+  workspaceId,
+  projectId,
+  updates
+}) => {
+  await Promise.all(
+    (updates || []).map(async ({ taskId, updatePayload }) => {
+      const mutationResult = await supabase
+        .from('tasks')
+        .update(updatePayload)
+        .eq('id', taskId)
+        .eq('workspace_id', workspaceId)
+        .eq('project_id', projectId)
+        .select('id')
+        .maybeSingle();
+
+      requireMatchingMutationRow(mutationResult, taskId, 'Görev sırası');
+    })
+  );
+};
+
 export function createZRCBoardTaskActions(deps) {
   const {
     requirePermission,
@@ -986,18 +1009,12 @@ export function createZRCBoardTaskActions(deps) {
 
       if (updates.length === 0) return true;
 
-      await Promise.all(
-        updates.map(async ({ taskId, updatePayload }) => {
-          const { error } = await supabase
-            .from('tasks')
-            .update(updatePayload)
-            .eq('id', taskId)
-            .eq('workspace_id', workspaceId)
-            .eq('project_id', projectId);
-
-          if (error) throw error;
-        })
-      );
+      await persistVerifiedTaskOrderUpdates({
+        supabase,
+        workspaceId,
+        projectId,
+        updates
+      });
 
       zrcMarkTaskOrderSavingWindow(1800);
 
