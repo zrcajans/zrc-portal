@@ -4329,8 +4329,8 @@ function App() {
     const workspaceId = getCurrentSupabaseWorkspaceId();
     const existingId = group.supabaseId || (isSupabaseUuid(group.id) ? group.id : '');
 
+    if (!workspaceId || !isSupabaseUuid(currentUserId)) return null;
     if (existingId) return existingId;
-    if (!workspaceId) return null;
 
     const groupTitle = String(group.name || group.title || 'Yazışma').trim();
     const groupType = group.type === 'project' ? 'project' : 'custom';
@@ -4355,23 +4355,43 @@ function App() {
         project_id: projectId || null,
         title: groupTitle,
         type: groupType,
-        created_by: isSupabaseUuid(currentUserId) ? currentUserId : null
+        created_by: currentUserId
       })
       .select('id')
       .single();
 
     if (insertError) throw insertError;
+    if (!createdGroup?.id) throw new Error('Yazışma grubu kaydı doğrulanamadı');
 
-    if (createdGroup?.id && isSupabaseUuid(currentUserId)) {
-      await supabase
-        .from('chat_group_members')
-        .insert({
-          chat_group_id: createdGroup.id,
-          user_id: currentUserId
-        });
+    const { error: membershipInsertError } = await supabase
+      .from('chat_group_members')
+      .insert({
+        chat_group_id: createdGroup.id,
+        user_id: currentUserId
+      });
+
+    if (membershipInsertError) {
+      const rollbackResult = await supabase
+        .from('chat_groups')
+        .delete()
+        .eq('id', createdGroup.id)
+        .eq('workspace_id', workspaceId)
+        .select('id')
+        .maybeSingle();
+
+      try {
+        requireMatchingMutationRow(rollbackResult, createdGroup.id, 'Yazışma grubu geri alma');
+      } catch (rollbackError) {
+        throw new Error(
+          `Grup üyeliği kaydedilemedi ve grup geri alınamadı: ${rollbackError?.message || 'bilinmeyen hata'}`,
+          { cause: rollbackError }
+        );
+      }
+
+      throw membershipInsertError;
     }
 
-    return createdGroup?.id || null;
+    return createdGroup.id;
   };
 
   const saveChatGroupToSupabase = async (group = {}) => {
