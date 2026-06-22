@@ -2172,83 +2172,98 @@ body {
 
 
 
-/* === ZRC DYNAMIC ORANGE CURSOR START === */
+
+
+
+/* === ZRC SMART LIQUID CURSOR START === */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  body.zrc-dynamic-orange-cursor-enabled,
-  body.zrc-dynamic-orange-cursor-enabled * {
+  body.zrc-smart-liquid-cursor-enabled,
+  body.zrc-smart-liquid-cursor-enabled * {
     cursor: none !important;
   }
 
-  body.zrc-dynamic-orange-cursor-enabled input,
-  body.zrc-dynamic-orange-cursor-enabled textarea,
-  body.zrc-dynamic-orange-cursor-enabled select,
-  body.zrc-dynamic-orange-cursor-enabled [contenteditable="true"] {
+  body.zrc-smart-liquid-cursor-enabled input,
+  body.zrc-smart-liquid-cursor-enabled textarea,
+  body.zrc-smart-liquid-cursor-enabled select,
+  body.zrc-smart-liquid-cursor-enabled [contenteditable="true"] {
     cursor: text !important;
   }
 
-  .zrc-dynamic-orange-cursor {
+  .zrc-smart-liquid-cursor {
     --zrc-cursor-x: -80px;
     --zrc-cursor-y: -80px;
-    --zrc-cursor-rotation: 0deg;
-    --zrc-cursor-scale-x: 1;
-    --zrc-cursor-scale-y: 1;
 
     position: fixed;
     left: 0;
     top: 0;
     z-index: 2147483647;
     pointer-events: none;
+    opacity: 0;
+    transform: translate3d(var(--zrc-cursor-x), var(--zrc-cursor-y), 0);
+    transition: opacity 100ms ease;
+    contain: layout style paint;
+  }
 
+  .zrc-smart-liquid-cursor.is-visible {
+    opacity: 1;
+  }
+
+  .zrc-smart-liquid-cursor__blob {
+    --zrc-liquid-angle: 0deg;
+    --zrc-liquid-scale-x: 1;
+    --zrc-liquid-scale-y: 1;
+    --zrc-liquid-radius: 999px;
+
+    display: block;
     width: 10px;
     height: 10px;
-    border: 0;
-    border-radius: 999px;
+    box-sizing: border-box;
+    border: 1.5px solid transparent;
+    border-radius: var(--zrc-liquid-radius);
     background: #ff3600;
     box-shadow: none;
     outline: none;
 
-    opacity: 0;
     transform:
-      translate3d(var(--zrc-cursor-x), var(--zrc-cursor-y), 0)
       translate(-50%, -50%)
-      rotate(var(--zrc-cursor-rotation))
-      scaleX(var(--zrc-cursor-scale-x))
-      scaleY(var(--zrc-cursor-scale-y));
+      rotate(var(--zrc-liquid-angle))
+      scaleX(var(--zrc-liquid-scale-x))
+      scaleY(var(--zrc-liquid-scale-y));
 
     transition:
-      opacity 90ms ease,
-      width 160ms cubic-bezier(0.22, 1, 0.36, 1),
-      height 160ms cubic-bezier(0.22, 1, 0.36, 1),
-      border-radius 160ms cubic-bezier(0.22, 1, 0.36, 1),
+      width 150ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 150ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 180ms ease,
+      border-radius 105ms cubic-bezier(0.22, 1, 0.36, 1),
       background-color 120ms ease;
 
-    will-change: transform, opacity, width, height;
-    contain: layout style paint;
+    will-change: transform, border-radius, width, height;
   }
 
-  body.zrc-dynamic-orange-cursor-visible .zrc-dynamic-orange-cursor {
-    opacity: 1;
+  /* Turuncunun zeminde kaybolduğu an beyaz kontur yumuşakça oluşur. */
+  .zrc-smart-liquid-cursor.is-low-contrast .zrc-smart-liquid-cursor__blob {
+    border-color: rgba(255, 255, 255, 0.98);
   }
 
-  body.zrc-dynamic-orange-cursor-interactive .zrc-dynamic-orange-cursor {
+  .zrc-smart-liquid-cursor.is-interactive .zrc-smart-liquid-cursor__blob {
     width: 14px;
     height: 14px;
   }
 
-  body.zrc-dynamic-orange-cursor-text-mode .zrc-dynamic-orange-cursor {
+  .zrc-smart-liquid-cursor.is-text .zrc-smart-liquid-cursor__blob {
     width: 3px;
     height: 22px;
     border-radius: 999px;
   }
 
-  body.zrc-dynamic-orange-cursor-down .zrc-dynamic-orange-cursor {
+  .zrc-smart-liquid-cursor.is-pressed .zrc-smart-liquid-cursor__blob {
     width: 7px;
     height: 7px;
   }
 
-  body.zrc-dynamic-orange-cursor-text-mode.zrc-dynamic-orange-cursor-down .zrc-dynamic-orange-cursor {
+  .zrc-smart-liquid-cursor.is-text.is-pressed .zrc-smart-liquid-cursor__blob {
     width: 3px;
     height: 16px;
   }
 }
-/* === ZRC DYNAMIC ORANGE CURSOR END === */
+/* === ZRC SMART LIQUID CURSOR END === */

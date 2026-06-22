@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 
+const ZRC_ORANGE = { r: 255, g: 54, b: 0 };
+
 const EDITABLE_SELECTOR = 'input,textarea,select,[contenteditable="true"]';
 
 const INTERACTIVE_SELECTOR = [
@@ -24,28 +26,160 @@ const INTERACTIVE_SELECTOR = [
   '[draggable="true"]'
 ].join(',');
 
-const TEXT_SELECTOR = [
-  'p',
-  'span',
-  'strong',
-  'em',
-  'b',
-  'i',
-  'small',
-  'label',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'li',
-  'td',
-  'th',
-  'blockquote',
-  'code',
-  'pre'
-].join(',');
+function parseRgbColor(value) {
+  if (!value || value === 'transparent') return null;
+
+  const match = String(value).match(/rgba?\(([^)]+)\)/i);
+  if (!match) return null;
+
+  const parts = match[1]
+    .split(',')
+    .map((part) => Number.parseFloat(part.trim()));
+
+  if (parts.length < 3 || parts.slice(0, 3).some((part) => Number.isNaN(part))) {
+    return null;
+  }
+
+  const alpha = Number.isFinite(parts[3]) ? parts[3] : 1;
+  if (alpha <= 0.05) return null;
+
+  return {
+    r: Math.max(0, Math.min(255, parts[0])),
+    g: Math.max(0, Math.min(255, parts[1])),
+    b: Math.max(0, Math.min(255, parts[2])),
+    a: alpha
+  };
+}
+
+function channelToLinear(value) {
+  const normalized = value / 255;
+  return normalized <= 0.03928
+    ? normalized / 12.92
+    : ((normalized + 0.055) / 1.055) ** 2.4;
+}
+
+function getLuminance(color) {
+  return (
+    0.2126 * channelToLinear(color.r) +
+    0.7152 * channelToLinear(color.g) +
+    0.0722 * channelToLinear(color.b)
+  );
+}
+
+function getContrastRatio(first, second) {
+  const firstLum = getLuminance(first);
+  const secondLum = getLuminance(second);
+  const lighter = Math.max(firstLum, secondLum);
+  const darker = Math.min(firstLum, secondLum);
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function getContrastAnchor(target) {
+  let current = target instanceof Element ? target : null;
+
+  // Maksimum 6 üst katman: yeterli kontrast bilgisi, gereksiz DOM maliyeti yok.
+  for (let depth = 0; current && current !== document.documentElement && depth < 6; depth += 1) {
+    try {
+      const background = parseRgbColor(window.getComputedStyle(current).backgroundColor);
+      if (background) return current;
+    } catch {
+      break;
+    }
+
+    current = current.parentElement;
+  }
+
+  return document.body;
+}
+
+function shouldShowWhiteOutline(anchor) {
+  try {
+    const background = parseRgbColor(window.getComputedStyle(anchor).backgroundColor);
+    if (!background) return false;
+
+    const contrast = getContrastRatio(ZRC_ORANGE, background);
+    const orangeDistance = Math.hypot(
+      ZRC_ORANGE.r - background.r,
+      ZRC_ORANGE.g - background.g,
+      ZRC_ORANGE.b - background.b
+    );
+
+    // Turuncu zeminler ve turuncunun kaybolduğu orta-kontrast tonlar.
+    return contrast < 2.15 || orangeDistance < 118;
+  } catch {
+    return false;
+  }
+}
+
+function getCaretAtPoint(clientX, clientY) {
+  try {
+    if (typeof document.caretPositionFromPoint === 'function') {
+      const position = document.caretPositionFromPoint(clientX, clientY);
+
+      if (position?.offsetNode) {
+        return {
+          node: position.offsetNode,
+          offset: Number(position.offset || 0)
+        };
+      }
+    }
+
+    if (typeof document.caretRangeFromPoint === 'function') {
+      const range = document.caretRangeFromPoint(clientX, clientY);
+
+      if (range?.startContainer) {
+        return {
+          node: range.startContainer,
+          offset: Number(range.startOffset || 0)
+        };
+      }
+    }
+  } catch {
+    // Hit-test API desteklenmiyorsa normal nokta imleci kullanılır.
+  }
+
+  return null;
+}
+
+function isPointerOnRenderedText(clientX, clientY) {
+  const caret = getCaretAtPoint(clientX, clientY);
+  const textNode = caret?.node;
+
+  if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return false;
+
+  const text = String(textNode.nodeValue || '');
+  if (!text) return false;
+
+  const offset = Math.max(0, Math.min(Number(caret.offset || 0), text.length));
+  const candidates = [offset, offset - 1]
+    .filter((index) => index >= 0 && index < text.length)
+    .filter((index, position, array) => array.indexOf(index) === position)
+    .filter((index) => !/\s/.test(text[index] || ''));
+
+  if (candidates.length === 0) return false;
+
+  try {
+    const range = document.createRange();
+
+    return candidates.some((index) => {
+      range.setStart(textNode, index);
+      range.setEnd(textNode, index + 1);
+
+      const rect = range.getBoundingClientRect();
+      if (!rect || (!rect.width && !rect.height)) return false;
+
+      return (
+        clientX >= rect.left - 2 &&
+        clientX <= rect.right + 2 &&
+        clientY >= rect.top - 3 &&
+        clientY <= rect.bottom + 3
+      );
+    });
+  } catch {
+    return false;
+  }
+}
 
 export default function ZRCPremiumCursor() {
   const frameRef = useRef(0);
@@ -54,9 +188,13 @@ export default function ZRCPremiumCursor() {
     y: -80,
     previousX: -80,
     previousY: -80,
-    rotation: 0,
-    scaleX: 1,
-    scaleY: 1
+    speed: 0,
+    angle: 0,
+    visible: false,
+    target: null,
+    lastModeTarget: null,
+    contrastAnchor: null,
+    lowContrast: false
   });
 
   useEffect(() => {
@@ -71,135 +209,73 @@ export default function ZRCPremiumCursor() {
 
     const body = document.body;
     const cursor = document.createElement('span');
+    const blob = document.createElement('span');
 
-    cursor.className = 'zrc-dynamic-orange-cursor';
+    cursor.className = 'zrc-smart-liquid-cursor';
     cursor.setAttribute('aria-hidden', 'true');
     cursor.setAttribute('data-zrc-cursor-portal', 'true');
 
+    blob.className = 'zrc-smart-liquid-cursor__blob';
+    cursor.appendChild(blob);
     body.appendChild(cursor);
-    body.classList.add('zrc-dynamic-orange-cursor-enabled');
+    body.classList.add('zrc-smart-liquid-cursor-enabled');
+
+    const hide = () => {
+      stateRef.current.visible = false;
+      cursor.classList.remove(
+        'is-visible',
+        'is-interactive',
+        'is-text',
+        'is-low-contrast',
+        'is-pressed'
+      );
+    };
 
     const paint = () => {
       frameRef.current = 0;
 
       const state = stateRef.current;
+      const target = state.target instanceof Element ? state.target : null;
+      const editable = Boolean(target?.closest(EDITABLE_SELECTOR));
+      const interactive = !editable && Boolean(target?.closest(INTERACTIVE_SELECTOR));
+      const textMode = !editable && !interactive && isPointerOnRenderedText(state.x, state.y);
+
+      if (target && target !== state.lastModeTarget) {
+        state.lastModeTarget = target;
+        state.contrastAnchor = getContrastAnchor(target);
+        state.lowContrast = shouldShowWhiteOutline(state.contrastAnchor);
+      }
+
+      const speed = Math.min(34, state.speed);
+      const stretch = textMode ? 1 : 1 + Math.min(0.38, speed / 76);
+      const squash = textMode ? 1 : Math.max(0.72, 1 - Math.min(0.22, speed / 155));
+      const angle = textMode ? 0 : state.angle;
+
+      // Hıza ve yön değişimine göre organik sıvı form.
+      const wobble = Math.min(11, Math.round(speed / 3));
+      const radius = textMode
+        ? '999px'
+        : `${58 + wobble}% ${42 - Math.min(8, wobble)}% ${54 + Math.min(8, wobble)}% ${46 - Math.min(7, wobble)}% / ${48 - Math.min(7, wobble)}% ${57 + Math.min(8, wobble)}% ${43 - Math.min(6, wobble)}% ${58 + Math.min(7, wobble)}%`;
+
       cursor.style.setProperty('--zrc-cursor-x', `${state.x}px`);
       cursor.style.setProperty('--zrc-cursor-y', `${state.y}px`);
-      cursor.style.setProperty('--zrc-cursor-rotation', `${state.rotation.toFixed(2)}deg`);
-      cursor.style.setProperty('--zrc-cursor-scale-x', state.scaleX.toFixed(3));
-      cursor.style.setProperty('--zrc-cursor-scale-y', state.scaleY.toFixed(3));
+      blob.style.setProperty('--zrc-liquid-angle', `${angle.toFixed(2)}deg`);
+      blob.style.setProperty('--zrc-liquid-scale-x', stretch.toFixed(3));
+      blob.style.setProperty('--zrc-liquid-scale-y', squash.toFixed(3));
+      blob.style.setProperty('--zrc-liquid-radius', radius);
+
+      cursor.classList.toggle('is-visible', !editable);
+      cursor.classList.toggle('is-interactive', interactive);
+      cursor.classList.toggle('is-text', textMode);
+      cursor.classList.toggle('is-low-contrast', Boolean(state.lowContrast) && !textMode);
+
+      state.visible = !editable;
     };
 
     const schedulePaint = () => {
       if (!frameRef.current) {
         frameRef.current = window.requestAnimationFrame(paint);
       }
-    };
-
-    const zrcGetTextRangeAtPointer = (clientX, clientY) => {
-      try {
-        if (typeof document.caretPositionFromPoint === 'function') {
-          const position = document.caretPositionFromPoint(clientX, clientY);
-
-          if (position?.offsetNode) {
-            return {
-              node: position.offsetNode,
-              offset: Number(position.offset || 0)
-            };
-          }
-        }
-
-        if (typeof document.caretRangeFromPoint === 'function') {
-          const range = document.caretRangeFromPoint(clientX, clientY);
-
-          if (range?.startContainer) {
-            return {
-              node: range.startContainer,
-              offset: Number(range.startOffset || 0)
-            };
-          }
-        }
-      } catch {
-        // Tarayıcı hit-test API'sini desteklemezse normal nokta imleci kullanılır.
-      }
-
-      return null;
-    };
-
-    const zrcIsPointerOnRenderedText = (clientX, clientY) => {
-      const caret = zrcGetTextRangeAtPointer(clientX, clientY);
-      const textNode = caret?.node;
-
-      if (!textNode || textNode.nodeType !== Node.TEXT_NODE) {
-        return false;
-      }
-
-      const text = String(textNode.nodeValue || '');
-      if (!text) return false;
-
-      const safeOffset = Math.max(0, Math.min(Number(caret.offset || 0), text.length));
-
-      // Caret bir harfin sağına düşebildiği için iki komşu karakteri kontrol eder.
-      // Boşluk karakteri uzun imleci tetiklemez.
-      const candidateIndexes = [safeOffset, safeOffset - 1]
-        .filter((index) => index >= 0 && index < text.length)
-        .filter((index, position, array) => array.indexOf(index) === position)
-        .filter((index) => !/\s/.test(text[index] || ''));
-
-      if (candidateIndexes.length === 0) {
-        return false;
-      }
-
-      try {
-        const range = document.createRange();
-
-        return candidateIndexes.some((index) => {
-          range.setStart(textNode, index);
-          range.setEnd(textNode, index + 1);
-
-          const rect = range.getBoundingClientRect();
-          if (!rect || (!rect.width && !rect.height)) return false;
-
-          const horizontalPadding = 2;
-          const verticalPadding = 3;
-
-          return (
-            clientX >= rect.left - horizontalPadding &&
-            clientX <= rect.right + horizontalPadding &&
-            clientY >= rect.top - verticalPadding &&
-            clientY <= rect.bottom + verticalPadding
-          );
-        });
-      } catch {
-        return false;
-      }
-    };
-
-    const setModeFromTarget = (target, clientX, clientY) => {
-      const element = target instanceof Element ? target : null;
-      const isEditable = Boolean(element?.closest(EDITABLE_SELECTOR));
-      const isInteractive = !isEditable && Boolean(element?.closest(INTERACTIVE_SELECTOR));
-
-      // Uzun imleç yalnızca gerçek, render edilmiş bir harfin hitbox'ında görünür.
-      const isText =
-        !isEditable &&
-        !isInteractive &&
-        zrcIsPointerOnRenderedText(clientX, clientY);
-
-      body.classList.toggle('zrc-dynamic-orange-cursor-text-mode', isText);
-      body.classList.toggle('zrc-dynamic-orange-cursor-interactive', isInteractive);
-      body.classList.toggle('zrc-dynamic-orange-cursor-visible', !isEditable);
-
-      return { isEditable, isText };
-    };
-
-    const hide = () => {
-      body.classList.remove(
-        'zrc-dynamic-orange-cursor-visible',
-        'zrc-dynamic-orange-cursor-interactive',
-        'zrc-dynamic-orange-cursor-text-mode',
-        'zrc-dynamic-orange-cursor-down'
-      );
     };
 
     const onPointerMove = (event) => {
@@ -209,48 +285,33 @@ export default function ZRCPremiumCursor() {
       }
 
       const state = stateRef.current;
-      const { isEditable, isText } = setModeFromTarget(event.target, event.clientX, event.clientY);
-
       const nextX = event.clientX;
       const nextY = event.clientY;
       const deltaX = nextX - state.previousX;
       const deltaY = nextY - state.previousY;
-      const speed = Math.min(28, Math.hypot(deltaX, deltaY));
 
       state.x = nextX;
       state.y = nextY;
       state.previousX = nextX;
       state.previousY = nextY;
+      state.speed = Math.hypot(deltaX, deltaY);
 
-      if (isText) {
-        state.rotation = 0;
-        state.scaleX = 1;
-        state.scaleY = 1;
-      } else if (speed > 0.5) {
-        const stretch = 1 + Math.min(0.24, speed / 120);
-        state.rotation = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
-        state.scaleX = stretch;
-        state.scaleY = Math.max(0.86, 1 - (stretch - 1) * 0.62);
-      } else {
-        state.scaleX = 1;
-        state.scaleY = 1;
+      if (state.speed > 0.45) {
+        state.angle = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
       }
 
-      if (isEditable) {
-        return;
-      }
-
+      state.target = event.target instanceof Element ? event.target : null;
       schedulePaint();
     };
 
     const onPointerDown = (event) => {
       if (!event.pointerType || event.pointerType === 'mouse') {
-        body.classList.add('zrc-dynamic-orange-cursor-down');
+        cursor.classList.add('is-pressed');
       }
     };
 
     const onPointerUp = () => {
-      body.classList.remove('zrc-dynamic-orange-cursor-down');
+      cursor.classList.remove('is-pressed');
     };
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -271,13 +332,7 @@ export default function ZRCPremiumCursor() {
       document.removeEventListener('mouseleave', hide);
 
       cursor.remove();
-      body.classList.remove(
-        'zrc-dynamic-orange-cursor-enabled',
-        'zrc-dynamic-orange-cursor-visible',
-        'zrc-dynamic-orange-cursor-interactive',
-        'zrc-dynamic-orange-cursor-text-mode',
-        'zrc-dynamic-orange-cursor-down'
-      );
+      body.classList.remove('zrc-smart-liquid-cursor-enabled');
     };
   }, []);
 
