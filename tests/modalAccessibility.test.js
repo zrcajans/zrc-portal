@@ -29,3 +29,15 @@ test('task detail modal supports Escape and cleans its close timer', async () =>
   assert.match(source, /clearTimeout\(closeTimerRef\.current\)/);
   assert.match(source, /aria-label="Görev detayını kapat"/);
 });
+
+test('task editor cancels stale close timers when reopened or unmounted', async () => {
+  const source = await readFile(
+    new URL('../src/components/Modals/TaskModal.jsx', import.meta.url),
+    'utf8'
+  );
+
+  assert.match(source, /const closeTimerRef = useRef\(null\)/);
+  assert.match(source, /closeTimerRef\.current = window\.setTimeout/);
+  assert.match(source, /if \(closeTimerRef\.current\) window\.clearTimeout\(closeTimerRef\.current\)/);
+  assert.match(source, /closeTimerRef\.current = null/);
+});

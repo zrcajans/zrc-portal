@@ -609,6 +609,7 @@ export default function TaskModal({
   const [isClosing, setIsClosing] = useState(false);
   const [pendingRemoveUser, setPendingRemoveUser] = useState(null);
   const draftMemoryRef = useRef(null);
+  const closeTimerRef = useRef(null);
 
   const getDraftContextKey = () =>
     initialData?.id
@@ -622,6 +623,25 @@ export default function TaskModal({
     };
   };
 
+  const handleClose = (rememberDraft = true) => {
+    if (rememberDraft) {
+      rememberCurrentDraft();
+    }
+
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+
+    setOpenDropdown(null);
+    setOpenUserPicker(null);
+    setPendingRemoveUser(null);
+    setIsClosing(true);
+
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
+      setIsClosing(false);
+      onClose();
+    }, 180);
+  };
+
   // Ref'ler: defaultStatus ve defaultFollower, proje değişince güncellenir.
   // Bunları ref olarak tutuyoruz ki modal açıkken proje değiştiğinde
   // tüm form sıfırlanmasın, sadece status alanı güncellensin.
@@ -633,6 +653,11 @@ export default function TaskModal({
   // proje değişince form sıfırlanmasin, sadece status ayrı effect ile güncellenir.
   useEffect(() => {
     if (!isOpen) return;
+
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
 
     setOpenDropdown(null);
     setOpenUserPicker(null);
@@ -712,23 +737,11 @@ export default function TaskModal({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
+  useEffect(() => () => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+  }, []);
+
   if (!isOpen && !isClosing) return null;
-
-  const handleClose = (rememberDraft = true) => {
-    if (rememberDraft) {
-      rememberCurrentDraft();
-    }
-
-    setOpenDropdown(null);
-    setOpenUserPicker(null);
-    setPendingRemoveUser(null);
-    setIsClosing(true);
-
-    window.setTimeout(() => {
-      setIsClosing(false);
-      onClose();
-    }, 180);
-  };
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
