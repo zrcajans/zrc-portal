@@ -4330,7 +4330,43 @@ function App() {
     const existingId = group.supabaseId || (isSupabaseUuid(group.id) ? group.id : '');
 
     if (!workspaceId || !isSupabaseUuid(currentUserId)) return null;
-    if (existingId) return existingId;
+
+    const ensureCurrentUserMembership = async (chatGroupId) => {
+      const { data: existingMembership, error: membershipSelectError } = await supabase
+        .from('chat_group_members')
+        .select('chat_group_id')
+        .eq('chat_group_id', chatGroupId)
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+      if (membershipSelectError) throw membershipSelectError;
+      if (existingMembership?.chat_group_id) return true;
+
+      const { error: membershipInsertError } = await supabase
+        .from('chat_group_members')
+        .insert({
+          chat_group_id: chatGroupId,
+          user_id: currentUserId
+        });
+
+      if (membershipInsertError) throw membershipInsertError;
+      return true;
+    };
+
+    if (existingId) {
+      const { data: scopedGroup, error: scopedGroupError } = await supabase
+        .from('chat_groups')
+        .select('id')
+        .eq('id', existingId)
+        .eq('workspace_id', workspaceId)
+        .maybeSingle();
+
+      if (scopedGroupError) throw scopedGroupError;
+      if (!scopedGroup?.id) throw new Error('Yazışma grubu bu workspace içinde bulunamadı');
+
+      await ensureCurrentUserMembership(scopedGroup.id);
+      return scopedGroup.id;
+    }
 
     const groupTitle = String(group.name || group.title || 'Yazışma').trim();
     const groupType = group.type === 'project' ? 'project' : 'custom';
@@ -4346,7 +4382,10 @@ function App() {
       .maybeSingle();
 
     if (selectError) throw selectError;
-    if (existingGroup?.id) return existingGroup.id;
+    if (existingGroup?.id) {
+      await ensureCurrentUserMembership(existingGroup.id);
+      return existingGroup.id;
+    }
 
     const { data: createdGroup, error: insertError } = await supabase
       .from('chat_groups')
@@ -4363,14 +4402,9 @@ function App() {
     if (insertError) throw insertError;
     if (!createdGroup?.id) throw new Error('Yazışma grubu kaydı doğrulanamadı');
 
-    const { error: membershipInsertError } = await supabase
-      .from('chat_group_members')
-      .insert({
-        chat_group_id: createdGroup.id,
-        user_id: currentUserId
-      });
-
-    if (membershipInsertError) {
+    try {
+      await ensureCurrentUserMembership(createdGroup.id);
+    } catch (membershipError) {
       const rollbackResult = await supabase
         .from('chat_groups')
         .delete()
@@ -4388,7 +4422,7 @@ function App() {
         );
       }
 
-      throw membershipInsertError;
+      throw membershipError;
     }
 
     return createdGroup.id;
