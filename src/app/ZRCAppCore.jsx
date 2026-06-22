@@ -175,6 +175,7 @@ import {
 } from './utils/taskOrderShiftHelpers.js';
 import { getColumnPersistencePosition } from './utils/columnPersistenceHelpers.js';
 import { requireMatchingMutationRow } from './utils/supabaseMutationHelpers.js';
+import { triggerBrowserDownload } from './utils/browserDownloadHelpers.js';
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
@@ -2705,16 +2706,7 @@ function App() {
 
       if (error) throw error;
 
-      const objectUrl = window.URL.createObjectURL(data);
-      const link = document.createElement('a');
-
-      link.href = objectUrl;
-      link.download = file.name || 'dosya';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      window.URL.revokeObjectURL(objectUrl);
+      triggerBrowserDownload(data, file.name || 'dosya');
       zrcSetSupabaseWriteInfo('saved', 'Supabase dosya indirildi');
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase dosya indirme hatası: ${error?.message || 'bilinmeyen hata'}`);
@@ -4616,15 +4608,7 @@ function App() {
 
   function downloadJsonSnapshot(snapshot, fileNamePrefix = 'zrc-yedek') {
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = `${fileNamePrefix}-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    triggerBrowserDownload(blob, `${fileNamePrefix}-${new Date().toISOString().slice(0, 10)}.json`);
   }
 
   async function readSupabaseTableForBackup(tableName, mode = 'workspace') {

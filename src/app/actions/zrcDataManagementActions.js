@@ -2,6 +2,7 @@ import {
   sanitizeClientPreferences,
   sanitizeProfileCredentials
 } from '../../utils/credentialSafetyHelpers.js';
+import { triggerBrowserDownload } from '../utils/browserDownloadHelpers.js';
 
 export function createZRCDataManagementActions(deps) {
   const {
@@ -328,15 +329,7 @@ export function createZRCDataManagementActions(deps) {
 
     const snapshot = getCurrentDataSnapshot();
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = `zrc-veri-yedegi-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    triggerBrowserDownload(blob, `zrc-veri-yedegi-${new Date().toISOString().slice(0, 10)}.json`);
 
     setProfilePreferences((prev) => ({
       ...prev,
