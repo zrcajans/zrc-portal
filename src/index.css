@@ -2236,7 +2236,7 @@ body {
   }
 
   body.zrc-dynamic-orange-cursor-text-mode .zrc-dynamic-orange-cursor {
-    width: 2px;
+    width: 3px;
     height: 18px;
     border-radius: 999px;
   }
@@ -2247,7 +2247,7 @@ body {
   }
 
   body.zrc-dynamic-orange-cursor-text-mode.zrc-dynamic-orange-cursor-down .zrc-dynamic-orange-cursor {
-    width: 2px;
+    width: 3px;
     height: 13px;
   }
 }
