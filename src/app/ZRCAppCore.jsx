@@ -165,7 +165,7 @@ import {
   getNotificationClearTokensForUser,
   isNotificationClearAllActivityLog
 } from './utils/notificationClearHelpers.js';
-import { tryAcquireActionLock, releaseActionLock } from './utils/asyncActionLock.js';
+import { enqueueAsyncAction, tryAcquireActionLock, releaseActionLock } from './utils/asyncActionLock.js';
 import { buildRelationshipSyncPlan } from './utils/relationshipSyncHelpers.js';
 import { chunkValues, getSafeWorkspaceStoragePaths } from './utils/storageCleanupHelpers.js';
 import { mergeAuthoritativeServerRecords } from './utils/authoritativeMergeHelpers.js';
@@ -183,6 +183,7 @@ function App() {
   const projectMutationLockRef = useRef(new Set());
   const profileMutationLockRef = useRef(new Set());
   const teamCustomerMutationLockRef = useRef(new Set());
+  const userPreferencesMutationQueueRef = useRef(Promise.resolve());
 
   // zrc-premium-dialog-install-v1
   useEffect(() => {
@@ -3620,7 +3621,7 @@ function App() {
     return ensureSupabaseProject(cleanProjectName);
   };
 
-  const saveUserPreferencesToSupabase = async (preferencesPatch = {}) => {
+  const saveUserPreferencesToSupabase = (preferencesPatch = {}) => {
     if (!supabase || !supabaseWorkspaceId) return false;
 
     const workspaceId = getCurrentSupabaseWorkspaceId();
@@ -3630,7 +3631,8 @@ function App() {
       return false;
     }
 
-    try {
+    return enqueueAsyncAction(userPreferencesMutationQueueRef, async () => {
+      try {
       const nowIso = new Date().toISOString();
 
       const { data: existingRecord, error: existingError } = await supabase
@@ -3711,11 +3713,12 @@ function App() {
         zrcSetSupabaseWriteInfo('saved', 'Supabase tercih kaydedildi');
       }
 
-      return true;
-    } catch (error) {
-      zrcSetSupabaseWriteInfo('error', `Supabase tercih hatası: ${error?.message || 'bilinmeyen hata'}`);
-      return false;
-    }
+        return true;
+      } catch (error) {
+        zrcSetSupabaseWriteInfo('error', `Supabase tercih hatası: ${error?.message || 'bilinmeyen hata'}`);
+        return false;
+      }
+    });
   };
 
   const loadProfileAndPreferencesFromSupabase = async () => {
@@ -9768,6 +9771,7 @@ const filterTaskFollowersForSave = (people = []) =>
     supabase,
     currentUserId,
     getCurrentSupabaseWorkspaceId,
+    readNotificationIds,
     setReadNotificationIds,
     setActivityNotifications,
     saveUserPreferencesToSupabase,
@@ -9783,6 +9787,7 @@ const filterTaskFollowersForSave = (people = []) =>
     setSelectedChatGroupId,
     setSelectedProject,
     openTaskDetail,
+    readMessageIds,
     setReadMessageIds,
     messageItems,
     isProjectMessageVisibleForCurrentUser,

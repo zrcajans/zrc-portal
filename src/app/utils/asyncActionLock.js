@@ -13,3 +13,16 @@ export const releaseActionLock = (lockRef, actionKey) => {
 
   return lockRef.current.delete(String(actionKey || '').trim());
 };
+
+export const enqueueAsyncAction = (queueRef, action) => {
+  if (!queueRef || typeof action !== 'function') return Promise.resolve(false);
+
+  const previousAction = Promise.resolve(queueRef.current).catch(() => undefined);
+  const queuedAction = previousAction.then(action);
+  queueRef.current = queuedAction.then(
+    () => undefined,
+    () => undefined
+  );
+
+  return queuedAction;
+};

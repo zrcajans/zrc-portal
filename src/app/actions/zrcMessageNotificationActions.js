@@ -86,6 +86,7 @@ export function createZRCMessageNotificationActions(deps) {
     supabase,
     currentUserId,
     getCurrentSupabaseWorkspaceId,
+    readNotificationIds,
     setReadNotificationIds,
     setActivityNotifications,
     saveUserPreferencesToSupabase,
@@ -101,6 +102,7 @@ export function createZRCMessageNotificationActions(deps) {
     setSelectedChatGroupId,
     setSelectedProject,
     openTaskDetail,
+    readMessageIds,
     setReadMessageIds,
     messageItems,
     isProjectMessageVisibleForCurrentUser,
@@ -149,28 +151,35 @@ export function createZRCMessageNotificationActions(deps) {
     releaseActionLock
   } = deps;
 
-  const markNotificationAsRead = (notificationId) => {
+  const markNotificationAsRead = async (notificationId) => {
+    if (readNotificationIds.includes(notificationId)) return true;
+
+    const nextIds = [...readNotificationIds, notificationId];
+    const preferencesSaved = await saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
+
+    if (!preferencesSaved) return false;
+
     if (String(notificationId || '').startsWith('supabase-notification-')) {
       const supabaseNotificationId = String(notificationId).replace('supabase-notification-', '');
 
       if (isSupabaseUuid(supabaseNotificationId)) {
-        supabase
+        const { error } = await supabase
           .from('notifications')
           .update({ is_read: true })
           .eq('id', supabaseNotificationId)
           .eq('workspace_id', getCurrentSupabaseWorkspaceId())
-          .eq('user_id', currentUserId)
-          .then(() => {});
+          .eq('user_id', currentUserId);
+
+        if (error) {
+          console.warn('[ZRC] Bildirim kaydı okundu olarak işaretlenemedi.', error);
+        }
       }
     }
 
-    setReadNotificationIds((prevIds) => {
-      if (prevIds.includes(notificationId)) return prevIds;
-
-      const nextIds = [...prevIds, notificationId];
-      saveUserPreferencesToSupabase({ readNotificationIds: nextIds });
-      return nextIds;
-    });
+    setReadNotificationIds((prevIds) =>
+      prevIds.includes(notificationId) ? prevIds : [...prevIds, notificationId]
+    );
+    return true;
   };
 
   const markAllNotificationsAsRead = async () => {
@@ -275,7 +284,9 @@ export function createZRCMessageNotificationActions(deps) {
       return;
     }
 
-    markNotificationAsRead(notification.id);
+    markNotificationAsRead(notification.id).catch((error) => {
+      console.warn('[ZRC] Bildirim okundu bilgisi kaydedilemedi.', error);
+    });
     setIsNotificationsOpen(false);
 
     const notificationProjectName = getProjectNameForNotification(notification);
@@ -305,22 +316,30 @@ export function createZRCMessageNotificationActions(deps) {
     }
   };
 
-  const markMessageAsRead = (messageId) => {
-    setReadMessageIds((prevIds) => {
-      if (prevIds.includes(messageId)) return prevIds;
+  const markMessageAsRead = async (messageId) => {
+    if (readMessageIds.includes(messageId)) return true;
 
-      const nextIds = [...prevIds, messageId];
-      saveUserPreferencesToSupabase({ readMessageIds: nextIds });
-      return nextIds;
-    });
+    const nextIds = [...readMessageIds, messageId];
+    const preferencesSaved = await saveUserPreferencesToSupabase({ readMessageIds: nextIds });
+
+    if (!preferencesSaved) return false;
+
+    setReadMessageIds((prevIds) =>
+      prevIds.includes(messageId) ? prevIds : [...prevIds, messageId]
+    );
+    return true;
   };
 
-  const markAllMessagesAsRead = () => {
-    setReadMessageIds((prevIds) => {
-      const nextIds = Array.from(new Set([...prevIds, ...messageItems.map((message) => message.id)]));
-      saveUserPreferencesToSupabase({ readMessageIds: nextIds });
-      return nextIds;
-    });
+  const markAllMessagesAsRead = async () => {
+    const nextIds = Array.from(new Set([...readMessageIds, ...messageItems.map((message) => message.id)]));
+    const preferencesSaved = await saveUserPreferencesToSupabase({ readMessageIds: nextIds });
+
+    if (!preferencesSaved) return false;
+
+    setReadMessageIds((prevIds) =>
+      Array.from(new Set([...prevIds, ...nextIds]))
+    );
+    return true;
   };
 
   const handleMessageClick = (message) => {
@@ -329,7 +348,9 @@ export function createZRCMessageNotificationActions(deps) {
       return;
     }
 
-    markMessageAsRead(message.id);
+    markMessageAsRead(message.id).catch((error) => {
+      console.warn('[ZRC] Mesaj okundu bilgisi kaydedilemedi.', error);
+    });
     setIsMessagesOpen(false);
     setIsMessageTaskPickerOpen(false);
 
