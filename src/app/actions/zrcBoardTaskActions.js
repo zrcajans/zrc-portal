@@ -4,6 +4,9 @@ import { chunkValues, getSafeWorkspaceStoragePaths } from '../utils/storageClean
 import { buildPersistableColumnCopy, buildPersistableTaskCopy } from '../utils/columnCopyHelpers.js';
 import { requireMatchingMutationRow } from '../utils/supabaseMutationHelpers.js';
 
+const zrcTaskOrderPersistenceQueues = new Map();
+const zrcTaskOrderOptimisticSnapshots = new Map();
+
 export const persistVerifiedTaskOrderUpdates = async ({
   supabase,
   workspaceId,
@@ -93,6 +96,20 @@ export function createZRCBoardTaskActions(deps) {
     saveTaskToSupabaseForProject,
     taskMutationLockRef
   } = deps;
+
+  const zrcGetTaskOrderScopeKey = () => {
+    const workspaceId =
+      typeof getCurrentSupabaseWorkspaceId === 'function'
+        ? String(getCurrentSupabaseWorkspaceId() || '')
+        : '';
+
+    return `${workspaceId || 'no-workspace'}:${String(selectedProject || 'no-project')}`;
+  };
+
+  const zrcGetLatestTaskOrderColumns = () => {
+    const snapshot = zrcTaskOrderOptimisticSnapshots.get(zrcGetTaskOrderScopeKey());
+    return Array.isArray(snapshot) ? snapshot : boardColumns;
+  };
 
   const persistTaskBatch = async (tasks = [], mutation) => {
     const outcomes = await Promise.all(
@@ -1035,6 +1052,22 @@ export function createZRCBoardTaskActions(deps) {
       zrcMarkTaskOrderSavingWindow(1200);
     }
   };
+
+  const zrcEnqueueTaskOrderPersistence = (scopeKey, columnsToPersist) => {
+    const previousSave = zrcTaskOrderPersistenceQueues.get(scopeKey) || Promise.resolve(true);
+
+    const nextSave = previousSave
+      .catch(() => false)
+      .then(() => zrcPersistBoardTaskOrderToSupabase(columnsToPersist));
+
+    zrcTaskOrderPersistenceQueues.set(scopeKey, nextSave);
+
+    return nextSave.finally(() => {
+      if (zrcTaskOrderPersistenceQueues.get(scopeKey) === nextSave) {
+        zrcTaskOrderPersistenceQueues.delete(scopeKey);
+      }
+    });
+  };
   /* === ZRC TASK ORDER DB PERSIST HELPERS END === */
 
   const handleMoveTaskToColumn = async (sourceColumnId, targetColumnId, task = {}) => {
@@ -1512,7 +1545,8 @@ export function createZRCBoardTaskActions(deps) {
   /* === ZRC PREMIUM LIVE TASK REORDER HELPERS END === */
 
   const handleDragStart = (e, taskId, sourceColId) => {
-    const sourceColumn = boardColumns.find((column) => column.id === sourceColId);
+    const sourceColumns = zrcGetLatestTaskOrderColumns();
+    const sourceColumn = sourceColumns.find((column) => column.id === sourceColId);
     const sourceTask = sourceColumn?.tasks.find((task) => task.id === taskId) || null;
 
     if (!sourceTask || !canCurrentUserModifyTask(sourceTask, selectedProject)) {
@@ -1884,24 +1918,27 @@ export function createZRCBoardTaskActions(deps) {
     }
     /* === ZRC RESOLVE FINAL DROP TARGET END === */
 
-    const currentTaskColumnBeforeDrop = boardColumns.find((column) =>
+    const taskOrderScopeKey = zrcGetTaskOrderScopeKey();
+    const latestBoardColumns = zrcGetLatestTaskOrderColumns();
+
+    const currentTaskColumnBeforeDrop = latestBoardColumns.find((column) =>
       (column.tasks || []).some((task) => task.id === taskId)
     );
 
     const finalTargetColId = targetColId;
     const sourceColumnBeforeMove =
-      boardColumns.find((column) => column.id === originalSourceColId) ||
-      boardColumns.find((column) => column.id === sourceColId) ||
+      latestBoardColumns.find((column) => column.id === originalSourceColId) ||
+      latestBoardColumns.find((column) => column.id === sourceColId) ||
       currentTaskColumnBeforeDrop;
 
     const targetColumnBeforeMove =
-      boardColumns.find((column) => column.id === finalTargetColId) ||
-      boardColumns.find((column) => column.id === targetColId);
+      latestBoardColumns.find((column) => column.id === finalTargetColId) ||
+      latestBoardColumns.find((column) => column.id === targetColId);
 
     const taskBeforeMove =
       sourceColumnBeforeMove?.tasks?.find((task) => task.id === taskId) ||
       currentTaskColumnBeforeDrop?.tasks?.find((task) => task.id === taskId) ||
-      boardColumns.flatMap((column) => column.tasks || []).find((task) => task.id === taskId) ||
+      latestBoardColumns.flatMap((column) => column.tasks || []).find((task) => task.id === taskId) ||
       null;
 
     if (taskBeforeMove && !canCurrentUserModifyTask(taskBeforeMove, selectedProject)) {
@@ -1917,7 +1954,7 @@ export function createZRCBoardTaskActions(deps) {
       finalTargetColId &&
       originalSourceColId !== finalTargetColId;
 
-    const updatedCols = boardColumns.map((column) => ({
+    const updatedCols = latestBoardColumns.map((column) => ({
       ...column,
       tasks: Array.isArray(column.tasks) ? [...column.tasks] : []
     }));
@@ -1968,18 +2005,49 @@ export function createZRCBoardTaskActions(deps) {
         ...(task.id === taskId ? { status: column.title, columnTitle: column.title } : {})
       }))
     }));
-    // Görevi bırakır bırakmaz panoda göster.
-    // Supabase kaydı bu görünür state'i geciktirmemelidir.
-    setBoardColumns(normalizedCols);
+    // Görevi bırakır bırakmaz panoda göster ve aynı anda sonraki hızlı sürüklemenin
+    // en yeni state'i kullanabilmesi için snapshot'ı kaydet.
+    zrcTaskOrderOptimisticSnapshots.set(taskOrderScopeKey, normalizedCols);
 
-    const orderSaved = await zrcPersistBoardTaskOrderToSupabase(normalizedCols);
+    const applyOptimisticDrop = () => {
+      setBoardColumns(normalizedCols);
+
+      if (typeof setProjectBoards === 'function' && selectedProject) {
+        setProjectBoards((prevBoards) => ({
+          ...(prevBoards || {}),
+          [selectedProject]: {
+            ...((prevBoards || {})[selectedProject] || {}),
+            columns: normalizedCols
+          }
+        }));
+      }
+    };
+
+    if (typeof flushSync === 'function') {
+      flushSync(applyOptimisticDrop);
+    } else {
+      applyOptimisticDrop();
+    }
+
+    // Çok önemli: Eski drop isteği Supabase'i beklerken yeni başlayan drag'in
+    // context'ini sonradan silmesin.
+    draggedTaskInfo.current = null;
+    zrcClearDesktopDragSource();
+
+    const orderSaved = await zrcEnqueueTaskOrderPersistence(taskOrderScopeKey, normalizedCols);
 
     if (!orderSaved) {
-      await window.zrcAlert('Görev sırası Supabase’e kaydedilemedi. Pano güncel veriden yenilenecek.');
-      await loadSelectedProjectBoardFromSupabase();
-      draggedTaskInfo.current = null;
-      zrcClearDesktopDragSource();
+      // Daha yeni bir sürükleme varsa onu bozma; son snapshot başarısız olursa yenile.
+      if (zrcTaskOrderOptimisticSnapshots.get(taskOrderScopeKey) === normalizedCols) {
+        zrcTaskOrderOptimisticSnapshots.delete(taskOrderScopeKey);
+        await window.zrcAlert('Görev sırası Supabase’e kaydedilemedi. Pano güncel veriden yenilenecek.');
+        await loadSelectedProjectBoardFromSupabase();
+      }
       return;
+    }
+
+    if (zrcTaskOrderOptimisticSnapshots.get(taskOrderScopeKey) === normalizedCols) {
+      zrcTaskOrderOptimisticSnapshots.delete(taskOrderScopeKey);
     }
 
     if (shouldCreateStatusNotification) {
@@ -1995,8 +2063,6 @@ export function createZRCBoardTaskActions(deps) {
       });
     }
 
-    draggedTaskInfo.current = null;
-    zrcClearDesktopDragSource();
   };
 
   return {

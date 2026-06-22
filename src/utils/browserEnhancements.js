@@ -933,12 +933,13 @@ const zrcV448InstallDesktopSoundUnlock = () => {
 export const zrcV448PlayDesktopNotificationSound = () => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
 
-  // zrc-v449-desktop-sound-debounce
+  // Farklı bildirimler hızlı gelirse tek sese düşmesin.
+  // 450 ms altı hâlâ aynı olayın çift tetiklenmesini engeller.
   const now = Date.now();
   const lastSoundAt = Number(window.__zrcV449LastDesktopSoundAt || 0);
 
-  if (now - lastSoundAt < 2500) {
-    console.info('[ZRC Ses v449] Çift masaüstü ses engellendi.');
+  if (now - lastSoundAt < 450) {
+    console.info('[ZRC Ses] Aynı anda tekrar eden masaüstü sesi engellendi.');
     return false;
   }
 
