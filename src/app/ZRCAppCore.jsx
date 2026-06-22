@@ -10663,15 +10663,17 @@ function ZRCAppShell() {
         });
     };
 
+    const handleDragCleanupKeyUp = (event) => {
+      if (event?.key === 'Escape') cleanupDragCursorState();
+    };
+
     window.addEventListener('drop', cleanupDragCursorState, true);
     window.addEventListener('dragend', cleanupDragCursorState, true);
     window.addEventListener('pointerup', cleanupDragCursorState, true);
     window.addEventListener('mouseup', cleanupDragCursorState, true);
     window.addEventListener('blur', cleanupDragCursorState, true);
 
-    document.addEventListener('keyup', (event) => {
-      if (event?.key === 'Escape') cleanupDragCursorState();
-    }, true);
+    document.addEventListener('keyup', handleDragCleanupKeyUp, true);
 
     return () => {
       window.removeEventListener('drop', cleanupDragCursorState, true);
@@ -10679,6 +10681,7 @@ function ZRCAppShell() {
       window.removeEventListener('pointerup', cleanupDragCursorState, true);
       window.removeEventListener('mouseup', cleanupDragCursorState, true);
       window.removeEventListener('blur', cleanupDragCursorState, true);
+      document.removeEventListener('keyup', handleDragCleanupKeyUp, true);
     };
   }, []);
 
