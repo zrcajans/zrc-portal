@@ -151,17 +151,26 @@ export const zrcV426bNormalizeTaskDateFields = (task = {}) => {
 
   if (!resolvedEndDate) return task;
 
-  const nextTask = {
-    ...task,
-    endDate: task.endDate || resolvedEndDate,
-    dueDate: task.dueDate || resolvedEndDate
-  };
+  const nextEndDate = task.endDate || resolvedEndDate;
+  const nextDueDate = task.dueDate || resolvedEndDate;
+  const shouldAddStartDate = !task.startDate && Boolean(resolvedStartDate);
 
-  if (!nextTask.startDate && resolvedStartDate) {
-    nextTask.startDate = resolvedStartDate;
+  // Çok kritik: Tarihler zaten doğruysa aynı object'i döndür.
+  // Böylece projectBoards effect'i gereksiz setState/render döngüsüne girmez.
+  if (
+    task.endDate === nextEndDate &&
+    task.dueDate === nextDueDate &&
+    !shouldAddStartDate
+  ) {
+    return task;
   }
 
-  return nextTask;
+  return {
+    ...task,
+    endDate: nextEndDate,
+    dueDate: nextDueDate,
+    ...(shouldAddStartDate ? { startDate: resolvedStartDate } : {})
+  };
 };
 
 const zrcV426bParseDueDate = (value = '') => {
