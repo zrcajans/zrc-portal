@@ -5,6 +5,7 @@ import {
   activateStorageScope,
   clearActiveStorageScope,
   createStorageScope,
+  getActiveStorageWorkspaceId,
   getScopedStorageKey
 } from '../src/app/utils/storageScopeHelpers.js';
 
@@ -48,4 +49,12 @@ test('scope activation is stable and can be cleared without deleting scoped data
   assert.equal(storage.getItem(ACTIVE_STORAGE_SCOPE_KEY), expectedScope);
   assert.equal(clearActiveStorageScope(storage), true);
   assert.equal(storage.getItem(`zrc-projects:${expectedScope}`), 'preserved');
+});
+
+test('active workspace id is recovered from the isolated browser scope', () => {
+  const storage = createMemoryStorage();
+
+  activateStorageScope({ workspaceId: 'workspace/one', userId: 'user@example.com' }, storage);
+
+  assert.equal(getActiveStorageWorkspaceId(storage), 'workspace/one');
 });

@@ -1,4 +1,7 @@
-import { getScopedStorageKey } from '../app/utils/storageScopeHelpers.js';
+import {
+  getActiveStorageWorkspaceId,
+  getScopedStorageKey
+} from '../app/utils/storageScopeHelpers.js';
 
 // zrc-v426-task-end-date-color
 const getZrcTaskEndDateValue = (task = {}) =>
@@ -790,6 +793,7 @@ const zrcV447AutoRegisterMobilePush = async () => {
       cache: 'no-store',
       body: JSON.stringify({
         subscription,
+        workspaceId: getActiveStorageWorkspaceId(),
         userAgent: navigator.userAgent || '',
         source: 'v447-auto-mobile'
       })

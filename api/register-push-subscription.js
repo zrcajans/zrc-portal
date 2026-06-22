@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { authorizeWorkspaceRequest } from '../server/supabaseAuthorization.js';
 
 const sendJson = (res, statusCode, payload) => {
   res.status(statusCode).json(payload);
@@ -42,71 +42,38 @@ export default async function handler(req, res) {
     return sendJson(res, 500, { error: 'Supabase env eksik.' });
   }
 
-  const authorizationHeader = req.headers.authorization || '';
-
-  if (!authorizationHeader.startsWith('Bearer ')) {
-    return sendJson(res, 401, { error: 'Oturum bulunamadı.' });
-  }
-
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: authorizationHeader
-      }
-    },
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  });
-
-  const { data: authData, error: authError } = await userClient.auth.getUser();
-
-  if (authError || !authData?.user?.id) {
-    return sendJson(res, 401, { error: 'Oturum doğrulanamadı.' });
-  }
-
   const body = parseBody(req);
   const subscription = body.subscription;
   const endpoint = String(subscription?.endpoint || '').trim();
+  const workspaceId = String(body.workspaceId || '').trim();
 
   if (!endpoint) {
     return sendJson(res, 400, { error: 'Push subscription endpoint eksik.' });
   }
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
+  const authorization = await authorizeWorkspaceRequest({
+    authorizationHeader: req.headers.authorization || '',
+    workspaceId,
+    supabaseUrl,
+    supabaseAnonKey,
+    serviceRoleKey
   });
 
-  const userId = authData.user.id;
-
-  const { data: membershipRows, error: membershipError } = await admin
-    .from('workspace_members')
-    .select('workspace_id, status')
-    .eq('user_id', userId)
-    .eq('status', 'Aktif')
-    .limit(1);
-
-  if (membershipError) {
-    return sendJson(res, 500, { error: `Workspace üyeliği okunamadı: ${membershipError.message}` });
+  if (authorization.error) {
+    return sendJson(res, authorization.status, { error: authorization.error });
   }
 
-  const workspaceId = membershipRows?.[0]?.workspace_id;
-
-  if (!workspaceId) {
-    return sendJson(res, 400, { error: 'Aktif workspace bulunamadı.' });
-  }
+  const { admin, userId } = authorization;
 
   try {
-    await admin
+    const { error: deleteError } = await admin
       .from('notifications')
       .delete()
       .eq('workspace_id', workspaceId)
       .eq('user_id', userId)
       .eq('type', 'push_subscription');
+
+    if (deleteError) throw deleteError;
 
     const { error: insertError } = await admin
       .from('notifications')

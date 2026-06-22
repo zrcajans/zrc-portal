@@ -29,6 +29,19 @@ export const getActiveStorageScope = (storage = getBrowserStorage()) => {
   }
 };
 
+export const getActiveStorageWorkspaceId = (storage = getBrowserStorage()) => {
+  const scope = getActiveStorageScope(storage);
+  const encodedWorkspaceId = scope.split('--')[0] || '';
+
+  if (!encodedWorkspaceId) return '';
+
+  try {
+    return decodeURIComponent(encodedWorkspaceId);
+  } catch {
+    return '';
+  }
+};
+
 export const activateStorageScope = ({ workspaceId, userId } = {}, storage = getBrowserStorage()) => {
   const scope = createStorageScope({ workspaceId, userId });
 
