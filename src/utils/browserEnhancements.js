@@ -520,7 +520,14 @@ const zrcV429RegisterAndSendTestPush = async (hint) => {
     return;
   }
 
-  const pushResponse = await fetch('/api/send-test-push', {
+  const workspaceId = getActiveStorageWorkspaceId();
+
+  if (!workspaceId) {
+    zrcV429SetHintText(hint, 'Aktif workspace bulunamadı. Çıkış yapıp tekrar giriş yap.');
+    return;
+  }
+
+  const registerResponse = await fetch('/api/register-push-subscription', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -528,6 +535,27 @@ const zrcV429RegisterAndSendTestPush = async (hint) => {
     },
     body: JSON.stringify({
       subscription,
+      workspaceId,
+      userAgent: navigator.userAgent || '',
+      source: 'v429-manual-test'
+    })
+  });
+
+  const registerResult = await registerResponse.json().catch(() => ({}));
+
+  if (!registerResponse.ok || registerResult.error) {
+    zrcV429SetHintText(hint, registerResult.error || 'Push aboneliği kaydedilemedi.');
+    return;
+  }
+
+  const pushResponse = await fetch('/api/send-test-push', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({
+      workspaceId,
       title: 'ZRC',
       body: 'Test bildirimi başarılı. Telefon bildirimleri aktif.'
     })

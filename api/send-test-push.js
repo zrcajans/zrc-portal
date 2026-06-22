@@ -1,5 +1,5 @@
 import webPush from 'web-push';
-import { authorizeAnyActiveWorkspaceRequest } from '../server/supabaseAuthorization.js';
+import { authorizeWorkspaceRequest } from '../server/supabaseAuthorization.js';
 
 const getVapidConfig = () => {
   const publicKey = process.env.VAPID_PUBLIC_KEY || '';
@@ -34,8 +34,11 @@ export default async function handler(req, res) {
     });
   }
 
-  const authorization = await authorizeAnyActiveWorkspaceRequest({
+  const body = typeof req.body === 'object' && req.body !== null ? req.body : {};
+  const workspaceId = String(body.workspaceId || '').trim();
+  const authorization = await authorizeWorkspaceRequest({
     authorizationHeader: req.headers.authorization || '',
+    workspaceId,
     supabaseUrl,
     supabaseAnonKey,
     serviceRoleKey
@@ -45,11 +48,33 @@ export default async function handler(req, res) {
     return res.status(authorization.status).json({ error: authorization.error });
   }
 
-  const subscription = req.body?.subscription;
+  const { admin, userId } = authorization;
+  const { data: subscriptionRecord, error: subscriptionError } = await admin
+    .from('notifications')
+    .select('body')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .eq('type', 'push_subscription')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (subscriptionError) {
+    return res.status(500).json({ error: 'Push aboneliği doğrulanamadı.' });
+  }
+
+  let subscription;
+
+  try {
+    const savedSubscription = JSON.parse(subscriptionRecord?.body || '{}');
+    subscription = savedSubscription.subscription || savedSubscription;
+  } catch {
+    subscription = undefined;
+  }
 
   if (!subscription || !subscription.endpoint) {
     return res.status(400).json({
-      error: 'Push subscription bulunamadı.'
+      error: 'Bu kullanıcı ve workspace için kayıtlı push aboneliği bulunamadı.'
     });
   }
 
@@ -59,8 +84,8 @@ export default async function handler(req, res) {
     await webPush.sendNotification(
       subscription,
       JSON.stringify({
-        title: String(req.body?.title || 'ZRC Portal').trim().slice(0, 80),
-        body: String(req.body?.body || 'Test bildirimi başarılı.').trim().slice(0, 180),
+        title: String(body.title || 'ZRC Portal').trim().slice(0, 80),
+        body: String(body.body || 'Test bildirimi başarılı.').trim().slice(0, 180),
         icon: '/zrc-logo.png',
         badge: '/zrc-logo.png',
         tag: 'zrc-test-push'
