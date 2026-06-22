@@ -1,5 +1,5 @@
-// zrc-v427c-pwa-import-fix
-const ZRC_CACHE_NAME = 'zrc-portal-v427c';
+const ZRC_CACHE_NAME = 'zrc-portal-v427d';
+const ZRC_CACHEABLE_DESTINATIONS = new Set(['script', 'style', 'image', 'font']);
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -15,8 +15,31 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request).then((cached) => cached || caches.match('/'))));
+  const request = event.request;
+
+  if (request.method !== 'GET') return;
+
+  const requestUrl = new URL(request.url);
+
+  if (requestUrl.origin !== self.location.origin || requestUrl.pathname.startsWith('/api/')) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match('/')));
+    return;
+  }
+
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response.ok && ZRC_CACHEABLE_DESTINATIONS.has(request.destination)) {
+          const cachedResponse = response.clone();
+          event.waitUntil(caches.open(ZRC_CACHE_NAME).then((cache) => cache.put(request, cachedResponse)));
+        }
+
+        return response;
+      })
+      .catch(async () => (await caches.match(request)) || Response.error())
+  );
 });
 
 self.addEventListener('push', (event) => {

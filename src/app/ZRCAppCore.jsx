@@ -1043,53 +1043,6 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-
-    const isLocalDev =
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
-
-    const isZrcLiveDomain =
-      window.location.hostname === 'portal.zrcajans.com' ||
-      window.location.hostname.endsWith('.vercel.app');
-
-    if (isLocalDev) {
-      console.info('[ZRC PWA] Local geliştirme ortamında service worker kapalı.');
-      return;
-    }
-
-    if (!isZrcLiveDomain) {
-      console.info('[ZRC PWA] Bu domain için service worker kaydı atlandı:', window.location.hostname);
-      return;
-    }
-
-    let isCancelled = false;
-
-    const registerZrcServiceWorker = async () => {
-      try {
-        const registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
-
-        if (!isCancelled) {
-          console.info('[ZRC PWA] Service worker hazır:', registration.scope);
-        }
-      } catch (error) {
-        console.warn('[ZRC PWA] Service worker kaydı başarısız:', error);
-      }
-    };
-
-    if (document.readyState === 'complete') {
-      registerZrcServiceWorker();
-    } else {
-      window.addEventListener('load', registerZrcServiceWorker, { once: true });
-    }
-
-    return () => {
-      isCancelled = true;
-      window.removeEventListener('load', registerZrcServiceWorker);
-    };
-  }, []);
-
   const [activeMenu, setActiveMenu] = useState(() => getSavedNavigationState().activeMenu);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
