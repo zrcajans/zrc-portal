@@ -10,6 +10,7 @@ import ZRCAppHomeDashboardSection from './ZRCAppHomeDashboardSection';
 import ZRCAppMenuCalendarSection from './ZRCAppMenuCalendarSection';
 import ZRCAppMessagesPageSection from './ZRCAppMessagesPageSection';
 import ZRCAppModalLayer from './ZRCAppModalLayer';
+import ZRCPremiumCursor from '../../components/common/ZRCPremiumCursor';
 import ZRCAppProfilePageSection from './ZRCAppProfilePageSection';
 import ZRCAppProjectWorkspaceSection from './ZRCAppProjectWorkspaceSection';
 import ZRCAppShellIsMessagesOpenSection from './ZRCAppShellIsMessagesOpenSection';
@@ -388,6 +389,7 @@ export default function ZRCAppAuthenticatedShell({
 
   return (<div className="min-h-screen flex bg-[#f5f6f8] antialiased selection:bg-[#ff3600] overflow-x-hidden relative font-[Inter]">
       <ZRCAppGlobalStyles />
+      <ZRCPremiumCursor />
       {renderSupabaseConnectionBadge()}
 
       <style>{`

@@ -2168,3 +2168,62 @@ body {
   }
 }
 /* === ZRC FINAL CURSOR DRAG RESET END === */
+
+
+/* === ZRC LIGHTWEIGHT ORANGE CURSOR START === */
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  body.zrc-lite-orange-cursor-enabled,
+  body.zrc-lite-orange-cursor-enabled * {
+    cursor: none !important;
+  }
+
+  body.zrc-lite-orange-cursor-enabled input,
+  body.zrc-lite-orange-cursor-enabled textarea,
+  body.zrc-lite-orange-cursor-enabled select,
+  body.zrc-lite-orange-cursor-enabled [contenteditable="true"] {
+    cursor: text !important;
+  }
+
+  .zrc-lite-orange-cursor {
+    --zrc-lite-x: -80px;
+    --zrc-lite-y: -80px;
+    pointer-events: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 9px;
+    height: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    border-radius: 999px;
+    background: #ff3600;
+    opacity: 0;
+    z-index: 2147483647;
+    transform: translate3d(var(--zrc-lite-x), var(--zrc-lite-y), 0) translate(-50%, -50%);
+    box-shadow: 0 3px 12px rgba(255, 54, 0, 0.25);
+    transition:
+      opacity 80ms ease,
+      width 120ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 120ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 120ms ease;
+    will-change: transform, opacity;
+    contain: layout style paint;
+  }
+
+  body.zrc-lite-orange-cursor-visible .zrc-lite-orange-cursor {
+    opacity: 1;
+  }
+
+  body.zrc-lite-orange-cursor-interactive .zrc-lite-orange-cursor {
+    width: 12px;
+    height: 12px;
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.94),
+      0 4px 16px rgba(255, 54, 0, 0.30);
+  }
+
+  body.zrc-lite-orange-cursor-down .zrc-lite-orange-cursor {
+    width: 7px;
+    height: 7px;
+  }
+}
+/* === ZRC LIGHTWEIGHT ORANGE CURSOR END === */

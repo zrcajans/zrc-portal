@@ -1,174 +1,27 @@
 import { useEffect, useRef } from 'react';
 
-const ZRC_ORANGE_RGB = { r: 255, g: 54, b: 0 };
-
-function parseRgbColor(value) {
-  if (!value || value === 'transparent') return null;
-
-  const match = value.match(/rgba?\(([^)]+)\)/i);
-  if (!match) return null;
-
-  const parts = match[1].split(',').map((part) => Number.parseFloat(part.trim()));
-
-  if (parts.length < 3 || parts.some((part, index) => index < 3 && Number.isNaN(part))) return null;
-
-  const alpha = parts.length >= 4 && !Number.isNaN(parts[3]) ? parts[3] : 1;
-
-  if (alpha <= 0.04) return null;
-
-  return {
-    r: Math.max(0, Math.min(255, parts[0])),
-    g: Math.max(0, Math.min(255, parts[1])),
-    b: Math.max(0, Math.min(255, parts[2])),
-    a: alpha
-  };
-}
-
-function channelToLinear(value) {
-  const channel = value / 255;
-  return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-}
-
-function getLuminance(color) {
-  return (
-    0.2126 * channelToLinear(color.r) +
-    0.7152 * channelToLinear(color.g) +
-    0.0722 * channelToLinear(color.b)
-  );
-}
-
-function getContrastRatio(a, b) {
-  const lumA = getLuminance(a);
-  const lumB = getLuminance(b);
-  const lighter = Math.max(lumA, lumB);
-  const darker = Math.min(lumA, lumB);
-
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-function getVisibleBackgroundColor(target) {
-  let element = target instanceof Element ? target : null;
-
-  while (element && element !== document.documentElement) {
-    const style = window.getComputedStyle(element);
-    const color = parseRgbColor(style.backgroundColor);
-
-    if (color) return color;
-
-    element = element.parentElement;
-  }
-
-  return parseRgbColor(window.getComputedStyle(document.body).backgroundColor) || { r: 255, g: 255, b: 255 };
-}
-
-function shouldUseWhiteOutline(target) {
-  const background = getVisibleBackgroundColor(target);
-  const contrast = getContrastRatio(ZRC_ORANGE_RGB, background);
-
-  const orangeDistance = Math.hypot(
-    ZRC_ORANGE_RGB.r - background.r,
-    ZRC_ORANGE_RGB.g - background.g,
-    ZRC_ORANGE_RGB.b - background.b
-  );
-
-  return contrast < 2.25 || orangeDistance < 120;
-}
-
-function pointInsideRect(x, y, rect, padding = 2) {
-  return (
-    x >= rect.left - padding &&
-    x <= rect.right + padding &&
-    y >= rect.top - padding &&
-    y <= rect.bottom + padding
-  );
-}
-
-function textNodeHasPoint(textNode, x, y) {
-  if (!textNode?.textContent?.trim()) return false;
-
-  const range = document.createRange();
-
-  try {
-    range.selectNodeContents(textNode);
-
-    for (const rect of range.getClientRects()) {
-      if (rect.width <= 0 || rect.height <= 0) continue;
-      if (pointInsideRect(x, y, rect, 3)) return true;
-    }
-
-    return false;
-  } finally {
-    range.detach?.();
-  }
-}
-
-function elementHasTextAtPoint(element, x, y) {
-  if (!(element instanceof Element)) return false;
-
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      return node.textContent?.trim()
-        ? NodeFilter.FILTER_ACCEPT
-        : NodeFilter.FILTER_REJECT;
-    }
-  });
-
-  let node = walker.nextNode();
-  let checked = 0;
-
-  while (node && checked < 24) {
-    if (textNodeHasPoint(node, x, y)) return true;
-
-    node = walker.nextNode();
-    checked += 1;
-  }
-
-  return false;
-}
-
-function isPointOnReadableText(x, y, target, editableSelector, interactiveSelector) {
-  const element = target instanceof Element ? target : null;
-
-  if (!element) return false;
-
-  if (element.closest(editableSelector)) return true;
-
-  const textTags = 'p,span,strong,em,b,i,small,label,h1,h2,h3,h4,h5,h6,li,td,th,blockquote,code,pre,div';
-  const elementsAtPoint = document.elementsFromPoint?.(x, y) || [element];
-
-  for (const item of elementsAtPoint.slice(0, 8)) {
-    if (!(item instanceof Element)) continue;
-    if (item.closest(editableSelector)) return true;
-    if (item.closest(interactiveSelector)) continue;
-
-    const candidate = item.matches(textTags)
-      ? item
-      : item.closest(textTags);
-
-    if (!(candidate instanceof Element)) continue;
-    if (candidate.closest(interactiveSelector)) continue;
-
-    const rect = candidate.getBoundingClientRect();
-    if (!pointInsideRect(x, y, rect, 0)) continue;
-
-    if (elementHasTextAtPoint(candidate, x, y)) return true;
-  }
-
-  return false;
-}
+const EDITABLE_SELECTOR = 'input,textarea,select,[contenteditable="true"]';
+const INTERACTIVE_SELECTOR = [
+  'a',
+  'button',
+  '[role="button"]',
+  '[type="button"]',
+  '[type="submit"]',
+  '[type="reset"]',
+  'summary',
+  '[aria-haspopup]',
+  '[tabindex]:not([tabindex="-1"])',
+  '.cursor-pointer',
+  '.btn',
+  '.button',
+  '[class*="button"]',
+  '[class*="Button"]',
+  '[class*="btn"]',
+  '[class*="Btn"]'
+].join(',');
 
 export default function ZRCPremiumCursor() {
-  const cursorRef = useRef(null);
-  const frameRef = useRef(null);
-  const clickTimerRef = useRef(null);
-
-  const stateRef = useRef({
-    x: -80,
-    y: -80,
-    dotX: -80,
-    dotY: -80,
-    visible: false
-  });
+  const frameRef = useRef(0);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -176,108 +29,40 @@ export default function ZRCPremiumCursor() {
     const finePointer = window.matchMedia?.('(pointer: fine)');
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
 
-    if (finePointer && !finePointer.matches) return undefined;
-    if (reducedMotion && reducedMotion.matches) return undefined;
+    if ((finePointer && !finePointer.matches) || (reducedMotion && reducedMotion.matches)) {
+      return undefined;
+    }
 
     const body = document.body;
     const cursor = document.createElement('span');
 
-    cursor.className = 'zrc-pure-dot-cursor';
+    cursor.className = 'zrc-lite-orange-cursor';
     cursor.setAttribute('aria-hidden', 'true');
     cursor.setAttribute('data-zrc-cursor-portal', 'true');
 
-    cursorRef.current = cursor;
     body.appendChild(cursor);
+    body.classList.add('zrc-lite-orange-cursor-enabled');
 
-    const editableSelector = [
-      'input',
-      'textarea',
-      '[contenteditable="true"]'
-    ].join(',');
+    let latestX = -80;
+    let latestY = -80;
 
-    const interactiveSelector = [
-      'a',
-      'button',
-      '[role="button"]',
-      '[type="button"]',
-      '[type="submit"]',
-      '[type="reset"]',
-      'select',
-      'summary',
-      '[aria-haspopup]',
-      '[aria-expanded]',
-      '[data-cursor="interactive"]',
-      '[data-state]',
-      '[tabindex]:not([tabindex="-1"])',
-      '.cursor-pointer',
-      '.btn',
-      '.button',
-      '[class*="button"]',
-      '[class*="Button"]',
-      '[class*="btn"]',
-      '[class*="Btn"]',
-      '[draggable="true"]'
-    ].join(',');
-
-    const applyTargetState = (event) => {
-      const target = event.target;
-      const element = target instanceof Element ? target : null;
-      const isEditable = Boolean(element?.closest(editableSelector));
-      const isClickable = Boolean(element?.closest(interactiveSelector)) && !isEditable;
-      const isTextMode = !isClickable && isPointOnReadableText(event.clientX, event.clientY, target, editableSelector, interactiveSelector);
-      const isInteractive = isClickable && !isTextMode;
-      const needsWhiteOutline = !isTextMode && shouldUseWhiteOutline(target);
-
-      body.classList.toggle('zrc-pure-dot-cursor-text-mode', isTextMode);
-      body.classList.toggle('zrc-pure-dot-cursor-interactive', isInteractive);
-      body.classList.toggle('zrc-pure-dot-cursor-low-contrast', needsWhiteOutline);
+    const paint = () => {
+      frameRef.current = 0;
+      cursor.style.setProperty('--zrc-lite-x', `${latestX}px`);
+      cursor.style.setProperty('--zrc-lite-y', `${latestY}px`);
     };
 
-    const forceExitTextMode = () => {
-      body.classList.remove('zrc-pure-dot-cursor-text-mode');
-    };
-
-    const recalculateAtCurrentPoint = () => {
-      const state = stateRef.current;
-      const element = document.elementFromPoint?.(state.x, state.y);
-
-      if (!element) {
-        forceExitTextMode();
-        return;
+    const schedulePaint = () => {
+      if (!frameRef.current) {
+        frameRef.current = window.requestAnimationFrame(paint);
       }
-
-      applyTargetState({
-        clientX: state.x,
-        clientY: state.y,
-        target: element
-      });
-    };
-
-    const animate = () => {
-      const state = stateRef.current;
-
-      state.dotX += (state.x - state.dotX) * 0.68;
-      state.dotY += (state.y - state.dotY) * 0.68;
-
-      cursor.style.transform = `translate3d(${state.dotX}px, ${state.dotY}px, 0) translate(-50%, -50%) rotate(var(--zrc-liquid-rotate, 0deg)) scaleX(var(--zrc-liquid-scale-x, 1)) scaleY(var(--zrc-liquid-scale-y, 1))`;
-
-      frameRef.current = window.requestAnimationFrame(animate);
-    };
-
-    const show = () => {
-      stateRef.current.visible = true;
-      body.classList.add('zrc-pure-dot-cursor-visible');
     };
 
     const hide = () => {
-      stateRef.current.visible = false;
       body.classList.remove(
-        'zrc-pure-dot-cursor-visible',
-        'zrc-pure-dot-cursor-interactive',
-        'zrc-pure-dot-cursor-text-mode',
-        'zrc-pure-dot-cursor-down',
-        'zrc-pure-dot-cursor-clicked',
-        'zrc-pure-dot-cursor-low-contrast'
+        'zrc-lite-orange-cursor-visible',
+        'zrc-lite-orange-cursor-interactive',
+        'zrc-lite-orange-cursor-down'
       );
     };
 
@@ -287,169 +72,57 @@ export default function ZRCPremiumCursor() {
         return;
       }
 
-      const state = stateRef.current;
-      state.x = event.clientX;
-      state.y = event.clientY;
+      latestX = event.clientX;
+      latestY = event.clientY;
+      schedulePaint();
 
-      if (!state.visible) {
-        state.dotX = event.clientX;
-        state.dotY = event.clientY;
-        show();
-      }
+      const element = event.target instanceof Element ? event.target : null;
+      const isEditable = Boolean(element?.closest(EDITABLE_SELECTOR));
+      const isInteractive = !isEditable && Boolean(element?.closest(INTERACTIVE_SELECTOR));
 
-      applyTargetState(event);
+      body.classList.toggle('zrc-lite-orange-cursor-interactive', isInteractive);
+      body.classList.toggle('zrc-lite-orange-cursor-visible', !isEditable);
     };
 
     const onPointerDown = (event) => {
-      if (event.pointerType && event.pointerType !== 'mouse') return;
-
-      body.classList.add('zrc-pure-dot-cursor-down');
-      body.classList.remove('zrc-pure-dot-cursor-clicked');
-
-      if (!body.classList.contains('zrc-pure-dot-cursor-text-mode')) {
-        window.clearTimeout(clickTimerRef.current);
-
-        window.requestAnimationFrame(() => {
-          window.requestAnimationFrame(() => {
-            body.classList.add('zrc-pure-dot-cursor-clicked');
-          });
-        });
-
-        clickTimerRef.current = window.setTimeout(() => {
-          body.classList.remove('zrc-pure-dot-cursor-clicked');
-        }, 1180);
+      if (!event.pointerType || event.pointerType === 'mouse') {
+        body.classList.add('zrc-lite-orange-cursor-down');
       }
     };
 
-
-    // zrc-pure-dot-final-drag-release-v1
-    const zrcForceReleaseCursorState = () => {
-      body.classList.remove('zrc-pure-dot-cursor-down');
-      body.classList.remove('zrc-pure-dot-cursor-clicked');
-      body.classList.remove('zrc-pure-dot-cursor-interactive');
-
-      window.requestAnimationFrame(recalculateAtCurrentPoint);
+    const onPointerUp = () => {
+      body.classList.remove('zrc-lite-orange-cursor-down');
     };
 
-    const onPointerUp = (event) => {
-      body.classList.remove('zrc-pure-dot-cursor-down');
-      if (event) applyTargetState(event);
-    };
-
-    const onSelectionChange = () => {
-      window.requestAnimationFrame(recalculateAtCurrentPoint);
-    };
-
-    const onMouseLeave = () => hide();
-    const onMouseEnter = () => show();
-    const onTouchStart = () => hide();
-    const onScroll = () => {
-      window.requestAnimationFrame(recalculateAtCurrentPoint);
-    };
-
-    body.classList.add('zrc-pure-dot-cursor-enabled');
-
-    frameRef.current = window.requestAnimationFrame(animate);
-
-
-    // zrc-liquid-cursor-motion-v1
-    let zrcLiquidLastX = -80;
-    let zrcLiquidLastY = -80;
-    let zrcLiquidStopTimer = 0;
-
-    const zrcResetLiquidCursor = () => {
-      cursor.style.setProperty('--zrc-liquid-scale-x', '1');
-      cursor.style.setProperty('--zrc-liquid-scale-y', '1');
-      cursor.style.setProperty('--zrc-liquid-rotate', '0deg');
-      cursor.style.setProperty('--zrc-liquid-trail', '0.65');
-      cursor.style.setProperty('--zrc-liquid-trail-opacity', '0');
-      body.classList.remove('zrc-pure-dot-cursor-liquid-moving');
-      body.classList.remove('zrc-pure-dot-cursor-liquid-fast');
-    };
-
-    const zrcUpdateLiquidCursor = (event) => {
-      if (!event || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) return;
-
-      if (body.classList.contains('zrc-pure-dot-cursor-text-mode')) {
-        zrcResetLiquidCursor();
-        zrcLiquidLastX = event.clientX;
-        zrcLiquidLastY = event.clientY;
-        return;
+    const onMouseEnter = () => {
+      if (latestX > -70 && latestY > -70) {
+        body.classList.add('zrc-lite-orange-cursor-visible');
       }
-
-      const dx = event.clientX - zrcLiquidLastX;
-      const dy = event.clientY - zrcLiquidLastY;
-      const speed = Math.min(62, Math.hypot(dx, dy));
-      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-      zrcLiquidLastX = event.clientX;
-      zrcLiquidLastY = event.clientY;
-
-      const stretch = Math.min(2.38, 1 + speed * 0.036);
-      const squash = Math.max(0.58, 1 - speed * 0.0072);
-      const trail = Math.min(2.65, 0.92 + speed * 0.038);
-      const trailOpacity = Math.min(0.62, 0.18 + speed * 0.012);
-
-      cursor.style.setProperty('--zrc-liquid-scale-x', stretch.toFixed(3));
-      cursor.style.setProperty('--zrc-liquid-scale-y', squash.toFixed(3));
-      cursor.style.setProperty('--zrc-liquid-rotate', `${angle.toFixed(2)}deg`);
-      cursor.style.setProperty('--zrc-liquid-trail', trail.toFixed(3));
-      cursor.style.setProperty('--zrc-liquid-trail-opacity', trailOpacity.toFixed(3));
-
-      body.classList.add('zrc-pure-dot-cursor-liquid-moving');
-      body.classList.toggle('zrc-pure-dot-cursor-liquid-fast', speed > 10);
-
-      window.clearTimeout(zrcLiquidStopTimer);
-      zrcLiquidStopTimer = window.setTimeout(() => {
-        zrcResetLiquidCursor();
-      }, 135);
     };
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('pointermove', zrcUpdateLiquidCursor, { passive: true });
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
-    window.addEventListener('mouseup', zrcForceReleaseCursorState, true);
-    window.addEventListener('drop', zrcForceReleaseCursorState, true);
-    window.addEventListener('dragend', zrcForceReleaseCursorState, true);
-    window.addEventListener('blur', zrcForceReleaseCursorState, true);
-    window.addEventListener('mouseleave', onMouseLeave);
-    window.addEventListener('mouseenter', onMouseEnter);
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
-    document.addEventListener('selectionchange', onSelectionChange);
+    window.addEventListener('blur', onPointerUp);
+    document.addEventListener('mouseleave', hide);
+    document.addEventListener('mouseenter', onMouseEnter);
 
     return () => {
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
-      window.clearTimeout(clickTimerRef.current);
 
       window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointermove', zrcUpdateLiquidCursor);
-      window.clearTimeout(zrcLiquidStopTimer);
-      zrcResetLiquidCursor();
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
-      window.removeEventListener('mouseup', zrcForceReleaseCursorState, true);
-      window.removeEventListener('drop', zrcForceReleaseCursorState, true);
-      window.removeEventListener('dragend', zrcForceReleaseCursorState, true);
-      window.removeEventListener('blur', zrcForceReleaseCursorState, true);
-      window.removeEventListener('mouseleave', onMouseLeave);
-      window.removeEventListener('mouseenter', onMouseEnter);
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('scroll', onScroll, { capture: true });
-      document.removeEventListener('selectionchange', onSelectionChange);
+      window.removeEventListener('blur', onPointerUp);
+      document.removeEventListener('mouseleave', hide);
+      document.removeEventListener('mouseenter', onMouseEnter);
 
       cursor.remove();
-      cursorRef.current = null;
-
       body.classList.remove(
-        'zrc-pure-dot-cursor-enabled',
-        'zrc-pure-dot-cursor-visible',
-        'zrc-pure-dot-cursor-interactive',
-        'zrc-pure-dot-cursor-text-mode',
-        'zrc-pure-dot-cursor-down',
-        'zrc-pure-dot-cursor-clicked',
-        'zrc-pure-dot-cursor-low-contrast'
+        'zrc-lite-orange-cursor-enabled',
+        'zrc-lite-orange-cursor-visible',
+        'zrc-lite-orange-cursor-interactive',
+        'zrc-lite-orange-cursor-down'
       );
     };
   }, []);
