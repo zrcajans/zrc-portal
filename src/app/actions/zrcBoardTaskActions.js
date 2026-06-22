@@ -1968,6 +1968,10 @@ export function createZRCBoardTaskActions(deps) {
         ...(task.id === taskId ? { status: column.title, columnTitle: column.title } : {})
       }))
     }));
+    // Görevi bırakır bırakmaz panoda göster.
+    // Supabase kaydı bu görünür state'i geciktirmemelidir.
+    setBoardColumns(normalizedCols);
+
     const orderSaved = await zrcPersistBoardTaskOrderToSupabase(normalizedCols);
 
     if (!orderSaved) {
@@ -1977,8 +1981,6 @@ export function createZRCBoardTaskActions(deps) {
       zrcClearDesktopDragSource();
       return;
     }
-
-    setBoardColumns(normalizedCols);
 
     if (shouldCreateStatusNotification) {
       createActivityNotification({
