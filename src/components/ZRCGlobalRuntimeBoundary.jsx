@@ -1,4 +1,5 @@
 import React from 'react';
+import { getScopedStorageKey } from '../app/utils/storageScopeHelpers.js';
 
 export default class ZRCGlobalRuntimeBoundary extends React.Component {
   constructor(props) {
@@ -65,7 +66,7 @@ export default class ZRCGlobalRuntimeBoundary extends React.Component {
         ZRCGlobalRuntimeBoundary.formatError(event?.error),
         '',
         'URL:',
-        window.location.href,
+        `${window.location.origin}${window.location.pathname}`,
         '',
         'User agent:',
         navigator.userAgent,
@@ -74,13 +75,7 @@ export default class ZRCGlobalRuntimeBoundary extends React.Component {
         new Date().toISOString(),
       ].join('\n');
 
-      this.setState({
-        hasError: true,
-        errorText: detail,
-        source: 'window.error',
-      });
-
-      console.error('[ZRC window.error]', event?.error || event?.message);
+      this.recordRuntimeDiagnostic(detail, 'window.error');
     };
 
     this.handleUnhandledRejection = (event) => {
@@ -91,7 +86,7 @@ export default class ZRCGlobalRuntimeBoundary extends React.Component {
         ZRCGlobalRuntimeBoundary.formatError(event?.reason),
         '',
         'URL:',
-        window.location.href,
+        `${window.location.origin}${window.location.pathname}`,
         '',
         'User agent:',
         navigator.userAgent,
@@ -100,13 +95,7 @@ export default class ZRCGlobalRuntimeBoundary extends React.Component {
         new Date().toISOString(),
       ].join('\n');
 
-      this.setState({
-        hasError: true,
-        errorText: detail,
-        source: 'unhandledrejection',
-      });
-
-      console.error('[ZRC unhandledrejection]', event?.reason);
+      this.recordRuntimeDiagnostic(detail, 'unhandledrejection');
     };
 
     window.addEventListener('error', this.handleWindowError);
@@ -132,6 +121,23 @@ export default class ZRCGlobalRuntimeBoundary extends React.Component {
 
     return [name + ': ' + message, stack].filter(Boolean).join('\n');
   }
+
+  recordRuntimeDiagnostic = (detail, source) => {
+    try {
+      window.localStorage.setItem(
+        getScopedStorageKey('zrc-last-runtime-error'),
+        JSON.stringify({
+          source,
+          detail,
+          createdAt: new Date().toISOString()
+        })
+      );
+    } catch {
+      // Tanı kaydı başarısız olsa da çalışan arayüzü bozma.
+    }
+
+    console.error(`[ZRC ${source}]`, detail);
+  };
 
   copyError = async () => {
     try {
