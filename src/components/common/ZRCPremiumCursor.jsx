@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 const EDITABLE_SELECTOR = 'input,textarea,select,[contenteditable="true"]';
+
 const INTERACTIVE_SELECTOR = [
   'a',
   'button',
@@ -10,6 +11,8 @@ const INTERACTIVE_SELECTOR = [
   '[type="reset"]',
   'summary',
   '[aria-haspopup]',
+  '[aria-expanded]',
+  '[data-cursor="interactive"]',
   '[tabindex]:not([tabindex="-1"])',
   '.cursor-pointer',
   '.btn',
@@ -17,11 +20,44 @@ const INTERACTIVE_SELECTOR = [
   '[class*="button"]',
   '[class*="Button"]',
   '[class*="btn"]',
-  '[class*="Btn"]'
+  '[class*="Btn"]',
+  '[draggable="true"]'
+].join(',');
+
+const TEXT_SELECTOR = [
+  'p',
+  'span',
+  'strong',
+  'em',
+  'b',
+  'i',
+  'small',
+  'label',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'li',
+  'td',
+  'th',
+  'blockquote',
+  'code',
+  'pre'
 ].join(',');
 
 export default function ZRCPremiumCursor() {
   const frameRef = useRef(0);
+  const stateRef = useRef({
+    x: -80,
+    y: -80,
+    previousX: -80,
+    previousY: -80,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -36,20 +72,22 @@ export default function ZRCPremiumCursor() {
     const body = document.body;
     const cursor = document.createElement('span');
 
-    cursor.className = 'zrc-lite-orange-cursor';
+    cursor.className = 'zrc-dynamic-orange-cursor';
     cursor.setAttribute('aria-hidden', 'true');
     cursor.setAttribute('data-zrc-cursor-portal', 'true');
 
     body.appendChild(cursor);
-    body.classList.add('zrc-lite-orange-cursor-enabled');
-
-    let latestX = -80;
-    let latestY = -80;
+    body.classList.add('zrc-dynamic-orange-cursor-enabled');
 
     const paint = () => {
       frameRef.current = 0;
-      cursor.style.setProperty('--zrc-lite-x', `${latestX}px`);
-      cursor.style.setProperty('--zrc-lite-y', `${latestY}px`);
+
+      const state = stateRef.current;
+      cursor.style.setProperty('--zrc-cursor-x', `${state.x}px`);
+      cursor.style.setProperty('--zrc-cursor-y', `${state.y}px`);
+      cursor.style.setProperty('--zrc-cursor-rotation', `${state.rotation.toFixed(2)}deg`);
+      cursor.style.setProperty('--zrc-cursor-scale-x', state.scaleX.toFixed(3));
+      cursor.style.setProperty('--zrc-cursor-scale-y', state.scaleY.toFixed(3));
     };
 
     const schedulePaint = () => {
@@ -58,11 +96,24 @@ export default function ZRCPremiumCursor() {
       }
     };
 
+    const setModeFromTarget = (target) => {
+      const element = target instanceof Element ? target : null;
+      const isEditable = Boolean(element?.closest(EDITABLE_SELECTOR));
+      const isInteractive = !isEditable && Boolean(element?.closest(INTERACTIVE_SELECTOR));
+      const isText = !isEditable && !isInteractive && Boolean(element?.closest(TEXT_SELECTOR));
+
+      body.classList.toggle('zrc-dynamic-orange-cursor-text-mode', isText);
+      body.classList.toggle('zrc-dynamic-orange-cursor-interactive', isInteractive);
+      body.classList.toggle('zrc-dynamic-orange-cursor-visible', !isEditable);
+
+      return { isEditable, isText };
+    };
+
     const hide = () => {
       body.classList.remove(
-        'zrc-lite-orange-cursor-visible',
-        'zrc-lite-orange-cursor-interactive',
-        'zrc-lite-orange-cursor-down'
+        'zrc-dynamic-orange-cursor-visible',
+        'zrc-dynamic-orange-cursor-interactive',
+        'zrc-dynamic-orange-cursor-down'
       );
     };
 
@@ -72,32 +123,49 @@ export default function ZRCPremiumCursor() {
         return;
       }
 
-      latestX = event.clientX;
-      latestY = event.clientY;
+      const state = stateRef.current;
+      const { isEditable, isText } = setModeFromTarget(event.target);
+
+      const nextX = event.clientX;
+      const nextY = event.clientY;
+      const deltaX = nextX - state.previousX;
+      const deltaY = nextY - state.previousY;
+      const speed = Math.min(28, Math.hypot(deltaX, deltaY));
+
+      state.x = nextX;
+      state.y = nextY;
+      state.previousX = nextX;
+      state.previousY = nextY;
+
+      if (isText) {
+        state.rotation = 0;
+        state.scaleX = 1;
+        state.scaleY = 1;
+      } else if (speed > 0.5) {
+        const stretch = 1 + Math.min(0.24, speed / 120);
+        state.rotation = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
+        state.scaleX = stretch;
+        state.scaleY = Math.max(0.86, 1 - (stretch - 1) * 0.62);
+      } else {
+        state.scaleX = 1;
+        state.scaleY = 1;
+      }
+
+      if (isEditable) {
+        return;
+      }
+
       schedulePaint();
-
-      const element = event.target instanceof Element ? event.target : null;
-      const isEditable = Boolean(element?.closest(EDITABLE_SELECTOR));
-      const isInteractive = !isEditable && Boolean(element?.closest(INTERACTIVE_SELECTOR));
-
-      body.classList.toggle('zrc-lite-orange-cursor-interactive', isInteractive);
-      body.classList.toggle('zrc-lite-orange-cursor-visible', !isEditable);
     };
 
     const onPointerDown = (event) => {
       if (!event.pointerType || event.pointerType === 'mouse') {
-        body.classList.add('zrc-lite-orange-cursor-down');
+        body.classList.add('zrc-dynamic-orange-cursor-down');
       }
     };
 
     const onPointerUp = () => {
-      body.classList.remove('zrc-lite-orange-cursor-down');
-    };
-
-    const onMouseEnter = () => {
-      if (latestX > -70 && latestY > -70) {
-        body.classList.add('zrc-lite-orange-cursor-visible');
-      }
+      body.classList.remove('zrc-dynamic-orange-cursor-down');
     };
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -105,24 +173,25 @@ export default function ZRCPremiumCursor() {
     window.addEventListener('pointerup', onPointerUp, { passive: true });
     window.addEventListener('blur', onPointerUp);
     document.addEventListener('mouseleave', hide);
-    document.addEventListener('mouseenter', onMouseEnter);
 
     return () => {
-      if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+      if (frameRef.current) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
 
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('blur', onPointerUp);
       document.removeEventListener('mouseleave', hide);
-      document.removeEventListener('mouseenter', onMouseEnter);
 
       cursor.remove();
       body.classList.remove(
-        'zrc-lite-orange-cursor-enabled',
-        'zrc-lite-orange-cursor-visible',
-        'zrc-lite-orange-cursor-interactive',
-        'zrc-lite-orange-cursor-down'
+        'zrc-dynamic-orange-cursor-enabled',
+        'zrc-dynamic-orange-cursor-visible',
+        'zrc-dynamic-orange-cursor-interactive',
+        'zrc-dynamic-orange-cursor-text-mode',
+        'zrc-dynamic-orange-cursor-down'
       );
     };
   }, []);
