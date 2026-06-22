@@ -2005,6 +2005,13 @@ export function createZRCBoardTaskActions(deps) {
         ...(task.id === taskId ? { status: column.title, columnTitle: column.title } : {})
       }))
     }));
+    // Görevi bırakmadan hemen önce kartların eski konumlarını al.
+    // State güncellenince yer değiştiren kartlar bu konumlara göre akıcı biçimde kayar.
+    const layoutBeforeOptimisticDrop =
+      typeof zrcCaptureTaskLayoutRects === 'function'
+        ? zrcCaptureTaskLayoutRects()
+        : null;
+
     // Görevi bırakır bırakmaz panoda göster ve aynı anda sonraki hızlı sürüklemenin
     // en yeni state'i kullanabilmesi için snapshot'ı kaydet.
     zrcTaskOrderOptimisticSnapshots.set(taskOrderScopeKey, normalizedCols);
@@ -2027,6 +2034,12 @@ export function createZRCBoardTaskActions(deps) {
       flushSync(applyOptimisticDrop);
     } else {
       applyOptimisticDrop();
+    }
+
+    // Kart iki görevin arasına bırakıldığında diğer kartları sıçratmadan kaydır.
+    // Live preview zaten çalışmışsa delta sıfır olacağı için tekrar animasyon üretmez.
+    if (layoutBeforeOptimisticDrop && typeof zrcAnimateTaskLayoutShift === 'function') {
+      zrcAnimateTaskLayoutShift(layoutBeforeOptimisticDrop);
     }
 
     // Çok önemli: Eski drop isteği Supabase'i beklerken yeni başlayan drag'in
