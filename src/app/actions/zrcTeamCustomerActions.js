@@ -509,6 +509,9 @@ export function createZRCTeamCustomerActions(deps) {
     const zrcEditedMemberId = String(editingTeamMember?.id || '').trim();
     const zrcWorkspaceIdForMemberUpdate = getCurrentSupabaseWorkspaceId();
 
+    if (!tryAcquireActionLock(teamCustomerMutationLockRef, 'team-customer-mutation')) return false;
+
+    try {
     if (isSupabaseUuid(zrcEditedMemberId) && isSupabaseUuid(zrcWorkspaceIdForMemberUpdate)) {
       try {
         zrcSetSupabaseWriteInfo('saving', 'Ekip rolü Supabase kaydediliyor');
@@ -548,7 +551,7 @@ export function createZRCTeamCustomerActions(deps) {
         const message = error?.message || 'Ekip rolü güncellenemedi.';
         zrcSetSupabaseWriteInfo('error', message);
         await window.zrcAlert(message);
-        return;
+        return false;
       }
     }
 
@@ -593,6 +596,10 @@ export function createZRCTeamCustomerActions(deps) {
 
     setSelectedTeamMemberId(editingTeamMember.id);
     closeTeamMemberEditModal();
+    return true;
+    } finally {
+      releaseActionLock(teamCustomerMutationLockRef, 'team-customer-mutation');
+    }
   };
 
   const createCustomerFromCenter = async (event) => {
@@ -895,12 +902,15 @@ export function createZRCTeamCustomerActions(deps) {
       accountUserId
     };
 
-    const savedCustomerResult = await saveCustomerToSupabase(nextCustomer);
+    if (!tryAcquireActionLock(teamCustomerMutationLockRef, 'team-customer-mutation')) return false;
 
-    if (!savedCustomerResult) {
-      await window.zrcAlert('Müşteri bilgileri veritabanına kaydedilemedi. Lütfen tekrar dene.');
-      return;
-    }
+    try {
+      const savedCustomerResult = await saveCustomerToSupabase(nextCustomer);
+
+      if (!savedCustomerResult) {
+        await window.zrcAlert('Müşteri bilgileri veritabanına kaydedilemedi. Lütfen tekrar dene.');
+        return false;
+      }
 
     setCustomers((prevCustomers) =>
       prevCustomers.map((customer) =>
@@ -976,6 +986,10 @@ export function createZRCTeamCustomerActions(deps) {
 
     setSelectedCustomerId(editingCustomer.id);
     closeCustomerEditModal();
+      return true;
+    } finally {
+      releaseActionLock(teamCustomerMutationLockRef, 'team-customer-mutation');
+    }
   };
 
   const deleteCustomerFromCenter = async (customerId) => {
