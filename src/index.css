@@ -2175,95 +2175,104 @@ body {
 
 
 
-/* === ZRC SMART LIQUID CURSOR START === */
+
+
+
+/* === ZRC SMOOTH LIQUID CURSOR START === */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  body.zrc-smart-liquid-cursor-enabled,
-  body.zrc-smart-liquid-cursor-enabled * {
+  body.zrc-smooth-liquid-cursor-enabled,
+  body.zrc-smooth-liquid-cursor-enabled * {
     cursor: none !important;
   }
 
-  body.zrc-smart-liquid-cursor-enabled input,
-  body.zrc-smart-liquid-cursor-enabled textarea,
-  body.zrc-smart-liquid-cursor-enabled select,
-  body.zrc-smart-liquid-cursor-enabled [contenteditable="true"] {
+  body.zrc-smooth-liquid-cursor-enabled input,
+  body.zrc-smooth-liquid-cursor-enabled textarea,
+  body.zrc-smooth-liquid-cursor-enabled select,
+  body.zrc-smooth-liquid-cursor-enabled [contenteditable="true"] {
     cursor: text !important;
   }
 
-  .zrc-smart-liquid-cursor {
+  .zrc-smooth-liquid-cursor {
     --zrc-cursor-x: -80px;
     --zrc-cursor-y: -80px;
 
     position: fixed;
-    left: 0;
     top: 0;
+    left: 0;
     z-index: 2147483647;
     pointer-events: none;
     opacity: 0;
     transform: translate3d(var(--zrc-cursor-x), var(--zrc-cursor-y), 0);
-    transition: opacity 100ms ease;
+    transition: opacity 90ms ease;
     contain: layout style paint;
   }
 
-  .zrc-smart-liquid-cursor.is-visible {
+  .zrc-smooth-liquid-cursor.is-visible {
     opacity: 1;
   }
 
-  .zrc-smart-liquid-cursor__blob {
-    --zrc-liquid-angle: 0deg;
+  .zrc-smooth-liquid-cursor__shape {
+    --zrc-liquid-rotation: 0deg;
     --zrc-liquid-scale-x: 1;
     --zrc-liquid-scale-y: 1;
-    --zrc-liquid-radius: 999px;
+    --zrc-liquid-skew: 0deg;
 
     display: block;
     width: 10px;
     height: 10px;
     box-sizing: border-box;
+
+    /*
+      Kritik kural:
+      Border-radius daima %50. Böylece imleç asla çeyrek daire, yarım daire
+      veya köşeli bir parçaya dönüşmez. Sıvı hissi sadece transform ile gelir.
+    */
     border: 1.5px solid transparent;
-    border-radius: var(--zrc-liquid-radius);
+    border-radius: 50%;
     background: #ff3600;
     box-shadow: none;
     outline: none;
 
     transform:
       translate(-50%, -50%)
-      rotate(var(--zrc-liquid-angle))
+      rotate(var(--zrc-liquid-rotation))
+      skewX(var(--zrc-liquid-skew))
       scaleX(var(--zrc-liquid-scale-x))
       scaleY(var(--zrc-liquid-scale-y));
 
     transition:
-      width 150ms cubic-bezier(0.22, 1, 0.36, 1),
-      height 150ms cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 180ms ease,
-      border-radius 105ms cubic-bezier(0.22, 1, 0.36, 1),
-      background-color 120ms ease;
+      width 140ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 140ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 170ms ease,
+      border-radius 140ms cubic-bezier(0.22, 1, 0.36, 1);
 
-    will-change: transform, border-radius, width, height;
+    will-change: transform, width, height;
   }
 
-  /* Turuncunun zeminde kaybolduğu an beyaz kontur yumuşakça oluşur. */
-  .zrc-smart-liquid-cursor.is-low-contrast .zrc-smart-liquid-cursor__blob {
-    border-color: rgba(255, 255, 255, 0.98);
+  /* Turuncu zeminde veya düşük kontrastta beyaz kontur yumuşakça açılır. */
+  .zrc-smooth-liquid-cursor.is-low-contrast .zrc-smooth-liquid-cursor__shape {
+    border-color: rgba(255, 255, 255, 0.96);
   }
 
-  .zrc-smart-liquid-cursor.is-interactive .zrc-smart-liquid-cursor__blob {
+  .zrc-smooth-liquid-cursor.is-interactive .zrc-smooth-liquid-cursor__shape {
     width: 14px;
     height: 14px;
   }
 
-  .zrc-smart-liquid-cursor.is-text .zrc-smart-liquid-cursor__blob {
+  .zrc-smooth-liquid-cursor.is-text .zrc-smooth-liquid-cursor__shape {
     width: 3px;
     height: 22px;
     border-radius: 999px;
   }
 
-  .zrc-smart-liquid-cursor.is-pressed .zrc-smart-liquid-cursor__blob {
+  .zrc-smooth-liquid-cursor.is-pressed .zrc-smooth-liquid-cursor__shape {
     width: 7px;
     height: 7px;
   }
 
-  .zrc-smart-liquid-cursor.is-text.is-pressed .zrc-smart-liquid-cursor__blob {
+  .zrc-smooth-liquid-cursor.is-text.is-pressed .zrc-smooth-liquid-cursor__shape {
     width: 3px;
     height: 16px;
   }
 }
-/* === ZRC SMART LIQUID CURSOR END === */
+/* === ZRC SMOOTH LIQUID CURSOR END === */
