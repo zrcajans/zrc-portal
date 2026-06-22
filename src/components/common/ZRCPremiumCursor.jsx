@@ -332,7 +332,7 @@ const zrcInstallSmartCursorOutline = () => {
   const calculateOutlineNeed = (target) => {
     let current = target instanceof Element ? target : null;
 
-    for (let depth = 0; current && current !== document.documentElement && depth < 6; depth += 1) {
+    for (let depth = 0; current && current !== document.documentElement && depth < 24; depth += 1) {
       try {
         const background = parseRgb(window.getComputedStyle(current).backgroundColor);
 
