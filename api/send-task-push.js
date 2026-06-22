@@ -192,10 +192,14 @@ export default async function handler(req, res) {
     );
 
     if (staleIds.length > 0) {
-      await admin
+      const { error: staleDeleteError } = await admin
         .from('notifications')
         .delete()
+        .eq('workspace_id', workspaceId)
+        .eq('type', 'push_subscription')
         .in('id', staleIds);
+
+      if (staleDeleteError) throw staleDeleteError;
     }
 
     return sendJson(res, 200, {

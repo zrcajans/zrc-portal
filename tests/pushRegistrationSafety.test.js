@@ -33,3 +33,15 @@ test('test push uses only the current users registered workspace subscription', 
   assert.doesNotMatch(apiSource, /req\.body\?\.subscription/);
   assert.match(clientSource, /source: 'v429-manual-test'/);
 });
+
+test('stale push cleanup stays inside the active workspace and reports failures', async () => {
+  const apiSource = await readFile(new URL('../api/send-task-push.js', import.meta.url), 'utf8');
+  const cleanupSource = apiSource.slice(
+    apiSource.indexOf('if (staleIds.length > 0)'),
+    apiSource.indexOf('staleRemoved: staleIds.length')
+  );
+
+  assert.match(cleanupSource, /\.eq\('workspace_id', workspaceId\)/);
+  assert.match(cleanupSource, /\.eq\('type', 'push_subscription'\)/);
+  assert.match(cleanupSource, /if \(staleDeleteError\) throw staleDeleteError/);
+});
