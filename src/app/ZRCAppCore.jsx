@@ -5749,11 +5749,20 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
 
     // zrc-v442-single-task-push-trigger
     if (savedTaskId) {
+      const pushRecipientUserIds = Array.from(
+        new Set(
+          pendingActivityNotifications
+            .flatMap((notification) => notification.targetUserIds || [])
+            .filter((userId) => !isCurrentSupabaseUserId(userId))
+        )
+      );
+
       zrcV448PlayDesktopNotificationSound();
       zrcV442SendTaskSavePush({
         type: previousTask ? 'task_update' : 'task_create',
         title: 'ZRC',
         workspaceId: getCurrentSupabaseWorkspaceId(),
+        recipientUserIds: pushRecipientUserIds,
         body: previousTask
           ? `Görev güncellendi: ${cleanedTaskData.title || 'Adsız görev'}`
           : `Yeni görev oluşturuldu: ${cleanedTaskData.title || 'Adsız görev'}`

@@ -1,5 +1,5 @@
 import webPush from 'web-push';
-import { authorizeWorkspaceRequest } from '../server/supabaseAuthorization.js';
+import { authorizeWorkspaceRequest, isSupabaseUuid } from '../server/supabaseAuthorization.js';
 
 const sendJson = (res, statusCode, payload) => {
   res.status(statusCode).json(payload);
@@ -110,6 +110,49 @@ export default async function handler(req, res) {
   }
 
   const admin = authorization.admin;
+  const requestedRecipientUserIds = Array.from(
+    new Set(
+      (Array.isArray(bodyPayload.recipientUserIds) ? bodyPayload.recipientUserIds : [])
+        .map((value) => String(value || '').trim())
+        .filter(Boolean)
+    )
+  )
+    .filter(isSupabaseUuid)
+    .filter((userId) => userId !== authorization.userId)
+    .slice(0, 200);
+
+  if (requestedRecipientUserIds.length === 0) {
+    return sendJson(res, 200, {
+      ok: true,
+      blocked: true,
+      sent: 0,
+      reason: 'Push hedef kullanıcısı bulunamadı.'
+    });
+  }
+
+  const { data: activeRecipientRows, error: recipientError } = await admin
+    .from('workspace_members')
+    .select('user_id')
+    .eq('workspace_id', workspaceId)
+    .eq('status', 'Aktif')
+    .in('user_id', requestedRecipientUserIds);
+
+  if (recipientError) {
+    return sendJson(res, 500, { error: 'Push hedef kullanıcıları doğrulanamadı.' });
+  }
+
+  const activeRecipientUserIds = Array.from(
+    new Set((activeRecipientRows || []).map((row) => row.user_id).filter(Boolean))
+  );
+
+  if (activeRecipientUserIds.length === 0) {
+    return sendJson(res, 200, {
+      ok: true,
+      blocked: true,
+      sent: 0,
+      reason: 'Aktif workspace üyesi olan push hedefi bulunamadı.'
+    });
+  }
 
   const notificationTitle = 'ZRC';
   const notificationType = String(bodyPayload.type || 'activity').trim();
@@ -135,7 +178,8 @@ export default async function handler(req, res) {
       .from('notifications')
       .select('id, user_id, body')
       .eq('workspace_id', workspaceId)
-      .eq('type', 'push_subscription');
+      .eq('type', 'push_subscription')
+      .in('user_id', activeRecipientUserIds);
 
     if (subscriptionError) throw subscriptionError;
 
@@ -205,6 +249,7 @@ export default async function handler(req, res) {
     return sendJson(res, 200, {
       ok: true,
       workspaceId,
+      recipientCount: activeRecipientUserIds.length,
       subscriptionCount: subscriptionRows.length,
       sent,
       failed,

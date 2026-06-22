@@ -636,12 +636,22 @@ export const zrcV442SendTaskSavePush = async ({
   title = 'ZRC Portal',
   body = 'Görevlerde yeni bir işlem yapıldı.',
   type = 'task_save',
-  workspaceId = ''
+  workspaceId = '',
+  recipientUserIds = []
 } = {}) => {
   if (typeof window === 'undefined') return false;
 
   if (!workspaceId) {
     console.warn('[ZRC Push v442] Workspace yok, push atlanıyor.');
+    return false;
+  }
+
+  const recipients = Array.from(
+    new Set((Array.isArray(recipientUserIds) ? recipientUserIds : []).map(String).filter(Boolean))
+  );
+
+  if (recipients.length === 0) {
+    console.info('[ZRC Push v442] Hedef kullanıcı yok, push atlanıyor.');
     return false;
   }
 
@@ -676,6 +686,7 @@ export const zrcV442SendTaskSavePush = async ({
         title,
         body,
         workspaceId,
+        recipientUserIds: recipients,
         url: '/'
       })
     });

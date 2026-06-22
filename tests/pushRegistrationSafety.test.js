@@ -45,3 +45,18 @@ test('stale push cleanup stays inside the active workspace and reports failures'
   assert.match(cleanupSource, /\.eq\('type', 'push_subscription'\)/);
   assert.match(cleanupSource, /if \(staleDeleteError\) throw staleDeleteError/);
 });
+
+test('task push recipients are intersected with active workspace members', async () => {
+  const apiSource = await readFile(new URL('../api/send-task-push.js', import.meta.url), 'utf8');
+  const clientSource = await readFile(
+    new URL('../src/utils/browserEnhancements.js', import.meta.url),
+    'utf8'
+  );
+
+  assert.match(clientSource, /recipientUserIds: recipients/);
+  assert.match(apiSource, /\.from\('workspace_members'\)/);
+  assert.match(apiSource, /\.eq\('workspace_id', workspaceId\)/);
+  assert.match(apiSource, /\.eq\('status', 'Aktif'\)/);
+  assert.match(apiSource, /\.in\('user_id', requestedRecipientUserIds\)/);
+  assert.match(apiSource, /\.in\('user_id', activeRecipientUserIds\)/);
+});
