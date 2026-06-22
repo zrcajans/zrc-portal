@@ -1047,69 +1047,6 @@ function App() {
   const [activeMenu, setActiveMenu] = useState(() => getSavedNavigationState().activeMenu);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  const [supabaseConnectionStatus, setSupabaseConnectionStatus] = useState({
-    state: 'checking',
-    label: 'Supabase kontrol ediliyor'
-  });
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const checkSupabaseConnection = async () => {
-      const hasSupabaseConfig = Boolean(
-        import.meta.env.VITE_SUPABASE_URL &&
-        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
-      );
-
-      if (!hasSupabaseConfig) {
-        if (isMounted) {
-          setSupabaseConnectionStatus({
-            state: 'error',
-            label: 'Supabase ayarı eksik'
-          });
-        }
-        return;
-      }
-
-      try {
-        const { error } = await supabase
-          .from('workspaces')
-          .select('id', { count: 'exact', head: true });
-
-        if (error) {
-          if (isMounted) {
-            setSupabaseConnectionStatus({
-              state: 'error',
-              label: `Supabase hata: ${error.message}`
-            });
-          }
-          return;
-        }
-
-        if (isMounted) {
-          setSupabaseConnectionStatus({
-            state: 'connected',
-            label: 'Supabase bağlı'
-          });
-        }
-      } catch (error) {
-        if (isMounted) {
-          setSupabaseConnectionStatus({
-            state: 'error',
-            label: `Supabase bağlantı hatası`
-          });
-        }
-      }
-    };
-
-    checkSupabaseConnection();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-
   const {projects, setProjects, teamMembers, setTeamMembers, currentUserId, setCurrentUserId, supabaseAuthUserId, setSupabaseAuthUserId, currentAssignedSupabaseTaskIds, setCurrentAssignedSupabaseTaskIds, loginDraft, setLoginDraft, loginError, setLoginError, authLoginLoading, setAuthLoginLoading, authSessionLoading, setAuthSessionLoading, supabaseWorkspaceId, setSupabaseWorkspaceId, supabaseWriteStatus, setSupabaseWriteStatus, supabaseHealthLoading, setSupabaseHealthLoading, supabaseBackupLoading, setSupabaseBackupLoading, supabaseRealtimeStatus, setSupabaseRealtimeStatus, pwaInstallPrompt, setPwaInstallPrompt, pwaInstallStatus, setPwaInstallStatus, supabaseHealthReport, setSupabaseHealthReport, supabaseLastFullRefreshAt, setSupabaseLastFullRefreshAt, supabaseLastBackupAt, setSupabaseLastBackupAt, supabaseLastRealtimeAt, setSupabaseLastRealtimeAt, teamMemberDraft, setTeamMemberDraft, pendingTeamDeleteId, setPendingTeamDeleteId, selectedTeamMemberId, setSelectedTeamMemberId, editingTeamMember, setEditingTeamMember, teamMemberEditDraft, setTeamMemberEditDraft, customers, setCustomers, customerDraft, setCustomerDraft, selectedCustomerId, setSelectedCustomerId, pendingCustomerDeleteId, setPendingCustomerDeleteId, editingCustomer, setEditingCustomer, customerEditDraft, setCustomerEditDraft, selectedProject, setSelectedProject, activeTab, setActiveTab, activeContentMenu, setActiveContentMenu, homeWorkView, setHomeWorkView, quickNoteTitleDraft, setQuickNoteTitleDraft, quickNoteDraft, setQuickNoteDraft, editingQuickNoteId, setEditingQuickNoteId, quickNoteSearch, setQuickNoteSearch, pendingDeleteQuickNoteId, setPendingDeleteQuickNoteId, isQuickNoteSearchOpen, setIsQuickNoteSearchOpen, isQuickNoteComposerOpen, setIsQuickNoteComposerOpen, quickNotes, setQuickNotes, boardView, setBoardView, mobileActiveColumnId, setMobileActiveColumnId, zrcMobileColumnRefreshKey, setZrcMobileColumnRefreshKey, calendarMonthDate, setCalendarMonthDate, calendarNewTaskDate, setCalendarNewTaskDate, calendarQuickTaskDraft, setCalendarQuickTaskDraft, calendarTaskModalContext, setCalendarTaskModalContext, isCalendarDisplayMenuOpen, setIsCalendarDisplayMenuOpen, isMenuCalendarFilterOpen, setIsMenuCalendarFilterOpen, isMenuCalendarStatusOpen, setIsMenuCalendarStatusOpen, menuCalendarStatusFilter, setMenuCalendarStatusFilter, calendarView, setCalendarView, calendarFocusedDate, setCalendarFocusedDate, timeChartView, setTimeChartView, timeChartStartDate, setTimeChartStartDate, timeChartSearch, setTimeChartSearch, isTimeChartFilterOpen, setIsTimeChartFilterOpen, isTimeChartSettingsOpen, setIsTimeChartSettingsOpen, timeChartFilters, setTimeChartFilters, timeChartSettings, setTimeChartSettings, ganttView, setGanttView, ganttStartDate, setGanttStartDate, ganttSearch, setGanttSearch, ganttShowCompleted, setGanttShowCompleted, fileSearch, setFileSearch, fileTypeFilter, setFileTypeFilter, selectedProjectFileKey, setSelectedProjectFileKey, pendingFileDeleteKey, setPendingFileDeleteKey, isNotificationsOpen, setIsNotificationsOpen, activityNotifications, setActivityNotifications, readNotificationIds, setReadNotificationIds, isGlobalSearchOpen, setIsGlobalSearchOpen, isMobileProjectPickerOpen, setIsMobileProjectPickerOpen, isMobileTaskWizardOpen, setIsMobileTaskWizardOpen, mobileTaskWizardStep, setMobileTaskWizardStep, mobileTaskWizardData, setMobileTaskWizardData, globalSearchQuery, setGlobalSearchQuery, globalSearchFilter, setGlobalSearchFilter, isMessagesOpen, setIsMessagesOpen, projectMessages, setProjectMessages, readMessageIds, setReadMessageIds, messageDraft, setMessageDraft, messageLinkedTaskId, setMessageLinkedTaskId, isMessageTaskPickerOpen, setIsMessageTaskPickerOpen, chatGroups, setChatGroups, selectedChatGroupId, setSelectedChatGroupId, chatGroupDraft, setChatGroupDraft, chatGroupSearch, setChatGroupSearch, chatPageDraft, setChatPageDraft, isChatGroupModalOpen, setIsChatGroupModalOpen, isChatActionMenuOpen, setIsChatActionMenuOpen, activeProfileTab, setActiveProfileTab, openProfileDropdown, setOpenProfileDropdown, profileDraft, setProfileDraft, profilePreferences, setProfilePreferences, emailAccountDraft, setEmailAccountDraft, pendingProfileDelete, setPendingProfileDelete, calendarDisplayOptions, setCalendarDisplayOptions, projectSettings, setProjectSettings, projectSettingsDraft, setProjectSettingsDraft, isProjectTeamPickerOpen, setIsProjectTeamPickerOpen, getInitialSelectedProject, timeChartScrollRef, calendarTaskOpenLockRef, ganttScrollRef, profileAvatarInputRef, dataImportInputRef, currentAuthUserIdForRole, hasSupabaseAuthUserForRole, currentRoleMember, currentProfileNameParts, rawCurrentProfileName, currentProfileName, currentProfileInitials, currentProfileAvatar, normalizedCurrentRawRole, isZrcOwnerAccount, currentUserRole, currentAccountType, isLoggedIn, currentPermissions, currentActorId, currentActorName, currentActorAvatar} = useZRCAppCoreState();
 
   const getCurrentDataSnapshot = () =>
