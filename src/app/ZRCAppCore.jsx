@@ -4963,10 +4963,7 @@ function App() {
       'customers',
       'messages',
       'chat_groups',
-      'notifications',
-      'activity_logs',
       'quick_notes',
-      'user_preferences',
     ];
 
     const channel = supabase.channel(`zrc-workspace-realtime-${workspaceId}`);
