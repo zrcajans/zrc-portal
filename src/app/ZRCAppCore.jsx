@@ -4186,21 +4186,6 @@ function App() {
     }
   };
 
-  // zrc-notification-auto-refresh-v317
-  useEffect(() => {
-    if (!isLoggedIn || authSessionLoading || !supabaseWorkspaceId || !isSupabaseUuid(currentUserId)) return;
-
-    loadActivityLogsFromSupabase();
-
-    const refreshTimer = window.setInterval(() => {
-      loadActivityLogsFromSupabase();
-    }, 60000);
-
-    return () => {
-      window.clearInterval(refreshTimer);
-    };
-  }, [isLoggedIn, authSessionLoading, supabaseWorkspaceId, currentUserId]);
-
   const ensureSupabaseChatGroup = async (group = {}) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
     const existingId = group.supabaseId || (isSupabaseUuid(group.id) ? group.id : '');
@@ -8391,7 +8376,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
 
     const fallbackInterval = window.setInterval(() => {
       scheduleNotificationSync(80);
-    }, 4000);
+    }, 30000);
 
     return () => {
       cancelled = true;
@@ -10176,6 +10161,7 @@ const filterTaskFollowersForSave = (people = []) =>
     let isCancelled = false;
     let isRefreshing = false;
     let lastInteractionAt = Date.now();
+    let focusRefreshTimer = null;
 
     const markInteraction = () => {
       lastInteractionAt = Date.now();
@@ -10202,7 +10188,14 @@ const filterTaskFollowersForSave = (people = []) =>
     };
 
     const handleFocusRefresh = () => {
-      window.setTimeout(() => comfortableNotificationRefresh('ekran aktif oldu'), 700);
+      if (focusRefreshTimer) {
+        window.clearTimeout(focusRefreshTimer);
+      }
+
+      focusRefreshTimer = window.setTimeout(() => {
+        focusRefreshTimer = null;
+        comfortableNotificationRefresh('ekran aktif oldu');
+      }, 700);
     };
 
     document.addEventListener('touchstart', markInteraction, { passive: true });
@@ -10210,11 +10203,6 @@ const filterTaskFollowersForSave = (people = []) =>
     document.addEventListener('scroll', markInteraction, { passive: true });
     document.addEventListener('visibilitychange', handleFocusRefresh);
     window.addEventListener('focus', handleFocusRefresh);
-
-    // 1 saniye değil: konforlu yedek kontrol. Realtime zaten anlık getiriyor.
-    const comfortTimer = window.setInterval(() => {
-      comfortableNotificationRefresh('yedek bildirim kontrolü');
-    }, 30000);
 
     handleFocusRefresh();
 
@@ -10226,7 +10214,10 @@ const filterTaskFollowersForSave = (people = []) =>
       document.removeEventListener('scroll', markInteraction);
       document.removeEventListener('visibilitychange', handleFocusRefresh);
       window.removeEventListener('focus', handleFocusRefresh);
-      window.clearInterval(comfortTimer);
+
+      if (focusRefreshTimer) {
+        window.clearTimeout(focusRefreshTimer);
+      }
     };
   }, [authSessionLoading, currentUserId, selectedProject, supabaseWorkspaceId]);
 

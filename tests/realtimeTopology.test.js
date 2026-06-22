@@ -18,3 +18,21 @@ test('notification tables use the dedicated sync channel instead of full workspa
     assert.match(notificationSync, new RegExp(`table: '${table}'`));
   }
 });
+
+test('notification refresh uses one bounded fallback poller and cleans focus timers', async () => {
+  const source = await readFile(new URL('../src/app/ZRCAppCore.jsx', import.meta.url), 'utf8');
+  const notificationSync = source.slice(
+    source.indexOf('// zrc-notification-live-sync-v1'),
+    source.indexOf('const unreadNotificationCount')
+  );
+  const comfortRefresh = source.slice(
+    source.indexOf('const comfortableNotificationRefresh'),
+    source.indexOf('// zrc-v463-stable-mobile-notification-badge')
+  );
+
+  assert.equal(notificationSync.match(/setInterval/g)?.length, 1);
+  assert.match(notificationSync, /}, 30000\);/);
+  assert.doesNotMatch(comfortRefresh, /setInterval/);
+  assert.match(comfortRefresh, /clearTimeout\(focusRefreshTimer\)/);
+  assert.doesNotMatch(source, /zrc-notification-auto-refresh-v317/);
+});
