@@ -987,16 +987,6 @@ const zrcInstallFloatingVersionBadgeKiller = () => {
   window.setTimeout(zrcKillFloatingVersionBadge, 500);
   window.setTimeout(zrcKillFloatingVersionBadge, 1200);
   window.setTimeout(zrcKillFloatingVersionBadge, 2500);
-
-  const observer = new MutationObserver(() => {
-    window.requestAnimationFrame(zrcKillFloatingVersionBadge);
-  });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-    characterData: true
-  });
 };
 
 zrcInstallFloatingVersionBadgeKiller();
