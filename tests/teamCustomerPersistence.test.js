@@ -38,6 +38,7 @@ const createDeps = (overrides = {}) => ({
   removeStorageValue: () => {},
   pendingTeamDeleteId: '',
   selectedTeamMemberId: '',
+  createUsernameFromMember: (member) => member.username || 'ekip-uyesi',
   customerDraft: {
     name: 'Müşteri',
     contact: '',
@@ -54,6 +55,7 @@ const createDeps = (overrides = {}) => ({
   deleteCustomerFromSupabase: async () => false,
   selectedCustomerId: '',
   saveCustomerToSupabase: async () => false,
+  updateCustomerStatusInSupabase: async () => false,
   setCustomerDraft: () => {},
   teamCustomerMutationLockRef: { current: new Set() },
   tryAcquireActionLock,
@@ -186,6 +188,67 @@ test('duplicate confirmed customer deletes persist and commit only once', async 
 
   resolveDelete(true);
   assert.equal(await firstDelete, true);
+  assert.equal(localCustomerCommitCount, 1);
+  assert.equal(deps.teamCustomerMutationLockRef.current.size, 0);
+});
+
+test('duplicate team status toggles call the update API only once', async (t) => {
+  let resolveResponse;
+  let fetchCallCount = 0;
+  let localMemberCommitCount = 0;
+  const responseResult = new Promise((resolve) => { resolveResponse = resolve; });
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => {
+    fetchCallCount += 1;
+    return responseResult;
+  };
+
+  const memberId = '44444444-4444-4444-8444-444444444444';
+  const deps = createDeps({
+    teamMembers: [{ id: memberId, name: 'Ekip Üyesi', username: 'ekip-uyesi', role: 'Ekip Üyesi', status: 'Aktif' }],
+    setTeamMembers: () => { localMemberCommitCount += 1; }
+  });
+  const actions = createZRCTeamCustomerActions(deps);
+
+  const firstToggle = actions.toggleTeamMemberStatus(memberId);
+  const duplicateToggle = await actions.toggleTeamMemberStatus(memberId);
+
+  assert.equal(duplicateToggle, false);
+  assert.equal(fetchCallCount, 1);
+  assert.equal(localMemberCommitCount, 0);
+
+  resolveResponse({ ok: true, json: async () => ({ ok: true }) });
+  assert.equal(await firstToggle, true);
+  assert.equal(localMemberCommitCount, 1);
+  assert.equal(deps.teamCustomerMutationLockRef.current.size, 0);
+});
+
+test('duplicate customer status toggles persist and commit only once', async () => {
+  let resolveUpdate;
+  let updateCallCount = 0;
+  let localCustomerCommitCount = 0;
+  const updateResult = new Promise((resolve) => { resolveUpdate = resolve; });
+  const customerId = '55555555-5555-4555-8555-555555555555';
+  const deps = createDeps({
+    customers: [{ id: customerId, supabaseId: customerId, name: 'Müşteri', status: 'Aktif' }],
+    updateCustomerStatusInSupabase: async () => {
+      updateCallCount += 1;
+      return updateResult;
+    },
+    setCustomers: () => { localCustomerCommitCount += 1; }
+  });
+  const actions = createZRCTeamCustomerActions(deps);
+
+  const firstToggle = actions.toggleCustomerStatus(customerId);
+  const duplicateToggle = await actions.toggleCustomerStatus(customerId);
+
+  assert.equal(duplicateToggle, false);
+  assert.equal(updateCallCount, 1);
+  assert.equal(localCustomerCommitCount, 0);
+
+  resolveUpdate(true);
+  assert.equal(await firstToggle, true);
   assert.equal(localCustomerCommitCount, 1);
   assert.equal(deps.teamCustomerMutationLockRef.current.size, 0);
 });

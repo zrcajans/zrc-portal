@@ -251,71 +251,78 @@ export function createZRCTeamCustomerActions(deps) {
     const nextStatus = targetMember.status === 'Pasif' ? 'Aktif' : 'Pasif';
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    if (isSupabaseUuid(targetMember.id) && isSupabaseUuid(workspaceId)) {
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData?.session?.access_token || '';
+    if (!tryAcquireActionLock(teamCustomerMutationLockRef, 'team-customer-mutation')) return false;
 
-        if (!accessToken) {
-          throw new Error('Yönetici oturumu bulunamadı. Çıkış yapıp tekrar giriş yap.');
+    try {
+      if (isSupabaseUuid(targetMember.id) && isSupabaseUuid(workspaceId)) {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData?.session?.access_token || '';
+
+          if (!accessToken) {
+            throw new Error('Yönetici oturumu bulunamadı. Çıkış yapıp tekrar giriş yap.');
+          }
+
+          const response = await fetch('/api/update-team-member', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+              workspaceId,
+              userId: targetMember.id,
+              name: targetMember.name,
+              username: targetMember.username || createUsernameFromMember(targetMember),
+              role: normalizeTeamRole(targetMember.role),
+              status: nextStatus,
+              customerId: targetMember.customerId || ''
+            })
+          });
+
+          const result = await response.json().catch(() => ({}));
+
+          if (!response.ok || result?.error) {
+            throw new Error(result?.error || 'Ekip üyesi durumu güncellenemedi.');
+          }
+        } catch (error) {
+          const message = error?.message || 'Ekip üyesi durumu güncellenemedi.';
+          zrcSetSupabaseWriteInfo('error', message);
+          await window.zrcAlert(message);
+          return false;
         }
-
-        const response = await fetch('/api/update-team-member', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`
-          },
-          body: JSON.stringify({
-            workspaceId,
-            userId: targetMember.id,
-            name: targetMember.name,
-            username: targetMember.username || createUsernameFromMember(targetMember),
-            role: normalizeTeamRole(targetMember.role),
-            status: nextStatus,
-            customerId: targetMember.customerId || ''
-          })
-        });
-
-        const result = await response.json().catch(() => ({}));
-
-        if (!response.ok || result?.error) {
-          throw new Error(result?.error || 'Ekip üyesi durumu güncellenemedi.');
-        }
-      } catch (error) {
-        const message = error?.message || 'Ekip üyesi durumu güncellenemedi.';
-        zrcSetSupabaseWriteInfo('error', message);
-        await window.zrcAlert(message);
-        return;
-      }
-    }
-
-    setTeamMembers((prevMembers) =>
-      prevMembers.map((member) =>
-        member.id === memberId
-          ? {
-              ...member,
-              status: nextStatus
-            }
-          : member
-      )
-    );
-
-    if (currentUserId === memberId && nextStatus === 'Pasif') {
-      try {
-        await supabase.auth.signOut({ scope: 'local' });
-      } catch (error) {
-        console.warn('[ZRC Auth] Pasifleştirilen kullanıcı oturumu kapatılamadı.', error);
       }
 
-      setCurrentUserId('');
-      removeStorageValue('currentUserId');
-      window.location.reload();
-      return;
-    }
+      setTeamMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member.id === memberId
+            ? {
+                ...member,
+                status: nextStatus
+              }
+            : member
+        )
+      );
 
-    zrcSetSupabaseWriteInfo('saved', 'Ekip üyesi durumu kaydedildi');
-    setPendingTeamDeleteId(null);
+      if (currentUserId === memberId && nextStatus === 'Pasif') {
+        try {
+          await supabase.auth.signOut({ scope: 'local' });
+        } catch (error) {
+          console.warn('[ZRC Auth] Pasifleştirilen kullanıcı oturumu kapatılamadı.', error);
+        }
+
+        setCurrentUserId('');
+        removeStorageValue('currentUserId');
+        window.location.reload();
+        return true;
+      }
+
+      zrcSetSupabaseWriteInfo('saved', 'Ekip üyesi durumu kaydedildi');
+      setPendingTeamDeleteId(null);
+      return true;
+    } finally {
+      releaseActionLock(teamCustomerMutationLockRef, 'team-customer-mutation');
+    }
   };
 
   const deleteTeamMemberFromCenter = async (memberId) => {
@@ -766,9 +773,13 @@ export function createZRCTeamCustomerActions(deps) {
     if (!requirePermission('manageCustomers', 'Müşteri durumunu sadece Yönetici değiştirebilir.')) return;
 
     const targetCustomer = customers.find((customer) => customer.id === customerId);
+    if (!targetCustomer) return false;
+
     const nextStatus = targetCustomer?.status === 'Pasif' ? 'Aktif' : 'Pasif';
 
-    if (targetCustomer) {
+    if (!tryAcquireActionLock(teamCustomerMutationLockRef, 'team-customer-mutation')) return false;
+
+    try {
       const hasPersistedCustomerId = isSupabaseUuid(targetCustomer.supabaseId || targetCustomer.id);
       const didUpdateStatus = hasPersistedCustomerId
         ? await updateCustomerStatusInSupabase(targetCustomer, nextStatus)
@@ -776,22 +787,25 @@ export function createZRCTeamCustomerActions(deps) {
 
       if (!didUpdateStatus) {
         await window.zrcAlert('Müşteri durumu veritabanına kaydedilemedi. Ekranda değişiklik yapılmadı.');
-        return;
+        return false;
       }
+
+      setCustomers((prevCustomers) =>
+        prevCustomers.map((customer) =>
+          customer.id === customerId
+            ? {
+                ...customer,
+                status: nextStatus
+              }
+            : customer
+        )
+      );
+
+      setPendingCustomerDeleteId(null);
+      return true;
+    } finally {
+      releaseActionLock(teamCustomerMutationLockRef, 'team-customer-mutation');
     }
-
-    setCustomers((prevCustomers) =>
-      prevCustomers.map((customer) =>
-        customer.id === customerId
-          ? {
-              ...customer,
-              status: customer.status === 'Pasif' ? 'Aktif' : 'Pasif'
-            }
-          : customer
-      )
-    );
-
-    setPendingCustomerDeleteId(null);
   };
 
   const openCustomerEditModal = (customer) => {
