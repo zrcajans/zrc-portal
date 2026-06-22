@@ -96,53 +96,101 @@ export default function ZRCPremiumCursor() {
       }
     };
 
-    const hasDirectReadableText = (startElement) => {
-      let current = startElement;
+    const zrcGetTextRangeAtPointer = (clientX, clientY) => {
+      try {
+        if (typeof document.caretPositionFromPoint === 'function') {
+          const position = document.caretPositionFromPoint(clientX, clientY);
 
-      // Pahalı genel DOM taraması yerine yalnızca hedef + en yakın 4 üst katman.
-      // Bu, div içine doğrudan yazılmış "Gösterilecek görev yok" gibi metinleri yakalar.
-      for (let depth = 0; current && current !== document.body && depth < 4; depth += 1) {
-        if (current.matches?.(TEXT_SELECTOR)) {
-          return true;
+          if (position?.offsetNode) {
+            return {
+              node: position.offsetNode,
+              offset: Number(position.offset || 0)
+            };
+          }
         }
 
-        const hasOwnTextNode = Array.from(current.childNodes || []).some((node) => (
-          node.nodeType === Node.TEXT_NODE &&
-          String(node.nodeValue || '').trim().length > 0
-        ));
+        if (typeof document.caretRangeFromPoint === 'function') {
+          const range = document.caretRangeFromPoint(clientX, clientY);
 
-        if (hasOwnTextNode) {
-          return true;
+          if (range?.startContainer) {
+            return {
+              node: range.startContainer,
+              offset: Number(range.startOffset || 0)
+            };
+          }
         }
-
-        current = current.parentElement;
+      } catch {
+        // Tarayıcı hit-test API'sini desteklemezse normal nokta imleci kullanılır.
       }
 
-      return false;
+      return null;
     };
 
-    const setModeFromTarget = (target) => {
+    const zrcIsPointerOnRenderedText = (clientX, clientY) => {
+      const caret = zrcGetTextRangeAtPointer(clientX, clientY);
+      const textNode = caret?.node;
+
+      if (!textNode || textNode.nodeType !== Node.TEXT_NODE) {
+        return false;
+      }
+
+      const text = String(textNode.nodeValue || '');
+      if (!text) return false;
+
+      const safeOffset = Math.max(0, Math.min(Number(caret.offset || 0), text.length));
+
+      // Caret bir harfin sağına düşebildiği için iki komşu karakteri kontrol eder.
+      // Boşluk karakteri uzun imleci tetiklemez.
+      const candidateIndexes = [safeOffset, safeOffset - 1]
+        .filter((index) => index >= 0 && index < text.length)
+        .filter((index, position, array) => array.indexOf(index) === position)
+        .filter((index) => !/\s/.test(text[index] || ''));
+
+      if (candidateIndexes.length === 0) {
+        return false;
+      }
+
+      try {
+        const range = document.createRange();
+
+        return candidateIndexes.some((index) => {
+          range.setStart(textNode, index);
+          range.setEnd(textNode, index + 1);
+
+          const rect = range.getBoundingClientRect();
+          if (!rect || (!rect.width && !rect.height)) return false;
+
+          const horizontalPadding = 2;
+          const verticalPadding = 3;
+
+          return (
+            clientX >= rect.left - horizontalPadding &&
+            clientX <= rect.right + horizontalPadding &&
+            clientY >= rect.top - verticalPadding &&
+            clientY <= rect.bottom + verticalPadding
+          );
+        });
+      } catch {
+        return false;
+      }
+    };
+
+    const setModeFromTarget = (target, clientX, clientY) => {
       const element = target instanceof Element ? target : null;
       const isEditable = Boolean(element?.closest(EDITABLE_SELECTOR));
       const isInteractive = !isEditable && Boolean(element?.closest(INTERACTIVE_SELECTOR));
 
-      // Önce etkileşimli elemanları ele; geri kalan okunabilir normal metinlerde
-      // ince/uzun turuncu imleç görünür.
-      const isText = !isEditable && !isInteractive && hasDirectReadableText(element);
+      // Uzun imleç yalnızca gerçek, render edilmiş bir harfin hitbox'ında görünür.
+      const isText =
+        !isEditable &&
+        !isInteractive &&
+        zrcIsPointerOnRenderedText(clientX, clientY);
 
       body.classList.toggle('zrc-dynamic-orange-cursor-text-mode', isText);
       body.classList.toggle('zrc-dynamic-orange-cursor-interactive', isInteractive);
       body.classList.toggle('zrc-dynamic-orange-cursor-visible', !isEditable);
 
       return { isEditable, isText };
-    };
-
-    const hide = () => {
-      body.classList.remove(
-        'zrc-dynamic-orange-cursor-visible',
-        'zrc-dynamic-orange-cursor-interactive',
-        'zrc-dynamic-orange-cursor-down'
-      );
     };
 
     const onPointerMove = (event) => {
@@ -152,7 +200,7 @@ export default function ZRCPremiumCursor() {
       }
 
       const state = stateRef.current;
-      const { isEditable, isText } = setModeFromTarget(event.target);
+      const { isEditable, isText } = setModeFromTarget(event.target, event.clientX, event.clientY);
 
       const nextX = event.clientX;
       const nextY = event.clientY;
