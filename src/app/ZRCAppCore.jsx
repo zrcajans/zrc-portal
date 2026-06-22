@@ -10329,7 +10329,17 @@ const filterTaskFollowersForSave = (people = []) =>
 
   
 
-  if (authSessionLoading || !isLoggedIn) {
+  if (authSessionLoading) {
+    return (
+      <div className="min-h-screen bg-[#f4f6fb] flex items-center justify-center">
+        <span className="text-sm font-semibold text-slate-500" role="status">
+          Yükleniyor...
+        </span>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
     return (
       <ZRCAppLoginScreen
         renderSupabaseConnectionBadge={renderSupabaseConnectionBadge}
