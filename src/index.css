@@ -2320,23 +2320,31 @@ body {
     Tek parça silüet, 44px dokunma alanı, küçük kalem ikonu.
     Karmaşık üst/alt loblar ve büyük rozet kaldırıldı.
   */
+
+  /*
+    Kısa soft-pebble sekme:
+    uzun dikey kapı kolu yerine ekrandan hafif taşan küçük yatay kapsül.
+  */
   .zrc-mobile-sticky-notes-edge-tab {
     position: fixed;
     z-index: 2147483001 !important;
-    top: 65.5%;
-    right: -2px;
-    width: 44px;
-    height: 44px;
+    top: 67%;
+    right: -10px;
+    width: 42px;
+    height: 34px;
     display: grid;
     place-items: center;
-    padding: 0;
+    padding: 0 8px 0 0;
     overflow: visible;
     isolation: isolate;
-    border: 0;
-    border-radius: 15px 0 0 15px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-right: 0;
+    border-radius: 18px 0 0 18px;
     color: #ffffff;
     background: #ff4b1f;
-    box-shadow: -7px 10px 20px rgba(15, 23, 42, 0.15);
+    box-shadow:
+      -6px 8px 15px rgba(15, 23, 42, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
     transform: translateY(-50%);
     -webkit-tap-highlight-color: transparent;
     transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
@@ -2348,9 +2356,11 @@ body {
   }
 
   .zrc-mobile-sticky-notes-edge-tab:active {
-    background: #ec421a;
-    box-shadow: -4px 7px 13px rgba(15, 23, 42, 0.13);
-    transform: translateY(-50%) scale(0.96);
+    background: #ed431a;
+    box-shadow:
+      -3px 5px 10px rgba(15, 23, 42, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    transform: translateY(-50%) scale(0.95);
   }
 
   .zrc-mobile-sticky-notes-edge-icon {
@@ -2358,14 +2368,14 @@ body {
     z-index: 2;
     display: grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     color: #ffffff;
   }
 
   .zrc-mobile-sticky-notes-edge-icon svg {
-    width: 17px;
-    height: 17px;
+    width: 14px;
+    height: 14px;
   }
 
   .zrc-mobile-sticky-notes-edge-text,
