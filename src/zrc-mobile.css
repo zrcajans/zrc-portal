@@ -2533,3 +2533,58 @@
   }
 }
 /* === ZRC MOBILE PROJECT ARROW COMPACT END === */
+
+/* === ZRC MOBILE DESKTOP-LIKE CORNERS START === */
+@media (max-width: 768px) {
+  /*
+    Mobil arayüzü masaüstü diline yaklaştır:
+    büyük kapsül/pill şekiller yerine daha sakin 10–16px köşeler.
+  */
+  body .zrc-mobile-simple-workspace .zrc-mobile-notification-btn {
+    border-radius: 12px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker-btn {
+    border-radius: 14px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > .zrc-mobile-project-picker-arrow-orange-v5 {
+    border-radius: 10px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-card {
+    border-radius: 16px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-card button,
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-move-btn,
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-menu,
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-menu button {
+    border-radius: 11px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-card [class*="date"],
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-card [class*="meta"] > span,
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-card [class*="meta"] > div {
+    border-radius: 10px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-sheet {
+    border-radius: 16px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-meta-grid > div,
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-assignees span,
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-sheet-close {
+    border-radius: 10px !important;
+  }
+
+  /*
+    Primary mobile action buttons: masaüstündeki daha kontrollü köşe diline iner.
+    Arka plandaki kolona ait doğal pill/badge yapıları burada hedeflenmez.
+  */
+  body .zrc-mobile-simple-workspace > * button:not(.zrc-mobile-project-picker-arrow-orange-v5):not(.zrc-mobile-task-detail-sheet-close) {
+    border-radius: 12px;
+  }
+}
+/* === ZRC MOBILE DESKTOP-LIKE CORNERS END === */
