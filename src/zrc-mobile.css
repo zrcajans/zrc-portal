@@ -2691,3 +2691,17 @@
   */
 }
 /* === ZRC MOBILE PROJECT ACTIONS AND TASK CARDS END === */
+
+/* === ZRC MOBILE CREATE BUTTON TASK CORNERS START === */
+@media (max-width: 768px) {
+  /*
+    Görev Oluştur, görev kartlarının 6px köşe dilini kullanır.
+    Taşı/kapsül ve proje seçimi bu blok tarafından etkilenmez.
+  */
+  body .zrc-mobile-simple-workspace .zrc-mobile-create-task-btn,
+  body .zrc-mobile-simple-workspace .zrc-mobile-create-task-button,
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-create-btn {
+    border-radius: 6px !important;
+  }
+}
+/* === ZRC MOBILE CREATE BUTTON TASK CORNERS END === */
