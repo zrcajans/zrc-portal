@@ -179,27 +179,45 @@ export function createZRCHomeActions(deps) {
   };
 
   const deleteQuickNoteFromHome = async (noteId) => {
-    const noteToDelete = quickNotes.find((note) => note.id === noteId);
-    const actionKey = `delete-quick-note:${noteId}`;
+    const requestedId = String(noteId || '').trim();
+    const noteToDelete = quickNotes.find((note) => {
+      const localId = String(note?.id || '').trim();
+      const serverId = String(note?.supabaseId || '').trim();
+      return localId === requestedId || serverId === requestedId;
+    });
+    const actionKey = `delete-quick-note:${requestedId}`;
 
-    if (!noteToDelete || !tryAcquireActionLock(quickNoteMutationLockRef, actionKey)) return;
+    if (!noteToDelete || !tryAcquireActionLock(quickNoteMutationLockRef, actionKey)) return false;
 
     try {
-      const hasPersistedId = Boolean(
-        noteToDelete.supabaseId || String(noteToDelete.id || '').startsWith('supabase-note-')
-      );
+      const persistedId = String(noteToDelete?.supabaseId || noteToDelete?.id || '')
+        .replace(/^supabase-note-/, '')
+        .trim();
 
-      if (hasPersistedId) {
+      const isPersistedNote = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(persistedId);
+
+      if (isPersistedNote) {
         const didDeleteNote = await deleteQuickNoteFromSupabase(noteToDelete);
 
         if (!didDeleteNote) {
           await window.zrcAlert('Not silinemedi. Sunucu kaydı korunuyor; lütfen tekrar deneyin.');
-          return;
+          return false;
         }
       }
 
-      setQuickNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
+      const deletedLocalId = String(noteToDelete?.id || '').trim();
+      const deletedServerId = String(noteToDelete?.supabaseId || '').trim();
+
+      setQuickNotes((previousNotes) =>
+        (Array.isArray(previousNotes) ? previousNotes : []).filter((note) => {
+          const localId = String(note?.id || '').trim();
+          const serverId = String(note?.supabaseId || '').trim();
+          return localId !== deletedLocalId && localId !== deletedServerId && serverId !== deletedLocalId && serverId !== deletedServerId;
+        })
+      );
+
       setPendingDeleteQuickNoteId(null);
+      return true;
     } finally {
       releaseActionLock(quickNoteMutationLockRef, actionKey);
     }

@@ -3881,9 +3881,13 @@ function App() {
 
   const deleteQuickNoteFromSupabase = async (note = {}) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
-    const noteId = note?.supabaseId || (String(note?.id || '').startsWith('supabase-note-') ? String(note.id).replace('supabase-note-', '') : '');
+    const rawNoteId = String(note?.supabaseId || note?.id || '').trim();
+    const noteId = rawNoteId.replace(/^supabase-note-/, '');
 
-    if (!isSupabaseUuid(workspaceId) || !isSupabaseUuid(currentUserId) || !isSupabaseUuid(noteId)) return false;
+    if (!isSupabaseUuid(workspaceId) || !isSupabaseUuid(currentUserId) || !isSupabaseUuid(noteId)) {
+      zrcSetSupabaseWriteInfo('error', 'Supabase not silinemedi: geçerli not kimliği bulunamadı');
+      return false;
+    }
 
     try {
       const mutationResult = await supabase
