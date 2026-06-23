@@ -2705,3 +2705,42 @@
   }
 }
 /* === ZRC MOBILE CREATE BUTTON TASK CORNERS END === */
+
+/* === ZRC MOBILE CAPSULE COLORS MATCH DESKTOP START === */
+@media (max-width: 768px) {
+  /*
+    Her kapsül düğmesi, masaüstündeki kendi kolon başlığının rengini alır.
+    Yazı renkleri MobileTaskSection içinde masaüstüyle aynı
+    getReadableColumnColor / getReadableColumnMutedColor yardımcılarıyla hesaplanır.
+  */
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-capsule-item {
+    background: var(--zrc-mobile-column-color) !important;
+    color: var(--zrc-mobile-column-text-color) !important;
+    border-color: rgba(255, 255, 255, 0.26) !important;
+    box-shadow:
+      0 5px 12px rgba(15, 23, 42, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-capsule-item.is-active {
+    background: var(--zrc-mobile-column-color) !important;
+    color: var(--zrc-mobile-column-text-color) !important;
+    border-color: rgba(255, 255, 255, 0.84) !important;
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.78),
+      0 8px 18px rgba(15, 23, 42, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-capsule-title {
+    color: var(--zrc-mobile-column-text-color) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-capsule-count,
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-capsule-item.is-active .zrc-mobile-column-capsule-count {
+    background: transparent !important;
+    color: var(--zrc-mobile-column-muted-color) !important;
+    box-shadow: none !important;
+  }
+}
+/* === ZRC MOBILE CAPSULE COLORS MATCH DESKTOP END === */

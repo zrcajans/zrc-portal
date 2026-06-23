@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MobileTaskList from './MobileTaskList';
 import { getSafeMobileProjectName } from '../../utils/mobileProjectHelpers';
+import { getReadableColumnColor, getReadableColumnMutedColor } from '../../utils/colorHelpers';
 
 
 
@@ -113,12 +114,22 @@ export default function MobileTaskSection({
             const isActiveColumn = column.id === activeMobileColumn?.id;
             const columnTitle = normalizeColumnTitleForDisplay(column.title);
             const taskCount = Array.isArray(column.tasks) ? column.tasks.length : 0;
+            // zrc-mobile-capsule-colors-v1: masaüstündeki kolon başlığıyla aynı renk mantığı.
+            const columnColor = column.color || '#94a3b8';
+            const columnTextColor = getReadableColumnColor(columnColor);
+            const columnMutedColor = getReadableColumnMutedColor(columnColor);
+            const mobileCapsuleStyle = {
+              '--zrc-mobile-column-color': columnColor,
+              '--zrc-mobile-column-text-color': columnTextColor,
+              '--zrc-mobile-column-muted-color': columnMutedColor
+            };
 
             return (
               <button
                 key={column.id}
                 type="button"
                 className={`zrc-mobile-column-capsule-item ${isActiveColumn ? 'is-active' : ''}`}
+                style={mobileCapsuleStyle}
                 onClick={() => setSelectedMobileColumnId(column.id)}
               >
                 <span className="zrc-mobile-column-capsule-title">{columnTitle}</span>
