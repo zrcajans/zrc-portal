@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createAvatarFromName } from '../../utils/avatarHelpers';
+import { formatZrcDate, formatZrcDateRange } from '../../utils/dateDisplayHelpers';
 
 const createTaskDetailHistoryId = () =>
   `history-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -405,10 +406,11 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
         .split(',')
         .map((tag) => tag.trim())
         .filter(Boolean);
-  const visibleDate =
-    task.startDate && task.endDate
-      ? `${task.startDate} - ${task.endDate}`
-      : task.startDate || task.endDate || task.date || '';
+  const visibleDate = formatZrcDateRange(
+    task.startDate || task.start_date || '',
+    task.endDate || task.end_date || task.dueDate || task.due_date || task.date || '',
+    { fallback: '' }
+  );
 
   const detailTabs = ['Detaylar', 'Yorumlar', 'Dosyalar', 'Adımlar', 'Geçmiş'];
 
@@ -640,7 +642,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-[11.5px] font-black text-slate-700">{getDetailProfileNameForRecord(comment, 'Kullanıcı')}</span>
                             <span className="h-5 px-2 rounded-full bg-slate-100/70 text-[9px] font-black text-slate-400 flex items-center">
-                              {comment.date}
+                              {formatZrcDate(comment.date, { fallback: comment.date || '' })}
                             </span>
                             <span className="h-5 px-2 rounded-full bg-slate-100/70 text-[9px] font-black text-slate-400 flex items-center">
                               {comment.time}
@@ -808,7 +810,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
                                 </span>
                                 <span>{file.uploader}</span>
                                 <span>·</span>
-                                <span>{file.date}</span>
+                                <span>{formatZrcDate(file.date, { fallback: file.date || '' })}</span>
                                 <span>{file.time}</span>
                               </div>
                             </div>
@@ -1063,7 +1065,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
 
                                 <div className="text-right shrink-0">
                                   <div className="text-[9.5px] font-black text-slate-400">
-                                    {item.date}
+                                    {formatZrcDate(item.date, { fallback: item.date || '' })}
                                   </div>
                                   <div className="text-[9.5px] font-black text-slate-300 mt-0.5">
                                     {item.time}

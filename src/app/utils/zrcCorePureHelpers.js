@@ -1,27 +1,9 @@
+import { formatZrcDate, formatZrcDateTime, formatZrcTime } from '../../utils/dateDisplayHelpers';
 import { createAvatarFromName } from '../../utils/avatarHelpers';
 import { normalizeCredentialText, normalizeCustomerRecord, normalizeTeamMember } from '../../utils/teamHelpers';
 
 export const formatDateStringShort = (dateStr) => {
-    if (!dateStr) return '';
-
-    if (
-      dateStr.includes('Ocak') ||
-      dateStr.includes('Şubat') ||
-      dateStr.includes('Mart') ||
-      dateStr.includes('Nisan') ||
-      dateStr.includes('Mayıs') ||
-      dateStr.includes('Haziran') ||
-      dateStr.includes('Temmuz') ||
-      dateStr.includes('Ağustos') ||
-      dateStr.includes('Eylül') ||
-      dateStr.includes('Ekim') ||
-      dateStr.includes('Kasım') ||
-      dateStr.includes('Aralık')
-    ) {
-      return dateStr;
-    }
-
-    return dateStr;
+    return formatZrcDate(dateStr, { fallback: '' });
   };
 
 export const getTaskCardDateParts = (task = {}) => {
@@ -82,11 +64,11 @@ export const getPlainTaskDescription = (value) => {
   };
 
 export const formatSupabaseDateTimeParts = (value = '') => {
-    const date = value ? new Date(value) : new Date();
+    const safeValue = value || new Date();
 
     return {
-      date: `${date.getDate()} ${date.toLocaleString('tr-TR', { month: 'long' })} ${date.getFullYear()}`,
-      time: date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+      date: formatZrcDate(safeValue, { fallback: '' }),
+      time: formatZrcTime(safeValue, { fallback: '' })
     };
   };
 
@@ -243,18 +225,7 @@ export const getSupabaseHealthStateClass = (state = 'idle') => {
 
 export const formatSupabaseDateForLocalTask = (value = '') => {
     const cleanValue = String(value || '').trim();
-
-    if (!cleanValue) return '';
-
-    const [year, month, day] = cleanValue.split('-').map(Number);
-
-    if (!year || !month || !day) return cleanValue;
-
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    }).format(new Date(year, month - 1, day));
+    return formatZrcDate(cleanValue, { fallback: cleanValue });
   };
 
 export const getIdentityValuesFromRecord = (record = {}) =>
@@ -278,16 +249,7 @@ export const getIdentityValuesFromRecord = (record = {}) =>
       .map((value) => normalizeCredentialText(value));
 
 export const getActivityDateLabel = (createdAt) => {
-    const date = createdAt ? new Date(createdAt) : new Date();
-
-    if (Number.isNaN(date.getTime())) return 'Şimdi';
-
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    return formatZrcDateTime(createdAt || new Date(), { fallback: 'Şimdi' });
   };
 
 export const isReportTaskCompleted = (task) => {

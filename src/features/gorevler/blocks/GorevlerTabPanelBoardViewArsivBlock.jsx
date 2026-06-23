@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatZrcDateRange, formatZrcDateTime } from '../../../utils/dateDisplayHelpers';
 
 export default function GorevlerTabPanelBoardViewArsivBlock(props) {
   const {
@@ -115,15 +116,7 @@ export default function GorevlerTabPanelBoardViewArsivBlock(props) {
                             {archivedTasks.length > 0 ? (
                               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                 {archivedTasks.map((task) => {
-                                  const archivedDate = task.archivedAt
-                                    ? new Date(task.archivedAt).toLocaleString('tr-TR', {
-                                        day: '2-digit',
-                                        month: 'long',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })
-                                    : 'Tarih yok';
+                                  const archivedDate = formatZrcDateTime(task.archivedAt, { fallback: 'Tarih yok' });
 
                                   return (
                                     <div
@@ -168,7 +161,7 @@ export default function GorevlerTabPanelBoardViewArsivBlock(props) {
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
                                               <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M5.25 5.25h13.5A1.5 1.5 0 0120.25 6.75v12A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75v-12A1.5 1.5 0 015.25 5.25z" />
                                             </svg>
-                                            <span>{task.startDate || task.date}{task.endDate ? ` - ${task.endDate}` : ''}</span>
+                                            <span>{formatZrcDateRange(task.startDate || task.start_date || task.date, task.endDate || task.end_date || task.dueDate || task.due_date, { fallback: 'Tarih yok' })}</span>
                                           </div>
                                         )}
 

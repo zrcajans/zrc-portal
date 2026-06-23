@@ -1,3 +1,5 @@
+import { formatZrcDate } from './dateDisplayHelpers';
+
 // ZRC dashboard/date/search/quick-note helper functions
 // Bu dosya v504 ile App.jsx içinden ayrıldı.
 
@@ -73,12 +75,7 @@ export const parseTaskDateValue = (value) => {
   };
 
 export const formatCalendarDate = (date) => {
-    if (!date) return '-';
-
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: '2-digit',
-      month: 'short'
-    }).format(date);
+    return formatZrcDate(date, { fallback: '-' });
   };
 
 export const formatCalendarWeekday = (date) => {
@@ -320,12 +317,7 @@ export const getNotificationTaskDate = (task) => {
   };
 
 export const getNotificationDateLabel = (date) => {
-    if (!date) return 'Tarih yok';
-
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: '2-digit',
-      month: 'short'
-    }).format(date);
+    return formatZrcDate(date, { fallback: 'Tarih yok' });
   };
 
 export const getNotificationTone = (type) => {

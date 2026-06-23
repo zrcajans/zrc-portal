@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { formatZrcDate } from '../../utils/dateDisplayHelpers';
 
 export default function MobileTaskCard({
   task,
@@ -119,8 +120,11 @@ export default function MobileTaskCard({
   };
 
   const taskDescription = String(task.description || task.detail || '').trim();
-  const taskStartDate = task.startDate || task.start_date || '';
-  const taskDueDate = task.dueDate || task.due_date || task.endDate || task.end_date || '';
+  const taskStartDate = formatZrcDate(task.startDate || task.start_date, { fallback: '' });
+  const taskDueDate = formatZrcDate(
+    task.dueDate || task.due_date || task.endDate || task.end_date,
+    { fallback: '' }
+  );
   const taskSteps = Array.isArray(task.steps)
     ? task.steps
     : (Array.isArray(task.taskSteps) ? task.taskSteps : []);
@@ -146,9 +150,9 @@ export default function MobileTaskCard({
 
       <div className="zrc-mobile-task-date-row">
         {(task.startDate || task.start_date) && (
-          <span>Başlangıç: {task.startDate || task.start_date}</span>
+          <span>Başlangıç: {formatZrcDate(task.startDate || task.start_date, { fallback: 'Tarih yok' })}</span>
         )}
-        <span>Bitiş: {task.dueDate || task.due_date || task.endDate || task.end_date || 'Tarih yok'}</span>
+        <span>Bitiş: {formatZrcDate(task.dueDate || task.due_date || task.endDate || task.end_date, { fallback: 'Tarih yok' })}</span>
       </div>
 
       {assignees.length > 0 && (
