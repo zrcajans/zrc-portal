@@ -24,7 +24,9 @@ test('mobile task cards hide descriptions and open the existing task detail moda
     'utf8'
   );
 
-  assert.match(card, /onOpenTaskDetail\(task, columnTitle\)/);
+  assert.match(card, /zrc-mobile-task-local-detail-v1/);
+  assert.match(card, /setIsTaskDetailOpen\(true\)/);
+  assert.match(card, /zrc-mobile-task-detail-sheet/);
   assert.match(card, /role="button"/);
   assert.match(card, /onKeyDown=\{handleTaskCardKeyDown\}/);
   assert.doesNotMatch(card, /\{task\.description &&\s*\(/);

@@ -12,6 +12,7 @@ export default function MobileTaskCard({
   onOpenTaskDetail
 }) {
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
   const [columnMenuPlacement, setColumnMenuPlacement] = useState('down');
   const columnDropdownRef = useRef(null);
   const moveButtonRef = useRef(null);
@@ -83,9 +84,13 @@ export default function MobileTaskCard({
     .filter((column) => column && column.id)
     .filter((column) => String(column.id || '').trim() !== currentColumnId);
 
+  // zrc-mobile-task-local-detail-v1
   const openTaskDetails = () => {
-    if (typeof onOpenTaskDetail !== 'function') return;
-    onOpenTaskDetail(task, columnTitle);
+    setIsTaskDetailOpen(true);
+  };
+
+  const closeTaskDetails = () => {
+    setIsTaskDetailOpen(false);
   };
 
   const handleTaskCardKeyDown = (event) => {
@@ -113,15 +118,23 @@ export default function MobileTaskCard({
     }
   };
 
+  const taskDescription = String(task.description || task.detail || '').trim();
+  const taskStartDate = task.startDate || task.start_date || '';
+  const taskDueDate = task.dueDate || task.due_date || task.endDate || task.end_date || '';
+  const taskSteps = Array.isArray(task.steps)
+    ? task.steps
+    : (Array.isArray(task.taskSteps) ? task.taskSteps : []);
+
   return (
-    <div
-      className="zrc-mobile-task-card"
-      role="button"
-      tabIndex={0}
-      aria-label={`${taskTitle} görev detayını aç`}
-      onClick={openTaskDetails}
-      onKeyDown={handleTaskCardKeyDown}
-    >
+    <>
+      <div
+        className="zrc-mobile-task-card"
+        role="button"
+        tabIndex={0}
+        aria-label={`${taskTitle} görev detayını aç`}
+        onClick={openTaskDetails}
+        onKeyDown={handleTaskCardKeyDown}
+      >
       <div className="zrc-mobile-task-card-top">
         <div className="zrc-mobile-task-status">
           <span style={{ backgroundColor: task.columnColor || '#ff5b1f' }} />
@@ -220,6 +233,92 @@ export default function MobileTaskCard({
           )}
         </div>
       )}
-    </div>
+      </div>
+
+      {isTaskDetailOpen && (
+        <div
+          className="zrc-mobile-task-detail-backdrop"
+          role="presentation"
+          onClick={closeTaskDetails}
+        >
+          <section
+            className="zrc-mobile-task-detail-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${taskTitle} görev detayı`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="zrc-mobile-task-detail-sheet-head">
+              <div className="zrc-mobile-task-detail-sheet-status">
+                <i style={{ backgroundColor: task.columnColor || '#3b82f6' }} />
+                <span>{columnTitle || 'Görev detayı'}</span>
+              </div>
+
+              <button
+                type="button"
+                className="zrc-mobile-task-detail-sheet-close"
+                aria-label="Görev detayını kapat"
+                onClick={closeTaskDetails}
+              >
+                ×
+              </button>
+            </div>
+
+            <h2>{taskTitle}</h2>
+
+            {taskDescription ? (
+              <div className="zrc-mobile-task-detail-block">
+                <strong>Açıklama</strong>
+                <p>{taskDescription}</p>
+              </div>
+            ) : (
+              <div className="zrc-mobile-task-detail-block is-empty">
+                <strong>Açıklama</strong>
+                <p>Bu görev için açıklama eklenmemiş.</p>
+              </div>
+            )}
+
+            <div className="zrc-mobile-task-detail-meta-grid">
+              <div>
+                <small>Başlangıç</small>
+                <b>{taskStartDate || 'Belirtilmedi'}</b>
+              </div>
+              <div>
+                <small>Bitiş</small>
+                <b>{taskDueDate || 'Belirtilmedi'}</b>
+              </div>
+            </div>
+
+            <div className="zrc-mobile-task-detail-block">
+              <strong>Görevliler</strong>
+              {assignees.length > 0 ? (
+                <div className="zrc-mobile-task-detail-assignees">
+                  {assignees.map((person) => (
+                    <span key={person.id || person.email || person.name}>
+                      {person.name || 'İsimsiz kullanıcı'}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p>Görevli kişi yok.</p>
+              )}
+            </div>
+
+            {taskSteps.length > 0 && (
+              <div className="zrc-mobile-task-detail-block">
+                <strong>Adımlar</strong>
+                <ul className="zrc-mobile-task-detail-steps">
+                  {taskSteps.map((step, index) => (
+                    <li key={step.id || `${step.title || step.text || 'adim'}-${index}`}>
+                      {step.title || step.text || step.name || `Adım ${index + 1}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+    </>
   );
 }

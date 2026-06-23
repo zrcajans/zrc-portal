@@ -2777,3 +2777,178 @@ body {
   }
 }
 /* === ZRC MOBILE STICKY NOTES END === */
+
+/* === ZRC MOBILE TASK DETAIL SHEET START === */
+@media (max-width: 720px) {
+  .zrc-mobile-task-detail-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483600;
+    display: flex;
+    align-items: flex-end;
+    padding: 12px;
+    background: rgba(15, 23, 42, 0.46);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .zrc-mobile-task-detail-sheet {
+    width: 100%;
+    max-height: min(82dvh, 760px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 18px 18px calc(26px + env(safe-area-inset-bottom));
+    border: 1px solid rgba(226, 232, 240, 0.94);
+    border-radius: 22px 22px 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 -20px 54px rgba(15, 23, 42, 0.24);
+    color: #172033;
+  }
+
+  .zrc-mobile-task-detail-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .zrc-mobile-task-detail-sheet-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  .zrc-mobile-task-detail-sheet-status i {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    border-radius: 999px;
+  }
+
+  .zrc-mobile-task-detail-sheet-close {
+    width: 38px;
+    height: 38px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #475569;
+    font-size: 29px;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .zrc-mobile-task-detail-sheet h2 {
+    margin: 0 0 18px;
+    color: #172033;
+    font-size: 23px;
+    font-weight: 900;
+    line-height: 1.18;
+  }
+
+  .zrc-mobile-task-detail-block {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #edf1f5;
+  }
+
+  .zrc-mobile-task-detail-block strong,
+  .zrc-mobile-task-detail-meta-grid small {
+    display: block;
+    margin-bottom: 7px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .zrc-mobile-task-detail-block p {
+    margin: 0;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  .zrc-mobile-task-detail-block.is-empty p {
+    color: #94a3b8;
+  }
+
+  .zrc-mobile-task-detail-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .zrc-mobile-task-detail-meta-grid > div {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #edf1f5;
+    border-radius: 12px;
+    background: #f8fafc;
+  }
+
+  .zrc-mobile-task-detail-meta-grid b {
+    display: block;
+    overflow: hidden;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .zrc-mobile-task-detail-assignees {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .zrc-mobile-task-detail-assignees span {
+    padding: 7px 9px;
+    border: 1px solid #dbeafe;
+    border-radius: 9px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .zrc-mobile-task-detail-steps {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .zrc-mobile-task-detail-steps li {
+    position: relative;
+    padding-left: 17px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .zrc-mobile-task-detail-steps li::before {
+    position: absolute;
+    top: 0.5em;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #3b82f6;
+    content: '';
+  }
+}
+/* === ZRC MOBILE TASK DETAIL SHEET END === */
