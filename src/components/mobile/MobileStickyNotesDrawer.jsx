@@ -90,11 +90,11 @@ export default function MobileStickyNotesDrawer({
         aria-label={`Yapışkan notları aç${notes.length ? `, ${notes.length} not` : ''}`}
       >
         <span className="zrc-mobile-sticky-notes-edge-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.15">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 3.75h10A2.25 2.25 0 0 1 19.25 6v12.25L15 16l-3 2-3-2-4.25 2.25V6A2.25 2.25 0 0 1 7 3.75Z" />
-            <path strokeLinecap="round" d="M9 8.5h6M9 11.5h4.5" />
-          </svg>
-        </span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+              </svg>
+            </span>
         {notes.length > 0 ? <span className="zrc-mobile-sticky-notes-edge-count">{notes.length > 9 ? '9+' : notes.length}</span> : null}
         <span className="zrc-mobile-sticky-notes-edge-text">NOTLAR</span>
       </button>

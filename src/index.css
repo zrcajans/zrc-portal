@@ -2309,24 +2309,29 @@ body {
     Referanstaki organik turuncu form:
     kısa, biraz aşağıda, ortası dar; üst ve alt kısımda yumuşak kıvrımlar.
   */
+
+  /*
+    Daha küçük, daha kompakt, yarım kapsül hissinde,
+    referanstaki organik formu koruyan sağ kenar sekmesi.
+  */
   .zrc-mobile-sticky-notes-edge-tab {
     position: fixed;
     z-index: 2147483001 !important;
-    top: 60.5%;
-    right: -29px;
-    width: 82px;
-    height: 72px;
+    top: 65.5%;
+    right: -16px;
+    width: 44px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 0 0 0 17px;
+    padding: 0 0 0 9px;
     overflow: visible;
     isolation: isolate;
     border: 0;
-    border-radius: 38px 0 0 38px;
+    border-radius: 22px 0 0 22px;
     color: #ffffff;
     background: #ff4b1f;
-    box-shadow: -9px 13px 22px rgba(15, 23, 42, 0.16);
+    box-shadow: -7px 10px 18px rgba(15, 23, 42, 0.15);
     transform: translateY(-50%);
     -webkit-tap-highlight-color: transparent;
     transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
@@ -2336,9 +2341,9 @@ body {
   .zrc-mobile-sticky-notes-edge-tab::after {
     content: "";
     position: absolute;
-    right: 1px;
-    width: 47px;
-    height: 25px;
+    right: 0;
+    width: 25px;
+    height: 12px;
     border-radius: 999px;
     background: #ff4b1f;
     pointer-events: none;
@@ -2346,16 +2351,16 @@ body {
   }
 
   .zrc-mobile-sticky-notes-edge-tab::before {
-    top: -10px;
+    top: -5px;
   }
 
   .zrc-mobile-sticky-notes-edge-tab::after {
-    bottom: -10px;
+    bottom: -5px;
   }
 
   .zrc-mobile-sticky-notes-edge-tab:active {
     background: #f0441a;
-    box-shadow: -5px 9px 16px rgba(15, 23, 42, 0.14);
+    box-shadow: -4px 7px 13px rgba(15, 23, 42, 0.14);
     transform: translateY(-50%) scale(0.965);
   }
 
@@ -2364,14 +2369,14 @@ body {
     z-index: 3;
     display: grid;
     place-items: center;
-    width: 27px;
-    height: 27px;
+    width: 16px;
+    height: 16px;
     color: #ffffff;
   }
 
   .zrc-mobile-sticky-notes-edge-icon svg {
-    width: 19px;
-    height: 19px;
+    width: 14px;
+    height: 14px;
   }
 
   .zrc-mobile-sticky-notes-edge-text {
@@ -2381,19 +2386,19 @@ body {
   .zrc-mobile-sticky-notes-edge-count {
     position: absolute;
     z-index: 4;
-    top: 4px;
-    left: 27px;
-    min-width: 16px;
-    height: 16px;
+    top: -2px;
+    left: 16px;
+    min-width: 11px;
+    height: 11px;
     display: grid;
     place-items: center;
-    padding: 0 4px;
-    border: 1.5px solid rgba(255, 255, 255, 0.96);
+    padding: 0 3px;
+    border: 1.2px solid rgba(255, 255, 255, 0.96);
     border-radius: 999px;
     color: #ff4b1f;
     background: #ffffff;
-    box-shadow: 0 4px 9px rgba(15, 23, 42, 0.12);
-    font-size: 8px;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+    font-size: 6.5px;
     line-height: 1;
     font-weight: 900;
   }
