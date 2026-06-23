@@ -180,7 +180,6 @@ import { upsertUserPreferencesForUser } from './utils/userPreferencesPersistence
 function App() {
   const messageMutationLockRef = useRef(new Set());
   const quickNoteMutationLockRef = useRef(new Set());
-  const legacyQuickNoteSyncingIdsRef = useRef(new Set());
   const taskMutationLockRef = useRef(new Set());
   const columnMutationLockRef = useRef(new Set());
   const projectMutationLockRef = useRef(new Set());
@@ -4519,9 +4518,6 @@ function App() {
 
 
 
-  useEffect(() => {
-    void syncLegacyQuickNotesToSupabase();
-  }, [supabaseWorkspaceId, currentUserId, authSessionLoading, quickNotes]);
 
   const countSupabaseTableRows = async (tableName, filterColumn = 'workspace_id', filterValue = getCurrentSupabaseWorkspaceId()) => {
     if (!filterValue) return { count: 0, error: { message: 'workspace bulunamadı' } };
