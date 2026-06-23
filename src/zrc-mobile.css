@@ -2511,25 +2511,25 @@
 /* === ZRC MOBILE PROJECT ARROW COMPACT START === */
 @media (max-width: 768px) {
   body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > .zrc-mobile-project-picker-arrow-orange-v5 {
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
-    min-height: 42px !important;
-    bottom: -17px !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    bottom: -10px !important;
     padding: 0 !important;
     border-width: 0 !important;
     box-sizing: border-box !important;
-    box-shadow: 0 8px 18px rgba(255, 54, 0, 0.23) !important;
+    box-shadow: 0 5px 11px rgba(255, 54, 0, 0.20) !important;
   }
 
   body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > .zrc-mobile-project-picker-arrow-orange-v5 svg,
   body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > .zrc-mobile-project-picker-arrow-orange-v5 .zrc-mobile-project-picker-arrow-icon-orange-v5 {
-    width: 20px !important;
-    height: 20px !important;
+    width: 12px !important;
+    height: 12px !important;
   }
 
   body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > .zrc-mobile-project-picker-arrow-orange-v5 path {
-    stroke-width: 4 !important;
+    stroke-width: 3.5 !important;
   }
 }
 /* === ZRC MOBILE PROJECT ARROW COMPACT END === */
