@@ -2463,3 +2463,47 @@
   }
 }
 /* === ZRC MOBILE HEADER COMPACT ALIGNMENT END === */
+
+/* === ZRC MOBILE PROJECT SELECTOR COMPACT START === */
+@media (max-width: 768px) {
+  /*
+    Proje seçimi daha kısa: içerik ve alt ok küçülür,
+    karttan sonraki boşluk azalır.
+  */
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker {
+    margin-bottom: 18px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker-btn {
+    min-height: 70px !important;
+    height: 70px !important;
+    padding: 10px 16px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker-btn > div {
+    transform: translateY(-1px) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker-btn small {
+    margin-bottom: 3px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker-btn strong {
+    font-size: 19px !important;
+    line-height: 1.04 !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-project-picker .zrc-mobile-project-picker-btn > span {
+    bottom: -17px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    font-size: 20px !important;
+    box-shadow: 0 8px 18px rgba(8, 15, 35, 0.20) !important;
+  }
+}
+/* === ZRC MOBILE PROJECT SELECTOR COMPACT END === */
