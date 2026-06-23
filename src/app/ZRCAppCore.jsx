@@ -3920,7 +3920,7 @@ function App() {
         .from('quick_notes')
         .select('id, text, created_at')
         .eq('workspace_id', workspaceId)
-        .neq('type', 'push_subscription')
+        .eq('user_id', currentUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
