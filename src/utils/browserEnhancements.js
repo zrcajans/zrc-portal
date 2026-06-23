@@ -303,13 +303,17 @@ const zrcShowMobileSetupPanel = () => {
       ? Notification.permission
       : 'unsupported';
 
-  // zrc-v428-pwa-notification-button
-  // Ana ekrana eklenmiş PWA içinde de bildirim açma kartı görünsün.
-  if (isStandalone && notificationPermission === 'granted') return;
+  // zrc-v541-push-worker-compatibility
+  const pushRecoveryTestKey = getScopedStorageKey('zrc-v541-push-recovery-tested');
+  const needsPushRecoveryTest =
+    isStandalone &&
+    notificationPermission === 'granted' &&
+    window.localStorage.getItem(pushRecoveryTestKey) !== '1';
+
+  if (isStandalone && notificationPermission === 'granted' && !needsPushRecoveryTest) return;
   const wasDismissed = window.localStorage.getItem('zrc-mobile-setup-dismissed') === '1';
 
-  // PWA içindeyken bildirim izni hâlâ açılmamışsa, daha önce kapatılmış olsa bile kartı tekrar göster.
-  if (wasDismissed && !(isStandalone && notificationPermission !== 'granted')) return;
+  if (wasDismissed && !(isStandalone && (notificationPermission !== 'granted' || needsPushRecoveryTest))) return;
   if (document.getElementById('zrc-mobile-setup-panel')) return;
 
   const panel = document.createElement('div');
@@ -466,118 +470,79 @@ const zrcV429SetHintText = (hint, text) => {
 
 const zrcV429RegisterAndSendTestPush = async (hint) => {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
-
   if (!('Notification' in window)) {
     zrcV429SetHintText(hint, 'Bu cihaz/tarayıcı bildirimleri desteklemiyor.');
     return;
   }
-
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    zrcV429SetHintText(hint, 'Bu cihazda Web Push desteği yok. iPhone’da ana ekrandaki uygulamadan açtığından emin ol.');
+    zrcV429SetHintText(hint, 'Bu cihazda Web Push desteği yok. iPhone ana ekran uygulamasından aç.');
     return;
   }
-
   let permission = Notification.permission;
-
-  if (permission !== 'granted') {
-    permission = await Notification.requestPermission();
-  }
-
+  if (permission !== 'granted') permission = await Notification.requestPermission();
   if (permission !== 'granted') {
     zrcV429SetHintText(hint, 'Bildirim izni verilmedi.');
     return;
   }
 
-  zrcV429SetHintText(hint, 'Bildirim izni açık. Push aboneliği hazırlanıyor...');
-
-  let registration = await navigator.serviceWorker.ready;
-
-  if (!registration) {
-    registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
-  }
-
-  const keyResponse = await fetch('/api/push-public-key', {
-    method: 'GET',
-    headers: { Accept: 'application/json' }
-  });
-
-  const keyResult = await keyResponse.json().catch(() => ({}));
-
-  if (!keyResponse.ok || !keyResult.publicKey) {
-    zrcV429SetHintText(
-      hint,
-      keyResult.error || 'VAPID_PUBLIC_KEY eksik. Vercel Environment Variables ayarı gerekiyor.'
-    );
+  const accessToken = zrcV442ReadSupabaseAccessToken();
+  const workspaceId = getActiveStorageWorkspaceId();
+  if (!accessToken || !workspaceId) {
+    zrcV429SetHintText(hint, 'Aktif oturum veya workspace bulunamadı. Çıkış yapıp tekrar giriş yap.');
     return;
   }
 
-  let subscription = await registration.pushManager.getSubscription();
+  try {
+    zrcV429SetHintText(hint, 'Push bağlantısı yenileniyor...');
+    const registration = await zrcV541EnsureCurrentPushWorker();
+    const keyResponse = await fetch('/api/push-public-key', { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' });
+    const keyResult = await keyResponse.json().catch(() => ({}));
+    if (!keyResponse.ok || !keyResult.publicKey) {
+      zrcV429SetHintText(hint, keyResult.error || 'VAPID anahtarı okunamadı.');
+      return;
+    }
 
-  if (!subscription) {
+    let subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      try { await subscription.unsubscribe(); } catch {}
+      subscription = null;
+    }
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: zrcV429UrlBase64ToUint8Array(keyResult.publicKey)
     });
+
+    const registerResponse = await fetch('/api/register-push-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+      body: JSON.stringify({ subscription, workspaceId, userAgent: navigator.userAgent || '', source: 'v541-manual-worker-recovery' })
+    });
+    const registerResult = await registerResponse.json().catch(() => ({}));
+    if (!registerResponse.ok || registerResult.error) {
+      zrcV429SetHintText(hint, registerResult.error || 'Push aboneliği kaydedilemedi.');
+      return;
+    }
+
+    zrcV429SetHintText(hint, 'Sunucu test bildirimi gönderiliyor...');
+    const pushResponse = await fetch('/api/send-test-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+      body: JSON.stringify({ workspaceId, title: 'ZRC', body: 'Push test bildirimi başarılı. Telefon bildirimleri aktif.' })
+    });
+    const pushResult = await pushResponse.json().catch(() => ({}));
+    if (!pushResponse.ok || pushResult.error) {
+      zrcV429SetHintText(hint, pushResult.error || 'Test bildirimi gönderilemedi.');
+      return;
+    }
+
+    window.localStorage.setItem(getScopedStorageKey('zrc-v541-push-recovery-tested'), '1');
+    window.localStorage.setItem(getScopedStorageKey('zrc-v541-push-subscription-recovered'), '1');
+    zrcV429SetHintText(hint, 'Test push gönderildi. Bildirim Merkezi veya kilit ekranını kontrol et.');
+  } catch (error) {
+    zrcV429SetHintText(hint, error?.message || 'Push bağlantısı yenilenemedi.');
   }
-
-  zrcV429SetHintText(hint, 'Push aboneliği hazır. Test bildirimi gönderiliyor...');
-
-  const accessToken = zrcV442ReadSupabaseAccessToken();
-
-  if (!accessToken) {
-    zrcV429SetHintText(hint, 'Aktif oturum bulunamadı. Çıkış yapıp tekrar giriş yap.');
-    return;
-  }
-
-  const workspaceId = getActiveStorageWorkspaceId();
-
-  if (!workspaceId) {
-    zrcV429SetHintText(hint, 'Aktif workspace bulunamadı. Çıkış yapıp tekrar giriş yap.');
-    return;
-  }
-
-  const registerResponse = await fetch('/api/register-push-subscription', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({
-      subscription,
-      workspaceId,
-      userAgent: navigator.userAgent || '',
-      source: 'v429-manual-test'
-    })
-  });
-
-  const registerResult = await registerResponse.json().catch(() => ({}));
-
-  if (!registerResponse.ok || registerResult.error) {
-    zrcV429SetHintText(hint, registerResult.error || 'Push aboneliği kaydedilemedi.');
-    return;
-  }
-
-  const pushResponse = await fetch('/api/send-test-push', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({
-      workspaceId,
-      title: 'ZRC',
-      body: 'Test bildirimi başarılı. Telefon bildirimleri aktif.'
-    })
-  });
-
-  const pushResult = await pushResponse.json().catch(() => ({}));
-
-  if (!pushResponse.ok || pushResult.error) {
-    zrcV429SetHintText(hint, pushResult.error || 'Test bildirimi gönderilemedi.');
-    return;
-  }
-
-  zrcV429SetHintText(hint, 'Test bildirimi gönderildi. iPhone kilit ekranını/bildirim merkezini kontrol et.');
 };
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.__zrcV429PushClickInstalled) {
@@ -835,105 +800,81 @@ const zrcV540EnsureCurrentPushServiceWorker = async () => {
   return registration;
 };
 
+// zrc-v541-push-worker-compatibility
+const zrcV541EnsureCurrentPushWorker = async () => {
+  const expectedScriptUrl = new URL('/zrc-sw.js', window.location.origin).href;
+  const rootScope = new URL('/', window.location.origin).href;
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const registration of registrations) {
+      const scriptUrls = [registration?.active?.scriptURL, registration?.waiting?.scriptURL, registration?.installing?.scriptURL].filter(Boolean);
+      const controlsRootScope = registration?.scope === rootScope;
+      const hasCurrentWorker = scriptUrls.some((url) => url === expectedScriptUrl);
+      if (controlsRootScope && !hasCurrentWorker) await registration.unregister();
+    }
+  } catch (error) {
+    console.warn('[ZRC Push v541] Eski worker temizliği ertelendi.', error);
+  }
+  let registration = await navigator.serviceWorker.register('/zrc-sw.js', { scope: '/' });
+  try { await registration.update(); } catch {}
+  try { registration = await navigator.serviceWorker.ready; } catch {}
+  return registration;
+};
+
 const zrcV447AutoRegisterMobilePush = async () => {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
   if (!zrcV447ShouldAutoRegisterPush()) return false;
-  if (!('Notification' in window)) return false;
-  if (Notification.permission !== 'granted') return false;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return false;
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-
-  const accessToken = zrcV447ReadSupabaseAccessToken();
-  const workspaceId = getActiveStorageWorkspaceId();
-
-  if (!accessToken || !workspaceId) {
-    console.warn('[ZRC Push v540] Oturum veya workspace henüz hazır değil; mobil kayıt sonraki açılışta tekrar denenecek.');
-    return false;
-  }
 
   const now = Date.now();
   const lastTryStorageKey = getScopedStorageKey('zrc-v447-last-auto-register-try-at');
-  const repairStorageKey = getScopedStorageKey('zrc-v540-mobile-push-repair');
-  const repairVersion = 'v540-push-subscription-repair-1';
   const lastTryAt = Number(window.localStorage.getItem(lastTryStorageKey) || '0');
-  const needsOneTimeRepair = window.localStorage.getItem(repairStorageKey) !== repairVersion;
-
-  if (!needsOneTimeRepair && now - lastTryAt < 45000) return false;
-
+  const recoveryKey = getScopedStorageKey('zrc-v541-push-subscription-recovered');
+  const needsRecovery = window.localStorage.getItem(recoveryKey) !== '1';
+  if (!needsRecovery && now - lastTryAt < 45000) return false;
   window.localStorage.setItem(lastTryStorageKey, String(now));
 
+  const accessToken = zrcV447ReadSupabaseAccessToken();
+  const workspaceId = getActiveStorageWorkspaceId();
+  if (!accessToken || !workspaceId) return false;
+
   try {
-    const registration = await zrcV540EnsureCurrentPushServiceWorker();
-
-    const keyResponse = await fetch('/api/push-public-key', {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      cache: 'no-store'
-    });
-
+    const registration = await zrcV541EnsureCurrentPushWorker();
+    const keyResponse = await fetch('/api/push-public-key', { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' });
     const keyResult = await keyResponse.json().catch(() => ({}));
+    if (!keyResponse.ok || !keyResult.publicKey) return false;
 
-    if (!keyResponse.ok || !keyResult.publicKey) {
-      console.warn('[ZRC Push v540] VAPID public key okunamadı.', keyResult);
-      return false;
-    }
-
-    const expectedApplicationServerKey = zrcV447UrlBase64ToUint8Array(keyResult.publicKey);
     let subscription = await registration.pushManager.getSubscription();
-    const registeredApplicationServerKey = subscription?.options?.applicationServerKey;
-
-    const hasDifferentVapidKey =
-      Boolean(subscription) &&
-      !zrcV540BytesMatch(registeredApplicationServerKey, expectedApplicationServerKey);
-
-    if (subscription && (needsOneTimeRepair || hasDifferentVapidKey)) {
-      try {
-        await subscription.unsubscribe();
-      } catch (error) {
-        console.warn('[ZRC Push v540] Eski push aboneliği kapatılamadı; yeni kayıt yine denenecek.', error);
-      }
-
+    if (subscription && needsRecovery) {
+      try { await subscription.unsubscribe(); } catch {}
       subscription = null;
     }
-
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: expectedApplicationServerKey
+        applicationServerKey: zrcV447UrlBase64ToUint8Array(keyResult.publicKey)
       });
     }
 
     const registerResponse = await fetch('/api/register-push-subscription', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       cache: 'no-store',
       body: JSON.stringify({
         subscription,
         workspaceId: getActiveStorageWorkspaceId(),
         userAgent: navigator.userAgent || '',
-        source: needsOneTimeRepair ? 'v540-mobile-repair' : 'v447-auto-mobile'
+        source: needsRecovery ? 'v541-worker-recovery' : 'v447-auto-mobile'
       })
     });
-
     const registerResult = await registerResponse.json().catch(() => ({}));
-
-    if (!registerResponse.ok || registerResult.error) {
-      console.warn('[ZRC Push v540] Mobil push kaydı başarısız.', registerResult.error || registerResult);
-      return false;
-    }
-
-    window.localStorage.setItem(repairStorageKey, repairVersion);
-    window.localStorage.setItem(
-      getScopedStorageKey('zrc-v447-last-auto-register-success-at'),
-      new Date().toISOString()
-    );
-
-    console.info('[ZRC Push v540] Mobil push aboneliği doğrulandı ve yenilendi.', registerResult);
+    if (!registerResponse.ok || registerResult.error) return false;
+    if (needsRecovery) window.localStorage.setItem(recoveryKey, '1');
+    window.localStorage.setItem(getScopedStorageKey('zrc-v447-last-auto-register-success-at'), new Date().toISOString());
     return true;
   } catch (error) {
-    console.warn('[ZRC Push v540] Mobil push otomatik kayıt hatası.', error);
+    console.warn('[ZRC Push v541] Mobil push otomatik kayıt hatası.', error);
     return false;
   }
 };

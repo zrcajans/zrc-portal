@@ -1,4 +1,4 @@
-const ZRC_CACHE_NAME = 'zrc-portal-v427d';
+const ZRC_CACHE_NAME = 'zrc-portal-v541-push-recovery';
 const ZRC_CACHEABLE_DESTINATIONS = new Set(['script', 'style', 'image', 'font']);
 
 self.addEventListener('install', (event) => {
@@ -50,19 +50,22 @@ self.addEventListener('push', (event) => {
       body: payload.body || 'Yeni bildirimin var.',
       icon: '/zrc-logo.png',
       badge: '/zrc-logo.png',
-      tag: payload.tag || 'zrc-portal-notification'
+      tag: payload.tag || 'zrc-portal-notification',
+      data: { url: payload.url || '/' }
     })
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetUrl = event.notification?.data?.url || '/';
+
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
         if ('focus' in client) return client.focus();
       }
-      if (self.clients.openWindow) return self.clients.openWindow('/');
+      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
       return null;
     })
   );

@@ -31,7 +31,7 @@ test('test push uses only the current users registered workspace subscription', 
   assert.match(apiSource, /\.eq\('user_id', userId\)/);
   assert.match(apiSource, /\.eq\('type', 'push_subscription'\)/);
   assert.doesNotMatch(apiSource, /req\.body\?\.subscription/);
-  assert.match(clientSource, /source: 'v429-manual-test'/);
+  assert.match(clientSource, /source: 'v541-manual-worker-recovery'/);
 });
 
 test('stale push cleanup stays inside the active workspace and reports failures', async () => {
@@ -58,7 +58,7 @@ test('mobile push registration renews old subscriptions and task updates target 
   );
   const apiSource = await readFile(new URL('../api/send-task-push.js', import.meta.url), 'utf8');
 
-  assert.match(clientSource, /zrc-v540-mobile-push-repair/);
+  assert.match(clientSource, /zrc-v541-push-worker-compatibility/);
   assert.match(clientSource, /await subscription\.unsubscribe\(\)/);
   assert.match(clientSource, /navigator\.serviceWorker\.register\('\/zrc-sw\.js', \{ scope: '\/' \}\)/);
   assert.match(coreSource, /getTaskAssigneeUserIdsForNotification\(previousTask \|\| \{\}\)/);

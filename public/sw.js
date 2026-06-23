@@ -1,43 +1,66 @@
-const ZRC_CACHE_NAME = 'zrc-is-takip-cache-v150';
-const ZRC_STATIC_ASSETS = [
-  '/',
-  '/manifest.webmanifest',
-  '/zrc-icon.svg'
-];
+// zrc-v541-push-worker-compatibility
+const ZRC_CACHE_NAME = 'zrc-portal-v541-legacy-worker';
+const ZRC_CACHEABLE_DESTINATIONS = new Set(['script', 'style', 'image', 'font']);
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(ZRC_CACHE_NAME)
-      .then((cache) => cache.addAll(ZRC_STATIC_ASSETS))
-      .then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
+  event.waitUntil(caches.open(ZRC_CACHE_NAME).then((cache) => cache.addAll(['/', '/manifest.json', '/zrc-logo.png']).catch(() => null)));
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== ZRC_CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith('zrc-') && key !== ZRC_CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
-
   if (request.method !== 'GET') return;
-  if (request.url.includes('/auth/v1/') || request.url.includes('/rest/v1/') || request.url.includes('/storage/v1/')) return;
-
+  const requestUrl = new URL(request.url);
+  if (requestUrl.origin !== self.location.origin || requestUrl.pathname.startsWith('/api/')) return;
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match('/')));
+    return;
+  }
   event.respondWith(
     fetch(request)
       .then((response) => {
-        const clonedResponse = response.clone();
-
-        caches.open(ZRC_CACHE_NAME).then((cache) => {
-          cache.put(request, clonedResponse);
-        });
-
+        if (response.ok && ZRC_CACHEABLE_DESTINATIONS.has(request.destination)) {
+          const cachedResponse = response.clone();
+          event.waitUntil(caches.open(ZRC_CACHE_NAME).then((cache) => cache.put(request, cachedResponse)));
+        }
         return response;
       })
-      .catch(() => caches.match(request).then((cachedResponse) => cachedResponse || caches.match('/')))
+      .catch(async () => (await caches.match(request)) || Response.error())
+  );
+});
+
+self.addEventListener('push', (event) => {
+  let payload = { title: 'ZRC', body: 'Yeni bildirimin var.', url: '/' };
+  try { payload = event.data ? event.data.json() : payload; } catch {}
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'ZRC', {
+      body: payload.body || 'Yeni bildirimin var.',
+      icon: '/zrc-logo.png',
+      badge: '/zrc-logo.png',
+      tag: payload.tag || 'zrc-portal-notification',
+      data: { url: payload.url || '/' }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = event.notification?.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
+      return null;
+    })
   );
 });
