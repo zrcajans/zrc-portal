@@ -1,6 +1,7 @@
 import Sidebar from '../../components/Layout/Sidebar';
 import TopNavbar from '../../components/Layout/TopNavbar';
 import MobileWorkspace from '../../components/mobile/MobileWorkspace';
+import MobileStickyNotesDrawer from '../../components/mobile/MobileStickyNotesDrawer';
 import { resolveMobileTaskCardAssignees } from '../../utils/mobileTaskAssignees';
 import ZRCAppShellAutoUiBlock01 from '../blocks/ZRCAppShellAutoUiBlock01';
 import ZRCAppShellGlobalSearchBlock from '../blocks/ZRCAppShellGlobalSearchBlock';
@@ -201,6 +202,7 @@ export default function ZRCAppAuthenticatedShell({
     calendarWeekDays,
     changeCalendarView,
     createQuickNoteFromHome,
+    createQuickNoteFromMobile,
     deleteQuickNoteFromHome,
     editingQuickNoteId,
     formatMenuCalendarTaskTime,
@@ -546,6 +548,12 @@ export default function ZRCAppAuthenticatedShell({
           setIsMessagesOpen={setIsMessagesOpen}
           setIsNotificationsOpen={setIsNotificationsOpen}
           setIsGlobalSearchOpen={setIsGlobalSearchOpen}
+        />
+
+        <MobileStickyNotesDrawer
+          quickNotes={quickNotes}
+          createQuickNoteFromMobile={createQuickNoteFromMobile}
+          deleteQuickNoteFromHome={deleteQuickNoteFromHome}
         />
 
                 {/* zrc-v526-section-ismessagesopen */}

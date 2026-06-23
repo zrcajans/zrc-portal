@@ -138,6 +138,46 @@ export function createZRCHomeActions(deps) {
     }
   };
 
+  const createQuickNoteFromMobile = async ({ title = '', detail = '' } = {}) => {
+    const normalizedTitle = String(title || '').trim();
+    const normalizedDetail = String(detail || '').trim();
+
+    if (!normalizedTitle && !normalizedDetail) return false;
+    if (!tryAcquireActionLock(quickNoteMutationLockRef, 'save-mobile-quick-note')) return false;
+
+    try {
+      const safeTitle = normalizedTitle || normalizedDetail.split('\n')[0]?.slice(0, 42) || 'Başlıksız not';
+      const text = buildQuickNoteText(safeTitle, normalizedDetail);
+
+      const nextNote = {
+        id: `quick-note-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        title: safeTitle,
+        detail: normalizedDetail,
+        text,
+        createdAt: new Date().toISOString()
+      };
+
+      setQuickNotes((previousNotes) => [
+        nextNote,
+        ...(Array.isArray(previousNotes) ? previousNotes : [])
+      ]);
+
+      const didSaveNote = await saveQuickNoteToSupabase(nextNote);
+
+      if (!didSaveNote) {
+        setQuickNotes((previousNotes) =>
+          (Array.isArray(previousNotes) ? previousNotes : []).filter((note) => note.id !== nextNote.id)
+        );
+        await window.zrcAlert('Not kaydedilemedi. Lütfen tekrar deneyin.');
+        return false;
+      }
+
+      return true;
+    } finally {
+      releaseActionLock(quickNoteMutationLockRef, 'save-mobile-quick-note');
+    }
+  };
+
   const deleteQuickNoteFromHome = async (noteId) => {
     const noteToDelete = quickNotes.find((note) => note.id === noteId);
     const actionKey = `delete-quick-note:${noteId}`;
@@ -202,6 +242,7 @@ export function createZRCHomeActions(deps) {
     resetQuickNoteComposer,
     openQuickNoteComposerForEdit,
     createQuickNoteFromHome,
+    createQuickNoteFromMobile,
     deleteQuickNoteFromHome,
     openQuickTaskFromHome,
     openMenuCalendarTask,
