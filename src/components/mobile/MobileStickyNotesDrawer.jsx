@@ -9,6 +9,7 @@ const getNoteTimestamp = (note = {}) => {
 
 export default function MobileStickyNotesDrawer({
   quickNotes = [],
+  refreshQuickNotes,
   createQuickNoteFromMobile,
   deleteQuickNoteFromHome
 }) {
@@ -28,6 +29,16 @@ export default function MobileStickyNotesDrawer({
     ),
     [quickNotes]
   );
+
+  const openDrawer = () => {
+    setIsOpen(true);
+
+    if (typeof refreshQuickNotes === 'function') {
+      Promise.resolve(refreshQuickNotes()).catch(() => {
+        // Sunucu erişimi yoksa çekmece mevcut yerel notlarla açılır.
+      });
+    }
+  };
 
   const closeDrawer = () => {
     setIsOpen(false);
@@ -85,7 +96,7 @@ export default function MobileStickyNotesDrawer({
     <div className="zrc-mobile-sticky-notes-root" aria-live="polite">
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={openDrawer}
         className="zrc-mobile-sticky-notes-edge-tab"
         aria-label={`Yapışkan notları aç${notes.length ? `, ${notes.length} not` : ''}`}
       >

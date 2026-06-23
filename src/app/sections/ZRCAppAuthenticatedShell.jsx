@@ -230,6 +230,7 @@ export default function ZRCAppAuthenticatedShell({
     quickNoteSearch,
     quickNoteTitleDraft,
     quickNotes,
+    refreshQuickNotes,
     resetQuickNoteComposer,
     setCalendarDisplayOptions,
     setIsCalendarDisplayMenuOpen,
@@ -552,6 +553,7 @@ export default function ZRCAppAuthenticatedShell({
 
         <MobileStickyNotesDrawer
           quickNotes={quickNotes}
+          refreshQuickNotes={refreshQuickNotes}
           createQuickNoteFromMobile={createQuickNoteFromMobile}
           deleteQuickNoteFromHome={deleteQuickNoteFromHome}
         />
