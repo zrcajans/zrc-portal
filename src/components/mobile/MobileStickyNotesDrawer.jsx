@@ -40,6 +40,16 @@ export default function MobileStickyNotesDrawer({
     }
   };
 
+  // zrc-mobile-sticky-notes-toggle-v2
+  const toggleDrawer = () => {
+    if (isOpen) {
+      closeDrawer();
+      return;
+    }
+
+    openDrawer();
+  };
+
   const closeDrawer = () => {
     setIsOpen(false);
     setIsComposerOpen(false);
@@ -96,9 +106,9 @@ export default function MobileStickyNotesDrawer({
     <div className="zrc-mobile-sticky-notes-root" aria-live="polite">
       <button
         type="button"
-        onClick={openDrawer}
+        onClick={toggleDrawer}
         className="zrc-mobile-sticky-notes-edge-tab"
-        aria-label={`Yapışkan notları aç${notes.length ? `, ${notes.length} not` : ''}`}
+        aria-label={isOpen ? 'Yapışkan notları kapat' : `Yapışkan notları aç${notes.length ? `, ${notes.length} not` : ''}`}
       >
         <span className="zrc-mobile-sticky-notes-edge-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

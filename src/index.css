@@ -3151,3 +3151,44 @@ body {
   }
 }
 /* === ZRC MOBILE CREATE BUTTON TASK CORNERS END === */
+/* === ZRC MOBILE COMPACT TOGGLE STICKY NOTES START === */
+@media (max-width: 720px) {
+  .zrc-mobile-sticky-notes-edge-tab {
+    z-index: 2147483002 !important;
+  }
+
+  .zrc-mobile-sticky-notes-drawer {
+    top: auto !important;
+    right: 14px !important;
+    bottom: max(82px, calc(env(safe-area-inset-bottom) + 68px)) !important;
+    width: min(330px, calc(100vw - 32px)) !important;
+    height: min(48dvh, 390px) !important;
+    max-height: min(48dvh, 390px) !important;
+    border-radius: 14px !important;
+    box-shadow: -14px 18px 38px rgba(15, 23, 42, 0.22) !important;
+    transform: translateX(calc(100% + 24px)) scale(0.98) !important;
+    transform-origin: right bottom !important;
+  }
+
+  .zrc-mobile-sticky-notes-drawer.is-open {
+    transform: translateX(0) scale(1) !important;
+  }
+
+  .zrc-mobile-sticky-notes-drawer-head {
+    padding: 12px 14px !important;
+  }
+
+  .zrc-mobile-sticky-notes-summary {
+    padding: 9px 14px !important;
+  }
+
+  .zrc-mobile-sticky-notes-list {
+    padding: 9px 12px 14px !important;
+  }
+
+  .zrc-mobile-sticky-notes-empty {
+    min-height: 160px !important;
+    padding: 18px !important;
+  }
+}
+/* === ZRC MOBILE COMPACT TOGGLE STICKY NOTES END === */
