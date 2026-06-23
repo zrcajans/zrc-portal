@@ -5752,9 +5752,13 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
     if (savedTaskId) {
       const pushRecipientUserIds = Array.from(
         new Set(
-          pendingActivityNotifications
-            .flatMap((notification) => notification.targetUserIds || [])
-            .filter((userId) => !isCurrentSupabaseUserId(userId))
+          [
+            ...getTaskAssigneeUserIdsForNotification(previousTask || {}),
+            ...getTaskAssigneeUserIdsForNotification(cleanedTaskData),
+            ...pendingActivityNotifications.flatMap((notification) => notification.targetUserIds || [])
+          ]
+            .map((userId) => String(userId || '').trim())
+            .filter((userId) => isSupabaseUuid(userId) && !isCurrentSupabaseUserId(userId))
         )
       );
 

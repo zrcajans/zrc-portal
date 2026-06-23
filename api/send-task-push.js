@@ -69,12 +69,14 @@ const shouldSendPush = ({ type, body }) => {
   // Telefon bağlantı/test bildirimi çalışmaya devam etsin.
   if (normalizedType === 'push_connection_test') return true;
 
-  // Görev bildirimleri sade metinle geçsin.
+  // Uygulamanın doğrudan görev kayıt akışı için type esas alınır.
+  // Böylece metin sadeleştirmesi push'u yanlışlıkla engellemez.
+  if (normalizedType === 'task_create' || normalizedType === 'task_update') return true;
+
+  // Eski istemcilerden gelen uyumlu görev metinleri de çalışmaya devam eder.
   if (normalizedBody.startsWith('Yeni görev:')) return true;
   if (normalizedBody.startsWith('Görev güncellendi:')) return true;
-  if (normalizedBody.startsWith('Yeni görev işlemi yapıldı.')) return false;
 
-  // Eski fazla kaynakları sessizce kes.
   return false;
 };
 

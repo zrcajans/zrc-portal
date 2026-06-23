@@ -46,6 +46,27 @@ test('stale push cleanup stays inside the active workspace and reports failures'
   assert.match(cleanupSource, /if \(staleDeleteError\) throw staleDeleteError/);
 });
 
+
+test('mobile push registration renews old subscriptions and task updates target current assignees', async () => {
+  const clientSource = await readFile(
+    new URL('../src/utils/browserEnhancements.js', import.meta.url),
+    'utf8'
+  );
+  const coreSource = await readFile(
+    new URL('../src/app/ZRCAppCore.jsx', import.meta.url),
+    'utf8'
+  );
+  const apiSource = await readFile(new URL('../api/send-task-push.js', import.meta.url), 'utf8');
+
+  assert.match(clientSource, /zrc-v540-mobile-push-repair/);
+  assert.match(clientSource, /await subscription\.unsubscribe\(\)/);
+  assert.match(clientSource, /navigator\.serviceWorker\.register\('\/zrc-sw\.js', \{ scope: '\/' \}\)/);
+  assert.match(coreSource, /getTaskAssigneeUserIdsForNotification\(previousTask \|\| \{\}\)/);
+  assert.match(coreSource, /getTaskAssigneeUserIdsForNotification\(cleanedTaskData\)/);
+  assert.match(apiSource, /normalizedType === 'task_create'/);
+  assert.match(apiSource, /normalizedType === 'task_update'/);
+});
+
 test('task push recipients are intersected with active workspace members', async () => {
   const apiSource = await readFile(new URL('../api/send-task-push.js', import.meta.url), 'utf8');
   const clientSource = await readFile(
