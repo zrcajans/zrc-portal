@@ -14,7 +14,8 @@ export default function MobileTaskSection({
   moveMobileTaskToActiveColumn,
   setMobileTaskWizardData,
   setMobileTaskWizardStep,
-  setIsMobileTaskWizardOpen
+  setIsMobileTaskWizardOpen,
+  onOpenTaskDetail
 }) {
   const safeProjectName = getSafeMobileProjectName(selectedProject);
   const [selectedMobileColumnId, setSelectedMobileColumnId] = useState('');
@@ -97,6 +98,7 @@ export default function MobileTaskSection({
         moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
         setMobileActiveColumnId={setSelectedMobileColumnId}
         onMobileTaskMoveToast={showMobileTaskMoveToast}
+        onOpenTaskDetail={onOpenTaskDetail}
       />
 
       {mobileTaskMoveToast && (

@@ -19,6 +19,7 @@ export default function MobileWorkspace({
   createAvatarFromName,
   getMobileTaskCardAssignees,
   moveMobileTaskToActiveColumn,
+  onOpenTaskDetail,
   setMobileTaskWizardData,
   setMobileTaskWizardStep,
   setIsMobileTaskWizardOpen,
@@ -91,6 +92,7 @@ export default function MobileWorkspace({
           createAvatarFromName={createAvatarFromName}
           getMobileTaskCardAssignees={getMobileTaskCardAssignees}
           moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
+          onOpenTaskDetail={onOpenTaskDetail}
           setMobileTaskWizardData={setMobileTaskWizardData}
           setMobileTaskWizardStep={setMobileTaskWizardStep}
           setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}

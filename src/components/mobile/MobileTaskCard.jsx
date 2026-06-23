@@ -8,7 +8,8 @@ export default function MobileTaskCard({
   getMobileTaskCardAssignees,
   moveMobileTaskToActiveColumn,
   allBoardColumns,
-  onMobileTaskMoveToast
+  onMobileTaskMoveToast,
+  onOpenTaskDetail
 }) {
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
   const [columnMenuPlacement, setColumnMenuPlacement] = useState('down');
@@ -82,6 +83,17 @@ export default function MobileTaskCard({
     .filter((column) => column && column.id)
     .filter((column) => String(column.id || '').trim() !== currentColumnId);
 
+  const openTaskDetails = () => {
+    if (typeof onOpenTaskDetail !== 'function') return;
+    onOpenTaskDetail(task, columnTitle);
+  };
+
+  const handleTaskCardKeyDown = (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    openTaskDetails();
+  };
+
   const handleMoveToColumn = async (event, targetColumn) => {
     event.stopPropagation();
 
@@ -102,7 +114,14 @@ export default function MobileTaskCard({
   };
 
   return (
-    <div className="zrc-mobile-task-card">
+    <div
+      className="zrc-mobile-task-card"
+      role="button"
+      tabIndex={0}
+      aria-label={`${taskTitle} görev detayını aç`}
+      onClick={openTaskDetails}
+      onKeyDown={handleTaskCardKeyDown}
+    >
       <div className="zrc-mobile-task-card-top">
         <div className="zrc-mobile-task-status">
           <span style={{ backgroundColor: task.columnColor || '#ff5b1f' }} />
@@ -111,10 +130,6 @@ export default function MobileTaskCard({
       </div>
 
       <h3>{taskTitle}</h3>
-
-      {task.description && (
-        <p>{task.description}</p>
-      )}
 
       <div className="zrc-mobile-task-date-row">
         {(task.startDate || task.start_date) && (

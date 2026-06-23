@@ -16,7 +16,8 @@ export default function MobileTaskList({
   getMobileTaskCardAssignees,
   moveMobileTaskToActiveColumn,
   setMobileActiveColumnId,
-  onMobileTaskMoveToast
+  onMobileTaskMoveToast,
+  onOpenTaskDetail
 }) {
   const safeBoardColumns = Array.isArray(boardColumns) ? boardColumns : [];
   const safeAllBoardColumns = Array.isArray(allBoardColumns) ? allBoardColumns : safeBoardColumns;
@@ -49,6 +50,7 @@ export default function MobileTaskList({
             allBoardColumns={safeAllBoardColumns}
             setMobileActiveColumnId={setMobileActiveColumnId}
             onMobileTaskMoveToast={onMobileTaskMoveToast}
+            onOpenTaskDetail={onOpenTaskDetail}
           />
         ))
       )}

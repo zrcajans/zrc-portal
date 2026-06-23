@@ -59,6 +59,7 @@ export default function ZRCAppAuthenticatedShell({
     normalizeColumnTitleForDisplay,
     renderProfileAvatar,
     moveMobileTaskToActiveColumn,
+    openTaskDetail,
     setMobileTaskWizardData,
     setMobileTaskWizardStep,
     setIsMobileTaskWizardOpen,
@@ -532,6 +533,7 @@ export default function ZRCAppAuthenticatedShell({
           createAvatarFromName={createAvatarFromName}
           getMobileTaskCardAssignees={getMobileTaskCardAssignees}
           moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
+          onOpenTaskDetail={openTaskDetail}
           setMobileTaskWizardData={setMobileTaskWizardData}
           setMobileTaskWizardStep={setMobileTaskWizardStep}
           setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}
