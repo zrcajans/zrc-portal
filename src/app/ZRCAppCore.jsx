@@ -3965,15 +3965,9 @@ function App() {
         return loadQuickNotesFromSupabase({ skipLegacyMigration: true });
       }
 
-      setQuickNotes((previousNotes) =>
-        mergeAuthoritativeServerRecords({
-          serverRecords: mappedNotes,
-          localRecords: previousNotes,
-          getKey: (note) => note.supabaseId || note.id,
-          isPersistedLocalRecord: (note) =>
-            Boolean(note?.supabaseId || String(note?.id || '').startsWith('supabase-note-'))
-        })
-      );
+      // Başarılı Supabase yanıtı notlar için tek doğruluk kaynağıdır.
+      // Eski tarayıcı kaydını tekrar birleştirmek, silinen notun canlı yenilemede geri gelmesine yol açıyordu.
+      setQuickNotes(mappedNotes);
 
       return true;
     } catch (error) {
