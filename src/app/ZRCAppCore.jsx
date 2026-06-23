@@ -3909,17 +3909,12 @@ function App() {
     }
   };
 
-  const loadQuickNotesFromSupabase = async ({ skipLegacyMigration = false } = {}) => {
+  const loadQuickNotesFromSupabase = async () => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
     if (!workspaceId || !isSupabaseUuid(currentUserId) || authSessionLoading) return false;
 
     try {
-      /*
-        Notlar çalışma alanı bazında yüklenir.
-        Böylece aynı çalışma alanına bağlı masaüstü ve mobil cihazlar
-        aynı not listesini görür.
-      */
       const { data, error } = await supabase
         .from('quick_notes')
         .select('id, text, created_at')
@@ -3929,50 +3924,11 @@ function App() {
 
       if (error) throw error;
 
-      const mappedNotes = (data || []).map(mapSupabaseQuickNoteToLocal);
-      const serverNoteIds = new Set(
-        mappedNotes
-          .map((note) => String(note?.supabaseId || note?.id || '').replace('supabase-note-', ''))
-          .filter(Boolean)
-      );
-      const serverTextKeys = new Set(
-        mappedNotes
-          .map((note) => String(note?.text || '').trim())
-          .filter(Boolean)
-      );
+      // Supabase notlar için tek doğruluk kaynağıdır.
+      // localStorage'daki eski notlar buradan tekrar sunucuya aktarılmaz.
+      setQuickNotes((data || []).map(mapSupabaseQuickNoteToLocal));
 
-      /*
-        Eski notlar bazı cihazlarda yalnızca localStorage'da kalmış olabilir.
-        Bunları yalnızca sunucuda aynı id veya metin yoksa Supabase'e taşır.
-      */
-      const localNotes = normalizeStorageArray(readStorageValue('quickNotes', []), []);
-      const legacyLocalNotes = localNotes.filter((note) => {
-        const rawId = String(note?.supabaseId || note?.id || '').replace('supabase-note-', '').trim();
-        const rawText = String(note?.text || '').trim();
-
-        if (!rawText) return false;
-        if (rawId && serverNoteIds.has(rawId)) return false;
-        if (serverTextKeys.has(rawText)) return false;
-
-        return true;
-      });
-
-      if (!skipLegacyMigration && legacyLocalNotes.length > 0) {
-        for (const legacyNote of legacyLocalNotes) {
-          await saveQuickNoteToSupabase({
-            ...legacyNote,
-            id: String(legacyNote?.id || `quick-note-${Date.now()}-${Math.random().toString(16).slice(2)}`),
-            text: String(legacyNote?.text || '').trim()
-          });
-        }
-
-        return loadQuickNotesFromSupabase({ skipLegacyMigration: true });
-      }
-
-      // Başarılı Supabase yanıtı notlar için tek doğruluk kaynağıdır.
-      // Eski tarayıcı kaydını tekrar birleştirmek, silinen notun canlı yenilemede geri gelmesine yol açıyordu.
-      setQuickNotes(mappedNotes);
-
+      zrcSetSupabaseWriteInfo('saved', 'Supabase notlar yüklendi');
       return true;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase not okuma hatası: ${error?.message || 'bilinmeyen hata'}`);

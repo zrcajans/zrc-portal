@@ -212,7 +212,12 @@ export function createZRCHomeActions(deps) {
         (Array.isArray(previousNotes) ? previousNotes : []).filter((note) => {
           const localId = String(note?.id || '').trim();
           const serverId = String(note?.supabaseId || '').trim();
-          return localId !== deletedLocalId && localId !== deletedServerId && serverId !== deletedLocalId && serverId !== deletedServerId;
+          return (
+            localId !== deletedLocalId &&
+            localId !== deletedServerId &&
+            serverId !== deletedLocalId &&
+            serverId !== deletedServerId
+          );
         })
       );
 
