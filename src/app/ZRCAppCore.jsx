@@ -5767,6 +5767,7 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         type: previousTask ? 'task_update' : 'task_create',
         title: 'ZRC',
         workspaceId: getCurrentSupabaseWorkspaceId(),
+        taskId: savedTaskId,
         recipientUserIds: pushRecipientUserIds,
         body: previousTask
           ? `Görev güncellendi: ${cleanedTaskData.title || 'Adsız görev'}`
@@ -6306,6 +6307,30 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
       }
 
       commitMobileTaskMove(persistedMovedTask);
+
+      const mobileMoveRecipientUserIds = getTaskAssigneeUserIdsForNotification(taskToMove)
+        .filter((userId) => !isCurrentSupabaseUserId(userId));
+
+      createActivityNotification({
+        type: 'status',
+        title: 'Görev durumu değişti',
+        text: persistedMovedTask.title || 'Adsız görev',
+        meta: `${taskToMove.columnTitle || taskToMove.status || 'Eski durum'} → ${targetStatus}`,
+        task: { ...persistedMovedTask, supabaseId: persistedMovedTask.supabaseId || taskSupabaseId },
+        columnTitle: targetStatus,
+        targetUserIds: mobileMoveRecipientUserIds,
+        sortWeight: 820
+      });
+
+      void zrcV442SendTaskSavePush({
+        type: 'task_update',
+        title: 'ZRC',
+        body: `Görev güncellendi: ${persistedMovedTask.title || 'Adsız görev'}`,
+        workspaceId,
+        taskId: persistedMovedTask.supabaseId || taskSupabaseId,
+        recipientUserIds: mobileMoveRecipientUserIds
+      });
+
       zrcSetSupabaseWriteInfo('saved', 'Görev Aktif kolonuna taşındı');
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
       return true;
@@ -8974,7 +8999,8 @@ const {
     tryAcquireActionLock,
     releaseActionLock,
     saveTaskToSupabaseForProject,
-    taskMutationLockRef
+    taskMutationLockRef,
+    zrcV442SendTaskSavePush
   });
 const filterTaskFollowersForSave = (people = []) =>
     uniqueTaskPeopleById(

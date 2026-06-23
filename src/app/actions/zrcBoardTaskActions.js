@@ -94,7 +94,8 @@ export function createZRCBoardTaskActions(deps) {
     tryAcquireActionLock,
     releaseActionLock,
     saveTaskToSupabaseForProject,
-    taskMutationLockRef
+    taskMutationLockRef,
+    zrcV442SendTaskSavePush
   } = deps;
 
   const zrcGetTaskOrderScopeKey = () => {
@@ -133,6 +134,29 @@ export function createZRCBoardTaskActions(deps) {
     } finally {
       releaseActionLock(lockRef, actionKey);
     }
+  };
+
+  const zrcSendTaskStatusPush = (task = {}, body = 'Görev güncellendi.') => {
+    if (typeof zrcV442SendTaskSavePush !== 'function') return;
+
+    const taskId = String(task?.supabaseId || '').trim();
+    const workspaceId = typeof getCurrentSupabaseWorkspaceId === 'function'
+      ? String(getCurrentSupabaseWorkspaceId() || '').trim()
+      : '';
+
+    if (!isSupabaseUuid(taskId) || !workspaceId) return;
+
+    const recipientUserIds = getTaskAssigneeUserIdsForNotification(task)
+      .filter((userId) => !isCurrentSupabaseUserId(userId));
+
+    void zrcV442SendTaskSavePush({
+      type: 'task_update',
+      title: 'ZRC',
+      body,
+      workspaceId,
+      taskId,
+      recipientUserIds
+    });
   };
 
   const zrcClearDesktopDragSource = () => {
@@ -1129,6 +1153,11 @@ export function createZRCBoardTaskActions(deps) {
           targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask).filter((userId) => !isCurrentSupabaseUserId(userId)),
           sortWeight: 820
         });
+
+        zrcSendTaskStatusPush(
+          { ...sourceTask, columnTitle: finalColumnAfterPreview?.title },
+          `Görev güncellendi: ${sourceTask.title || 'Adsız görev'}`
+        );
       }
 
       draggedTaskInfo.current = null;
@@ -1179,6 +1208,11 @@ export function createZRCBoardTaskActions(deps) {
       targetUserIds: getTaskAssigneeUserIdsForNotification(sourceTask || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
       sortWeight: 820
     });
+
+    zrcSendTaskStatusPush(
+      movedTask,
+      `Görev güncellendi: ${sourceTask.title || 'Adsız görev'}`
+    );
   };
 
   const handleTaskAction = async (action, columnId, task) => {
@@ -2074,6 +2108,11 @@ export function createZRCBoardTaskActions(deps) {
         targetUserIds: getTaskAssigneeUserIdsForNotification(taskBeforeMove || {}).filter((userId) => !isCurrentSupabaseUserId(userId)),
         sortWeight: 820
       });
+
+      zrcSendTaskStatusPush(
+        { ...taskBeforeMove, columnTitle: targetColumnBeforeMove?.title },
+        `Görev güncellendi: ${taskBeforeMove.title || 'Adsız görev'}`
+      );
     }
 
   };

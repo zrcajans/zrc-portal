@@ -611,6 +611,7 @@ export const zrcV442SendTaskSavePush = async ({
   body = 'Görevlerde yeni bir işlem yapıldı.',
   type = 'task_save',
   workspaceId = '',
+  taskId = '',
   recipientUserIds = []
 } = {}) => {
   if (typeof window === 'undefined') return false;
@@ -624,8 +625,10 @@ export const zrcV442SendTaskSavePush = async ({
     new Set((Array.isArray(recipientUserIds) ? recipientUserIds : []).map(String).filter(Boolean))
   );
 
-  if (recipients.length === 0) {
-    console.info('[ZRC Push v442] Hedef kullanıcı yok, push atlanıyor.');
+  const normalizedTaskId = String(taskId || '').trim();
+
+  if (recipients.length === 0 && !normalizedTaskId) {
+    console.info('[ZRC Push v442] Hedef kullanıcı veya görev kimliği yok, push atlanıyor.');
     return false;
   }
 
@@ -660,6 +663,7 @@ export const zrcV442SendTaskSavePush = async ({
         title,
         body,
         workspaceId,
+        taskId: normalizedTaskId,
         recipientUserIds: recipients,
         url: '/'
       })

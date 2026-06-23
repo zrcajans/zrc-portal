@@ -112,14 +112,53 @@ export default async function handler(req, res) {
   }
 
   const admin = authorization.admin;
-  const requestedRecipientUserIds = Array.from(
+  const clientRecipientUserIds = Array.from(
     new Set(
       (Array.isArray(bodyPayload.recipientUserIds) ? bodyPayload.recipientUserIds : [])
         .map((value) => String(value || '').trim())
-        .filter(Boolean)
+        .filter(isSupabaseUuid)
     )
+  );
+
+  const taskId = String(bodyPayload.taskId || '').trim();
+  let taskAssigneeUserIds = [];
+
+  /* Client cache eksik kalırsa gerçek alıcılar task_assignees tablosundan çözülür. */
+  if (isSupabaseUuid(taskId)) {
+    const { data: taskRow, error: taskError } = await admin
+      .from('tasks')
+      .select('id')
+      .eq('id', taskId)
+      .eq('workspace_id', workspaceId)
+      .maybeSingle();
+
+    if (taskError) {
+      return sendJson(res, 500, { error: 'Push görevi doğrulanamadı.' });
+    }
+
+    if (taskRow?.id) {
+      const { data: assigneeRows, error: assigneeError } = await admin
+        .from('task_assignees')
+        .select('user_id')
+        .eq('task_id', taskId);
+
+      if (assigneeError) {
+        return sendJson(res, 500, { error: 'Push görev sorumluları okunamadı.' });
+      }
+
+      taskAssigneeUserIds = Array.from(
+        new Set(
+          (assigneeRows || [])
+            .map((row) => String(row?.user_id || '').trim())
+            .filter(isSupabaseUuid)
+        )
+      );
+    }
+  }
+
+  const requestedRecipientUserIds = Array.from(
+    new Set([...clientRecipientUserIds, ...taskAssigneeUserIds])
   )
-    .filter(isSupabaseUuid)
     .filter((userId) => userId !== authorization.userId)
     .slice(0, 200);
 
@@ -128,6 +167,7 @@ export default async function handler(req, res) {
       ok: true,
       blocked: true,
       sent: 0,
+      taskId,
       reason: 'Push hedef kullanıcısı bulunamadı.'
     });
   }
@@ -152,9 +192,12 @@ export default async function handler(req, res) {
       ok: true,
       blocked: true,
       sent: 0,
+      taskId,
+      requestedRecipientCount: requestedRecipientUserIds.length,
+      taskAssigneeRecipientCount: taskAssigneeUserIds.length,
       reason: 'Aktif workspace üyesi olan push hedefi bulunamadı.'
     });
-  }
+  };
 
   const notificationTitle = 'ZRC';
   const notificationType = String(bodyPayload.type || 'activity').trim();
