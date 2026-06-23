@@ -159,7 +159,6 @@ export default async function handler(req, res) {
   const requestedRecipientUserIds = Array.from(
     new Set([...clientRecipientUserIds, ...taskAssigneeUserIds])
   )
-    .filter((userId) => userId !== authorization.userId)
     .slice(0, 200);
 
   if (requestedRecipientUserIds.length === 0) {
