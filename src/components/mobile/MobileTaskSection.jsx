@@ -118,10 +118,22 @@ export default function MobileTaskSection({
             const columnColor = column.color || '#94a3b8';
             const columnTextColor = getReadableColumnColor(columnColor);
             const columnMutedColor = getReadableColumnMutedColor(columnColor);
+            const mobileCapsuleTitle = String(
+              column.title || column.name || column.label || column.column_name || ''
+            ).trim();
+            const mobileCapsuleTitleLength = mobileCapsuleTitle.length;
+            const mobileCapsuleTitleSize =
+              mobileCapsuleTitleLength > 22 ? '8px'
+                : mobileCapsuleTitleLength > 18 ? '9px'
+                  : mobileCapsuleTitleLength > 14 ? '10px'
+                    : mobileCapsuleTitleLength > 11 ? '11px'
+                      : '12px';
+
             const mobileCapsuleStyle = {
               '--zrc-mobile-column-color': columnColor,
               '--zrc-mobile-column-text-color': columnTextColor,
-              '--zrc-mobile-column-muted-color': columnMutedColor
+              '--zrc-mobile-column-muted-color': columnMutedColor,
+              '--zrc-mobile-column-title-size': mobileCapsuleTitleSize
             };
 
             return (
@@ -130,7 +142,19 @@ export default function MobileTaskSection({
                 type="button"
                 className={`zrc-mobile-column-capsule-item ${isActiveColumn ? 'is-active' : ''}`}
                 style={mobileCapsuleStyle}
-                onClick={() => setSelectedMobileColumnId(column.id)}
+                onClick={(event) => {
+                  // zrc-mobile-capsule-scroll-into-view-v1
+                  const capsuleButton = event.currentTarget;
+                  setSelectedMobileColumnId(column.id);
+
+                  requestAnimationFrame(() => {
+                    capsuleButton?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'nearest',
+                      inline: 'center'
+                    });
+                  });
+                }}
               >
                 <span className="zrc-mobile-column-capsule-title">{columnTitle}</span>
                 <span className="zrc-mobile-column-capsule-count">{taskCount}</span>
