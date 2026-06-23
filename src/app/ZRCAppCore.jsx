@@ -3906,89 +3906,81 @@ function App() {
     }
   };
 
-  const loadQuickNotesFromSupabase = async () => {
+  const loadQuickNotesFromSupabase = async ({ skipLegacyMigration = false } = {}) => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    if (!workspaceId || !isSupabaseUuid(currentUserId) || authSessionLoading) return;
+    if (!workspaceId || !isSupabaseUuid(currentUserId) || authSessionLoading) return false;
 
     try {
+      /*
+        Notlar çalışma alanı bazında yüklenir.
+        Böylece aynı çalışma alanına bağlı masaüstü ve mobil cihazlar
+        aynı not listesini görür.
+      */
       const { data, error } = await supabase
         .from('quick_notes')
         .select('id, text, created_at')
         .eq('workspace_id', workspaceId)
-        .eq('user_id', currentUserId)
         .neq('type', 'push_subscription')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       const mappedNotes = (data || []).map(mapSupabaseQuickNoteToLocal);
+      const serverNoteIds = new Set(
+        mappedNotes
+          .map((note) => String(note?.supabaseId || note?.id || '').replace('supabase-note-', ''))
+          .filter(Boolean)
+      );
+      const serverTextKeys = new Set(
+        mappedNotes
+          .map((note) => String(note?.text || '').trim())
+          .filter(Boolean)
+      );
 
-      setQuickNotes((prevNotes) =>
+      /*
+        Eski notlar bazı cihazlarda yalnızca localStorage'da kalmış olabilir.
+        Bunları yalnızca sunucuda aynı id veya metin yoksa Supabase'e taşır.
+      */
+      const localNotes = normalizeStorageArray(readStorageValue('quickNotes', []), []);
+      const legacyLocalNotes = localNotes.filter((note) => {
+        const rawId = String(note?.supabaseId || note?.id || '').replace('supabase-note-', '').trim();
+        const rawText = String(note?.text || '').trim();
+
+        if (!rawText) return false;
+        if (rawId && serverNoteIds.has(rawId)) return false;
+        if (serverTextKeys.has(rawText)) return false;
+
+        return true;
+      });
+
+      if (!skipLegacyMigration && legacyLocalNotes.length > 0) {
+        for (const legacyNote of legacyLocalNotes) {
+          await saveQuickNoteToSupabase({
+            ...legacyNote,
+            id: String(legacyNote?.id || `quick-note-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+            text: String(legacyNote?.text || '').trim()
+          });
+        }
+
+        return loadQuickNotesFromSupabase({ skipLegacyMigration: true });
+      }
+
+      setQuickNotes((previousNotes) =>
         mergeAuthoritativeServerRecords({
           serverRecords: mappedNotes,
-          localRecords: prevNotes,
+          localRecords: previousNotes,
           getKey: (note) => note.supabaseId || note.id,
           isPersistedLocalRecord: (note) =>
             Boolean(note?.supabaseId || String(note?.id || '').startsWith('supabase-note-'))
         })
       );
+
+      return true;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase not okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      return false;
     }
-  };
-
-
-  const syncLegacyQuickNotesToSupabase = async () => {
-    const workspaceId = getCurrentSupabaseWorkspaceId();
-
-    if (!workspaceId || !isSupabaseUuid(currentUserId) || authSessionLoading) return false;
-
-    const legacyNotes = (Array.isArray(quickNotes) ? quickNotes : []).filter((note) => {
-      const noteId = String(note?.id || '');
-      const isPersisted = Boolean(note?.supabaseId || noteId.startsWith('supabase-note-'));
-      const hasContent = Boolean(String(note?.text || note?.title || note?.detail || '').trim());
-
-      return !isPersisted && hasContent;
-    });
-
-    if (legacyNotes.length === 0) return false;
-
-    let syncedAny = false;
-
-    for (const legacyNote of legacyNotes) {
-      const localId = String(legacyNote?.id || '').trim();
-
-      if (!localId || legacyQuickNoteSyncingIdsRef.current.has(localId)) continue;
-
-      legacyQuickNoteSyncingIdsRef.current.add(localId);
-
-      try {
-        const title = String(legacyNote?.title || '').trim()
-          || String(legacyNote?.detail || '').trim().split('\n')[0]?.slice(0, 42)
-          || 'Başlıksız not';
-
-        const detail = String(legacyNote?.detail || '').trim();
-        const text = String(legacyNote?.text || buildQuickNoteText(title, detail)).trim();
-
-        if (!text) continue;
-
-        const didSave = await saveQuickNoteToSupabase({
-          ...legacyNote,
-          text
-        });
-
-        syncedAny = syncedAny || didSave;
-      } finally {
-        legacyQuickNoteSyncingIdsRef.current.delete(localId);
-      }
-    }
-
-    if (syncedAny) {
-      await loadQuickNotesFromSupabase();
-    }
-
-    return syncedAny;
   };
 
   const saveActivityNotificationToSupabase = async (notification = {}) => {
