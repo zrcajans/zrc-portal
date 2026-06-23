@@ -3038,3 +3038,64 @@ body {
   /* Küçük turuncu ok ve avatarlar dairesel kalır; bunlar buton/kart değildir. */
 }
 /* === ZRC MOBILE STRICT DESKTOP CORNERS END === */
+/* === ZRC MOBILE PILLS AND NOTIFICATION ICON START === */
+@media (max-width: 768px) {
+  /*
+    Kullanıcının beğendiği eski kapsül dili yalnızca Taşı ve alt kolon şeridine geri verilir.
+    Diğer buton ve kartlarda masaüstü benzeri daha sakin köşeler korunur.
+  */
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-move-btn,
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-active-btn {
+    border-radius: 999px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-capsule,
+  body .zrc-mobile-simple-workspace .zrc-mobile-column-capsule-item {
+    border-radius: 999px !important;
+  }
+
+  /*
+    Bildirim: metin yerine minimal zil simgesi.
+    Erişilebilir isim HTML üzerinde kalır; yalnızca görsel metin gizlenir.
+  */
+  body .zrc-mobile-simple-workspace .zrc-mobile-notification-btn {
+    width: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    letter-spacing: 0 !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-notification-btn::before {
+    width: 18px;
+    height: 18px;
+    display: block;
+    background: #334155;
+    content: '';
+    -webkit-mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE4IDhBNiA2IDAgMCAwIDYgOGMwIDctMyA3LTMgOWgxOGMwLTItMy0yLTMtOSIvPjxwYXRoIGQ9Ik0xMy43MyAyMWEyIDIgMCAwIDEtMy40NiAwIi8+PC9zdmc+") center / contain no-repeat;
+    mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE4IDhBNiA2IDAgMCAwIDYgOGMwIDctMyA3LTMgOWgxOGMwLTItMy0yLTMtOSIvPjxwYXRoIGQ9Ik0xMy43MyAyMWEyIDIgMCAwIDEtMy40NiAwIi8+PC9zdmc+") center / contain no-repeat;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-notification-btn b {
+    top: -6px !important;
+    right: -6px !important;
+    z-index: 2 !important;
+    min-width: 19px !important;
+    height: 19px !important;
+    padding: 0 4px !important;
+    border: 2px solid #ffffff !important;
+    border-radius: 999px !important;
+    font-size: 9px !important;
+    line-height: 15px !important;
+  }
+}
+/* === ZRC MOBILE PILLS AND NOTIFICATION ICON END === */
