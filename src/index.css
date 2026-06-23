@@ -2295,46 +2295,52 @@ body {
     display: block;
   }
 
+  /*
+    Sağ kenar sekmesi:
+    Uygulamanın ana dilindeki koyu mat gri ve küçük turuncu vurgu.
+    Yarım kapsül görünümünde, ekrandan çok az taşar.
+  */
   .zrc-mobile-sticky-notes-edge-tab {
     position: fixed;
     z-index: 2147483001 !important;
-    top: calc(52% + env(safe-area-inset-top));
-    right: -18px;
-    width: 61px;
-    height: 108px;
-    padding: 12px 20px 12px 12px;
-    border: 1px solid rgba(192, 151, 50, 0.42);
-    border-right: none;
-    border-radius: 26px 0 0 26px;
-    background:
-      radial-gradient(circle at 20% 16%, rgba(255,255,255,0.95) 0 2px, transparent 2.6px),
-      linear-gradient(145deg, #fff9c9 0%, #ffe98e 52%, #f7cf5a 100%);
-    color: #6c4d00;
+    top: 50%;
+    right: -2px;
+    width: 44px;
+    height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px 0 4px;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-right: 0;
+    border-radius: 16px 0 0 16px;
+    color: #f8fafc;
+    background: #252a32;
     box-shadow:
-      -10px 14px 24px rgba(113, 83, 11, 0.18),
-      inset 0 1px 0 rgba(255,255,255,0.88);
+      -10px 14px 28px rgba(15, 23, 42, 0.20),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
     transform: translateY(-50%);
     -webkit-tap-highlight-color: transparent;
-    transition: right 190ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 190ms ease, transform 190ms ease;
-  }
-
-  .zrc-mobile-sticky-notes-edge-tab:active {
-    transform: translateY(-50%) scale(0.96);
-    box-shadow:
-      -6px 9px 16px rgba(113, 83, 11, 0.16),
-      inset 0 1px 0 rgba(255,255,255,0.88);
+    transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
   }
 
   .zrc-mobile-sticky-notes-edge-tab::before {
     content: "";
     position: absolute;
-    left: -7px;
-    top: 16px;
-    bottom: 16px;
-    width: 5px;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.6);
-    box-shadow: 0 0 14px rgba(255,238,148,0.9);
+    background: #ff4b1f;
+  }
+
+  .zrc-mobile-sticky-notes-edge-tab:active {
+    transform: translateY(-50%) scale(0.95);
+    background: #1f232a;
+    box-shadow:
+      -6px 9px 18px rgba(15, 23, 42, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .zrc-mobile-sticky-notes-edge-icon {
@@ -2342,85 +2348,72 @@ body {
     place-items: center;
     width: 28px;
     height: 28px;
-    margin: 0 auto 4px;
-    border-radius: 10px;
-    color: #7f5b00;
-    background: rgba(255,255,255,0.54);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+    color: #ffffff;
   }
 
   .zrc-mobile-sticky-notes-edge-icon svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
   }
 
   .zrc-mobile-sticky-notes-edge-text {
-    display: block;
-    margin-left: 1px;
-    font-size: 8px;
-    line-height: 1;
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    transform: rotate(-90deg);
-    transform-origin: center;
-    white-space: nowrap;
+    display: none;
   }
 
   .zrc-mobile-sticky-notes-edge-count {
     position: absolute;
     top: 7px;
-    left: 7px;
+    right: 6px;
     min-width: 16px;
     height: 16px;
-    padding: 0 4px;
-    border-radius: 999px;
     display: grid;
     place-items: center;
-    color: #fff;
-    background: #ef4444;
-    border: 1.5px solid #fff6bf;
+    padding: 0 4px;
+    border: 2px solid #252a32;
+    border-radius: 999px;
+    color: #ffffff;
+    background: #ff4b1f;
+    box-shadow: 0 4px 10px rgba(255, 75, 31, 0.28);
     font-size: 8px;
     line-height: 1;
     font-weight: 900;
-    box-shadow: 0 5px 10px rgba(185, 28, 28, 0.24);
   }
 
   .zrc-mobile-sticky-notes-backdrop {
     position: fixed;
     z-index: 2147482999 !important;
     inset: 0;
-    background: rgba(14, 22, 37, 0);
+    background: rgba(15, 23, 42, 0);
     pointer-events: none;
     backdrop-filter: blur(0);
-    transition: background 220ms ease, backdrop-filter 220ms ease;
+    transition: background 180ms ease, backdrop-filter 180ms ease;
   }
 
   .zrc-mobile-sticky-notes-backdrop.is-open {
     pointer-events: auto;
-    background: rgba(14, 22, 37, 0.24);
-    backdrop-filter: blur(2px);
+    background: rgba(15, 23, 42, 0.32);
+    backdrop-filter: blur(3px);
   }
 
   .zrc-mobile-sticky-notes-drawer {
     position: fixed;
     z-index: 2147483000 !important;
-    top: max(10px, env(safe-area-inset-top));
-    right: max(8px, env(safe-area-inset-right));
-    bottom: max(10px, env(safe-area-inset-bottom));
-    width: min(396px, calc(100vw - 34px));
+    top: max(12px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(392px, calc(100vw - 32px));
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid rgba(205, 181, 97, 0.7);
-    border-radius: 25px;
-    background:
-      radial-gradient(circle at 86% 10%, rgba(255,235,143,0.5) 0, transparent 31%),
-      linear-gradient(145deg, #fffdf2 0%, #fff7c8 100%);
-    box-shadow: -22px 30px 64px rgba(21, 31, 54, 0.28);
+    border: 1px solid #e1e5ea;
+    border-radius: 18px;
+    color: #1f2937;
+    background: #f7f8fa;
+    box-shadow: -22px 28px 64px rgba(15, 23, 42, 0.30);
     transform: translateX(calc(100% + 34px));
     opacity: 0;
     pointer-events: none;
-    transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease;
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 170ms ease;
   }
 
   .zrc-mobile-sticky-notes-drawer.is-open {
@@ -2434,9 +2427,9 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: max(18px, env(safe-area-inset-top)) 17px 15px;
-    border-bottom: 1px solid rgba(166, 133, 45, 0.18);
-    background: rgba(255, 252, 233, 0.76);
+    padding: max(18px, env(safe-area-inset-top)) 16px 15px;
+    border-bottom: 1px solid #e8ebef;
+    background: #ffffff;
   }
 
   .zrc-mobile-sticky-notes-head-brand {
@@ -2447,57 +2440,59 @@ body {
   }
 
   .zrc-mobile-sticky-notes-head-icon {
-    flex: 0 0 auto;
     display: grid;
     place-items: center;
-    width: 37px;
-    height: 37px;
-    border-radius: 13px;
-    color: #7a5700;
-    background: linear-gradient(145deg, #ffe989, #f5c957);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 8px 16px rgba(177, 130, 22, 0.18);
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    color: #ff4b1f;
+    background: #fff0eb;
   }
 
   .zrc-mobile-sticky-notes-head-icon svg {
-    width: 19px;
-    height: 19px;
+    width: 18px;
+    height: 18px;
   }
 
   .zrc-mobile-sticky-notes-kicker {
-    color: #a37b16;
+    color: #8c96a5;
     font-size: 8px;
     line-height: 1;
     font-weight: 900;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.13em;
     text-transform: uppercase;
   }
 
   .zrc-mobile-sticky-notes-drawer h2 {
     margin: 4px 0 0;
-    color: #463500;
+    color: #202631;
     font-size: 16px;
-    line-height: 1.1;
+    line-height: 1.15;
     font-weight: 900;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
   }
 
   .zrc-mobile-sticky-notes-close {
     width: 32px;
     height: 32px;
+    display: grid;
+    place-items: center;
     flex: 0 0 auto;
-    border: 1px solid rgba(159, 127, 31, 0.16);
-    border-radius: 11px;
-    color: #856209;
-    background: rgba(255,255,255,0.58);
+    border: 1px solid #e4e8ed;
+    border-radius: 10px;
+    color: #6b7280;
+    background: #ffffff;
     font-size: 20px;
     line-height: 1;
-    transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+    transition: color 150ms ease, border-color 150ms ease, background 150ms ease, transform 150ms ease;
   }
 
   .zrc-mobile-sticky-notes-close:active {
-    color: #503b00;
-    background: #fff;
-    transform: scale(0.94);
+    color: #202631;
+    border-color: #cfd6de;
+    background: #f4f6f8;
+    transform: scale(0.95);
   }
 
   .zrc-mobile-sticky-notes-summary {
@@ -2506,29 +2501,30 @@ body {
     justify-content: space-between;
     gap: 10px;
     padding: 12px 16px;
-    border-bottom: 1px solid rgba(166, 133, 45, 0.14);
+    border-bottom: 1px solid #e8ebef;
+    background: #fbfcfd;
   }
 
   .zrc-mobile-sticky-notes-summary > span {
-    color: #967520;
+    color: #7b8594;
     font-size: 10px;
     font-weight: 800;
   }
 
   .zrc-mobile-sticky-notes-new-button {
-    height: 30px;
-    padding: 0 11px;
+    height: 31px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    border: 1px solid #d9ad34;
-    border-radius: 999px;
-    color: #fffdf2;
-    background: #9d7410;
-    box-shadow: 0 7px 14px rgba(125, 88, 7, 0.17);
+    padding: 0 12px;
+    border: 1px solid #ff4b1f;
+    border-radius: 9px;
+    color: #ffffff;
+    background: #ff4b1f;
+    box-shadow: 0 7px 14px rgba(255, 75, 31, 0.18);
     font-size: 10px;
     font-weight: 900;
-    transition: transform 150ms ease, background 150ms ease;
+    transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
   }
 
   .zrc-mobile-sticky-notes-new-button > span {
@@ -2538,51 +2534,53 @@ body {
   }
 
   .zrc-mobile-sticky-notes-new-button:active {
-    background: #795600;
+    background: #e33c16;
+    box-shadow: 0 4px 9px rgba(255, 75, 31, 0.16);
     transform: scale(0.97);
   }
 
   .zrc-mobile-sticky-notes-composer {
-    margin: 12px 14px 2px;
+    margin: 12px 14px 0;
     padding: 12px;
-    border: 1px solid rgba(185, 142, 27, 0.35);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: 0 10px 20px rgba(153, 113, 16, 0.08);
+    border: 1px solid #e0e5eb;
+    border-radius: 13px;
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
   }
 
   .zrc-mobile-sticky-notes-composer input,
   .zrc-mobile-sticky-notes-composer textarea {
     width: 100%;
-    border: 1px solid rgba(172, 137, 48, 0.22);
+    border: 1px solid #dde3e9;
     outline: none;
-    color: #413200;
-    background: rgba(255, 253, 238, 0.9);
+    color: #28313d;
+    background: #fbfcfd;
     font-family: inherit;
     font-size: 16px;
     font-weight: 700;
-    transition: border-color 150ms ease, background 150ms ease;
+    transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
   }
 
   .zrc-mobile-sticky-notes-composer input:focus,
   .zrc-mobile-sticky-notes-composer textarea:focus {
-    border-color: #d1a226;
-    background: #fffef7;
+    border-color: rgba(255, 75, 31, 0.72);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 75, 31, 0.10);
   }
 
   .zrc-mobile-sticky-notes-composer input {
     height: 40px;
     padding: 0 11px;
-    border-radius: 11px;
+    border-radius: 9px;
   }
 
   .zrc-mobile-sticky-notes-composer textarea {
     min-height: 94px;
     margin-top: 8px;
     padding: 10px 11px;
-    border-radius: 12px;
+    border-radius: 10px;
     resize: vertical;
-    line-height: 1.45;
+    line-height: 1.48;
   }
 
   .zrc-mobile-sticky-notes-composer-actions {
@@ -2595,18 +2593,18 @@ body {
   .zrc-mobile-sticky-notes-composer-actions button {
     height: 30px;
     padding: 0 11px;
-    border: 0;
-    border-radius: 999px;
-    color: #fffdf2;
-    background: #9d7410;
+    border: 1px solid #ff4b1f;
+    border-radius: 8px;
+    color: #ffffff;
+    background: #ff4b1f;
     font-size: 10px;
     font-weight: 900;
   }
 
   .zrc-mobile-sticky-notes-composer-actions button.is-quiet {
-    color: #80620e;
-    background: #fff9d9;
-    border: 1px solid rgba(172, 137, 48, 0.22);
+    color: #667085;
+    border-color: #e0e5eb;
+    background: #ffffff;
   }
 
   .zrc-mobile-sticky-notes-composer-actions button:disabled {
@@ -2623,14 +2621,12 @@ body {
 
   .zrc-mobile-sticky-note-card {
     position: relative;
-    margin-bottom: 10px;
+    margin-bottom: 9px;
     padding: 13px 12px;
-    border: 1px solid rgba(175, 143, 50, 0.22);
-    border-radius: 16px;
-    background:
-      linear-gradient(135deg, rgba(255,255,255,0.86), rgba(255,250,220,0.88)),
-      #fff9d7;
-    box-shadow: 0 10px 20px rgba(136, 99, 12, 0.08);
+    border: 1px solid #e0e5eb;
+    border-radius: 13px;
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.045);
   }
 
   .zrc-mobile-sticky-note-card-top {
@@ -2640,29 +2636,29 @@ body {
   }
 
   .zrc-mobile-sticky-note-pin {
-    width: 8px;
-    height: 8px;
-    margin-top: 5px;
+    width: 7px;
+    height: 7px;
     flex: 0 0 auto;
+    margin-top: 5px;
     border-radius: 999px;
-    background: #f97316;
-    box-shadow: 0 2px 5px rgba(194, 65, 12, 0.32);
+    background: #ff4b1f;
+    box-shadow: 0 2px 5px rgba(255, 75, 31, 0.24);
   }
 
   .zrc-mobile-sticky-note-card h3 {
     min-width: 0;
     flex: 1;
     margin: 0;
-    color: #4c3900;
+    color: #2b3340;
     font-size: 13px;
-    line-height: 1.35;
+    line-height: 1.36;
     font-weight: 900;
     word-break: break-word;
   }
 
   .zrc-mobile-sticky-note-card p {
-    margin: 8px 0 0 16px;
-    color: #7f681b;
+    margin: 8px 0 0 15px;
+    color: #687384;
     font-size: 12px;
     line-height: 1.55;
     font-weight: 650;
@@ -2671,21 +2667,23 @@ body {
   }
 
   .zrc-mobile-sticky-note-delete-trigger {
-    width: 23px;
-    height: 23px;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
     flex: 0 0 auto;
-    margin: -3px -3px 0 0;
+    margin: -4px -4px 0 0;
     border: 0;
     border-radius: 8px;
-    color: #c5aa58;
+    color: #a2abb7;
     background: transparent;
     font-size: 18px;
     line-height: 1;
   }
 
   .zrc-mobile-sticky-note-delete-trigger:active {
-    color: #b91c1c;
-    background: #fff0ef;
+    color: #dc2626;
+    background: #fff1f1;
   }
 
   .zrc-mobile-sticky-note-delete-confirm {
@@ -2693,11 +2691,12 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    margin: 11px 0 0 16px;
+    margin: 11px 0 0 15px;
     padding: 8px;
-    border-radius: 11px;
-    color: #a31d1d;
-    background: #fff0ef;
+    border: 1px solid #fee2e2;
+    border-radius: 10px;
+    color: #b42318;
+    background: #fff6f6;
     font-size: 10px;
     font-weight: 800;
   }
@@ -2710,16 +2709,17 @@ body {
   .zrc-mobile-sticky-note-delete-confirm button {
     height: 24px;
     padding: 0 8px;
-    border: 0;
-    border-radius: 999px;
-    color: #88610d;
-    background: #fff;
+    border: 1px solid #e4e8ed;
+    border-radius: 7px;
+    color: #667085;
+    background: #ffffff;
     font-size: 9px;
     font-weight: 900;
   }
 
   .zrc-mobile-sticky-note-delete-confirm button.is-danger {
-    color: #fff;
+    color: #ffffff;
+    border-color: #dc2626;
     background: #dc2626;
   }
 
@@ -2738,28 +2738,27 @@ body {
   }
 
   .zrc-mobile-sticky-notes-empty-icon {
-    width: 46px;
-    height: 46px;
+    width: 43px;
+    height: 43px;
     display: grid;
     place-items: center;
     margin-bottom: 12px;
-    border-radius: 17px;
-    color: #9d7410;
-    background: #fff1a4;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.84);
-    font-size: 22px;
+    border-radius: 12px;
+    color: #ff4b1f;
+    background: #fff0eb;
+    font-size: 20px;
   }
 
   .zrc-mobile-sticky-notes-empty strong {
-    color: #5f4905;
+    color: #2b3340;
     font-size: 13px;
     font-weight: 900;
   }
 
   .zrc-mobile-sticky-notes-empty span {
-    max-width: 210px;
+    max-width: 218px;
     margin-top: 6px;
-    color: #92762b;
+    color: #7b8594;
     font-size: 11px;
     line-height: 1.45;
     font-weight: 650;
