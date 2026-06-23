@@ -2287,6 +2287,7 @@ body {
 /* === ZRC MOBILE STICKY NOTES START === */
 .zrc-mobile-sticky-notes-root {
   display: none;
+  isolation: isolate;
 }
 
 @media (max-width: 720px) {
@@ -2296,7 +2297,7 @@ body {
 
   .zrc-mobile-sticky-notes-edge-tab {
     position: fixed;
-    z-index: 850;
+    z-index: 2147483001 !important;
     top: calc(52% + env(safe-area-inset-top));
     right: -18px;
     width: 61px;
@@ -2386,7 +2387,7 @@ body {
 
   .zrc-mobile-sticky-notes-backdrop {
     position: fixed;
-    z-index: 835;
+    z-index: 2147482999 !important;
     inset: 0;
     background: rgba(14, 22, 37, 0);
     pointer-events: none;
@@ -2402,7 +2403,7 @@ body {
 
   .zrc-mobile-sticky-notes-drawer {
     position: fixed;
-    z-index: 840;
+    z-index: 2147483000 !important;
     top: max(10px, env(safe-area-inset-top));
     right: max(8px, env(safe-area-inset-right));
     bottom: max(10px, env(safe-area-inset-bottom));

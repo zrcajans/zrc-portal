@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getQuickNoteDetail, getQuickNoteTitle } from '../../utils/dashboardHelpers';
 
 const getNoteTimestamp = (note = {}) => {
@@ -80,7 +81,7 @@ export default function MobileStickyNotesDrawer({
     }
   };
 
-  return (
+  const drawer = (
     <div className="zrc-mobile-sticky-notes-root" aria-live="polite">
       <button
         type="button"
@@ -226,4 +227,8 @@ export default function MobileStickyNotesDrawer({
       </aside>
     </div>
   );
+
+  if (typeof document === 'undefined') return drawer;
+
+  return createPortal(drawer, document.body);
 }
