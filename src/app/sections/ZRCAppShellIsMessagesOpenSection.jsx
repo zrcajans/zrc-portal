@@ -139,7 +139,7 @@ export default function ZRCAppShellIsMessagesOpenSection(props) {
                   type="button"
                   onClick={clearAllMessages}
                   disabled={messageItems.length === 0}
-                  className="h-7 px-2.5 rounded-full bg-red-50 border border-red-100 text-[9.5px] font-black text-red-500 hover:text-red-700 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="h-6 px-2 rounded-full bg-zinc-100 border border-transparent text-[9px] font-black text-zinc-500 hover:bg-zinc-900 hover:text-white transition-all"
                 >
                   Temizle
                 </button>
