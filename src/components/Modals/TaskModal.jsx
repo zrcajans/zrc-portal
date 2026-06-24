@@ -539,33 +539,20 @@ export default function TaskModal({
     );
   };
 
-  const isHiddenTaskPickerPerson = (person = {}) => {
-    // zrc-assign-to-ajans-v1:
-    // ZRC AJANS, user-1 / eski profil kalıntısı olsa bile görevli seçicisinde görünür kalır.
-    if (isZrcAjansTaskPickerPerson(person)) return false;
-
-    const id = String(person.id || '');
-    const username = normalizeTaskPickerIdentity(person.username || '');
-    const name = normalizeTaskPickerIdentity(person.name || '');
-    const email = normalizeTaskPickerIdentity(person.email || '');
-
-    return (
-      ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
-      ['ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
-      ['ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
-      ['ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
-    );
-  };
-
+  // zrc-force-assign-to-ajans-v2:
+  // Görevli listesi artık eski demo kimliklerine göre gizlenmez.
+  // Yalnızca Pasif ve Müşteri/Misafir kullanıcılar aşağıdaki gerçek rol filtresiyle elenir.
   const users = (Array.isArray(teamMembers) ? teamMembers : [])
     .filter((user) => user?.status !== 'Pasif')
-    .filter((user) => !isHiddenTaskPickerPerson(user))
     .map((user, index) => ({
       id: user.id || `user-${index}`,
       name: user.name || 'İsimsiz Kişi',
       avatar: user.avatar || createAvatarFromName(user.name),
-      role: user.role || ''
+      role: user.role || '',
+      username: user.username || '',
+      email: user.email || ''
     }));
+  // zrc-force-assign-to-ajans-v2: gerçek ekip üyeleri, ZRC AJANS dahil filtrelenmeden burada kalır.
   const defaultFollower = null;
   const customerListOptions = customers
     .map((customer) => customer.name)

@@ -8803,16 +8803,40 @@ const selectedProjectSettings = projectSettings[selectedProject] || createDefaul
     projectAssignableMembers.find((member) => String(member.id || '') === String(supabaseAuthUserId || '')) ||
     (currentRoleMember && !isZrcAjansIdentityRecord(currentRoleMember) ? currentRoleMember : null);
 
-  const taskModalTeamMembers =
-    currentAccountType === 'Ekip Üyesi'
-      ? projectAssignableMembers
-      : projectAssignableMembers;
+  const zrcAjansAssignableRecord =
+    activeTeamMembers.find((member) => isZrcAjansIdentityRecord(member)) ||
+    zrcAjansSystemMember;
+
+  const taskModalTeamMembers = Array.from(
+    new Map(
+      [
+        {
+          ...zrcAjansSystemMember,
+          ...zrcAjansAssignableRecord,
+          id: zrcAjansAssignableRecord?.id || zrcAjansSystemMember.id,
+          name: 'ZRC AJANS',
+          username: zrcAjansAssignableRecord?.username || 'zrcajans',
+          email: zrcAjansAssignableRecord?.email || 'info@zrcajans.com',
+          role: 'Yönetici',
+          status: 'Aktif'
+        },
+        ...activeTeamMembers
+          .filter((member) => !isZrcAjansIdentityRecord(member))
+          .filter((member) => normalizeTeamRole(member.role) !== 'Müşteri/Misafir')
+      ]
+        .filter((member) => member?.id)
+        .map((member) => [String(member.id), member])
+    ).values()
+  );
+  // zrc-force-assign-to-ajans-v2:
+  // ZRC AJANS her yetkili hesap için görevli listesinde gerçek kaydıyla bulunur.
 
   const normalizeTaskPersonForSave = (person = {}, allowedRoles = []) => {
     if (!person?.id && !person?.name) return null;
 
     if (isZrcAjansIdentityRecord(person)) {
-      return zrcAjansSystemMember;
+      return taskModalTeamMembers.find((member) => isZrcAjansIdentityRecord(member)) ||
+        zrcAjansSystemMember;
     }
 
     const matchedMember = zrcTaskSelectableMembers.find((member) => String(member.id) === String(person.id));
