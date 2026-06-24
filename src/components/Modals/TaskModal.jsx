@@ -515,29 +515,45 @@ export default function TaskModal({
     typeof option === 'string' ? { label: option } : option
   );
   const defaultStatus = columnStatusOptions[0]?.label || 'Yeni Görev';
-  const isHiddenTaskPickerPerson = (person = {}) => {
-    const normalize = (value = '') =>
-      String(value || '')
-        .trim()
-        .toLocaleLowerCase('tr-TR')
-        .replaceAll('ı', 'i')
-        .replaceAll('ğ', 'g')
-        .replaceAll('ü', 'u')
-        .replaceAll('ş', 's')
-        .replaceAll('ö', 'o')
-        .replaceAll('ç', 'c')
-        .replace(/[^a-z0-9@._-]/g, '');
+  const normalizeTaskPickerIdentity = (value = '') =>
+    String(value || '')
+      .trim()
+      .toLocaleLowerCase('tr-TR')
+      .replaceAll('ı', 'i')
+      .replaceAll('ğ', 'g')
+      .replaceAll('ü', 'u')
+      .replaceAll('ş', 's')
+      .replaceAll('ö', 'o')
+      .replaceAll('ç', 'c')
+      .replace(/[^a-z0-9@._-]/g, '');
 
-    const id = String(person.id || '');
-    const username = normalize(person.username || '');
-    const name = normalize(person.name || '');
-    const email = normalize(person.email || '');
+  const isZrcAjansTaskPickerPerson = (person = {}) => {
+    const username = normalizeTaskPickerIdentity(person.username || '');
+    const name = normalizeTaskPickerIdentity(person.name || '');
+    const email = normalizeTaskPickerIdentity(person.email || '');
 
     return (
-      ['user-1', 'user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
-      ['enes', 'ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
-      ['eneszaric', 'ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
-      ['enes@zrcajans.com', 'enszrc@gmail.com', 'ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
+      name === 'zrcajans' ||
+      username === 'zrcajans' ||
+      email === 'info@zrcajans.com'
+    );
+  };
+
+  const isHiddenTaskPickerPerson = (person = {}) => {
+    // zrc-assign-to-ajans-v1:
+    // ZRC AJANS, user-1 / eski profil kalıntısı olsa bile görevli seçicisinde görünür kalır.
+    if (isZrcAjansTaskPickerPerson(person)) return false;
+
+    const id = String(person.id || '');
+    const username = normalizeTaskPickerIdentity(person.username || '');
+    const name = normalizeTaskPickerIdentity(person.name || '');
+    const email = normalizeTaskPickerIdentity(person.email || '');
+
+    return (
+      ['user-2', 'user-3', 'user-4', 'user-5'].includes(id) ||
+      ['ahmet', 'zeynep', 'can', 'misafir'].includes(username) ||
+      ['ahmetyilmaz', 'zeynepkaya', 'canoz', 'demomisafir'].includes(name) ||
+      ['ahmet@zrcajans.com', 'zeynep@zrcajans.com', 'can@zrcajans.com', 'misafir@orneksirket.com'].includes(email)
     );
   };
 

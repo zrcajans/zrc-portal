@@ -540,8 +540,8 @@ export default function ZRCAppAuthenticatedShell({
           isMobileTaskWizardOpen={isMobileTaskWizardOpen}
           mobileTaskWizardStep={mobileTaskWizardStep}
           mobileTaskWizardData={mobileTaskWizardData}
-          activeTeamMembers={activeTeamMembers}
-          teamMembers={teamMembers}
+          activeTeamMembers={taskModalTeamMembers}
+          teamMembers={taskModalTeamMembers}
           normalizeTeamRole={normalizeTeamRole}
           handleSaveTask={handleSaveTask}
           setActiveMenu={setActiveMenu}

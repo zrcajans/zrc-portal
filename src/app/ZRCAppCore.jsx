@@ -1668,6 +1668,12 @@ function App() {
     if (isSupabaseUuid(currentUserId)) allowedUserIds.add(currentUserId);
     if (isSupabaseUuid(supabaseAuthUserId)) allowedUserIds.add(supabaseAuthUserId);
 
+    // zrc-assign-to-ajans-v1:
+    // ZRC AJANS seçildiyse, görevli bağlantısı ekip üyesinin oturumundan bağımsız olarak korunur.
+    if (isSupabaseUuid(zrcAjansSystemMember?.id)) {
+      allowedUserIds.add(zrcAjansSystemMember.id);
+    }
+
     const desiredUserIds = Array.from(
       new Set((requestedUserIds || []).filter((userId) => allowedUserIds.has(userId)))
     );
