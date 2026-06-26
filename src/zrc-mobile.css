@@ -3318,3 +3318,161 @@
   }
 }
 /* === ZRC MOBILE HEADER LOGO REMOVAL + DISTINCT NOTIFICATION END === */
+
+
+/* === ZRC MOBILE COMPACT TOP NAV REFINEMENT START === */
+@media (max-width: 768px) {
+  /* Sayfa geçişlerini küçük, tek parça bir araç çubuğuna indir. */
+  body .zrc-mobile-simple-workspace .zrc-mobile-premium-head {
+    min-height: 46px !important;
+    margin: 0 auto 12px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav {
+    min-height: 44px !important;
+    height: 44px !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px !important;
+    gap: 3px !important;
+    padding: 3px !important;
+    border: 1px solid rgba(226, 232, 240, 0.95) !important;
+    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: 0 7px 18px rgba(15, 23, 42, 0.07) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-button {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 0 7px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    color: #64748b !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-button.is-active {
+    background: #ff3600 !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 13px rgba(255, 54, 0, 0.2) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-icon,
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-icon svg {
+    width: 17px !important;
+    height: 17px !important;
+    flex: 0 0 17px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-content {
+    min-width: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-label {
+    max-width: none !important;
+    overflow: visible !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    font-weight: 850 !important;
+    letter-spacing: -0.02em !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+  }
+
+  /* Görev sayısı artık kutunun içinde; sağ kenardan taşmaz. */
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-count {
+    position: static !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #263247 !important;
+    color: #ffffff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+    box-shadow: none !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-button.is-active .zrc-mobile-top-page-nav-count {
+    background: rgba(255, 255, 255, 0.24) !important;
+    color: #ffffff !important;
+  }
+
+  /* Bildirim, sekme değil; sağda sade ve küçük ayrı bir ikon düğmesi kalır. */
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-notification {
+    position: relative !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: #f8fafc !important;
+    color: #344158 !important;
+    box-shadow: none !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-notification .zrc-mobile-top-page-nav-icon,
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-notification .zrc-mobile-top-page-nav-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+    flex-basis: 20px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-notification .zrc-mobile-top-page-nav-count {
+    position: absolute !important;
+    top: 3px !important;
+    right: 3px !important;
+    min-width: 14px !important;
+    height: 14px !important;
+    padding: 0 3px !important;
+    border: 1.5px solid #ffffff !important;
+    background: #ff5b1f !important;
+    color: #ffffff !important;
+    font-size: 7px !important;
+    box-shadow: 0 2px 5px rgba(255, 91, 31, 0.22) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-notification:active {
+    transform: scale(0.96) !important;
+    background: #eef2f7 !important;
+    color: #1f2937 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px !important;
+    gap: 2px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-button {
+    padding: 0 5px !important;
+    gap: 4px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-label {
+    font-size: 9.5px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-top-page-nav-notification {
+    width: 36px !important;
+    min-width: 36px !important;
+  }
+}
+/* === ZRC MOBILE COMPACT TOP NAV REFINEMENT END === */

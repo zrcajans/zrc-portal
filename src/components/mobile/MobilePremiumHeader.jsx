@@ -46,10 +46,12 @@ export default function MobilePremiumHeader({
               onClick={() => onChangePage?.(item.id)}
             >
               <span className="zrc-mobile-top-page-nav-icon">{item.icon}</span>
-              <span className="zrc-mobile-top-page-nav-label">{item.label}</span>
-              {item.id === 'assigned' && count > 0 && (
-                <b className="zrc-mobile-top-page-nav-count">{count > 99 ? '99+' : count}</b>
-              )}
+              <span className="zrc-mobile-top-page-nav-content">
+                <span className="zrc-mobile-top-page-nav-label">{item.label}</span>
+                {item.id === 'assigned' && count > 0 && (
+                  <b className="zrc-mobile-top-page-nav-count">{count > 99 ? '99+' : count}</b>
+                )}
+              </span>
             </button>
           );
         })}
