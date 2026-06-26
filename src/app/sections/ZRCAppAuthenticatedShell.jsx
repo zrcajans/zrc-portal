@@ -551,6 +551,8 @@ export default function ZRCAppAuthenticatedShell({
           setIsMessagesOpen={setIsMessagesOpen}
           setIsNotificationsOpen={setIsNotificationsOpen}
           setIsGlobalSearchOpen={setIsGlobalSearchOpen}
+          homeAssignedTasks={homeAssignedTasks}
+          onOpenAssignedTask={openHomeTaskDetail}
         />
 
         <MobileStickyNotesDrawer

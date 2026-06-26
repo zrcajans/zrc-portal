@@ -2,7 +2,9 @@ import React from 'react';
 
 export default function MobilePremiumHeader({
   unreadNotificationCount = 0,
-  onToggleNotifications
+  onToggleNotifications,
+  title = 'Projeler',
+  kicker = 'ZRC Mobil'
 }) {
   return (
     <div className="zrc-mobile-premium-head">
@@ -11,8 +13,8 @@ export default function MobilePremiumHeader({
       </div>
 
       <div>
-        <div className="zrc-mobile-premium-kicker">ZRC Mobil</div>
-        <h1>Projeler</h1>
+        <div className="zrc-mobile-premium-kicker">{kicker}</div>
+        <h1>{title}</h1>
       </div>
 
       <button

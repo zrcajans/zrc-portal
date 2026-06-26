@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MobilePremiumHeader from './MobilePremiumHeader';
 import MobileProjectPicker from './MobileProjectPicker';
 import MobileTaskSection from './MobileTaskSection';
 import MobileTaskWizard from './MobileTaskWizard';
+import MobilePageRail from './MobilePageRail';
+import MobileAssignedTasks from './MobileAssignedTasks';
 
 export default function MobileWorkspace({
   unreadNotificationCount,
@@ -36,19 +38,39 @@ export default function MobileWorkspace({
   setIsPanelOpen,
   setIsMessagesOpen,
   setIsNotificationsOpen,
-  setIsGlobalSearchOpen
+  setIsGlobalSearchOpen,
+  homeAssignedTasks = [],
+  onOpenAssignedTask
 }) {
+  const [activeMobilePage, setActiveMobilePage] = useState('projects');
+
   const closeFloatingPanels = () => {
     setIsPanelOpen(false);
     setIsMessagesOpen(false);
     setIsGlobalSearchOpen(false);
   };
 
+  const handlePageChange = (nextPage) => {
+    if (nextPage !== 'projects' && nextPage !== 'assigned') return;
+
+    setActiveMobilePage(nextPage);
+    setIsMobileProjectPickerOpen(false);
+    closeFloatingPanels();
+    setIsNotificationsOpen(false);
+  };
+
   return (
     <>
-      <div className="zrc-mobile-simple-workspace">
+      <div className={`zrc-mobile-simple-workspace zrc-mobile-page-${activeMobilePage}`}>
+        <MobilePageRail
+          activePage={activeMobilePage}
+          assignedTaskCount={homeAssignedTasks.length}
+          onChange={handlePageChange}
+        />
         <MobilePremiumHeader
           unreadNotificationCount={unreadNotificationCount}
+          title={activeMobilePage === 'assigned' ? 'Görevlerim' : 'Projeler'}
+          kicker={activeMobilePage === 'assigned' ? 'ANA SAYFA' : 'ZRC MOBİL'}
           onToggleNotifications={(event) => {
             event.stopPropagation();
             closeFloatingPanels();
@@ -65,38 +87,47 @@ export default function MobileWorkspace({
           }}
         />
 
-        <MobileProjectPicker
-          selectedProject={selectedProject}
-          visibleProjectNames={visibleProjectNames}
-          projects={projects}
-          isOpen={isMobileProjectPickerOpen}
-          setIsOpen={setIsMobileProjectPickerOpen}
-          onSelectProject={(project) => {
-            setSelectedProject(project);
-            setActiveMenu('Projeler');
-            setActiveContentMenu('Projeler');
-            setActiveTab('Görevler');
-            setIsMobileProjectPickerOpen(false);
-            setIsPanelOpen(false);
-            setIsMessagesOpen(false);
-            setIsNotificationsOpen(false);
-            setIsGlobalSearchOpen(false);
-          }}
-        />
+        {activeMobilePage === 'projects' ? (
+          <>
+            <MobileProjectPicker
+              selectedProject={selectedProject}
+              visibleProjectNames={visibleProjectNames}
+              projects={projects}
+              isOpen={isMobileProjectPickerOpen}
+              setIsOpen={setIsMobileProjectPickerOpen}
+              onSelectProject={(project) => {
+                setSelectedProject(project);
+                setActiveMenu('Projeler');
+                setActiveContentMenu('Projeler');
+                setActiveTab('Görevler');
+                setIsMobileProjectPickerOpen(false);
+                setIsPanelOpen(false);
+                setIsMessagesOpen(false);
+                setIsNotificationsOpen(false);
+                setIsGlobalSearchOpen(false);
+              }}
+            />
 
-        <MobileTaskSection
-          selectedProject={selectedProject}
-          boardColumns={boardColumns}
-          normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
-          renderProfileAvatar={renderProfileAvatar}
-          createAvatarFromName={createAvatarFromName}
-          getMobileTaskCardAssignees={getMobileTaskCardAssignees}
-          moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
-          onOpenTaskDetail={onOpenTaskDetail}
-          setMobileTaskWizardData={setMobileTaskWizardData}
-          setMobileTaskWizardStep={setMobileTaskWizardStep}
-          setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}
-        />
+            <MobileTaskSection
+              selectedProject={selectedProject}
+              boardColumns={boardColumns}
+              normalizeColumnTitleForDisplay={normalizeColumnTitleForDisplay}
+              renderProfileAvatar={renderProfileAvatar}
+              createAvatarFromName={createAvatarFromName}
+              getMobileTaskCardAssignees={getMobileTaskCardAssignees}
+              moveMobileTaskToActiveColumn={moveMobileTaskToActiveColumn}
+              onOpenTaskDetail={onOpenTaskDetail}
+              setMobileTaskWizardData={setMobileTaskWizardData}
+              setMobileTaskWizardStep={setMobileTaskWizardStep}
+              setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}
+            />
+          </>
+        ) : (
+          <MobileAssignedTasks
+            tasks={homeAssignedTasks}
+            onOpenTask={onOpenAssignedTask || onOpenTaskDetail}
+          />
+        )}
       </div>
 
       <MobileTaskWizard

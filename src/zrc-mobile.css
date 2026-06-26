@@ -2796,3 +2796,306 @@
   }
 }
 /* === ZRC MOBILE CAPSULE ACTIVE + FIT + SCROLL END === */
+
+/* === ZRC MOBILE TWO-PAGE RAIL + ASSIGNED TASKS START === */
+@media (max-width: 768px) {
+  /*
+    Mobilde yalnızca iki ana çalışma sayfası vardır:
+    Projeler (mevcut pano) ve Ana Sayfa'daki Size Atanan Görevler.
+    Masaüstü bileşenlerini etkilemez.
+  */
+  /* Sol kenardaki ray görev kartlarının başlığını kapatmasın. */
+  .zrc-mobile-simple-workspace {
+    padding-left: 68px !important;
+    padding-right: 24px !important;
+  }
+
+  .zrc-mobile-page-rail {
+    position: fixed !important;
+    top: calc(50% - 6px) !important;
+    left: max(0px, env(safe-area-inset-left, 0px)) !important;
+    z-index: 860 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 54px !important;
+    padding: 7px 6px 7px 0 !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    border: 1px solid rgba(226, 232, 240, 0.96) !important;
+    border-left: 0 !important;
+    border-radius: 0 14px 14px 0 !important;
+    box-shadow: 8px 12px 28px rgba(15, 23, 42, 0.12) !important;
+    transform: translateY(-50%) !important;
+    backdrop-filter: blur(14px) !important;
+  }
+
+  .zrc-mobile-page-rail-button {
+    position: relative !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    margin: 0 !important;
+    padding: 5px 2px 4px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #64748b !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    box-shadow: none !important;
+    transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease !important;
+  }
+
+  .zrc-mobile-page-rail-button:active {
+    transform: scale(0.94) !important;
+  }
+
+  .zrc-mobile-page-rail-button.is-active {
+    background: #ff3600 !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 16px rgba(255, 54, 0, 0.28) !important;
+  }
+
+  .zrc-mobile-page-rail-icon {
+    width: 20px !important;
+    height: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .zrc-mobile-page-rail-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .zrc-mobile-page-rail-label {
+    max-width: 44px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .zrc-mobile-page-rail-count {
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
+    border: 2px solid #ffffff !important;
+    border-radius: 999px !important;
+    background: #263247 !important;
+    color: #ffffff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+  }
+
+  .zrc-mobile-page-rail-button.is-active .zrc-mobile-page-rail-count {
+    background: #ffffff !important;
+    color: #ff3600 !important;
+  }
+
+  .zrc-mobile-assigned-tasks {
+    width: 100% !important;
+    max-width: calc(100vw - 48px) !important;
+    margin: 0 auto !important;
+    padding: 4px 0 calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+    box-sizing: border-box !important;
+  }
+
+  .zrc-mobile-assigned-tasks-head {
+    min-height: 52px !important;
+    margin: 0 0 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+  }
+
+  .zrc-mobile-assigned-tasks-head small {
+    display: block !important;
+    margin-bottom: 4px !important;
+    color: #ff5b1f !important;
+    font-size: 10px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  .zrc-mobile-assigned-tasks-head h2 {
+    margin: 0 !important;
+    color: #1f2937 !important;
+    font-size: 24px !important;
+    line-height: 1.06 !important;
+    font-weight: 950 !important;
+    letter-spacing: -0.04em !important;
+  }
+
+  .zrc-mobile-assigned-tasks-head > b {
+    flex: 0 0 auto !important;
+    min-width: 33px !important;
+    height: 33px !important;
+    padding: 0 9px !important;
+    border-radius: 999px !important;
+    background: #ff5b1f !important;
+    color: #ffffff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    font-weight: 950 !important;
+    box-shadow: 0 8px 16px rgba(255, 91, 31, 0.22) !important;
+  }
+
+  .zrc-mobile-assigned-tasks-list {
+    display: grid !important;
+    gap: 9px !important;
+  }
+
+  .zrc-mobile-assigned-task-item {
+    width: 100% !important;
+    min-height: 78px !important;
+    padding: 13px 12px !important;
+    border: 1px solid #e9edf3 !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: #293241 !important;
+    display: grid !important;
+    grid-template-columns: 10px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    text-align: left !important;
+    box-shadow: 0 9px 22px rgba(15, 23, 42, 0.055) !important;
+  }
+
+  .zrc-mobile-assigned-task-item:active {
+    transform: scale(0.985) !important;
+    background: #fbfcfe !important;
+  }
+
+  .zrc-mobile-assigned-task-status {
+    width: 9px !important;
+    height: 9px !important;
+    border-radius: 999px !important;
+  }
+
+  .zrc-mobile-assigned-task-main {
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+  }
+
+  .zrc-mobile-assigned-task-main strong {
+    overflow: hidden !important;
+    color: #263247 !important;
+    font-size: 15px !important;
+    line-height: 1.18 !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.025em !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .zrc-mobile-assigned-task-main span {
+    overflow: hidden !important;
+    color: #8b95a5 !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .zrc-mobile-assigned-task-date {
+    max-width: 78px !important;
+    color: #64748b !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    font-weight: 850 !important;
+    text-align: right !important;
+  }
+
+  .zrc-mobile-assigned-task-date.is-overdue {
+    color: #dc2626 !important;
+  }
+
+  .zrc-mobile-assigned-empty {
+    min-height: 218px !important;
+    padding: 28px 22px !important;
+    border: 1px dashed #cbd5e1 !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.62) !important;
+    color: #94a3b8 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .zrc-mobile-assigned-empty svg {
+    width: 38px !important;
+    height: 38px !important;
+    margin-bottom: 14px !important;
+    color: #ff5b1f !important;
+  }
+
+  .zrc-mobile-assigned-empty strong {
+    color: #475569 !important;
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+    font-weight: 900 !important;
+  }
+
+  .zrc-mobile-assigned-empty span {
+    margin-top: 6px !important;
+    color: #94a3b8 !important;
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+    font-weight: 750 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .zrc-mobile-simple-workspace {
+    padding-left: 60px !important;
+    padding-right: 20px !important;
+  }
+
+  .zrc-mobile-page-rail {
+    width: 48px !important;
+  }
+
+  .zrc-mobile-page-rail-button {
+    width: 43px !important;
+    min-width: 43px !important;
+  }
+
+  .zrc-mobile-page-rail-label {
+    font-size: 7px !important;
+  }
+
+  .zrc-mobile-assigned-task-item {
+    grid-template-columns: 8px minmax(0, 1fr) 64px !important;
+    gap: 8px !important;
+  }
+
+  .zrc-mobile-assigned-task-date {
+    max-width: 64px !important;
+    font-size: 8.5px !important;
+  }
+}
+/* === ZRC MOBILE TWO-PAGE RAIL + ASSIGNED TASKS END === */
