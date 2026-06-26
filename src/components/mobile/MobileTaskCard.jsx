@@ -13,6 +13,7 @@ export default function MobileTaskCard({
   onOpenTaskDetail
 }) {
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const [isColumnMoveInFlight, setIsColumnMoveInFlight] = useState(false);
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
   const [columnMenuPlacement, setColumnMenuPlacement] = useState('down');
   const columnDropdownRef = useRef(null);
@@ -100,22 +101,34 @@ export default function MobileTaskCard({
     openTaskDetails();
   };
 
+  const stopTaskCardActivation = (event) => {
+    event.stopPropagation();
+  };
+
   const handleMoveToColumn = async (event, targetColumn) => {
+    event.preventDefault();
     event.stopPropagation();
 
-    if (!targetColumn?.id) return;
+    if (isColumnMoveInFlight || !targetColumn?.id) return;
 
     const targetTitle = normalizeTitle(targetColumn.title || 'Kolon');
 
     if (typeof moveMobileTaskToActiveColumn !== 'function') return;
 
-    const moved = await moveMobileTaskToActiveColumn(task, targetColumn.id);
-    if (!moved) return;
-
+    // Menü hemen kapanır ve işlem sürerken ikinci kez tıklanamaz.
+    // Böylece alttaki kart/kapsül tıklaması ikinci bir menü ya da ikinci taşıma isteği oluşturamaz.
     setIsColumnMenuOpen(false);
+    setIsColumnMoveInFlight(true);
 
-    if (typeof onMobileTaskMoveToast === 'function') {
-      onMobileTaskMoveToast(`Görev ${targetTitle} kolonuna aktarıldı.`);
+    try {
+      const moved = await moveMobileTaskToActiveColumn(task, targetColumn.id);
+      if (!moved) return;
+
+      if (typeof onMobileTaskMoveToast === 'function') {
+        onMobileTaskMoveToast(`Görev ${targetTitle} kolonuna aktarıldı.`);
+      }
+    } finally {
+      setIsColumnMoveInFlight(false);
     }
   };
 
@@ -184,8 +197,15 @@ export default function MobileTaskCard({
             ref={moveButtonRef}
             type="button"
             className="zrc-mobile-task-move-btn"
+            aria-haspopup="menu"
+            aria-expanded={isColumnMenuOpen}
+            disabled={isColumnMoveInFlight}
+            onPointerDown={stopTaskCardActivation}
             onClick={(event) => {
+              event.preventDefault();
               event.stopPropagation();
+
+              if (isColumnMoveInFlight) return;
 
               if (!isColumnMenuOpen) {
                 window.requestAnimationFrame(updateColumnMenuPlacement);
@@ -194,7 +214,7 @@ export default function MobileTaskCard({
               setIsColumnMenuOpen((prev) => !prev);
             }}
           >
-            <span>Taşı</span>
+            <span>{isColumnMoveInFlight ? 'Taşınıyor' : 'Taşı'}</span>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d={isColumnMenuOpen ? 'M6 14l6-6 6 6' : 'M6 10l6 6 6-6'}
@@ -207,7 +227,13 @@ export default function MobileTaskCard({
           </button>
 
           {isColumnMenuOpen && (
-            <div className="zrc-mobile-task-column-menu" onClick={(event) => event.stopPropagation()}>
+            <div
+              className="zrc-mobile-task-column-menu"
+              role="menu"
+              aria-label="Görevi başka kolona taşı"
+              onPointerDown={stopTaskCardActivation}
+              onClick={stopTaskCardActivation}
+            >
               <div className="zrc-mobile-task-column-menu-head">
                 <small>Kolona aktar</small>
               </div>
@@ -222,6 +248,9 @@ export default function MobileTaskCard({
                       key={column.id}
                       type="button"
                       className="zrc-mobile-task-column-menu-item"
+                      role="menuitem"
+                      disabled={isColumnMoveInFlight}
+                      onPointerDown={stopTaskCardActivation}
                       onClick={(event) => handleMoveToColumn(event, column)}
                     >
                       <span>

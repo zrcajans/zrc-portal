@@ -6185,10 +6185,24 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
   const moveMobileTaskToActiveColumn = async (taskToMove = {}, targetColumnId = '') => {
     const activeProjectName = selectedProject;
 
-    if (!activeProjectName || !taskToMove?.id) return;
+    if (!activeProjectName || !taskToMove?.id) return false;
 
     const normalizedTargetColumnId = String(targetColumnId || '').trim();
     const normalizedTargetColumnTitle = normalizeColumnTitleForDisplay(normalizedTargetColumnId);
+    const sourceColumnId = String(taskToMove.columnId || '').trim();
+    const sourceColumn = (boardColumns || []).find((column) =>
+      String(column?.id || '').trim() === sourceColumnId
+    );
+
+    if (!sourceColumn) {
+      await window.zrcAlert('Görevin bulunduğu kolon güncel değil. Pano yenilenip tekrar deneyin.');
+      await loadSelectedProjectBoardFromSupabase();
+      return false;
+    }
+
+    const sourceTask = (sourceColumn.tasks || []).find((item) =>
+      String(item?.id || '').trim() === String(taskToMove.id || '').trim()
+    ) || taskToMove;
 
     const targetColumn = (boardColumns || []).find((column) => {
       const columnId = String(column?.id || '').trim();
@@ -6203,21 +6217,16 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
 
     if (!targetColumn) {
       await window.zrcAlert(normalizedTargetColumnId ? 'Hedef kolon bulunamadı.' : 'Aktif kolonu bulunamadı.');
-      return;
+      return false;
     }
 
+    if (String(sourceColumn.id || '') === String(targetColumn.id || '')) return false;
+
     const targetStatus = targetColumn.title || 'Aktif';
-    const rawTaskId = String(taskToMove.id || '').trim();
-    const taskSupabaseId = String(
-      taskToMove.supabaseId ||
-      taskToMove.supabase_id ||
-      (rawTaskId.startsWith('supabase-') ? rawTaskId.replace('supabase-', '') : '') ||
-      (isSupabaseUuid(rawTaskId) ? rawTaskId : '') ||
-      ''
-    ).trim();
+    const taskSupabaseId = getSupabaseTaskIdFromLocalTask(sourceTask);
 
     const movedTask = {
-      ...taskToMove,
+      ...sourceTask,
       projectName: activeProjectName,
       project: activeProjectName,
       status: targetStatus,
@@ -6272,57 +6281,63 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
       });
     };
 
-    const actionKey = `mobile-move-task-${taskToMove.id}`;
+    const actionKey = `mobile-move-task-${taskSupabaseId || taskToMove.id}`;
     if (!tryAcquireActionLock(taskMutationLockRef, actionKey)) return false;
 
     try {
       const workspaceId = getCurrentSupabaseWorkspaceId();
-      let persistedMovedTask = movedTask;
 
-      if (taskSupabaseId && workspaceId) {
-        const projectId = await ensureSupabaseProject(activeProjectName);
-        if (!projectId) throw new Error('Proje kaydı bulunamadı');
-        const targetColumnIndex = Math.max(
-          0,
-          (boardColumns || []).findIndex((column) =>
-            String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
-            normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
-          )
-        );
-        const targetSupabaseColumnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
-        if (!targetSupabaseColumnId) throw new Error('Hedef kolon kaydı bulunamadı');
-
-        const mutationResult = await supabase
-          .from('tasks')
-          .update({
-            column_id: targetSupabaseColumnId,
-            status: targetStatus,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', taskSupabaseId)
-          .eq('workspace_id', workspaceId)
-          .eq('project_id', projectId)
-          .select('id')
-          .maybeSingle();
-
-        requireMatchingMutationRow(mutationResult, taskSupabaseId, 'Mobil görev taşıma');
-      } else {
-        const savedTaskId = await saveTaskToSupabaseForProject(activeProjectName, movedTask, targetStatus);
-        if (!savedTaskId) throw new Error('Görev kaydı oluşturulamadı');
-        persistedMovedTask = { ...movedTask, supabaseId: savedTaskId };
+      // Taşıma hiçbir koşulda yeni görev oluşturmamalıdır.
+      // Kaydı çözülmeyen eski önbellek kartı yenilenir; aksi hâlde aynı görev iki kez görünürdü.
+      if (!workspaceId || !taskSupabaseId) {
+        await loadSelectedProjectBoardFromSupabase();
+        throw new Error('Görevin kalıcı kaydı yenileniyor. Lütfen birkaç saniye sonra tekrar deneyin.');
       }
+
+      const projectId = await ensureSupabaseProject(activeProjectName);
+      if (!projectId) throw new Error('Proje kaydı bulunamadı');
+
+      const targetColumnIndex = Math.max(
+        0,
+        (boardColumns || []).findIndex((column) =>
+          String(column?.id || '').trim() === String(targetColumn.id || '').trim() ||
+          normalizeColumnTitleForDisplay(column?.title || '') === normalizeColumnTitleForDisplay(targetColumn.title || targetStatus)
+        )
+      );
+      const targetSupabaseColumnId = await ensureSupabaseColumn(projectId, targetColumn, targetColumnIndex);
+      if (!targetSupabaseColumnId) throw new Error('Hedef kolon kaydı bulunamadı');
+
+      const mutationResult = await supabase
+        .from('tasks')
+        .update({
+          column_id: targetSupabaseColumnId,
+          status: targetStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', taskSupabaseId)
+        .eq('workspace_id', workspaceId)
+        .eq('project_id', projectId)
+        .select('id')
+        .maybeSingle();
+
+      requireMatchingMutationRow(mutationResult, taskSupabaseId, 'Mobil görev taşıma');
+
+      const persistedMovedTask = {
+        ...movedTask,
+        supabaseId: taskSupabaseId
+      };
 
       commitMobileTaskMove(persistedMovedTask);
 
-      const mobileMoveRecipientUserIds = getTaskAssigneeUserIdsForNotification(taskToMove)
+      const mobileMoveRecipientUserIds = getTaskAssigneeUserIdsForNotification(sourceTask)
         .filter((userId) => !isCurrentSupabaseUserId(userId));
 
       createActivityNotification({
         type: 'status',
         title: 'Görev durumu değişti',
         text: persistedMovedTask.title || 'Adsız görev',
-        meta: `${taskToMove.columnTitle || taskToMove.status || 'Eski durum'} → ${targetStatus}`,
-        task: { ...persistedMovedTask, supabaseId: persistedMovedTask.supabaseId || taskSupabaseId },
+        meta: `${sourceColumn.title || sourceTask.status || 'Eski durum'} → ${targetStatus}`,
+        task: persistedMovedTask,
         columnTitle: targetStatus,
         targetUserIds: mobileMoveRecipientUserIds,
         sortWeight: 820
@@ -6333,15 +6348,15 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         title: 'ZRC',
         body: `Görev güncellendi: ${persistedMovedTask.title || 'Adsız görev'}`,
         workspaceId,
-        taskId: persistedMovedTask.supabaseId || taskSupabaseId,
+        taskId: taskSupabaseId,
         recipientUserIds: mobileMoveRecipientUserIds
       });
 
-      zrcSetSupabaseWriteInfo('saved', 'Görev Aktif kolonuna taşındı');
+      zrcSetSupabaseWriteInfo('saved', `Görev ${targetStatus} kolonuna taşındı`);
       setTimeout(() => loadSelectedProjectBoardFromSupabase(), 700);
       return true;
     } catch (error) {
-      zrcSetSupabaseWriteInfo('error', `Görev Aktif kolonuna taşınamadı: ${error?.message || 'bilinmeyen hata'}`);
+      zrcSetSupabaseWriteInfo('error', `Görev taşınamadı: ${error?.message || 'bilinmeyen hata'}`);
       await window.zrcAlert('Görev taşınamadı; pano değiştirilmedi ve sunucudaki son hali korunuyor.');
       return false;
     } finally {
