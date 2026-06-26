@@ -35,6 +35,8 @@ test('mobile page navigation sits in the top header instead of the left edge', a
   assert.match(header, /aria-label="Mobil sayfalar"/);
   assert.match(header, /onChangePage\?\.\(item\.id\)/);
   assert.match(header, /onToggleNotifications/);
+  assert.match(header, /zrc-mobile-top-page-nav-notification/);
+  assert.doesNotMatch(header, /<span className="zrc-mobile-top-page-nav-label">Bildirim<\/span>/);
   assert.doesNotMatch(header, /zrc-mobile-brand-logo/);
 
   assert.match(assigned, /Size Atanan Görevler/);
@@ -44,4 +46,8 @@ test('mobile page navigation sits in the top header instead of the left edge', a
   assert.match(css, /ZRC MOBILE TOP PAGE NAVIGATION START/);
   assert.match(css, /\.zrc-mobile-top-page-nav/);
   assert.match(css, /\.zrc-mobile-page-rail\s*\{\s*display: none !important;/);
+  assert.match(css, /ZRC MOBILE HEADER LOGO REMOVAL \+ DISTINCT NOTIFICATION START/);
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\) 64px !important;/);
+  assert.match(css, /zrc-mobile-top-page-nav-notification/);
+  assert.match(css, /body \.zrc-mobile-simple-workspace::before,[\s\S]*?content: none !important;/);
 });

@@ -66,7 +66,6 @@ export default function MobilePremiumHeader({
               <path d="M10 21h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </span>
-          <span className="zrc-mobile-top-page-nav-label">Bildirim</span>
           {unreadNotificationCount > 0 && (
             <b className="zrc-mobile-top-page-nav-count">{unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}</b>
           )}
