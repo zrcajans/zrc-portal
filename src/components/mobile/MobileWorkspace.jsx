@@ -3,7 +3,6 @@ import MobilePremiumHeader from './MobilePremiumHeader';
 import MobileProjectPicker from './MobileProjectPicker';
 import MobileTaskSection from './MobileTaskSection';
 import MobileTaskWizard from './MobileTaskWizard';
-import MobilePageRail from './MobilePageRail';
 import MobileAssignedTasks from './MobileAssignedTasks';
 
 export default function MobileWorkspace({
@@ -62,15 +61,11 @@ export default function MobileWorkspace({
   return (
     <>
       <div className={`zrc-mobile-simple-workspace zrc-mobile-page-${activeMobilePage}`}>
-        <MobilePageRail
+        <MobilePremiumHeader
           activePage={activeMobilePage}
           assignedTaskCount={homeAssignedTasks.length}
-          onChange={handlePageChange}
-        />
-        <MobilePremiumHeader
           unreadNotificationCount={unreadNotificationCount}
-          title={activeMobilePage === 'assigned' ? 'Görevlerim' : 'Projeler'}
-          kicker={activeMobilePage === 'assigned' ? 'ANA SAYFA' : 'ZRC MOBİL'}
+          onChangePage={handlePageChange}
           onToggleNotifications={(event) => {
             event.stopPropagation();
             closeFloatingPanels();
