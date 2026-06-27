@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { formatZrcDate } from '../../utils/dateDisplayHelpers';
+import MobileTaskDetailSheet from './MobileTaskDetailSheet';
 
 export default function MobileTaskCard({
   task,
@@ -10,7 +11,8 @@ export default function MobileTaskCard({
   moveMobileTaskToActiveColumn,
   allBoardColumns,
   onMobileTaskMoveToast,
-  onOpenTaskDetail
+  onOpenTaskDetail,
+  onUpdateTaskDescription
 }) {
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
   const [isColumnMoveInFlight, setIsColumnMoveInFlight] = useState(false);
@@ -132,12 +134,6 @@ export default function MobileTaskCard({
     }
   };
 
-  const taskDescription = String(task.description || task.detail || '').trim();
-  const taskStartDate = formatZrcDate(task.startDate || task.start_date, { fallback: '' });
-  const taskDueDate = formatZrcDate(
-    task.dueDate || task.due_date || task.endDate || task.end_date,
-    { fallback: '' }
-  );
   const taskSteps = Array.isArray(task.steps)
     ? task.steps
     : (Array.isArray(task.taskSteps) ? task.taskSteps : []);
@@ -269,88 +265,14 @@ export default function MobileTaskCard({
       </div>
 
       {isTaskDetailOpen && (
-        <div
-          className="zrc-mobile-task-detail-backdrop"
-          role="presentation"
-          onClick={closeTaskDetails}
-        >
-          <section
-            className="zrc-mobile-task-detail-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${taskTitle} görev detayı`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="zrc-mobile-task-detail-sheet-head">
-              <div className="zrc-mobile-task-detail-sheet-status">
-                <i style={{ backgroundColor: task.columnColor || '#3b82f6' }} />
-                <span>{columnTitle || 'Görev detayı'}</span>
-              </div>
-
-              <button
-                type="button"
-                className="zrc-mobile-task-detail-sheet-close"
-                aria-label="Görev detayını kapat"
-                onClick={closeTaskDetails}
-              >
-                ×
-              </button>
-            </div>
-
-            <h2>{taskTitle}</h2>
-
-            {taskDescription ? (
-              <div className="zrc-mobile-task-detail-block">
-                <strong>Açıklama</strong>
-                <p>{taskDescription}</p>
-              </div>
-            ) : (
-              <div className="zrc-mobile-task-detail-block is-empty">
-                <strong>Açıklama</strong>
-                <p>Bu görev için açıklama eklenmemiş.</p>
-              </div>
-            )}
-
-            <div className="zrc-mobile-task-detail-meta-grid">
-              <div>
-                <small>Başlangıç</small>
-                <b>{taskStartDate || 'Belirtilmedi'}</b>
-              </div>
-              <div>
-                <small>Bitiş</small>
-                <b>{taskDueDate || 'Belirtilmedi'}</b>
-              </div>
-            </div>
-
-            <div className="zrc-mobile-task-detail-block">
-              <strong>Görevliler</strong>
-              {assignees.length > 0 ? (
-                <div className="zrc-mobile-task-detail-assignees">
-                  {assignees.map((person) => (
-                    <span key={person.id || person.email || person.name}>
-                      {person.name || 'İsimsiz kullanıcı'}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p>Görevli kişi yok.</p>
-              )}
-            </div>
-
-            {taskSteps.length > 0 && (
-              <div className="zrc-mobile-task-detail-block">
-                <strong>Adımlar</strong>
-                <ul className="zrc-mobile-task-detail-steps">
-                  {taskSteps.map((step, index) => (
-                    <li key={step.id || `${step.title || step.text || 'adim'}-${index}`}>
-                      {step.title || step.text || step.name || `Adım ${index + 1}`}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </section>
-        </div>
+        <MobileTaskDetailSheet
+          task={task}
+          columnTitle={columnTitle}
+          assignees={assignees}
+          taskSteps={taskSteps}
+          onClose={closeTaskDetails}
+          onUpdateTaskDescription={onUpdateTaskDescription}
+        />
       )}
     </>
   );

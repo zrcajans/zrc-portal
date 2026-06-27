@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { formatZrcDateTime } from '../../utils/dateDisplayHelpers';
+import MobileTaskDetailSheet from './MobileTaskDetailSheet';
 
 const getTaskDeadlineLabel = (task = {}) => {
   const value = task.homeDate || task.calendarEndDate || task.calendarStartDate || task.dueDate || task.due_date || task.endDate || task.end_date;
@@ -16,8 +17,20 @@ const isOverdueTask = (task = {}) => {
   return date < todayStart;
 };
 
-export default function MobileAssignedTasks({ tasks = [], onOpenTask }) {
+export default function MobileAssignedTasks({
+  tasks = [],
+  getMobileTaskCardAssignees,
+  onUpdateTaskDescription
+}) {
+  const [selectedTask, setSelectedTask] = useState(null);
   const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const selectedAssignees =
+    selectedTask && typeof getMobileTaskCardAssignees === 'function'
+      ? getMobileTaskCardAssignees(selectedTask)
+      : [];
+  const selectedTaskSteps = Array.isArray(selectedTask?.steps)
+    ? selectedTask.steps
+    : (Array.isArray(selectedTask?.taskSteps) ? selectedTask.taskSteps : []);
 
   return (
     <section className="zrc-mobile-assigned-tasks" aria-labelledby="zrc-mobile-assigned-tasks-title">
@@ -51,7 +64,7 @@ export default function MobileAssignedTasks({ tasks = [], onOpenTask }) {
                   key={`mobile-assigned-${task.projectName || ''}-${task.id || task.supabaseId || task.title}`}
                   type="button"
                   className="zrc-mobile-assigned-task-row"
-                  onClick={() => onOpenTask?.(task)}
+                  onClick={() => setSelectedTask(task)}
                 >
                   <span className="zrc-mobile-assigned-task-order">{index + 1}.</span>
                   <span className="zrc-mobile-assigned-task-title">
@@ -69,6 +82,17 @@ export default function MobileAssignedTasks({ tasks = [], onOpenTask }) {
           <div className="zrc-mobile-assigned-empty">Gösterilecek görev yok</div>
         )}
       </div>
+
+      {selectedTask && (
+        <MobileTaskDetailSheet
+          task={selectedTask}
+          columnTitle={selectedTask.columnTitle || selectedTask.status || 'Görev detayı'}
+          assignees={selectedAssignees}
+          taskSteps={selectedTaskSteps}
+          onClose={() => setSelectedTask(null)}
+          onUpdateTaskDescription={onUpdateTaskDescription}
+        />
+      )}
     </section>
   );
 }

@@ -392,6 +392,29 @@ export default function ZRCAppAuthenticatedShell({
   const getMobileTaskCardAssignees = (task = {}) =>
     resolveMobileTaskCardAssignees(task, teamMembers, createAvatarFromName);
 
+  const saveMobileTaskDescription = async (task = {}, description = '', historyEntry = null) => {
+    const taskId = String(task?.id || '').trim();
+
+    if (!taskId || typeof updateTaskFromDetail !== 'function') return false;
+
+    const nextDescription = String(description || '').trim();
+    const fallbackHistory = {
+      type: 'description',
+      title: nextDescription ? 'Açıklama güncellendi' : 'Açıklama kaldırıldı',
+      description: nextDescription ? 'Görev açıklaması düzenlendi.' : 'Görev açıklaması temizlendi.'
+    };
+
+    return updateTaskFromDetail(
+      taskId,
+      {
+        description: nextDescription,
+        richDescription: nextDescription,
+        supabaseId: task.supabaseId || task.supabase_id || ''
+      },
+      historyEntry || fallbackHistory
+    );
+  };
+
   return (<div className="min-h-screen flex bg-[#f5f6f8] antialiased selection:bg-[#ff3600] overflow-x-hidden relative font-[Inter]">
       <ZRCAppGlobalStyles />
       <ZRCPremiumCursor />
@@ -553,6 +576,7 @@ export default function ZRCAppAuthenticatedShell({
           setIsGlobalSearchOpen={setIsGlobalSearchOpen}
           homeAssignedTasks={homeAssignedTasks}
           onOpenAssignedTask={openHomeTaskDetail}
+          onUpdateTaskDescription={saveMobileTaskDescription}
         />
 
         <MobileStickyNotesDrawer

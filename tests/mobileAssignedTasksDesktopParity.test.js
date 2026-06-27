@@ -18,7 +18,9 @@ test('mobile assigned tasks use the same relaxed table structure as the desktop 
   assert.match(assigned, /Bitiş/);
   assert.match(assigned, /zrc-mobile-assigned-task-order/);
   assert.match(assigned, /zrc-mobile-assigned-task-row/);
-  assert.match(assigned, /onOpenTask\?\.\(task\)/);
+  assert.match(assigned, /useState\(null\)/);
+  assert.match(assigned, /setSelectedTask\(task\)/);
+  assert.match(assigned, /<MobileTaskDetailSheet/);
   assert.match(assigned, /formatZrcDateTime/);
 
   assert.match(css, /\.zrc-mobile-assigned-card\s*\{[\s\S]*?border-radius: 13px !important;/);

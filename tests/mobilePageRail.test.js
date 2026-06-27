@@ -27,7 +27,8 @@ test('mobile page navigation sits in the top header instead of the left edge', a
   assert.match(workspace, /onChangePage=\{handlePageChange\}/);
   assert.match(workspace, /<MobileAssignedTasks/);
   assert.match(workspace, /homeAssignedTasks = \[\]/);
-  assert.match(workspace, /onOpenTask=\{onOpenAssignedTask \|\| onOpenTaskDetail\}/);
+  assert.match(workspace, /getMobileTaskCardAssignees=\{getMobileTaskCardAssignees\}/);
+  assert.match(workspace, /onUpdateTaskDescription=\{onUpdateTaskDescription\}/);
 
   assert.match(header, /label: 'Atananlar'/);
   assert.match(header, /label: 'Projeler'/);
@@ -41,7 +42,8 @@ test('mobile page navigation sits in the top header instead of the left edge', a
   assert.doesNotMatch(header, /zrc-mobile-brand-logo/);
 
   assert.match(assigned, /Size Atanan Görevler/);
-  assert.match(assigned, /onOpenTask\?\.\(task\)/);
+  assert.match(assigned, /setSelectedTask\(task\)/);
+  assert.match(assigned, /<MobileTaskDetailSheet/);
   assert.match(assigned, /formatZrcDateTime/);
 
   assert.match(css, /ZRC MOBILE TOP PAGE NAVIGATION START/);

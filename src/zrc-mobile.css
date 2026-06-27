@@ -3492,3 +3492,78 @@
   }
 }
 /* === ZRC MOBILE COMPACT TOP NAV REFINEMENT END === */
+
+/* === ZRC MOBILE SHARED TASK DETAIL DESCRIPTION EDIT START === */
+@media (max-width: 768px) {
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-block-title-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-save-status {
+    min-height: 18px !important;
+    color: #94a3b8 !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-save-status.is-saved {
+    color: #16a34a !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-save-status.is-error {
+    color: #dc2626 !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-description-input {
+    width: 100% !important;
+    min-height: 118px !important;
+    padding: 12px 13px !important;
+    border: 1px solid rgba(226, 232, 240, 0.96) !important;
+    border-radius: 8px !important;
+    background: #f8fafc !important;
+    color: #1f2937 !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    resize: vertical !important;
+    font: inherit !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.45 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-description-input:focus {
+    border-color: rgba(255, 54, 0, 0.48) !important;
+    background: #ffffff !important;
+    box-shadow:
+      0 0 0 3px rgba(255, 54, 0, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-description-save {
+    width: 100% !important;
+    min-height: 38px !important;
+    margin-top: 10px !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: #ff3600 !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+    letter-spacing: -0.02em !important;
+    box-shadow: 0 10px 18px rgba(255, 54, 0, 0.18) !important;
+  }
+
+  body .zrc-mobile-simple-workspace .zrc-mobile-task-detail-description-save:disabled {
+    background: #e5e7eb !important;
+    color: #94a3b8 !important;
+    box-shadow: none !important;
+  }
+}
+/* === ZRC MOBILE SHARED TASK DETAIL DESCRIPTION EDIT END === */

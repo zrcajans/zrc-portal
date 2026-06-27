@@ -8,7 +8,7 @@ test('mobile task move closes the menu and locks the action before persistence',
     'utf8'
   );
   const handlerStart = source.indexOf('const handleMoveToColumn');
-  const moveHandler = source.slice(handlerStart, source.indexOf('\n  const taskDescription', handlerStart));
+  const moveHandler = source.slice(handlerStart, source.indexOf('\n  const taskSteps', handlerStart));
 
   assert.match(source, /const \[isColumnMoveInFlight, setIsColumnMoveInFlight\] = useState\(false\)/);
   assert.match(moveHandler, /setIsColumnMenuOpen\(false\);/);

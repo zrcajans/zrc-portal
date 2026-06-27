@@ -39,7 +39,7 @@ export default function MobileWorkspace({
   setIsNotificationsOpen,
   setIsGlobalSearchOpen,
   homeAssignedTasks = [],
-  onOpenAssignedTask
+  onUpdateTaskDescription
 }) {
   const [activeMobilePage, setActiveMobilePage] = useState('projects');
 
@@ -115,12 +115,14 @@ export default function MobileWorkspace({
               setMobileTaskWizardData={setMobileTaskWizardData}
               setMobileTaskWizardStep={setMobileTaskWizardStep}
               setIsMobileTaskWizardOpen={setIsMobileTaskWizardOpen}
+              onUpdateTaskDescription={onUpdateTaskDescription}
             />
           </>
         ) : (
           <MobileAssignedTasks
             tasks={homeAssignedTasks}
-            onOpenTask={onOpenAssignedTask || onOpenTaskDetail}
+            getMobileTaskCardAssignees={getMobileTaskCardAssignees}
+            onUpdateTaskDescription={onUpdateTaskDescription}
           />
         )}
       </div>
