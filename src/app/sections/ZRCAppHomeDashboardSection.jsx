@@ -764,19 +764,15 @@ export default function ZRCAppHomeDashboardSection({
                               </button>
 
                               {group.tasks.map((task) => (
-                                <button
-                                  key={`home-list-task-${group.day.toISOString()}-${task.projectName}-${task.id}`}
-                                  type="button"
-                                  onClick={() => openMenuCalendarTask(task)}
-                                  className="w-full h-[34px] grid grid-cols-[64px_1fr] items-center border-b border-[#e6e9ef] text-left hover:bg-[#fafcff]"
-                                >
-                                  <div className="px-3 text-[10px] font-bold text-[#596270]">
-                                    {formatMenuCalendarTaskTime(task) || ' '}
-                                  </div>
-                                  <div className="min-w-0 text-[10px] font-semibold text-[#596270] truncate">
-                                    <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: task.columnColor || '#55ace8' }} />
-                                    {task.title}
-                                  </div>
+                                  <button
+                                    key={`home-list-task-${group.day.toISOString()}-${task.projectName}-${task.id}`}
+                                    type="button"
+                                    onClick={() => openMenuCalendarTask(task)}
+                                    title={getPremiumCalendarTaskTooltip(task)}
+                                    className="w-full h-[16px] border-b border-[#edf0f4] border-l-[4px] text-left hover:opacity-85 transition-opacity"
+                                    style={getPremiumCalendarLineStyle(task)}
+                                  >
+                                  <span className="sr-only">{getPremiumCalendarTaskTooltip(task)}</span>
                                 </button>
                               ))}
                             </div>

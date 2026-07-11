@@ -163,11 +163,11 @@ export default function ZRCAppShellCalendarViewHaftaBlock2(props) {
                                           event.stopPropagation();
                                           openMenuCalendarTask(task);
                                         }}
-                                        className="absolute left-1 right-1 top-1 min-h-[30px] rounded-[8px] border border-[#e4e9f1] border-l-[3px] bg-white px-2 py-1 text-left text-[8px] font-black text-current overflow-hidden shadow-[0_6px_14px_rgba(15,23,42,0.045)]"
-                                        style={getPremiumCalendarTaskStyle(task)}
+                                        title={getPremiumCalendarTaskTooltip(task)}
+                                        className="absolute left-1 right-1 top-2 h-[8px] rounded-full border border-transparent border-l-[4px] text-left overflow-hidden transition-all hover:opacity-85"
+                                        style={getPremiumCalendarLineStyle(task)}
                                       >
-                                        <div>{formatMenuCalendarTaskTime(task)}</div>
-                                        <div className="truncate">{task.title}</div>
+                                        <span className="sr-only">{getPremiumCalendarTaskTooltip(task)}</span>
                                       </button>
                                     ))}
                                   </div>

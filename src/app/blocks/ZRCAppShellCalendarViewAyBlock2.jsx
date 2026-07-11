@@ -144,16 +144,11 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                         event.stopPropagation();
                                         openMenuCalendarTask(task);
                                       }}
-                                      className="w-full h-[20px] px-1.5 flex items-center gap-1.5 overflow-hidden rounded-[6px] border border-[#e4e9f1] border-l-[3px] bg-white text-left shadow-[0_5px_12px_rgba(15,23,42,0.035)] hover:shadow-[0_8px_16px_rgba(15,23,42,0.06)] transition-all"
-                                      style={getPremiumCalendarTaskStyle(task)}
+                                      title={getPremiumCalendarTaskTooltip(task)}
+                                      className="w-full h-[8px] overflow-hidden rounded-full border border-transparent border-l-[4px] text-left transition-all hover:opacity-85"
+                                      style={getPremiumCalendarLineStyle(task)}
                                     >
-                                      <span
-                                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                                        style={getPremiumCalendarDotStyle(task)}
-                                      />
-                                      <span className="min-w-0 flex-1 text-[8px] font-black text-current truncate">
-                                        {formatMenuCalendarTaskTime(task) ? `${formatMenuCalendarTaskTime(task)} · ${task.title}` : task.title}
-                                      </span>
+                                      <span className="sr-only">{getPremiumCalendarTaskTooltip(task)}</span>
                                     </button>
                                   ))}
 

@@ -7257,6 +7257,31 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
     };
   };
 
+  const getPremiumCalendarLineStyle = (task = {}) => {
+    const accentColor = getCalendarTaskAccentColor(task);
+    return {
+      backgroundColor: mixHexWithWhite(accentColor, 0.9),
+      borderLeftColor: accentColor,
+      color: '#1f2937'
+    };
+  };
+
+  const getPremiumCalendarTaskTooltip = (task = {}) => {
+    const parts = [];
+
+    if (task.title) parts.push(task.title);
+    if (task.projectName) parts.push(task.projectName);
+
+    const dateLabel =
+      formatMenuCalendarTaskTime(task) ||
+      (task.calendarStartDate ? formatCalendarDate(task.calendarStartDate) : '') ||
+      (task.homeDate ? formatCalendarDate(task.homeDate) : '');
+
+    if (dateLabel) parts.push(dateLabel);
+
+    return parts.join(' · ');
+  };
+
   const getPremiumCalendarDotStyle = (task = {}) => ({
     backgroundColor: getCalendarTaskAccentColor(task)
   });
