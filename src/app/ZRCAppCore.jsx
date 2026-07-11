@@ -1047,6 +1047,7 @@ function App() {
 
   const [activeMenu, setActiveMenu] = useState(() => getSavedNavigationState().activeMenu);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [initialSupabaseHydrationScopeKey, setInitialSupabaseHydrationScopeKey] = useState('');
 
   const {projects, setProjects, teamMembers, setTeamMembers, currentUserId, setCurrentUserId, supabaseAuthUserId, setSupabaseAuthUserId, currentAssignedSupabaseTaskIds, setCurrentAssignedSupabaseTaskIds, loginDraft, setLoginDraft, loginError, setLoginError, authLoginLoading, setAuthLoginLoading, authSessionLoading, setAuthSessionLoading, supabaseWorkspaceId, setSupabaseWorkspaceId, supabaseWriteStatus, setSupabaseWriteStatus, supabaseHealthLoading, setSupabaseHealthLoading, supabaseBackupLoading, setSupabaseBackupLoading, supabaseRealtimeStatus, setSupabaseRealtimeStatus, pwaInstallPrompt, setPwaInstallPrompt, pwaInstallStatus, setPwaInstallStatus, supabaseHealthReport, setSupabaseHealthReport, supabaseLastFullRefreshAt, setSupabaseLastFullRefreshAt, supabaseLastBackupAt, setSupabaseLastBackupAt, supabaseLastRealtimeAt, setSupabaseLastRealtimeAt, teamMemberDraft, setTeamMemberDraft, pendingTeamDeleteId, setPendingTeamDeleteId, selectedTeamMemberId, setSelectedTeamMemberId, editingTeamMember, setEditingTeamMember, teamMemberEditDraft, setTeamMemberEditDraft, customers, setCustomers, customerDraft, setCustomerDraft, selectedCustomerId, setSelectedCustomerId, pendingCustomerDeleteId, setPendingCustomerDeleteId, editingCustomer, setEditingCustomer, customerEditDraft, setCustomerEditDraft, selectedProject, setSelectedProject, activeTab, setActiveTab, activeContentMenu, setActiveContentMenu, homeWorkView, setHomeWorkView, quickNoteTitleDraft, setQuickNoteTitleDraft, quickNoteDraft, setQuickNoteDraft, editingQuickNoteId, setEditingQuickNoteId, quickNoteSearch, setQuickNoteSearch, pendingDeleteQuickNoteId, setPendingDeleteQuickNoteId, isQuickNoteSearchOpen, setIsQuickNoteSearchOpen, isQuickNoteComposerOpen, setIsQuickNoteComposerOpen, quickNotes, setQuickNotes, boardView, setBoardView, mobileActiveColumnId, setMobileActiveColumnId, zrcMobileColumnRefreshKey, setZrcMobileColumnRefreshKey, calendarMonthDate, setCalendarMonthDate, calendarNewTaskDate, setCalendarNewTaskDate, calendarQuickTaskDraft, setCalendarQuickTaskDraft, calendarTaskModalContext, setCalendarTaskModalContext, isCalendarDisplayMenuOpen, setIsCalendarDisplayMenuOpen, isMenuCalendarFilterOpen, setIsMenuCalendarFilterOpen, isMenuCalendarStatusOpen, setIsMenuCalendarStatusOpen, menuCalendarStatusFilter, setMenuCalendarStatusFilter, calendarView, setCalendarView, calendarFocusedDate, setCalendarFocusedDate, timeChartView, setTimeChartView, timeChartStartDate, setTimeChartStartDate, timeChartSearch, setTimeChartSearch, isTimeChartFilterOpen, setIsTimeChartFilterOpen, isTimeChartSettingsOpen, setIsTimeChartSettingsOpen, timeChartFilters, setTimeChartFilters, timeChartSettings, setTimeChartSettings, ganttView, setGanttView, ganttStartDate, setGanttStartDate, ganttSearch, setGanttSearch, ganttShowCompleted, setGanttShowCompleted, fileSearch, setFileSearch, fileTypeFilter, setFileTypeFilter, selectedProjectFileKey, setSelectedProjectFileKey, pendingFileDeleteKey, setPendingFileDeleteKey, isNotificationsOpen, setIsNotificationsOpen, activityNotifications, setActivityNotifications, readNotificationIds, setReadNotificationIds, isGlobalSearchOpen, setIsGlobalSearchOpen, isMobileProjectPickerOpen, setIsMobileProjectPickerOpen, isMobileTaskWizardOpen, setIsMobileTaskWizardOpen, mobileTaskWizardStep, setMobileTaskWizardStep, mobileTaskWizardData, setMobileTaskWizardData, globalSearchQuery, setGlobalSearchQuery, globalSearchFilter, setGlobalSearchFilter, isMessagesOpen, setIsMessagesOpen, projectMessages, setProjectMessages, readMessageIds, setReadMessageIds, messageDraft, setMessageDraft, messageLinkedTaskId, setMessageLinkedTaskId, isMessageTaskPickerOpen, setIsMessageTaskPickerOpen, chatGroups, setChatGroups, selectedChatGroupId, setSelectedChatGroupId, chatGroupDraft, setChatGroupDraft, chatGroupSearch, setChatGroupSearch, chatPageDraft, setChatPageDraft, isChatGroupModalOpen, setIsChatGroupModalOpen, isChatActionMenuOpen, setIsChatActionMenuOpen, activeProfileTab, setActiveProfileTab, openProfileDropdown, setOpenProfileDropdown, profileDraft, setProfileDraft, profilePreferences, setProfilePreferences, emailAccountDraft, setEmailAccountDraft, pendingProfileDelete, setPendingProfileDelete, calendarDisplayOptions, setCalendarDisplayOptions, projectSettings, setProjectSettings, projectSettingsDraft, setProjectSettingsDraft, isProjectTeamPickerOpen, setIsProjectTeamPickerOpen, getInitialSelectedProject, timeChartScrollRef, calendarTaskOpenLockRef, ganttScrollRef, profileAvatarInputRef, dataImportInputRef, currentAuthUserIdForRole, hasSupabaseAuthUserForRole, currentRoleMember, currentProfileNameParts, rawCurrentProfileName, currentProfileName, currentProfileInitials, currentProfileAvatar, normalizedCurrentRawRole, isZrcOwnerAccount, currentUserRole, currentAccountType, isLoggedIn, currentPermissions, currentActorId, currentActorName, currentActorAvatar} = useZRCAppCoreState();
 
@@ -3335,7 +3336,9 @@ function App() {
   const loadWorkspaceStructureFromSupabase = async () => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    if (!workspaceId || authSessionLoading) return;
+    if (!workspaceId || authSessionLoading) {
+      return { ok: false, projectNames: [] };
+    }
 
     try {
       const { data: dbCustomers, error: customersError } = await supabase
@@ -3479,14 +3482,15 @@ function App() {
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase çalışma alanı yüklendi');
+      return {
+        ok: true,
+        projectNames: cleanDbProjects.map((project) => project.name).filter(Boolean)
+      };
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase çalışma alanı okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      return { ok: false, projectNames: [] };
     }
   };
-
-  useEffect(() => {
-    loadWorkspaceStructureFromSupabase();
-  }, [supabaseWorkspaceId, currentUserId, authSessionLoading]);
 
 
   const getSupabaseProjectIdForName = async (projectName = selectedProject, createIfMissing = false) => {
@@ -3606,7 +3610,7 @@ function App() {
   const loadProfileAndPreferencesFromSupabase = async () => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
 
-    if (!workspaceId || !isSupabaseUuid(currentUserId) || authSessionLoading) return;
+    if (!workspaceId || !isSupabaseUuid(currentUserId) || authSessionLoading) return false;
 
     try {
       const { data: profile, error: profileError } = await supabase
@@ -3679,8 +3683,10 @@ function App() {
       }
 
       zrcSetSupabaseWriteInfo('saved', 'Supabase profil/tercih yüklendi');
+      return true;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase profil okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      return false;
     }
   };
 
@@ -4468,12 +4474,73 @@ function App() {
     }
   };
 
+  const currentSupabaseHydrationScopeKey =
+    isSupabaseUuid(currentUserId) && supabaseWorkspaceId
+      ? `${supabaseWorkspaceId}:${currentUserId}`
+      : '';
+
+  const isInitialSupabaseHydrationLoading =
+    Boolean(currentUserId) &&
+    isSupabaseUuid(currentUserId) &&
+    (
+      authSessionLoading ||
+      !currentSupabaseHydrationScopeKey ||
+      initialSupabaseHydrationScopeKey !== currentSupabaseHydrationScopeKey
+    );
+
   useEffect(() => {
-    loadProfileAndPreferencesFromSupabase();
+    if (authSessionLoading) return undefined;
+
+    if (!currentUserId || !isSupabaseUuid(currentUserId)) {
+      setInitialSupabaseHydrationScopeKey('');
+      return undefined;
+    }
+
+    if (!currentSupabaseHydrationScopeKey) return undefined;
+    if (initialSupabaseHydrationScopeKey === currentSupabaseHydrationScopeKey) return undefined;
+
+    let isCancelled = false;
+
+    const runInitialSupabaseHydration = async () => {
+      const workspaceResult = await loadWorkspaceStructureFromSupabase();
+      const bootstrapProjectName =
+        selectedProject ||
+        workspaceResult?.projectNames?.[0] ||
+        String(readStorageValue('selectedProject', '') || '').trim();
+
+      if (bootstrapProjectName) {
+        await loadSelectedProjectBoardFromSupabase(bootstrapProjectName);
+      }
+
+      await loadProfileAndPreferencesFromSupabase();
+      await loadQuickNotesFromSupabase();
+      await loadActivityLogsFromSupabase();
+      await loadChatsAndMessagesFromSupabase();
+
+      if (isCancelled) return;
+
+      setSupabaseLastFullRefreshAt(new Date().toISOString());
+      setInitialSupabaseHydrationScopeKey(currentSupabaseHydrationScopeKey);
+    };
+
+    void runInitialSupabaseHydration();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    authSessionLoading,
+    currentSupabaseHydrationScopeKey,
+    currentUserId,
+    initialSupabaseHydrationScopeKey
+  ]);
+
+  useEffect(() => {
+    if (isInitialSupabaseHydrationLoading) return;
     loadQuickNotesFromSupabase();
     loadActivityLogsFromSupabase();
     loadChatsAndMessagesFromSupabase();
-  }, [supabaseWorkspaceId, currentUserId, authSessionLoading]);
+  }, [supabaseWorkspaceId, currentUserId, authSessionLoading, isInitialSupabaseHydrationLoading]);
 
 
 
@@ -5398,10 +5465,11 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
   };
 
 
-  const loadSelectedProjectBoardFromSupabase = async () => {
+  const loadSelectedProjectBoardFromSupabase = async (projectNameOverride = '') => {
     const workspaceId = getCurrentSupabaseWorkspaceId();
+    const targetProjectName = String(projectNameOverride || selectedProject || '').trim();
 
-    if (!workspaceId || !selectedProject || authSessionLoading) return;
+    if (!workspaceId || !targetProjectName || authSessionLoading) return false;
 
     zrcSetSupabaseWriteInfo('saving', 'Supabase görevler okunuyor');
 
@@ -5410,14 +5478,14 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         .from('projects')
         .select('id, name')
         .eq('workspace_id', workspaceId)
-        .eq('name', selectedProject)
+        .eq('name', targetProjectName)
         .maybeSingle();
 
       if (projectError) throw projectError;
 
       if (!projectRecord?.id) {
         zrcSetSupabaseWriteInfo('saved', 'Supabase proje henüz boş');
-        return;
+        return true;
       }
 
       const { data: dbColumns, error: columnsError } = await supabase
@@ -5524,16 +5592,19 @@ const mergeSupabaseBoardIntoLocalState = (projectName, dbColumns = [], incomingD
         }));
       }
 
-      mergeSupabaseBoardIntoLocalState(selectedProject, dbColumns || [], enrichedTasks);
+      mergeSupabaseBoardIntoLocalState(targetProjectName, dbColumns || [], enrichedTasks);
       zrcSetSupabaseWriteInfo('saved', 'Supabase görev ve detaylar yüklendi');
+      return true;
     } catch (error) {
       zrcSetSupabaseWriteInfo('error', `Supabase okuma hatası: ${error?.message || 'bilinmeyen hata'}`);
+      return false;
     }
   };
 
   useEffect(() => {
+    if (isInitialSupabaseHydrationLoading) return;
     loadSelectedProjectBoardFromSupabase();
-  }, [selectedProject, supabaseWorkspaceId, currentUserId, supabaseAuthUserId, authSessionLoading]);
+  }, [selectedProject, supabaseWorkspaceId, currentUserId, supabaseAuthUserId, authSessionLoading, isInitialSupabaseHydrationLoading]);
 
 
   // --- MODAL KAYIT İŞLEMLERİ ---
@@ -10520,7 +10591,7 @@ const filterTaskFollowersForSave = (people = []) =>
 
   
 
-  if (authSessionLoading) {
+  if (authSessionLoading || isInitialSupabaseHydrationLoading) {
     return (
       <div className="min-h-screen bg-[#f4f6fb] flex items-center justify-center">
         <span className="text-sm font-semibold text-slate-500" role="status">
