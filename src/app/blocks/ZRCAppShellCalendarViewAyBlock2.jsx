@@ -147,6 +147,34 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
     right: segment.endsOnDay ? '10px' : '-13px'
   });
 
+  const getCalendarTaskKey = (task = {}) => {
+    const taskId = task.id || task.supabaseId || task.title || 'task';
+    return `${task.projectName || ''}-${taskId}`;
+  };
+
+  const calendarWeekTaskLayouts = (Array.isArray(calendarGridDays) ? calendarGridDays : []).reduce((layouts, day, dayIndex) => {
+    const weekIndex = Math.floor(dayIndex / 7);
+    const currentLayout = layouts[weekIndex] || {
+      dayTasksByKey: new Map(),
+      laneByTaskKey: new Map(),
+      tasksByKey: new Map()
+    };
+    const dayKey = day.toISOString();
+    const dayTasks = getMenuCalendarTasksForDay(day);
+
+    currentLayout.dayTasksByKey.set(dayKey, dayTasks);
+    dayTasks.forEach((task) => {
+      const taskKey = getCalendarTaskKey(task);
+      if (!currentLayout.tasksByKey.has(taskKey)) {
+        currentLayout.tasksByKey.set(taskKey, task);
+        currentLayout.laneByTaskKey.set(taskKey, currentLayout.laneByTaskKey.size);
+      }
+    });
+
+    layouts[weekIndex] = currentLayout;
+    return layouts;
+  }, []);
+
   return (
     calendarView === 'Ay' && (
                       <>
@@ -162,8 +190,13 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                         </div>
 
                         <div className="grid grid-cols-7 grid-rows-[repeat(6,93px)]">
-                          {calendarGridDays.map((day) => {
-                            const dayTasks = getMenuCalendarTasksForDay(day);
+                          {calendarGridDays.map((day, dayIndex) => {
+                            const weekLayout = calendarWeekTaskLayouts[Math.floor(dayIndex / 7)];
+                            const dayTasks = weekLayout?.dayTasksByKey.get(day.toISOString()) || [];
+                            const overflowTaskCount = dayTasks.filter((task) => {
+                              const laneIndex = weekLayout?.laneByTaskKey.get(getCalendarTaskKey(task));
+                              return typeof laneIndex === 'number' && laneIndex >= 3;
+                            }).length;
                             const isCurrentMonth = day.getMonth() === calendarMonthDate.getMonth();
                             const isToday = isSameCalendarDay(day, todayStart);
 
@@ -203,13 +236,18 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                 </div>
 
                                 <div className="relative z-10 mt-3 h-[28px]">
-                                  {dayTasks.slice(0, 3).map((task, index) => {
+                                  {dayTasks.map((task) => {
+                                    const taskKey = getCalendarTaskKey(task);
+                                    const laneIndex = weekLayout?.laneByTaskKey.get(taskKey);
+
+                                    if (typeof laneIndex !== 'number' || laneIndex >= 3) return null;
+
                                     const lineSegment = getTaskLineSegment(task, day);
                                     const taskTooltip = getPremiumCalendarTaskTooltip(task);
 
                                     return (
                                       <button
-                                      key={`home-cal-task-${day.toISOString()}-${task.projectName}-${task.id}`}
+                                      key={`home-cal-task-${day.toISOString()}-${taskKey}`}
                                       type="button"
                                       data-calendar-task-button="true"
                                       data-zrc-calendar-tooltip={taskTooltip}
@@ -229,16 +267,16 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                       }}
                                       aria-label={taskTooltip}
                                       className="zrc-calendar-task-line absolute z-20 block h-[3px] border-0 text-left transition-all hover:brightness-95 hover:shadow-[0_1px_4px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f2937]/25"
-                                      style={{ ...lineSegment.style, ...getTaskLinePlacement(lineSegment, index) }}
+                                      style={{ ...lineSegment.style, ...getTaskLinePlacement(lineSegment, laneIndex) }}
                                     >
                                       <span className="sr-only">{taskTooltip}</span>
                                       </button>
                                     );
                                   })}
 
-                                  {dayTasks.length > 3 && (
+                                  {overflowTaskCount > 0 && (
                                     <div className="absolute left-0 top-[24px] px-1 text-[8px] font-bold text-[#b8bfca]">
-                                      +{dayTasks.length - 3}
+                                      +{overflowTaskCount}
                                     </div>
                                   )}
                                 </div>
