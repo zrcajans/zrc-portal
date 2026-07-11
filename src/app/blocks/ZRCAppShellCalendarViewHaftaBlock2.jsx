@@ -75,7 +75,9 @@ export default function ZRCAppShellCalendarViewHaftaBlock2(props) {
     l,
     py,
     shadow,
+    getPremiumCalendarLineStyle,
     getPremiumCalendarTaskStyle,
+    getPremiumCalendarTaskTooltip,
     formatMenuCalendarTaskTime
   } = props;
 

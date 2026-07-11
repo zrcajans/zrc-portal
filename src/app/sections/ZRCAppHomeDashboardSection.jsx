@@ -583,7 +583,9 @@ export default function ZRCAppHomeDashboardSection({
                       e4e9f1={typeof e4e9f1 !== 'undefined' ? e4e9f1 : undefined}
                       l={typeof l !== 'undefined' ? l : undefined}
                       shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                      getPremiumCalendarLineStyle={getPremiumCalendarLineStyle}
                       getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                      getPremiumCalendarTaskTooltip={getPremiumCalendarTaskTooltip}
                       shrink={typeof shrink !== 'undefined' ? shrink : undefined}
                       getPremiumCalendarDotStyle={typeof getPremiumCalendarDotStyle !== 'undefined' ? getPremiumCalendarDotStyle : undefined}
                       black={typeof black !== 'undefined' ? black : undefined}
@@ -669,7 +671,9 @@ export default function ZRCAppHomeDashboardSection({
                       l={typeof l !== 'undefined' ? l : undefined}
                       py={typeof py !== 'undefined' ? py : undefined}
                       shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                      getPremiumCalendarLineStyle={getPremiumCalendarLineStyle}
                       getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                      getPremiumCalendarTaskTooltip={getPremiumCalendarTaskTooltip}
                       formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
                     />
 
@@ -719,7 +723,9 @@ export default function ZRCAppHomeDashboardSection({
                       current={typeof current !== 'undefined' ? current : undefined}
                       truncate={typeof truncate !== 'undefined' ? truncate : undefined}
                       shadow={typeof shadow !== 'undefined' ? shadow : undefined}
+                      getPremiumCalendarLineStyle={getPremiumCalendarLineStyle}
                       getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                      getPremiumCalendarTaskTooltip={getPremiumCalendarTaskTooltip}
                       max={typeof max !== 'undefined' ? max : undefined}
                       overflow={typeof overflow !== 'undefined' ? overflow : undefined}
                       auto={typeof auto !== 'undefined' ? auto : undefined}
