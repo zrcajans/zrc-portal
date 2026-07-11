@@ -7260,8 +7260,8 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
   const getPremiumCalendarLineStyle = (task = {}) => {
     const accentColor = getCalendarTaskAccentColor(task);
     return {
-      backgroundColor: mixHexWithWhite(accentColor, 0.9),
-      borderLeftColor: accentColor,
+      backgroundColor: accentColor,
+      '--zrc-calendar-line-end-color': accentColor,
       color: '#1f2937'
     };
   };

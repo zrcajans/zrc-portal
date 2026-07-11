@@ -130,24 +130,21 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
     const endsVisualSegment = endsOnDay || day.getDay() === 0;
 
     return {
+      startsOnDay,
+      endsOnDay,
       startsVisualSegment,
       endsVisualSegment,
       style: {
         ...getPremiumCalendarLineStyle(task),
-        borderLeftStyle: 'solid',
-        borderLeftWidth: startsOnDay ? '3px' : '0px',
-        borderTopLeftRadius: startsVisualSegment ? '9999px' : '0px',
-        borderBottomLeftRadius: startsVisualSegment ? '9999px' : '0px',
-        borderTopRightRadius: endsVisualSegment ? '9999px' : '0px',
-        borderBottomRightRadius: endsVisualSegment ? '9999px' : '0px'
+        borderRadius: '0px'
       }
     };
   };
 
   const getTaskLinePlacement = (segment, index) => ({
     top: `${index * 8}px`,
-    left: segment.startsVisualSegment ? '10px' : '-1px',
-    right: segment.endsVisualSegment ? '10px' : '-1px'
+    left: segment.startsOnDay ? '10px' : '-2px',
+    right: segment.endsOnDay ? '10px' : '-2px'
   });
 
   return (
@@ -217,6 +214,8 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                       data-calendar-task-button="true"
                                       data-zrc-calendar-tooltip={taskTooltip}
                                       data-zrc-fixed-tooltip="true"
+                                      data-zrc-line-start={lineSegment.startsOnDay ? 'true' : undefined}
+                                      data-zrc-line-end={lineSegment.endsOnDay ? 'true' : undefined}
                                       onMouseUp={(event) => event.stopPropagation()}
                                       onMouseEnter={(event) => showTooltipFromPointer(taskTooltip, event)}
                                       onMouseMove={(event) => showTooltipFromPointer(taskTooltip, event)}
