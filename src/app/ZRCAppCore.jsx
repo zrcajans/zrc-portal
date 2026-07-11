@@ -9473,8 +9473,7 @@ const filterTaskFollowersForSave = (people = []) =>
         ? 'Projelerinizdeki Açık İşler'
         : 'Size Atanan Görevler';
 
-  const homeCalendarTasks = homeAllProjectTasks
-    .filter((task) => isTaskVisibleInCalendarForCurrentUser(task, task.projectName))
+  const homeCalendarTasks = homeAssignedTasks
     .filter((task) => !isReportTaskCompleted(task))
     .filter((task) => task.calendarStartDate || task.calendarEndDate || task.homeDate)
     .sort((firstTask, secondTask) => {
