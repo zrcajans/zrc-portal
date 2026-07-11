@@ -776,8 +776,9 @@ export default function ZRCAppHomeDashboardSection({
                                     key={`home-list-task-${group.day.toISOString()}-${task.projectName}-${task.id}`}
                                     type="button"
                                     onClick={() => openMenuCalendarTask(task)}
-                                    title={getPremiumCalendarTaskTooltip(task)}
-                                    className="w-full h-[16px] border-b border-[#edf0f4] border-l-[4px] text-left hover:opacity-85 transition-opacity"
+                                    data-zrc-calendar-tooltip={getPremiumCalendarTaskTooltip(task)}
+                                    aria-label={getPremiumCalendarTaskTooltip(task)}
+                                    className="zrc-calendar-task-line w-full h-[4px] border-b border-[#edf0f4] border-l-[3px] text-left transition-all hover:brightness-95"
                                     style={getPremiumCalendarLineStyle(task)}
                                   >
                                   <span className="sr-only">{getPremiumCalendarTaskTooltip(task)}</span>

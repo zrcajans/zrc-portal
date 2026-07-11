@@ -80,6 +80,31 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
     b8bfca
   } = props;
 
+  const getTaskLineSegment = (task, day) => {
+    const taskStart = task.calendarStartDate || task.homeDate || task.calendarEndDate;
+    const taskEnd = task.calendarEndDate || task.homeDate || task.calendarStartDate;
+    const toDayStamp = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const dayStamp = toDayStamp(day);
+    const startsOnDay = taskStart && toDayStamp(taskStart) === dayStamp;
+    const endsOnDay = taskEnd && toDayStamp(taskEnd) === dayStamp;
+    const startsVisualSegment = startsOnDay || day.getDay() === 1;
+    const endsVisualSegment = endsOnDay || day.getDay() === 0;
+
+    return {
+      startsVisualSegment,
+      endsVisualSegment,
+      style: {
+        ...getPremiumCalendarLineStyle(task),
+        borderLeftStyle: 'solid',
+        borderLeftWidth: startsOnDay ? '3px' : '0px',
+        borderTopLeftRadius: startsVisualSegment ? '9999px' : '0px',
+        borderBottomLeftRadius: startsVisualSegment ? '9999px' : '0px',
+        borderTopRightRadius: endsVisualSegment ? '9999px' : '0px',
+        borderBottomRightRadius: endsVisualSegment ? '9999px' : '0px'
+      }
+    };
+  };
+
   return (
     calendarView === 'Ay' && (
                       <>
@@ -117,7 +142,7 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                     openHomeCalendarQuickTaskForDate(day, event);
                                   }
                                 }}
-                                className={`min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-hidden cursor-pointer ${
+                                className={`relative min-h-0 border-r border-b border-[#eceff4] px-3 py-2 text-left transition-all hover:bg-[#fafcff] overflow-visible cursor-pointer ${
                                   isCurrentMonth ? 'bg-white' : 'bg-[#fbfcfe]'
                                 }`}
                               >
@@ -135,24 +160,32 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                   </span>
                                 </div>
 
-                                <div className="mt-2 space-y-1">
-                                  {dayTasks.slice(0, 3).map((task) => (
-                                    <button
+                                <div className="relative z-10 mt-2 space-y-1">
+                                  {dayTasks.slice(0, 3).map((task) => {
+                                    const lineSegment = getTaskLineSegment(task, day);
+                                    const taskTooltip = getPremiumCalendarTaskTooltip(task);
+
+                                    return (
+                                      <button
                                       key={`home-cal-task-${day.toISOString()}-${task.projectName}-${task.id}`}
                                       type="button"
                                       data-calendar-task-button="true"
+                                      data-zrc-calendar-tooltip={taskTooltip}
                                       onMouseUp={(event) => event.stopPropagation()}
                                       onClick={(event) => {
                                         event.stopPropagation();
                                         openMenuCalendarTask(task);
                                       }}
-                                      title={getPremiumCalendarTaskTooltip(task)}
-                                      className="w-full h-[8px] overflow-hidden rounded-full border border-transparent border-l-[4px] text-left transition-all hover:opacity-85"
-                                      style={getPremiumCalendarLineStyle(task)}
+                                      aria-label={taskTooltip}
+                                      className={`zrc-calendar-task-line relative z-10 block h-[4px] w-full border-0 text-left transition-all hover:brightness-95 hover:shadow-[0_1px_4px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f2937]/25 ${
+                                        lineSegment.startsVisualSegment ? 'ml-0' : '-ml-3'
+                                      } ${lineSegment.endsVisualSegment ? 'mr-0' : '-mr-[13px]'}`}
+                                      style={lineSegment.style}
                                     >
-                                      <span className="sr-only">{getPremiumCalendarTaskTooltip(task)}</span>
-                                    </button>
-                                  ))}
+                                      <span className="sr-only">{taskTooltip}</span>
+                                      </button>
+                                    );
+                                  })}
 
                                   {dayTasks.length > 3 && (
                                     <div className="text-[8px] font-bold text-[#b8bfca] px-1">

@@ -37,6 +37,32 @@ export function ZRCAppGlobalStyles() {
         .rte-btn { padding: 4px 8px; border-radius: 4px; color: #4b5563; font-weight: bold; font-size: 11.5px; transition: background-color 0.15s; cursor: pointer; }
         .rte-btn:hover { background-color: #e5e7eb; }
         [contenteditable=true]:empty:before { content: attr(placeholder); color: #9ca3af; pointer-events: none; display: block; }
+        .zrc-calendar-task-line { position: relative; overflow: visible !important; }
+        .zrc-calendar-task-line::after {
+          content: attr(data-zrc-calendar-tooltip);
+          position: absolute;
+          left: 0;
+          top: calc(100% + 6px);
+          z-index: 80;
+          width: max-content;
+          max-width: 240px;
+          padding: 5px 8px;
+          border: 1px solid rgba(148, 163, 184, 0.25);
+          border-radius: 5px;
+          background: rgba(30, 41, 59, 0.78);
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.13);
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 10px;
+          font-weight: 600;
+          line-height: 1.25;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transform: translateY(-2px);
+          transition: opacity 140ms ease, transform 140ms ease;
+        }
+        .zrc-calendar-task-line:hover::after,
+        .zrc-calendar-task-line:focus-visible::after { opacity: 1; transform: translateY(0); }
       `}
     </style>;
 }

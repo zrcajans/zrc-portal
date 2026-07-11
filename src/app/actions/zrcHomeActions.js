@@ -246,9 +246,6 @@ export function createZRCHomeActions(deps) {
       setSelectedProject(task.projectName);
     }
 
-    setActiveContentMenu('Projeler');
-    setActiveMenu('Projeler');
-    setActiveTab('Görevler');
     openTaskDetail(task, task.columnTitle);
   };
 

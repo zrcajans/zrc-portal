@@ -135,12 +135,13 @@ export default function ZRCAppShellCalendarViewGunBlock(props) {
                                     <button
                                       key={`home-day-task-${task.projectName}-${task.id}`}
                                       type="button"
+                                      data-zrc-calendar-tooltip={getPremiumCalendarTaskTooltip(task)}
                                       onClick={(event) => {
                                         event.stopPropagation();
                                         openMenuCalendarTask(task);
                                       }}
-                                      title={getPremiumCalendarTaskTooltip(task)}
-                                      className="absolute left-1 right-6 top-2 h-[8px] rounded-full border border-transparent border-l-[4px] text-left overflow-hidden transition-all hover:opacity-85"
+                                      aria-label={getPremiumCalendarTaskTooltip(task)}
+                                      className="zrc-calendar-task-line absolute left-1 right-6 top-2 h-[4px] rounded-full border border-transparent border-l-[3px] text-left transition-all hover:brightness-95"
                                       style={getPremiumCalendarLineStyle(task)}
                                     >
                                       <span className="sr-only">{getPremiumCalendarTaskTooltip(task)}</span>
