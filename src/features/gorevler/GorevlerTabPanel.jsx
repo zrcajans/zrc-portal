@@ -58,6 +58,8 @@ export default function GorevlerTabPanel(props) {
     M3,
     setBoardView,
     boardView,
+    showOnlyMyTasks,
+    setShowOnlyMyTasks,
     pb,
     space,
     auto,
@@ -238,33 +240,54 @@ export default function GorevlerTabPanel(props) {
                         </div>
                       </div>
 
-                      <div className="hidden md:flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setBoardView('Tüm Görevler')}
-                          className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
-                            boardView === 'Tüm Görevler' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+                          type="button"
+                          onClick={() => setShowOnlyMyTasks((previous) => !previous)}
+                          aria-pressed={showOnlyMyTasks}
+                          aria-label="Sadece sizin görevleriniz"
+                          title="Sadece sizin görevleriniz"
+                          className={`h-9 px-3 rounded-full text-[10.5px] font-extrabold select-none transition-all flex items-center gap-1.5 max-md:h-8 max-md:px-2.5 max-md:text-[9px] ${
+                            showOnlyMyTasks
+                              ? 'bg-[#ff3600] text-white shadow-[0_8px_18px_rgba(255,54,0,0.18)]'
+                              : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
                           }`}
                         >
-                          Tüm Görevler
+                          <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0" />
+                          </svg>
+                          <span className="hidden md:inline">Sadece sizin görevleriniz</span>
+                          <span className="md:hidden">Benim</span>
                         </button>
 
-                        <button
-                          onClick={() => setBoardView('Üyelere Göre')}
-                          className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
-                            boardView === 'Üyelere Göre' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                          }`}
-                        >
-                          Üyelere Göre
-                        </button>
+                        <div className="hidden md:flex items-center gap-2">
+                          <button
+                            onClick={() => setBoardView('Tüm Görevler')}
+                            className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
+                              boardView === 'Tüm Görevler' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+                            }`}
+                          >
+                            Tüm Görevler
+                          </button>
 
-                        <button
-                          onClick={() => setBoardView('Arşiv')}
-                          className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
-                            boardView === 'Arşiv' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                          }`}
-                        >
-                          Arşiv
-                        </button>
+                          <button
+                            onClick={() => setBoardView('Üyelere Göre')}
+                            className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
+                              boardView === 'Üyelere Göre' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+                            }`}
+                          >
+                            Üyelere Göre
+                          </button>
+
+                          <button
+                            onClick={() => setBoardView('Arşiv')}
+                            className={`h-9 px-3.5 rounded-full text-[10.5px] font-extrabold select-none transition-all ${
+                              boardView === 'Arşiv' ? 'bg-[#1d5fd3] text-white shadow-[0_8px_18px_rgba(29,95,211,0.18)]' : 'bg-white border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+                            }`}
+                          >
+                            Arşiv
+                          </button>
+                        </div>
                       </div>
                     </div>
 

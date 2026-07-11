@@ -41,7 +41,7 @@ export default function MobileWorkspace({
   homeAssignedTasks = [],
   onUpdateTaskDescription
 }) {
-  const [activeMobilePage, setActiveMobilePage] = useState('projects');
+  const [activeMobilePage, setActiveMobilePage] = useState('assigned');
 
   const closeFloatingPanels = () => {
     setIsPanelOpen(false);

@@ -35,7 +35,7 @@ export default function MobileAssignedTasks({
   return (
     <section className="zrc-mobile-assigned-tasks" aria-labelledby="zrc-mobile-assigned-tasks-title">
       <div className="zrc-mobile-assigned-tasks-head">
-        <h2 id="zrc-mobile-assigned-tasks-title">Size Atanan Görevler</h2>
+        <h2 id="zrc-mobile-assigned-tasks-title">Görevlerim</h2>
         <b aria-label={`${safeTasks.length} görev`}>{safeTasks.length}</b>
       </div>
 

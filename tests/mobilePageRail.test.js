@@ -20,7 +20,7 @@ test('mobile page navigation sits in the top header instead of the left edge', a
     'utf8'
   );
 
-  assert.match(workspace, /useState\('projects'\)/);
+  assert.match(workspace, /useState\('assigned'\)/);
   assert.doesNotMatch(workspace, /<MobilePageRail/);
   assert.match(workspace, /<MobilePremiumHeader/);
   assert.match(workspace, /activePage=\{activeMobilePage\}/);
@@ -41,7 +41,7 @@ test('mobile page navigation sits in the top header instead of the left edge', a
   assert.doesNotMatch(header, /<span className="zrc-mobile-top-page-nav-label">Bildirim<\/span>/);
   assert.doesNotMatch(header, /zrc-mobile-brand-logo/);
 
-  assert.match(assigned, /Size Atanan Görevler/);
+  assert.match(assigned, /Görevlerim/);
   assert.match(assigned, /setSelectedTask\(task\)/);
   assert.match(assigned, /<MobileTaskDetailSheet/);
   assert.match(assigned, /formatZrcDateTime/);

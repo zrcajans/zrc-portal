@@ -165,7 +165,7 @@ export default function ZRCAppHomeDashboardSection({
                 <div className="min-w-0">
                   <section className="mb-8">
                     <div className="h-7 mb-2 flex items-center gap-2">
-                      <h2 className="text-[13px] font-bold text-[#293241] tracking-[-0.01em]">Size Atanan Görevler</h2>
+                      <h2 className="text-[13px] font-bold text-[#293241] tracking-[-0.01em]">Görevlerim</h2>
                       <span className="h-[18px] min-w-[27px] px-2 rounded-full bg-[#f28b57] text-white text-[9px] font-black flex items-center justify-center leading-none">
                         {homeAssignedTasks.length}
                       </span>
