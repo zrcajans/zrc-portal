@@ -6777,6 +6777,71 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
   const getTeamMemberNameById = (memberId = '') =>
     getTeamMemberById(memberId)?.name || 'Bilinmeyen kişi';
 
+  const getTeamMemberForTaskPerson = (person = {}) => {
+    const personId = String(person?.id || person?.userId || person?.authUserId || '').trim();
+    if (personId) {
+      const matchedById = teamMembers.find((member) => String(member.id || '').trim() === personId);
+      if (matchedById) return matchedById;
+    }
+
+    const personEmail = normalizeCredentialText(person?.email || '');
+    if (personEmail) {
+      const matchedByEmail = teamMembers.find((member) => normalizeCredentialText(member.email || '') === personEmail);
+      if (matchedByEmail) return matchedByEmail;
+    }
+
+    const personUsername = normalizeCredentialText(person?.username || '');
+    if (personUsername) {
+      const matchedByUsername = teamMembers.find((member) => normalizeCredentialText(member.username || '') === personUsername);
+      if (matchedByUsername) return matchedByUsername;
+    }
+
+    const personName = normalizeCredentialText(person?.name || '');
+    if (personName) {
+      const matchedByName = teamMembers.find((member) => normalizeCredentialText(member.name || '') === personName);
+      if (matchedByName) return matchedByName;
+    }
+
+    return null;
+  };
+
+  const hydrateTaskPersonFromTeam = (person = {}) => {
+    if (!person || typeof person !== 'object') return person;
+
+    if (isZrcAjansIdentityRecord(person)) {
+      return {
+        ...person,
+        name: 'ZRC AJANS',
+        username: person.username || 'zrcajans',
+        email: person.email || 'info@zrcajans.com',
+        avatar: currentProfileAvatar || getAvatarCandidate(person) || 'ZRC',
+        role: 'Yönetici'
+      };
+    }
+
+    const matchedMember = getTeamMemberForTaskPerson(person);
+    if (!matchedMember) {
+      return {
+        ...person,
+        avatar: getAvatarCandidate(person) || createAvatarFromName(person.name || 'Kullanıcı')
+      };
+    }
+
+    return {
+      ...person,
+      id: matchedMember.id,
+      userId: person.userId || matchedMember.id,
+      name: matchedMember.name || person.name,
+      username: matchedMember.username || person.username || '',
+      email: matchedMember.email || person.email || '',
+      avatar: getAvatarCandidate(matchedMember, person) || createAvatarFromName(matchedMember.name || person.name || 'Kullanıcı'),
+      role: normalizeTeamRole(matchedMember.role || person.role || 'Ekip Üyesi')
+    };
+  };
+
+  const hydrateTaskPeopleFromTeam = (people = []) =>
+    (Array.isArray(people) ? people : []).map(hydrateTaskPersonFromTeam);
+
   const createProjectTeamHistoryEntry = (type, title, description, memberIds = [], projectName = selectedProject) => {
     const now = new Date();
 
@@ -6861,6 +6926,49 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
       };
     });
   };
+
+  useEffect(() => {
+    if (!Array.isArray(teamMembers) || teamMembers.length === 0) return;
+
+    setProjectBoards((prevBoards) => {
+      let hasChanges = false;
+
+      const nextBoards = Object.fromEntries(
+        Object.entries(prevBoards || {}).map(([projectName, board]) => {
+          const hydrateTask = (task = {}) => {
+            const nextAssignees = hydrateTaskPeopleFromTeam(task.assignees || []);
+            const nextFollowers = hydrateTaskPeopleFromTeam(task.followers || []);
+
+            const assigneesChanged = JSON.stringify(nextAssignees) !== JSON.stringify(task.assignees || []);
+            const followersChanged = JSON.stringify(nextFollowers) !== JSON.stringify(task.followers || []);
+
+            if (!assigneesChanged && !followersChanged) return task;
+
+            hasChanges = true;
+            return {
+              ...task,
+              assignees: nextAssignees,
+              followers: nextFollowers
+            };
+          };
+
+          return [
+            projectName,
+            {
+              ...board,
+              columns: (board?.columns || []).map((column) => ({
+                ...column,
+                tasks: (column.tasks || []).map(hydrateTask)
+              })),
+              archivedTasks: (board?.archivedTasks || []).map(hydrateTask)
+            }
+          ];
+        })
+      );
+
+      return hasChanges ? nextBoards : prevBoards;
+    });
+  }, [teamMembers, currentProfileAvatar]);
 
 
 
