@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 export default function ZRCAppShellCalendarViewAyBlock2(props) {
   const {
@@ -80,6 +81,44 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
     b8bfca
   } = props;
 
+  const [hoveredTaskTooltip, setHoveredTaskTooltip] = React.useState(null);
+
+  const getSafeTooltipX = (clientX) => {
+    if (typeof window === 'undefined') return clientX;
+    return Math.min(Math.max(clientX, 156), window.innerWidth - 156);
+  };
+
+  const createTooltipState = (taskTooltip, clientX, clientY, placement = 'above') => ({
+    text: taskTooltip,
+    x: getSafeTooltipX(clientX),
+    y: clientY,
+    placement
+  });
+
+  const showTooltipFromPointer = (taskTooltip, event) => {
+    if (!taskTooltip) return;
+    setHoveredTaskTooltip(createTooltipState(taskTooltip, event.clientX, event.clientY - 4));
+  };
+
+  const showTooltipFromFocus = (taskTooltip, currentTarget) => {
+    if (!taskTooltip || !currentTarget) return;
+    const targetRect = currentTarget.getBoundingClientRect();
+    const prefersBelow = targetRect.top < 90;
+
+    setHoveredTaskTooltip(
+      createTooltipState(
+        taskTooltip,
+        targetRect.left + (targetRect.width / 2),
+        prefersBelow ? targetRect.bottom : targetRect.top,
+        prefersBelow ? 'below' : 'above'
+      )
+    );
+  };
+
+  const hideTooltip = () => {
+    setHoveredTaskTooltip(null);
+  };
+
   const getTaskLineSegment = (task, day) => {
     const taskStart = task.calendarStartDate || task.homeDate || task.calendarEndDate;
     const taskEnd = task.calendarEndDate || task.homeDate || task.calendarStartDate;
@@ -104,6 +143,12 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
       }
     };
   };
+
+  const getTaskLinePlacement = (segment, index) => ({
+    top: `${index * 8}px`,
+    left: segment.startsVisualSegment ? '10px' : '-1px',
+    right: segment.endsVisualSegment ? '10px' : '-1px'
+  });
 
   return (
     calendarView === 'Ay' && (
@@ -160,8 +205,8 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                   </span>
                                 </div>
 
-                                <div className="relative z-10 mt-2 space-y-1">
-                                  {dayTasks.slice(0, 3).map((task) => {
+                                <div className="relative z-10 mt-3 h-[28px]">
+                                  {dayTasks.slice(0, 3).map((task, index) => {
                                     const lineSegment = getTaskLineSegment(task, day);
                                     const taskTooltip = getPremiumCalendarTaskTooltip(task);
 
@@ -171,16 +216,21 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                       type="button"
                                       data-calendar-task-button="true"
                                       data-zrc-calendar-tooltip={taskTooltip}
+                                      data-zrc-fixed-tooltip="true"
                                       onMouseUp={(event) => event.stopPropagation()}
+                                      onMouseEnter={(event) => showTooltipFromPointer(taskTooltip, event)}
+                                      onMouseMove={(event) => showTooltipFromPointer(taskTooltip, event)}
+                                      onMouseLeave={hideTooltip}
+                                      onFocus={(event) => showTooltipFromFocus(taskTooltip, event.currentTarget)}
+                                      onBlur={hideTooltip}
                                       onClick={(event) => {
                                         event.stopPropagation();
+                                        hideTooltip();
                                         openMenuCalendarTask(task);
                                       }}
                                       aria-label={taskTooltip}
-                                      className={`zrc-calendar-task-line relative z-10 block h-[4px] w-full border-0 text-left transition-all hover:brightness-95 hover:shadow-[0_1px_4px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f2937]/25 ${
-                                        lineSegment.startsVisualSegment ? 'ml-0' : '-ml-3'
-                                      } ${lineSegment.endsVisualSegment ? 'mr-0' : '-mr-[13px]'}`}
-                                      style={lineSegment.style}
+                                      className="zrc-calendar-task-line absolute z-20 block h-[3px] border-0 text-left transition-all hover:brightness-95 hover:shadow-[0_1px_4px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f2937]/25"
+                                      style={{ ...lineSegment.style, ...getTaskLinePlacement(lineSegment, index) }}
                                     >
                                       <span className="sr-only">{taskTooltip}</span>
                                       </button>
@@ -188,7 +238,7 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                                   })}
 
                                   {dayTasks.length > 3 && (
-                                    <div className="text-[8px] font-bold text-[#b8bfca] px-1">
+                                    <div className="absolute left-0 top-[24px] px-1 text-[8px] font-bold text-[#b8bfca]">
                                       +{dayTasks.length - 3}
                                     </div>
                                   )}
@@ -197,6 +247,24 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
                             );
                           })}
                         </div>
+                        {hoveredTaskTooltip && typeof document !== 'undefined'
+                          ? createPortal(
+                              <div
+                                className="pointer-events-none fixed z-[120] max-w-[280px] rounded-[8px] border border-white/15 bg-[rgba(31,41,55,0.82)] px-3 py-2 text-[11px] font-semibold leading-[1.35] text-white shadow-[0_14px_32px_rgba(15,23,42,0.18)] backdrop-blur-[8px]"
+                                style={{
+                                  left: `${hoveredTaskTooltip.x}px`,
+                                  top: `${hoveredTaskTooltip.y}px`,
+                                  maxWidth: 'min(280px, calc(100vw - 24px))',
+                                  transform: hoveredTaskTooltip.placement === 'below'
+                                    ? 'translate(-50%, 12px)'
+                                    : 'translate(-50%, calc(-100% - 12px))'
+                                }}
+                              >
+                                {hoveredTaskTooltip.text}
+                              </div>,
+                              document.body
+                            )
+                          : null}
                       </>
                     )
   );
