@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getScopedStorageKey } from '../../app/utils/storageScopeHelpers.js';
+import { renderProfileAvatar } from '../../utils/avatarHelpers';
 
 function Sidebar({
   activeMenu,
@@ -244,15 +245,9 @@ function Sidebar({
                 : 'bg-zinc-900 text-white border-white/20 hover:border-white'
             }`}
           >
-            {profileDraft?.avatarDataUrl ? (
-              <img
-                src={profileDraft.avatarDataUrl}
-                alt="Profil"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-[12px] font-black tracking-[-0.04em]">{profileInitials}</span>
-            )}
+            <span className="text-[12px] font-black tracking-[-0.04em] w-full h-full flex items-center justify-center overflow-hidden">
+              {renderProfileAvatar(profileDraft?.avatarDataUrl, profileInitials)}
+            </span>
           </button>
         </div>
 

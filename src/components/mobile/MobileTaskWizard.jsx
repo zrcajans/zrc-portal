@@ -1,4 +1,5 @@
 import React from 'react';
+import { getAvatarCandidate } from '../../utils/avatarHelpers';
 
 export default function MobileTaskWizard({
   isOpen,
@@ -170,7 +171,7 @@ export default function MobileTaskWizard({
                                 role: normalizeTeamRole(member?.role || 'Ekip Üyesi'),
                                 username: member?.username || '',
                                 email: member?.email || '',
-                                avatar: member?.avatar || member?.avatarUrl || member?.photoUrl || member?.imageUrl || member?.profileImageUrl || member?.avatar_url || member?.photo_url || ''
+                                avatar: getAvatarCandidate(member)
                               }
                             ]
                           };

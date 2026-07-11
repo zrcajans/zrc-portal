@@ -1,5 +1,5 @@
 import { formatZrcDate, formatZrcDateTime, formatZrcTime } from '../../utils/dateDisplayHelpers';
-import { createAvatarFromName } from '../../utils/avatarHelpers';
+import { createAvatarFromName, getAvatarCandidate } from '../../utils/avatarHelpers';
 import { normalizeCredentialText, normalizeCustomerRecord, normalizeTeamMember } from '../../utils/teamHelpers';
 
 export const formatDateStringShort = (dateStr) => {
@@ -139,7 +139,7 @@ export const mapSupabaseWorkspaceMemberToLocal = (member = {}) => {
       password: '',
       role: member.role || 'Ekip Üyesi',
       customerId: member.customer_id || '',
-      avatar: profile?.avatar_url || createAvatarFromName(memberName),
+      avatar: getAvatarCandidate(member, profile) || createAvatarFromName(memberName),
       status: member.status || 'Aktif'
     });
   };

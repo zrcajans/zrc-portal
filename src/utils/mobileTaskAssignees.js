@@ -1,3 +1,5 @@
+import { getAvatarCandidate } from './avatarHelpers.jsx';
+
 export function resolveMobileTaskCardAssignees(task = {}, teamMembers = [], createAvatarFromName = (value) => value) {
   const directAssignees = Array.isArray(task.assignees) ? task.assignees : [];
   const directIds = [
@@ -65,18 +67,7 @@ export function resolveMobileTaskCardAssignees(task = {}, teamMembers = [], crea
       ...person,
       name: person.name || person.fullName || person.displayName || person.email || 'Görevli',
       avatar:
-        person.avatar ||
-        person.photoUrl ||
-        person.avatarUrl ||
-        person.imageUrl ||
-        person.profileImageUrl ||
-        person.profilePhotoUrl ||
-        person.photo_url ||
-        person.avatar_url ||
-        person.image_url ||
-        person.profile_image_url ||
-        person.profile_photo_url ||
-        person.picture ||
+        getAvatarCandidate(person) ||
         createAvatarFromName(person.name || person.fullName || person.displayName || person.email || 'Görevli')
     });
   });

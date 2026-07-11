@@ -1,4 +1,4 @@
-import { createAvatarFromName } from './avatarHelpers.jsx';
+import { createAvatarFromName, getAvatarCandidate } from './avatarHelpers.jsx';
 import { sanitizeTeamMemberCredentials } from './credentialSafetyHelpers.js';
 
 export const teamRoleOptions = ['Yönetici', 'Ekip Üyesi', 'Müşteri/Misafir'];
@@ -61,7 +61,7 @@ export const createUsernameFromMember = (member = {}) => {
 export const normalizeTeamMember = (member = {}) => sanitizeTeamMemberCredentials({
   ...member,
   role: normalizeTeamRole(member.role),
-  avatar: member.avatar || createAvatarFromName(member.name),
+  avatar: getAvatarCandidate(member) || createAvatarFromName(member.name),
   username: createUsernameFromMember(member),
   customerId: member.customerId || member.linkedCustomerId || ''
 });

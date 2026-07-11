@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { createAvatarFromName } from '../../utils/avatarHelpers';
+import { createAvatarFromName, renderProfileAvatar } from '../../utils/avatarHelpers';
 import { formatZrcDate, formatZrcDateRange } from '../../utils/dateDisplayHelpers';
 
 const createTaskDetailHistoryId = () =>
@@ -56,13 +56,7 @@ function TaskDetailModal({ isOpen, task, columnTitle, onClose, onEdit, onUpdate,
   };
 
   const renderDetailProfileAvatar = (avatar, fallback = 'K') => {
-    const cleanAvatar = avatar || fallback;
-
-    if (typeof cleanAvatar === 'string' && cleanAvatar.startsWith('data:image')) {
-      return <img src={cleanAvatar} alt="Profil" className="w-full h-full object-cover" />;
-    }
-
-    return <span>{typeof cleanAvatar === 'string' ? cleanAvatar : fallback}</span>;
+    return renderProfileAvatar(avatar, fallback);
   };
 
   useEffect(() => {

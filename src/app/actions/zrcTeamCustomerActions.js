@@ -31,6 +31,7 @@ export function createZRCTeamCustomerActions(deps) {
     editingTeamMember,
     teamMemberEditDraft,
     createAvatarFromName,
+    getAvatarCandidate,
     setBoardColumns,
     setArchivedTasks,
     customerDraft,
@@ -503,7 +504,7 @@ export function createZRCTeamCustomerActions(deps) {
       password: '',
       role,
       customerId,
-      avatar: editingTeamMember.avatar?.startsWith?.('data:image') ? editingTeamMember.avatar : createAvatarFromName(name)
+      avatar: getAvatarCandidate?.(editingTeamMember) || createAvatarFromName(name)
     };
     // zrc-v404c-team-role-persist
     const zrcEditedMemberId = String(editingTeamMember?.id || '').trim();

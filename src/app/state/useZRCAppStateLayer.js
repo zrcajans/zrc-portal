@@ -20,7 +20,7 @@ import {
   createDefaultTeamMembers,
   createDefaultCustomers
 } from '../../utils/teamHelpers';
-import { createAvatarFromName } from '../../utils/avatarHelpers';
+import { createAvatarFromName, getAvatarCandidate } from '../../utils/avatarHelpers';
 import {
   createDefaultProjectBoard,
   createDefaultProjectSettings
@@ -429,10 +429,7 @@ export function useZRCAppCoreState() {
   const currentProfileInitials = createAvatarFromName(currentProfileName);
 
   const currentProfileAvatar =
-    profileDraft.avatarDataUrl ||
-    (typeof currentRoleMember?.avatar === 'string' && currentRoleMember.avatar.startsWith('data:image')
-      ? currentRoleMember.avatar
-      : '') ||
+    getAvatarCandidate(profileDraft.avatarDataUrl, currentRoleMember) ||
     currentProfileInitials;
 
   const normalizedCurrentRawRole = normalizeTeamRole(currentRoleMember?.role || '');

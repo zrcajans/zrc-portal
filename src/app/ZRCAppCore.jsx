@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import MobileTaskMoveButtons from '../components/mobile/MobileTaskMoveButtons';
 import ZRCErrorBoundary from '../components/common/ZRCErrorBoundary';
-import { createAvatarFromName, renderProfileAvatar } from '../utils/avatarHelpers';
+import { createAvatarFromName, getAvatarCandidate, isImageAvatar, renderProfileAvatar } from '../utils/avatarHelpers';
 import {
   getSupabaseSafeDate
 } from '../utils/appSafeHelpers';
@@ -5077,7 +5077,7 @@ function App() {
           name: currentRoleMember.name,
           username: currentRoleMember.username || '',
           email: currentRoleMember.email || '',
-          avatar: currentRoleMember.avatar || createAvatarFromName(currentRoleMember.name),
+          avatar: getAvatarCandidate(currentRoleMember) || createAvatarFromName(currentRoleMember.name),
           role: normalizeTeamRole(currentRoleMember.role)
         };
       }
@@ -5101,7 +5101,7 @@ function App() {
       name: matchedMember.name,
       username: matchedMember.username || '',
       email: matchedMember.email || '',
-      avatar: matchedMember.avatar || createAvatarFromName(matchedMember.name),
+      avatar: getAvatarCandidate(matchedMember) || createAvatarFromName(matchedMember.name),
       role: normalizeTeamRole(matchedMember.role)
     };
   };
@@ -7633,7 +7633,7 @@ const requirePermission = (permissionKey, message = 'Bu işlem için yetkin yok.
           {
             id: member.id,
             name: member.name,
-            avatar: member.avatar || createAvatarFromName(member.name),
+            avatar: getAvatarCandidate(member) || createAvatarFromName(member.name),
             role: normalizeTeamRole(member.role || 'Yönetici')
           }
         ])
@@ -8867,7 +8867,7 @@ const selectedProjectSettings = projectSettings[selectedProject] || createDefaul
       name: matchedMember.name,
       username: matchedMember.username || '',
       email: matchedMember.email || '',
-      avatar: matchedMember.avatar || createAvatarFromName(matchedMember.name),
+      avatar: getAvatarCandidate(matchedMember) || createAvatarFromName(matchedMember.name),
       role: normalizeTeamRole(matchedMember.role)
     };
   };
@@ -9106,6 +9106,7 @@ const filterTaskFollowersForSave = (people = []) =>
     editingTeamMember,
     teamMemberEditDraft,
     createAvatarFromName,
+    getAvatarCandidate,
     setBoardColumns,
     setArchivedTasks,
     customerDraft,
@@ -9828,13 +9829,7 @@ const filterTaskFollowersForSave = (people = []) =>
   };
 
   const getLoginAvatar = (member) => {
-    const avatar = member?.avatar || createAvatarFromName(member?.name);
-
-    if (typeof avatar === 'string' && avatar.startsWith('data:image')) {
-      return <img src={avatar} alt={member.name} className="w-full h-full object-cover" />;
-    }
-
-    return <span>{avatar || createAvatarFromName(member?.name)}</span>;
+    return renderProfileAvatar(member, createAvatarFromName(member?.name));
   };
 
   const syncProfileFromMember = (member) => {
@@ -9844,8 +9839,8 @@ const filterTaskFollowersForSave = (people = []) =>
     const nameParts = String(displayName).trim().split(/\s+/).filter(Boolean);
     const firstName = nameParts[0] || 'Kullanıcı';
     const lastName = nameParts.slice(1).join(' ');
-    const avatar = member?.avatar || '';
-    const avatarDataUrl = typeof avatar === 'string' && avatar.startsWith('data:image') ? avatar : '';
+    const avatar = getAvatarCandidate(member);
+    const avatarDataUrl = isImageAvatar(avatar) ? avatar : '';
 
     setProfileDraft((prev) => ({
       ...prev,
@@ -9950,7 +9945,7 @@ const filterTaskFollowersForSave = (people = []) =>
       username: membership.username || authUser.email || '',
       password: '',
       role: membership.role || 'Ekip Üyesi',
-      avatar: profile?.avatar_url || createAvatarFromName(memberName),
+      avatar: getAvatarCandidate(profile) || createAvatarFromName(memberName),
       status: membership.status || profile?.status || 'Aktif',
       customerId: membership.customer_id || ''
     });

@@ -1,8 +1,12 @@
 {
-  "build": "v537b-rollback-v537-action-split",
-  "note": "v537 action/handler extraction canlıda ReferenceError: error is not defined runtime hatası oluşturduğu için geri alındı.",
-  "reason": "Build başarılıydı fakat runtime'da unhandledrejection oluştu.",
-  "shellLinesAfterRollback": 16228,
-  "commitAfterRevertBeforeThisNote": "3f63fba",
-  "createdAt": "2026-06-16T08:01:07.081746+00:00"
+  "build": "v542-avatar-stability",
+  "note": "Ekip üyesi profil fotoğrafları için avatar alanları tek kaynaktan normalize edildi; URL, base64 ve blob görseller her ekranda aynı şekilde okunur.",
+  "changed": [
+    "Supabase profiles.avatar_url ve yerel avatar alanları ortak avatar seçiciden geçirildi.",
+    "Aktif kullanıcı/profil senkronizasyonunda URL fotoğrafın baş harfe düşmesi engellendi.",
+    "Kırık fotoğraf yüklenirse avatar boş kalmak yerine kullanıcının baş harflerine düşer.",
+    "Masaüstü, mobil görev kartları, ekip listeleri, görev modalları ve sidebar aynı avatar çiziciyi kullanır."
+  ],
+  "dataVersionChanged": false,
+  "createdAt": "2026-07-11T16:57:58+03:00"
 }

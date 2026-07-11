@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { getAvatarCandidate, renderProfileAvatar } from '../../utils/avatarHelpers';
 
 const defaultStatusOptions = [
   { label: 'Yeni Görev', bg: '#f4bd61', text: '#7a4c0f' },
@@ -477,22 +478,10 @@ function MiniUser({ user }) {
   const avatarValue = String(user?.avatar || '').trim();
   const cleanName = String(user?.name || '').trim();
   const fallbackInitials = createAvatarFromName(cleanName || 'Kullanıcı');
-  const shouldRenderImage =
-    avatarValue.startsWith('data:image') ||
-    avatarValue.startsWith('http://') ||
-    avatarValue.startsWith('https://');
-  const safeTextAvatar =
-    avatarValue && avatarValue.length <= 4 && !avatarValue.includes('/')
-      ? avatarValue
-      : fallbackInitials;
 
   return (
     <span className="w-6 h-6 rounded-full bg-[#8c5220] text-white text-[8px] font-black flex items-center justify-center overflow-hidden shrink-0">
-      {shouldRenderImage ? (
-        <img src={avatarValue} alt={cleanName || 'Kullanıcı'} className="w-full h-full object-cover" />
-      ) : (
-        safeTextAvatar
-      )}
+      {renderProfileAvatar(avatarValue, fallbackInitials)}
     </span>
   );
 }
@@ -547,7 +536,7 @@ export default function TaskModal({
     .map((user, index) => ({
       id: user.id || `user-${index}`,
       name: user.name || 'İsimsiz Kişi',
-      avatar: user.avatar || createAvatarFromName(user.name),
+      avatar: getAvatarCandidate(user) || createAvatarFromName(user.name),
       role: user.role || '',
       username: user.username || '',
       email: user.email || ''

@@ -121,7 +121,7 @@ export const zrcV426bApplyDueDateColors = (value, ...args) => {
   return value;
 };
 
-export const ZRC_APP_BUILD_LABEL = 'v519-mega-shell-and-top-level-split';
+export const ZRC_APP_BUILD_LABEL = 'v542-avatar-stability';
 
 
 
