@@ -30,7 +30,7 @@ test('mobile page navigation sits in the top header instead of the left edge', a
   assert.match(workspace, /getMobileTaskCardAssignees=\{getMobileTaskCardAssignees\}/);
   assert.match(workspace, /onUpdateTaskDescription=\{onUpdateTaskDescription\}/);
 
-  assert.match(header, /label: 'Atananlar'/);
+  assert.match(header, /label: 'Görevlerim'/);
   assert.match(header, /label: 'Projeler'/);
   assert.match(header, /Bildirim/);
   assert.match(header, /aria-label="Mobil sayfalar"/);
