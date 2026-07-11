@@ -208,6 +208,8 @@ export default function ZRCAppAuthenticatedShell({
     editingQuickNoteId,
     formatMenuCalendarTaskTime,
     formatMenuCalendarWeekHeader,
+    getPremiumCalendarLineStyle,
+    getPremiumCalendarTaskTooltip,
     getHomeCalendarAllDayTasks,
     getHomeCalendarTasksForHour,
     getHomeTasksForCalendarDay,
