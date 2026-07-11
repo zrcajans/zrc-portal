@@ -38,6 +38,19 @@ export function ZRCAppGlobalStyles() {
         .rte-btn:hover { background-color: #e5e7eb; }
         [contenteditable=true]:empty:before { content: attr(placeholder); color: #9ca3af; pointer-events: none; display: block; }
         .zrc-calendar-task-line { overflow: visible !important; }
+        .zrc-calendar-task-line-endpoint {
+          position: absolute;
+          top: 50%;
+          width: 5px;
+          height: 5px;
+          border-radius: 9999px;
+          background: var(--zrc-calendar-line-end-color);
+          filter: brightness(0.68);
+          transform: translateY(-50%);
+          pointer-events: none;
+        }
+        .zrc-calendar-task-line-endpoint-start { left: -2px; }
+        .zrc-calendar-task-line-endpoint-end { right: -2px; }
         .zrc-calendar-task-line[data-zrc-line-start="true"]::before,
         .zrc-calendar-task-line[data-zrc-line-end="true"]::after {
           content: '';

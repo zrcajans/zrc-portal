@@ -66,6 +66,8 @@ export default function ZRCAppMenuCalendarSection({
   getMenuCalendarTasksForDay,
   getMenuCalendarTasksForHour,
   getPremiumCalendarDotStyle,
+  getPremiumCalendarLineStyle,
+  getPremiumCalendarTaskTooltip,
   getPremiumCalendarTaskStyle,
   goToNextCalendarPeriod,
   goToPreviousCalendarPeriod,
@@ -326,6 +328,8 @@ export default function ZRCAppMenuCalendarSection({
                   getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
                   shrink={typeof shrink !== 'undefined' ? shrink : undefined}
                   getPremiumCalendarDotStyle={typeof getPremiumCalendarDotStyle !== 'undefined' ? getPremiumCalendarDotStyle : undefined}
+                  getPremiumCalendarLineStyle={typeof getPremiumCalendarLineStyle !== 'undefined' ? getPremiumCalendarLineStyle : undefined}
+                  getPremiumCalendarTaskTooltip={typeof getPremiumCalendarTaskTooltip !== 'undefined' ? getPremiumCalendarTaskTooltip : undefined}
                   current={typeof current !== 'undefined' ? current : undefined}
                   formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
                   min={typeof min !== 'undefined' ? min : undefined}
@@ -389,6 +393,8 @@ export default function ZRCAppMenuCalendarSection({
                   current={typeof current !== 'undefined' ? current : undefined}
                   shadow={typeof shadow !== 'undefined' ? shadow : undefined}
                   getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
+                  getPremiumCalendarLineStyle={typeof getPremiumCalendarLineStyle !== 'undefined' ? getPremiumCalendarLineStyle : undefined}
+                  getPremiumCalendarTaskTooltip={typeof getPremiumCalendarTaskTooltip !== 'undefined' ? getPremiumCalendarTaskTooltip : undefined}
                   max={typeof max !== 'undefined' ? max : undefined}
                   auto={typeof auto !== 'undefined' ? auto : undefined}
                   custom={typeof custom !== 'undefined' ? custom : undefined}
@@ -422,6 +428,8 @@ export default function ZRCAppMenuCalendarSection({
         formatMenuCalendarTaskTime={typeof formatMenuCalendarTaskTime !== 'undefined' ? formatMenuCalendarTaskTime : undefined}
         getMenuCalendarHolidayLabel={typeof getMenuCalendarHolidayLabel !== 'undefined' ? getMenuCalendarHolidayLabel : undefined}
         getMenuCalendarTasksForHour={typeof getMenuCalendarTasksForHour !== 'undefined' ? getMenuCalendarTasksForHour : undefined}
+        getPremiumCalendarLineStyle={typeof getPremiumCalendarLineStyle !== 'undefined' ? getPremiumCalendarLineStyle : undefined}
+        getPremiumCalendarTaskTooltip={typeof getPremiumCalendarTaskTooltip !== 'undefined' ? getPremiumCalendarTaskTooltip : undefined}
         getPremiumCalendarTaskStyle={typeof getPremiumCalendarTaskStyle !== 'undefined' ? getPremiumCalendarTaskStyle : undefined}
         hour={typeof hour !== 'undefined' ? hour : undefined}
         hourTasks={typeof hourTasks !== 'undefined' ? hourTasks : undefined}

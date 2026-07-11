@@ -812,6 +812,8 @@ export default function ZRCAppAuthenticatedShell({
             getMenuCalendarTasksForDay={getMenuCalendarTasksForDay}
             getMenuCalendarTasksForHour={getMenuCalendarTasksForHour}
             getPremiumCalendarDotStyle={getPremiumCalendarDotStyle}
+            getPremiumCalendarLineStyle={getPremiumCalendarLineStyle}
+            getPremiumCalendarTaskTooltip={getPremiumCalendarTaskTooltip}
             getPremiumCalendarTaskStyle={getPremiumCalendarTaskStyle}
             goToNextCalendarPeriod={goToNextCalendarPeriod}
             goToPreviousCalendarPeriod={goToPreviousCalendarPeriod}

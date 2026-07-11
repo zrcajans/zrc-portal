@@ -81,6 +81,25 @@ export default function ZRCAppShellCalendarViewHaftaBlock2(props) {
     formatMenuCalendarTaskTime
   } = props;
 
+  const getCalendarTaskKey = (task = {}) => `${task.projectName || ''}-${task.id || task.supabaseId || task.title || 'task'}`;
+  const weekHourLayouts = menuCalendarHours.map((hour) => {
+    const dayTasksByKey = new Map();
+    const laneByTaskKey = new Map();
+
+    calendarWeekDays.forEach((day) => {
+      const dayKey = day.toISOString();
+      const hourTasks = getMenuCalendarTasksForHour(day, hour);
+      dayTasksByKey.set(dayKey, hourTasks);
+
+      hourTasks.forEach((task) => {
+        const taskKey = getCalendarTaskKey(task);
+        if (!laneByTaskKey.has(taskKey)) laneByTaskKey.set(taskKey, laneByTaskKey.size);
+      });
+    });
+
+    return { dayTasksByKey, laneByTaskKey };
+  });
+
   return (
     calendarView === 'Hafta' && (
                       <div className="bg-white">
@@ -140,13 +159,15 @@ export default function ZRCAppShellCalendarViewHaftaBlock2(props) {
                         </div>
 
                         <div className="max-h-[528px] overflow-y-auto custom-scrollbar">
-                          {menuCalendarHours.map((hour) => (
+                          {menuCalendarHours.map((hour, hourIndex) => (
                             <div key={`home-week-hour-${hour}`} className="grid grid-cols-[54px_repeat(7,1fr)] h-[48px] border-b border-[#edf0f4]">
                               <div className="px-2 pt-1.5 text-[10px] font-semibold text-[#4b5563] border-r border-[#edf0f4]">
                                 {hour}:00
                               </div>
                               {calendarWeekDays.map((day) => {
-                                const hourTasks = getMenuCalendarTasksForHour(day, hour);
+                                const hourLayout = weekHourLayouts[hourIndex];
+                                const hourTasks = hourLayout?.dayTasksByKey.get(day.toISOString()) || [];
+                                const overflowTaskCount = hourTasks.filter((task) => (hourLayout?.laneByTaskKey.get(getCalendarTaskKey(task)) ?? 999) >= 3).length;
 
                                 return (
                                   <div
@@ -155,7 +176,12 @@ export default function ZRCAppShellCalendarViewHaftaBlock2(props) {
                                     onClick={(event) => openHomeCalendarQuickTaskForDate(day, event)}
                                     className="relative border-r border-[#edf0f4] last:border-r-0 bg-[repeating-linear-gradient(135deg,#fff_0,#fff_8px,#fbfbfb_8px,#fbfbfb_16px)] cursor-pointer hover:bg-[#fafcff]"
                                   >
-                                    {hourTasks.slice(0, 2).map((task) => (
+                                    {hourTasks.map((task) => {
+                                      const laneIndex = hourLayout?.laneByTaskKey.get(getCalendarTaskKey(task));
+
+                                      if (typeof laneIndex !== 'number' || laneIndex >= 3) return null;
+
+                                      return (
                                       <button
                                         key={`home-week-task-${task.projectName}-${task.id}`}
                                         type="button"
@@ -167,12 +193,17 @@ export default function ZRCAppShellCalendarViewHaftaBlock2(props) {
                                           openMenuCalendarTask(task);
                                         }}
                                         aria-label={getPremiumCalendarTaskTooltip(task)}
-                                        className="zrc-calendar-task-line absolute left-1 right-1 top-2 h-[4px] rounded-full border border-transparent border-l-[3px] text-left transition-all hover:brightness-95"
-                                        style={getPremiumCalendarLineStyle(task)}
+                                        className="zrc-calendar-task-line absolute left-1 right-1 block h-[4px] rounded-full border-0 text-left transition-all hover:brightness-95"
+                                        style={{ ...getPremiumCalendarLineStyle(task), top: `${8 + (laneIndex * 8)}px` }}
                                       >
                                         <span className="sr-only">{getPremiumCalendarTaskTooltip(task)}</span>
                                       </button>
-                                    ))}
+                                      );
+                                    })}
+
+                                    {overflowTaskCount > 0 && (
+                                      <span className="absolute right-1 bottom-1 text-[8px] font-black text-[#9aa3b1]">+{overflowTaskCount}</span>
+                                    )}
                                   </div>
                                 );
                               })}
