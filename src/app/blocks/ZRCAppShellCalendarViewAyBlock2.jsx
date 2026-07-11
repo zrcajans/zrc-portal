@@ -143,8 +143,8 @@ export default function ZRCAppShellCalendarViewAyBlock2(props) {
 
   const getTaskLinePlacement = (segment, index) => ({
     top: `${index * 8}px`,
-    left: segment.startsOnDay ? '10px' : '-2px',
-    right: segment.endsOnDay ? '10px' : '-2px'
+    left: segment.startsOnDay ? '10px' : '-13px',
+    right: segment.endsOnDay ? '10px' : '-13px'
   });
 
   return (
