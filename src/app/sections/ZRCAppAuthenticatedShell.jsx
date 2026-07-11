@@ -208,6 +208,9 @@ export default function ZRCAppAuthenticatedShell({
     editingQuickNoteId,
     formatMenuCalendarTaskTime,
     formatMenuCalendarWeekHeader,
+    getHomeCalendarAllDayTasks,
+    getHomeCalendarTasksForHour,
+    getHomeTasksForCalendarDay,
     getMenuCalendarAllDayTasks,
     getMenuCalendarTasksForDay,
     getMenuCalendarTasksForHour,
@@ -216,6 +219,7 @@ export default function ZRCAppAuthenticatedShell({
     goToNextCalendarPeriod,
     goToPreviousCalendarPeriod,
     homeAssignedTasks,
+    homeCalendarListGroups,
     isCalendarDisplayMenuOpen,
     isQuickNoteComposerOpen,
     isQuickNoteSearchOpen,
@@ -751,9 +755,9 @@ export default function ZRCAppAuthenticatedShell({
             editingQuickNoteId={editingQuickNoteId}
             formatMenuCalendarTaskTime={formatMenuCalendarTaskTime}
             formatMenuCalendarWeekHeader={formatMenuCalendarWeekHeader}
-            getMenuCalendarAllDayTasks={getMenuCalendarAllDayTasks}
-            getMenuCalendarTasksForDay={getMenuCalendarTasksForDay}
-            getMenuCalendarTasksForHour={getMenuCalendarTasksForHour}
+            getMenuCalendarAllDayTasks={getHomeCalendarAllDayTasks}
+            getMenuCalendarTasksForDay={getHomeTasksForCalendarDay}
+            getMenuCalendarTasksForHour={getHomeCalendarTasksForHour}
             getPremiumCalendarDotStyle={getPremiumCalendarDotStyle}
             getPremiumCalendarTaskStyle={getPremiumCalendarTaskStyle}
             goToNextCalendarPeriod={goToNextCalendarPeriod}
@@ -764,7 +768,7 @@ export default function ZRCAppAuthenticatedShell({
             isQuickNoteSearchOpen={isQuickNoteSearchOpen}
             isSameCalendarDay={isSameCalendarDay}
             menuCalendarHours={menuCalendarHours}
-            menuCalendarListGroups={menuCalendarListGroups}
+            menuCalendarListGroups={homeCalendarListGroups}
             openHomeCalendarQuickTaskForDate={openHomeCalendarQuickTaskForDate}
             openHomeTaskDetail={openHomeTaskDetail}
             openMenuCalendarTask={openMenuCalendarTask}
